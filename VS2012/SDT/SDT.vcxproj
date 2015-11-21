@@ -1,0 +1,322 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{480EFAA7-D8BB-4C6C-B902-D7910E2C09DD}</ProjectGuid>
+    <RootNamespace>SDT</RootNamespace>
+    <Keyword>MFCProj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v120_xp</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+    <UseOfMfc>Dynamic</UseOfMfc>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v120_xp</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+    <UseOfMfc>Static</UseOfMfc>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)..\Linux_MAC\code\Openssl\1.0.1f\Win32\include</IncludePath>
+    <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(SolutionDir)..\Linux_MAC\code\Openssl\1.0.1f\Win32\lib</LibraryPath>
+    <LibraryWPath>$(WindowsSDK_MetadataPath);</LibraryWPath>
+    <ExecutablePath>$(VC_ExecutablePath_x86);$(WindowsSDK_ExecutablePath);$(VS_ExecutablePath);$(MSBuild_ExecutablePath);$(SystemRoot)\SysWow64;$(FxCopDir);$(PATH);</ExecutablePath>
+    <ExcludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(MSBuild_ExecutablePath);$(VC_LibraryPath_x86);</ExcludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)..\Linux_MAC\code\Openssl\1.0.1f\Win32\include</IncludePath>
+    <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(SolutionDir)..\Linux_MAC\code\Openssl\1.0.1f\Win32\lib</LibraryPath>
+    <LibraryWPath>$(WindowsSDK_MetadataPath);</LibraryWPath>
+    <ExecutablePath>$(VC_ExecutablePath_x86);$(WindowsSDK_ExecutablePath);$(VS_ExecutablePath);$(MSBuild_ExecutablePath);$(SystemRoot)\SysWow64;$(FxCopDir);$(PATH);</ExecutablePath>
+    <ExcludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(MSBuild_ExecutablePath);$(VC_LibraryPath_x86);</ExcludePath>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>false</SDLCheck>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\Linux_MAC\code\Core;$(SolutionDir)..\Linux_MAC\code\Core\AppLayer;$(SolutionDir)..\Linux_MAC\code\Core\AppLayer\Script;$(SolutionDir)..\Linux_MAC\code\Core\Basis;$(SolutionDir)..\Linux_MAC\code\Core\BasisEx;$(SolutionDir)..\Linux_MAC\code\Core\Output;$(SolutionDir)..\Linux_MAC\code\Core\Communication;$(SolutionDir)..\Linux_MAC\code\Core\Linecse;$(SolutionDir)..\Linux_MAC\code\Core\Win7;$(SolutionDir)..\Linux_MAC\code\Core\Win7\MBIM;$(SolutionDir)..\Linux_MAC\code\UIConsole;$(SolutionDir)..\Linux_MAC\code\UIConsole\BIC;$(SolutionDir).\SDT;$(SolutionDir).\SDTReg</AdditionalIncludeDirectories>
+      <ExceptionHandling>Async</ExceptionHandling>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>mbnapi_uuid.lib</AdditionalDependencies>
+    </Link>
+    <Midl>
+      <MkTypLibCompatible>false</MkTypLibCompatible>
+      <ValidateAllParameters>true</ValidateAllParameters>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </Midl>
+    <ResourceCompile>
+      <Culture>0x0409</Culture>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>false</SDLCheck>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\Linux_MAC\code\Core;$(SolutionDir)..\Linux_MAC\code\Core\AppLayer;$(SolutionDir)..\Linux_MAC\code\Core\AppLayer\Script;$(SolutionDir)..\Linux_MAC\code\Core\Basis;$(SolutionDir)..\Linux_MAC\code\Core\BasisEx;$(SolutionDir)..\Linux_MAC\code\Core\Output;$(SolutionDir)..\Linux_MAC\code\Core\Communication;$(SolutionDir)..\Linux_MAC\code\Core\Linecse;$(SolutionDir)..\Linux_MAC\code\Core\Win7;$(SolutionDir)..\Linux_MAC\code\Core\Win7\MBIM;$(SolutionDir)..\Linux_MAC\code\UIConsole;$(SolutionDir)..\Linux_MAC\code\UIConsole\BIC;$(SolutionDir).\SDT;$(SolutionDir).\SDTReg</AdditionalIncludeDirectories>
+      <ExceptionHandling>Async</ExceptionHandling>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>mbnapi_uuid.lib</AdditionalDependencies>
+    </Link>
+    <Midl>
+      <MkTypLibCompatible>false</MkTypLibCompatible>
+      <ValidateAllParameters>true</ValidateAllParameters>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </Midl>
+    <ResourceCompile>
+      <Culture>0x0409</Culture>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <Text Include="ReadMe.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\Linux_MAC\code\Core\AppLayer.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\Core\AppLayer\ComEnum.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\Core\AppLayer\CommandGList.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\Core\AppLayer\CommandSList.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\Core\AppLayer\Device.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\Core\AppLayer\ParRecord.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\Core\AppLayer\Script\SBIC.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\Core\AppLayer\Script\SBIC_B.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\Core\AppLayer\Script\SBIC_Build.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\Core\AppLayer\Script\SBIC_Condition.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\Core\AppLayer\Script\SBIC_Expression.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\Core\AppLayer\Script\SBIC_RunExternal.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\Core\AppLayer\Script\SBIC_Search.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\Core\AppLayer\Script\Script.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\Core\AppLayer\SendFiles.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\Core\AppLayer\TelitCMUX.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\Core\BasisEx\Comm_Buffer.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\Core\BasisEx\Comm_Crypto.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\Core\BasisEx\Comm_File.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\Core\BasisEx\Comm_PA.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\Core\Basis\BasicClass.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\Core\Basis\BasicDef.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\Core\Basis\Basic_Include.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\Core\Basis\Comm_Convert.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\Core\Basis\Comm_FIFO.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\Core\Basis\Comm_Tree.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\Core\Basis\SYS_Lock.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\Core\Basis\SYS_Thread.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\Core\Basis\SYS_Time.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\Core\Communication\Commu_Com.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\Core\Communication\Commu_DBuf.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\Core\Communication\Commu_NTPServer.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\Core\Communication\Commu_Socket.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\Core\Communication\Commu_SocketServer.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\Core\Communication\Commu_SSLSocket.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\Core\Global.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\Core\GlobalDef.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\Core\Linecse\License_Checker.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\Core\Linecse\License_SSLSocket.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\Core\Linecse\SMC.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\Core\Linecse\SystemInfo.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\Core\Output\ColorRecord.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\Core\Output\ODEV_FILE.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\Core\Output\ODEV_Include.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\Core\Output\ODEV_LIST.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\Core\Output\ODEV_Node.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\Core\Output\ODEV_SDOUT.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\Core\Win7\MBIM\MBIM_DeviceService.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\UIConsole\BIC\BIC_AUX.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\UIConsole\BIC\BIC_B.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\UIConsole\BIC\BIC_Calc.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\UIConsole\BIC\BIC_CMUX.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\UIConsole\BIC\BIC_COM.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\UIConsole\BIC\BIC_Connect.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\UIConsole\BIC\BIC_Other.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\UIConsole\BIC\BIC_Script.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\UIConsole\BIC\BIC_Socket.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\UIConsole\BIC\BuildInCommand.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\UIConsole\Console.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\UIConsole\Terminal.h" />
+    <ClInclude Include="ChildFrm.h" />
+    <ClInclude Include="CMUXView.h" />
+    <ClInclude Include="COM_ViewList.h" />
+    <ClInclude Include="COM_ViewTree.h" />
+    <ClInclude Include="DLG_DevList.h" />
+    <ClInclude Include="DP_Calculator.h" />
+    <ClInclude Include="DP_GCCommand.h" />
+    <ClInclude Include="DP_GCProperties.h" />
+    <ClInclude Include="DP_GC.h" />
+    <ClInclude Include="DP_SC.h" />
+    <ClInclude Include="DP_Send.h" />
+    <ClInclude Include="DP_SocketList.h" />
+    <ClInclude Include="MainFrm.h" />
+    <ClInclude Include="Resource.h" />
+    <ClInclude Include="RibbonStatusBar.h" />
+    <ClInclude Include="SDT.h" />
+    <ClInclude Include="RichView.h" />
+    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="targetver.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\Linux_MAC\code\Core\AppLayer.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\Core\AppLayer\ComEnum.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\Core\AppLayer\CommandGList.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\Core\AppLayer\CommandSList.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\Core\AppLayer\Device.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\Core\AppLayer\ParRecord.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\Core\AppLayer\Script\SBIC.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\Core\AppLayer\Script\SBIC_B.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\Core\AppLayer\Script\SBIC_Build.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\Core\AppLayer\Script\SBIC_Condition.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\Core\AppLayer\Script\SBIC_Expression.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\Core\AppLayer\Script\SBIC_RunExternal.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\Core\AppLayer\Script\SBIC_Search.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\Core\AppLayer\Script\Script.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\Core\AppLayer\SendFiles.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\Core\AppLayer\TelitCMUX.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\Core\BasisEx\Comm_Buffer.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\Core\BasisEx\Comm_Crypto.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\Core\BasisEx\Comm_File.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\Core\BasisEx\Comm_PA.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\Core\Basis\Comm_Convert.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\Core\Basis\Comm_FIFO.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\Core\Basis\Comm_Tree.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\Core\Basis\SYS_Time.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\Core\Communication\Commu_Com.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\Core\Communication\Commu_DBuf.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\Core\Communication\Commu_NTPServer.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\Core\Communication\Commu_Socket.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\Core\Communication\Commu_SocketServer.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\Core\Communication\Commu_SSLSocket.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\Core\Linecse\License_Checker.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\Core\Linecse\License_SSLSocket.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\Core\Linecse\SMC.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\Core\Linecse\SystemInfo.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\Core\Output\ColorRecord.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\Core\Output\ODEV_FILE.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\Core\Output\ODEV_LIST.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\Core\Output\ODEV_Node.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\Core\Output\ODEV_SDOUT.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\Core\Win7\MBIM\MBIM_DeviceService.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\UIConsole\BIC\BIC_AUX.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\UIConsole\BIC\BIC_B.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\UIConsole\BIC\BIC_Calc.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\UIConsole\BIC\BIC_CMUX.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\UIConsole\BIC\BIC_COM.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\UIConsole\BIC\BIC_Connect.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\UIConsole\BIC\BIC_Other.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\UIConsole\BIC\BIC_Script.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\UIConsole\BIC\BIC_Socket.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\UIConsole\BIC\BuildInCommand.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\UIConsole\Console.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\UIConsole\Terminal.cpp" />
+    <ClCompile Include="ChildFrm.cpp" />
+    <ClCompile Include="CMUXView.cpp" />
+    <ClCompile Include="COM_ViewList.cpp" />
+    <ClCompile Include="COM_ViewTree.cpp" />
+    <ClCompile Include="DLG_DevList.cpp" />
+    <ClCompile Include="DP_Calculator.cpp" />
+    <ClCompile Include="DP_GCCommand.cpp" />
+    <ClCompile Include="DP_GC.cpp" />
+    <ClCompile Include="DP_GCProperties.cpp" />
+    <ClCompile Include="DP_SC.cpp" />
+    <ClCompile Include="DP_Send.cpp" />
+    <ClCompile Include="DP_SocketList.cpp" />
+    <ClCompile Include="MainFrm.cpp" />
+    <ClCompile Include="RibbonStatusBar.cpp" />
+    <ClCompile Include="SDT.cpp" />
+    <ClCompile Include="RichView.cpp" />
+    <ClCompile Include="stdafx.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="SDT.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="res\InUse\Calculator.ico" />
+    <Image Include="res\InUse\buttons.bmp" />
+    <Image Include="res\InUse\DLBarButton.bmp" />
+    <Image Include="res\InUse\DLBarButton_hc.bmp" />
+    <Image Include="res\InUse\GCCommandWnd.ico" />
+    <Image Include="res\InUse\GCPWnd.ico" />
+    <Image Include="res\InUse\GCViewBarButton.bmp" />
+    <Image Include="res\InUse\GCViewBarButton_hc.bmp" />
+    <Image Include="res\InUse\GCWnd.ico" />
+    <Image Include="res\InUse\menuimages_hc.bmp" />
+    <Image Include="res\InUse\properties.bmp" />
+    <Image Include="res\InUse\properties_hc.bmp" />
+    <Image Include="res\InUse\RILarge.bmp" />
+    <Image Include="res\InUse\RILargeCMUX.bmp" />
+    <Image Include="res\InUse\RISmall.bmp" />
+    <Image Include="res\InUse\RISmallCMUX.bmp" />
+    <Image Include="res\InUse\SCViewBarButton.bmp" />
+    <Image Include="res\InUse\SCViewBarButton_hc.bmp" />
+    <Image Include="res\InUse\SCWND.ico" />
+    <Image Include="res\inuse\SDT-1.ico" />
+    <Image Include="res\InUse\Send.ico" />
+    <Image Include="res\InUse\SocketDisconnect.bmp" />
+    <Image Include="res\InUse\SocketDisconnect_HC.bmp" />
+    <Image Include="res\main.bmp" />
+    <Image Include="res\MCFrm.ico" />
+    <Image Include="res\menuimages.bmp" />
+    <Image Include="res\SDTDoc.ico" />
+    <Image Include="res\SocketFrm.ico" />
+    <Image Include="res\Toolbar.bmp" />
+    <Image Include="res\Toolbar256.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="res\inuse\ribbon.mfcribbon-ms" />
+    <None Include="res\inuse\ribbon1.mfcribbon-ms" />
+    <None Include="res\SDT.rc2" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+  <ProjectExtensions>
+    <VisualStudio>
+      <UserProperties RESOURCE_FILE="SDT.rc" />
+    </VisualStudio>
+  </ProjectExtensions>
+</Project>

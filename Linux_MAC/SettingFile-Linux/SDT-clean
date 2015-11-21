@@ -1,0 +1,5 @@
+#! /bin/sh
+rm Run.Main
+cd /mnt/hgfs/SDT
+rm Run.Main
+make clean

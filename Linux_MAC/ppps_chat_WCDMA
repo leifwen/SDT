@@ -1,0 +1,16 @@
+#!/bin/sh
+# Connection to the network
+'' AT
+OK AT&F
+OK AT+IPR=115200
+OK ATE0
+OK AT&K0
+#OK AT&D2
+OK AT&C1&D1
+#OK AT+CGDCONT=1,"IP","cmnet"
+OK AT+CGDCONT=1,"IP","3gnet"
+# Dial the number.
+OK ATD*99***1#
+#OK ATD#777
+# The modem is waiting for the following answer
+CONNECT ''

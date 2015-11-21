@@ -1,0 +1,97 @@
+# A generic template Makefile
+# Author Red_Liu lli_njupt@163.com v0.1
+#
+# This file is a(part of) free software; you can redistribute it 
+# and/or modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2, or 
+# (at your option) any later version.
+# modify by Leif wen@2013.11.02, used for C++.
+
+#export DVSDK=${HOME}/dm3730/dvsdk4_03
+#include ${DVSDK}/Rules.make
+
+.PHONY = all install clean
+
+#global directory defined
+TOPDIR			= $(shell pwd)
+SRCDIR			= $(TOPDIR)/code
+LIBDIR			= $(TOPDIR)/lib
+OBJECTDIR		= $(TOPDIR)/build
+INCLUDEDIR		= $(TOPDIR)/code
+
+#cross compile tools defined 
+CROSS_COMPILE ?=
+#CROSS_COMPILE = $(CSTOOL_PREFIX)
+AS      = $(CROSS_COMPILE)as
+LD      = $(CROSS_COMPILE)ld
+CC      = $(CROSS_COMPILE)g++
+CPP     = $(CC) -E
+AR      = $(CROSS_COMPILE)ar
+NM      = $(CROSS_COMPILE)nm
+STRIP   = $(CROSS_COMPILE)strip
+RANLIB 	= $(CROSS_COMPILE)ranlib
+
+#local host tools defined
+CP		:= cp
+RM		:= rm
+MKDIR	:= mkdir
+SED		:= sed
+FIND	:= find
+XARGS	:= xargs
+
+#target name
+TARGETMAIN  = Run.Main
+TARGETLIBS 	= libmk.a
+TARGETSLIBS = libmk.so
+
+#FILE' INFOMATION COLLECT
+VPATH 		= $(shell ls -AxR $(SRCDIR)|grep ":"|grep -v "\.svn"|tr -d ':')
+SOURCEDIRS	= $(VPATH)
+VPATH 		= $(shell ls -AxR $(INCLUDEDIR)|grep ":"|grep -v "\.svn"|tr -d ':')
+INCLUDEDIRS	= $(VPATH)
+
+#search source file in the current dir
+SOURCES		= $(foreach subdir,$(SOURCEDIRS),$(wildcard $(subdir)/*.cpp))
+SRCOBJS		= $(patsubst %.cpp,%.o,$(SOURCES))
+BUILDOBJS	= $(subst $(SRCDIR),$(OBJECTDIR),$(SRCOBJS))
+DEPS		= $(patsubst %.o,%.d,$(BUILDOBJS))
+
+#external include file define
+CFLAGS	= -O2 -Wall -MD $(foreach dir,$(INCLUDEDIRS),-I$(dir))
+ARFLAGS = rc
+
+#special parameters for apps
+CFLAGS	+= 
+
+#c file compile parameters and linked libraries
+CPPFLAGS    = 
+LDFLAGS	    = -lpthread
+XLDFLAGS	= -Xlinker "-(" $(LDFLAGS) -Xlinker "-)"
+LDLIBS		+= -L $(LIBDIR) 
+
+#defaut target:compile the currrent dir file and sub dir 
+all:  $(TARGETMAIN)
+
+#for .h header files dependence
+-include $(DEPS)
+
+$(TARGETMAIN) :$(BUILDOBJS)
+	@$(CC) -static $(subst $(SRCDIR),$(OBJECTDIR),$^) $(CPPFLAGS) $(CFLAGS) $(XLDFLAGS) -o $@ $(LDLIBS) 
+	@$(STRIP)  --strip-unneeded $(TARGETMAIN)
+
+$(TARGETLIBS) :$(BUILDOBJS)
+	@$(AR) $(ARFLAGS) $@ $(BUILDOBJS)
+	@$(RANLIB) $@
+
+$(TARGETSLIBS) :$(BUILDOBJS)
+	@$(CC) -static $(subst $(SRCDIR),$(OBJECTDIR),$^) $(CPPFLAGS) $(CFLAGS) $(XLDFLAGS) -o $@ $(LDLIBS)
+
+$(OBJECTDIR)%.o: $(SRCDIR)%.cpp
+	@[ ! -d $(dir $(subst $(SRCDIR),$(OBJECTDIR),$@)) ] & $(MKDIR) -p $(dir $(subst $(SRCDIR),$(OBJECTDIR),$@))
+	@$(CC) -static $(CPPFLAGS) $(CFLAGS) -o $(subst $(SRCDIR),$(OBJECTDIR),$@) -c $<
+	
+intall:
+
+clean:
+	@$(FIND) $(OBJECTDIR) -name "*.o" -o -name "*.d" | $(XARGS) $(RM) -f
+	@$(RM) -f $(TARGETMAIN) $(TARGETLIBS) $(TARGETSLIBS)
