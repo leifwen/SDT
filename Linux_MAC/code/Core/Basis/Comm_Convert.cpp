@@ -709,7 +709,7 @@ const std::string &Str_HEXTo(std::string *retStr,const std::string &strInput,int
 		else if (j == 2){
 			charResult = ((charResult << 4) & 0xf0) | charData;
 		}
-		if (((charP == ' ') && (j > 0)) || (j == 2) || (i == length)){
+		if ((j > 0) && ((charP == ' ') || (j == 2) || (i == length))){
 			if (blToASCII != 0){
 				*retStr += charResult;
 			}

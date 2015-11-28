@@ -419,12 +419,10 @@ ODEV_NODE_FILE *COMMU_DBUF::CreateODevFile(const std::string &tfileName){
 }
 //------------------------------------------------------------------------------------------//
 ODEV_LIST_POOL *COMMU_DBUF::CreateOutputList(void){
-	Spin_InUse_set();
 	if (cgODevPool == nullptr){
 		cgODevPool = new ODEV_LIST_POOL;
 		AddNode(cgODevPool);
 	}
-	Spin_InUse_clr();
 	return(cgODevPool);
 }
 //------------------------------------------------------------------------------------------//

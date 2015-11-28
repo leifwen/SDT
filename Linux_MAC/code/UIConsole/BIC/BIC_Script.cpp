@@ -1006,7 +1006,7 @@ int32 BIC_GCM_LS::BIC_GCM_LS_PringCommandList(BICPAR *tBICPAR,COMMAND_GROUP *tGr
 }
 //------------------------------------------------------------------------------------------//
 int32 BIC_GCM_LS::BIC_GCM_LS_PringCommandTitle(BICPAR *tBICPAR,uint64 flag){
-	PrintStrN(tBICPAR,"  cID  ",RICH_LIN_clDefault);
+	PrintStrN(tBICPAR,"  cID ",RICH_LIN_clDefault);
 	if ((flag & BIC_GCM_LS_FLAG_CLshowCycle) != 0)
 		PrintStr(tBICPAR,"  cycle",RICH_LIN_clDefault);
 	if ((flag & BIC_GCM_LS_FLAG_CLshowTimeout) != 0)
@@ -1049,7 +1049,7 @@ int32 BIC_GCM_LS::BIC_GCM_LS_PringCommand(BICPAR *tBICPAR,COMMAND_NODE *command,
 			strTemp = command->StrCycle;
 			if (strTemp.length() < 5)
 				strTemp.insert(0,5 - strTemp.length(),' ');
-			strTemp += ' ';
+			strTemp += "  ";
 			strPrintData += strTemp;
 		}
 		if ((flag & BIC_GCM_LS_FLAG_CLshowTimeout) != 0){

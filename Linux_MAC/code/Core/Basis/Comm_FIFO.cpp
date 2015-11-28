@@ -515,7 +515,7 @@ uint32 FIFO_UINT8::PutInHEX(const std::string &strInput){
 		else if (j == 2){
 			charResult = ((charResult << 4) & 0xf0) | charData;
 		}
-		if (((charP == ' ') && (j > 0)) || (j == 2) || (i == length)){
+		if ((j > 0) && ((charP == ' ') || (j == 2) || (i == length))){
 			if (unuseToEnd > 0){
 				*addr = charResult;
 				++ addr;

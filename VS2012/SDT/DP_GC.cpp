@@ -52,8 +52,11 @@ void CGCTree::LoadData(GC_LIST *tGCList){
 			Expand(hRoot, TVE_EXPAND);
 			blCheckHead = 1;
 			hRoot = TVI_ROOT;
+			hItem = AddNode(Str_ANSIToUnicode(operateNode_t->name).c_str(), FALSE, hRoot);
 		}
-		hItem = AddNode(Str_ANSIToUnicode(operateNode_t->name).c_str(), FALSE, hRoot);
+		else{
+			hItem = AddNode(Str_ANSIToUnicode(Str_IntToString(RTREE_NODE::GetdRNodeID(operateNode_t)) + " : " + operateNode_t->name).c_str(), FALSE, hRoot);
+		}
 		if (hItem != NULL){
 			SetItemData(hItem, RTREE_NODE::GetdRNodeID(operateNode_t));
 			if (blCheckHead != 0){
@@ -114,6 +117,15 @@ BOOL CGCTree::DoShowEdit(HTREEITEM hItem){
 				m_GCList->Spin_InUse_clr();
 				break;
 			case 2:
+				m_GCList->Spin_InUse_set();
+				group = GetGroup(hItem);
+				if (group != NULL){
+					group->Spin_InUse_set();
+					m_Edit.SetWindowTextW(Str_ANSIToUnicode(group->name).c_str());
+					m_Edit.SetSel(-1);
+					group->Spin_InUse_clr();
+				}
+				m_GCList->Spin_InUse_clr();
 				break;
 			case 3:
 				m_GCList->Spin_InUse_set();
@@ -211,10 +223,12 @@ void CGCTree::SaveNodeL2(HTREEITEM hItem){
 				SetItemText(m_EditItem,text);
 			}
 		}
-		else if (node->name.substr(0,2) == "//"){
-			node->name = Str_Trim(node->name.substr(2));
-			text = Str_ANSIToUnicode(node->name).c_str();
-			SetItemText(m_EditItem,text);
+		else{
+			if (node->name.substr(0, 2) == "//"){
+				node->name = Str_Trim(node->name.substr(2));
+				text = Str_ANSIToUnicode(node->name).c_str();
+			}
+			SetItemText(m_EditItem, Str_ANSIToUnicode(Str_IntToString(RTREE_NODE::GetdRNodeID(node)) + " : " + node->name).c_str());
 		}
 		node->Spin_InUse_clr();
 	}
@@ -369,6 +383,7 @@ HTREEITEM CGCTree::GroupCopy(void){
 
 		newNode->name = "New copy command group";
 		m_GCList->AddNode(newNode);
+		SetItemText(hItem2, Str_ANSIToUnicode(Str_IntToString(RTREE_NODE::GetdRNodeID(newNode)) + " : " + newNode->name).c_str());
 		SetItemData(hItem2, RTREE_NODE::GetdRNodeID(newNode));
 	}
 	return(hItem2);
@@ -447,6 +462,7 @@ HTREEITEM CGCTree::CreateNodeL2(HTREEITEM hItem){
 		else{
 			newNode->name = "New command group";
 			RTREE_NODE::InsertRChild(hNode, newNode);
+			SetItemText(retItem, Str_ANSIToUnicode(Str_IntToString(RTREE_NODE::GetdRNodeID(newNode)) + " : " + newNode->name).c_str());
 			SetItemData(retItem, RTREE_NODE::GetdRNodeID(newNode));
 		}
 	}
@@ -648,7 +664,7 @@ HTREEITEM CGCTree::UpNodeL2(HTREEITEM moveItem){
 			fatherItem = GetNextItem(fatherItem, TVGN_PREVIOUS);
 			RTREE_NODE::MoveNodesUpInRChain(moveNode);
 			DeleteItem(moveItem);
-			moveItem = AddNode(Str_ANSIToUnicode(moveNode->name).c_str(), moveNode->blEnableAutoRun, fatherItem);
+			moveItem = AddNode(Str_ANSIToUnicode(Str_IntToString(RTREE_NODE::GetdRNodeID(moveNode)) + " : " + moveNode->name).c_str(), moveNode->blEnableAutoRun, fatherItem);
 			if (moveItem != NULL)
 				SetItemData(moveItem, RTREE_NODE::GetdRNodeID(moveNode));
 		}
@@ -732,7 +748,7 @@ HTREEITEM CGCTree::DownNodeL1(HTREEITEM moveItem){
 				break;
 			if (nextNode_t != NULL){
 				nextNode_t->Spin_InUse_set();
-				nextItem = AddNode(Str_ANSIToUnicode(nextNode_t->name).c_str(), nextNode_t->blEnableAutoRun, moveItem);
+				nextItem = AddNode(Str_ANSIToUnicode(Str_IntToString(RTREE_NODE::GetdRNodeID(nextNode_t)) + " : " + nextNode_t->name).c_str(), nextNode_t->blEnableAutoRun, moveItem);
 				SetItemData(nextItem, RTREE_NODE::GetdRNodeID(nextNode_t));
 				nextNode_t->Spin_InUse_clr();
 			}
@@ -765,7 +781,7 @@ HTREEITEM CGCTree::DownNodeL2(HTREEITEM moveItem){
 		RTREE_NODE::MoveNodesDownInRChain(moveNode);//move to next group second node.
 
 		DeleteItem(moveItem);
-		moveItem = AddNode(Str_ANSIToUnicode(moveNode->name).c_str(),moveNode->blEnableAutoRun,fatherNextItem,nextItem);
+		moveItem = AddNode(Str_ANSIToUnicode(Str_IntToString(RTREE_NODE::GetdRNodeID(moveNode)) + " : " + moveNode->name).c_str(), moveNode->blEnableAutoRun, fatherNextItem, nextItem);
 		if (moveItem != NULL)
 			SetItemData(moveItem, RTREE_NODE::GetdRNodeID(moveNode));
 		DownNodeL2(nextItem);
@@ -774,7 +790,7 @@ HTREEITEM CGCTree::DownNodeL2(HTREEITEM moveItem){
 	else{
 		RTREE_NODE::MoveNodesDownInRChain(moveNode);
 		DeleteItem(moveItem);
-		moveItem = AddNode(Str_ANSIToUnicode(moveNode->name).c_str(),moveNode->blEnableAutoRun,fatherItem,nextItem);
+		moveItem = AddNode(Str_ANSIToUnicode(Str_IntToString(RTREE_NODE::GetdRNodeID(moveNode)) + " : " + moveNode->name).c_str(), moveNode->blEnableAutoRun, fatherItem, nextItem);
 		if (moveItem != NULL)
 			SetItemData(moveItem, RTREE_NODE::GetdRNodeID(moveNode));
 	}

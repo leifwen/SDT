@@ -37,7 +37,7 @@ int32 SBIC_CreateHexCommand(
 	gSBIC_subCommandList.AddNode(&gSBIC_subC_Build);
 	
 	strOCommand = SBIC_Node::DelComment(inputCommand);
-	eRetCode = gSBIC_subCommandList.Execute(cSBICPAR,strOCommand,&strPrintData);
+	eRetCode = gSBIC_subCommandList.ExecuteLC(cSBICPAR,strOCommand,&strPrintData);
 	switch (eRetCode){
 		case SBI_RETCODE_HEX:
 			strHexCommand = strPrintData;
