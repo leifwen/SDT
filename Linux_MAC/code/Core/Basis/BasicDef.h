@@ -26,12 +26,31 @@
 #ifdef CommonDefH_Linux
 	#define CommonDefH_Unix
 #endif
+//------------------------------------------------------------------------------------------//
 //#define LOGPRINT
 //------------------------------------------------------------------------------------------//
 class RTREE_NODE;
 void MyLogPrint(const RTREE_NODE *treeNode,const char * format, ...);
 void MyLogPrint(const RTREE_NODE &treeNode,const char * format, ...);
+void MyLogPrint(const RTREE_NODE *treeNode1,const RTREE_NODE *treeNode2,const char *format, ...);
+void MyLogPrint(const RTREE_NODE &treeNode1,const RTREE_NODE &treeNode2,const char *format, ...);
 void MyLogPrint(const char * format, ...);
+//------------------------------------------------------------------------------------------//
+#ifdef LOGPRINT
+	#ifdef LOGPRINT_ENABLE
+		#define ELogPrint(x,...) MyLogPrint(x,##__VA_ARGS__)
+	#else
+		#define ELogPrint(x,...) ;
+	#endif
+	#ifdef LOGPRINT_ENABLE2
+		#define E2LogPrint(x,...) MyLogPrint(x,##__VA_ARGS__)
+	#else
+		#define E2LogPrint(x,...) ;
+	#endif
+#else
+	#define ELogPrint(x,...) ;
+	#define E2LogPrint(x,...) ;
+#endif
 //------------------------------------------------------------------------------------------//
 typedef const 		char		char8;
 typedef unsigned	char		uint8;

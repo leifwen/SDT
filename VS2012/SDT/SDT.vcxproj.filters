@@ -308,6 +308,9 @@
     <ClInclude Include="..\..\Linux_MAC\code\Core\Linecse\SystemInfo.h">
       <Filter>_Core\Linecse</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Linux_MAC\code\Core\Communication\Commu_RMS.h">
+      <Filter>_Core\Communication</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="SDT.cpp">
@@ -516,6 +519,9 @@
     </ClCompile>
     <ClCompile Include="..\..\Linux_MAC\code\Core\Linecse\SystemInfo.cpp">
       <Filter>_Core\Linecse</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Linux_MAC\code\Core\Communication\Commu_RMS.cpp">
+      <Filter>_Core\Communication</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

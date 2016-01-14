@@ -69,17 +69,17 @@ class BIC_PORT : public BIC_Node{
 		virtual	int32	Help	(BICPAR *tBICPAR,int32 blDetail = 1)const;
 };
 //------------------------------------------------------------------------------------------//
-class BIC_SL : public BIC_Node{
+class BIC_SI : public BIC_Node{
 	public:
 		enum{RFLAG_C = 0, RFLAG_S = BIC_Node::RFLAG_S + BIC_Node::RFLAG_C};
 	public:
-				 BIC_SL(void) : BIC_Node() {cgCommand = "sl";cgReturnCode = BI_RETCODE_SL;};
-		virtual ~BIC_SL(void){;};
+				 BIC_SI(void) : BIC_Node() {cgCommand = "si";cgReturnCode = BI_RETCODE_SI;};
+		virtual ~BIC_SI(void){;};
 	public:
 		virtual	int32	Command	(BICPAR *tBICPAR,const std::string &par,std::string *ret)const;
 		virtual	int32	Help	(BICPAR *tBICPAR,int32 blDetail = 1)const;
     
-	    static	int32	BIC_SL_LS_PrintSocket(BICPAR *tBICPAR,APISocket *socket);
+	    static	int32	BIC_SI_LS_PrintSocket(BICPAR *tBICPAR,APISocket *socket);
 };
 //------------------------------------------------------------------------------------------//
 class BIC_SS : public BIC_Node{
@@ -93,12 +93,12 @@ class BIC_SS : public BIC_Node{
 		virtual	int32	Help	(BICPAR *tBICPAR,int32 blDetail = 1)const;
 };
 //------------------------------------------------------------------------------------------//
-class BIC_SD : public BIC_Node{
+class BIC_SSD : public BIC_Node{
 	public:
 		enum{RFLAG_C = 0, RFLAG_S = BIC_Node::RFLAG_S + BIC_Node::RFLAG_C};
 	public:
-				 BIC_SD(void) : BIC_Node() {cgCommand = "sd";cgReturnCode = BI_RETCODE_SD;};
-		virtual ~BIC_SD(void){;};
+				 BIC_SSD(void) : BIC_Node() {cgCommand = "ssd";cgReturnCode = BI_RETCODE_SSD;};
+		virtual ~BIC_SSD(void){;};
 	public:
 		virtual	int32	Command	(BICPAR *tBICPAR,const std::string &par,std::string *ret)const;
 		virtual	int32	Help	(BICPAR *tBICPAR,int32 blDetail = 1)const;

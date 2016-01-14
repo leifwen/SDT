@@ -401,6 +401,7 @@ void APICOM::CloseDev(void){
 	DSR = "";
 	RING = "";
 	DCD = "";
+	COMMU_DBUF::CloseDev();
 }
 //------------------------------------------------------------------------------------------//
 int32 APICOM::ReadFromDevice(uint32 *retNum,uint8 *buffer,uint32 length){
@@ -411,11 +412,11 @@ int32 APICOM::ReadFromDevice(uint32 *retNum,uint8 *buffer,uint32 length){
 	retCode = read(Handle,buffer,length);
 	if (retCode == 0){
 		SYS_SleepMS(50);
-		ClrblConnected();
 		if (CheckblAClose() == 0){
 			SetblSDC();
 			PrintUserDisconnectReport(" COM " + GetBufName() + ":" + Str_IntToString(GetBufPar()) + " connection disconnected.\r\n");
 		}
+		ClrblConnected();
 		CloseDev();
 		return -1;
 	}
@@ -429,11 +430,11 @@ int32 APICOM::ReadFromDevice(uint32 *retNum,uint8 *buffer,uint32 length){
 	retCode = read(Handle,buffer,length);
 	if (((retCode == -1) && (errno != EINTR) && (errno != EWOULDBLOCK) && (errno != EAGAIN))){
 		SYS_SleepMS(50);
-		ClrblConnected();
 		if (CheckblAClose() == 0){
 			SetblSDC();
 			PrintUserDisconnectReport(" COM " + GetBufName() + ":" + Str_IntToString(GetBufPar()) + " connection disconnected.\r\n");
 		}
+		ClrblConnected();
 		CloseDev();
 		return -1;
 	}

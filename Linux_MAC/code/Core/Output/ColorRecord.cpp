@@ -80,25 +80,13 @@ void COLSTRING::WriteToStrN(const std::string &strContent,const std::string &rCo
 	}
 }
 //------------------------------------------------------------------------------------------//
-std::string COLSTRING::ReadStr(G_LOCK_VAILD blLock){
-	std::string strResult;
-
-	Spin_InUse_set(blLock);
-	strResult = unreadContent;
-	unreadContent = "";
-	UnreadLength = 0;
-	Spin_InUse_clr(blLock);
-	return(strResult);
-}
-//------------------------------------------------------------------------------------------//
-void COLSTRING::ReadStr(std::string *retStr,G_LOCK_VAILD blLock){
-	
+const std::string& COLSTRING::ReadStr(std::string *retStr,G_LOCK_VAILD blLock){
 	Spin_InUse_set(blLock);
 	*retStr = unreadContent;
 	unreadContent = "";
 	UnreadLength = 0;
 	Spin_InUse_clr(blLock);
-	return;
+	return(*retStr);
 }
 //------------------------------------------------------------------------------------------//
 void COLSTRING::UpdateLastChar(const std::string &inputStr){

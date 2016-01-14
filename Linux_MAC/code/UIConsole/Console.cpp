@@ -359,9 +359,9 @@ void CON_ReadInLine::KeyBK(void){
 #endif
 #ifdef CommonDefH_Unix
 			cODevOut->Spin_InUse_set();
-			cODevOut->SetCurLeft(cgCInput.cgEditCur + 1,G_LOCK_OFF);
+			cODevOut->SetCurLeft(cgCInput.cgEditCur + 1);
 			cODevOut->OutputStr(cgCInput.GetData() + " ",RICH_LIN_clDefault,G_LOCK_OFF);
-			cODevOut->SetCurLeft(cgCInput.GetLength() - cgCInput.cgEditCur + 1,G_LOCK_OFF);
+			cODevOut->SetCurLeft(cgCInput.GetLength() - cgCInput.cgEditCur + 1);
 			cODevOut->Spin_InUse_clr();
 #endif
 		}
@@ -376,9 +376,9 @@ void CON_ReadInLine::KeyDel(void){
 #endif
 #ifdef CommonDefH_Unix
 			cODevOut->Spin_InUse_set();
-			cODevOut->SetCurLeft(cgCInput.cgEditCur,G_LOCK_OFF);
+			cODevOut->SetCurLeft(cgCInput.cgEditCur);
 			cODevOut->OutputStr(cgCInput.GetData() + " ",RICH_LIN_clDefault,G_LOCK_OFF);
-			cODevOut->SetCurLeft(cgCInput.GetLength() - cgCInput.cgEditCur + 1,G_LOCK_OFF);
+			cODevOut->SetCurLeft(cgCInput.GetLength() - cgCInput.cgEditCur + 1);
 			cODevOut->Spin_InUse_clr();
 #endif
 		}
@@ -390,7 +390,7 @@ void CON_ReadInLine::KeyUp(void){
 		if (cODevOut != nullptr){
 #ifdef CommonDefH_VC
 			cODevOut->Spin_InUse_set();
-			cODevOut->DelCharFromEnd(0,cgCInput.GetData().length(),G_LOCK_OFF);
+			cODevOut->DelCharFromEnd(0,cgCInput.GetData().length());
 			cgCInput.SetData(cgCLH->GetData(),(uint32)cgCLH->GetData().length());
 			cODevOut->OutputStr(cgCInput.GetData(),RICH_CF_clBlack,G_LOCK_OFF);
 			cODevOut->Spin_InUse_clr();
@@ -400,9 +400,9 @@ void CON_ReadInLine::KeyUp(void){
 			strTemp = "";
 			strTemp.insert(0,cgCInput.GetLength(),' ');
 			cODevOut->Spin_InUse_set();
-			cODevOut->SetCurLeft(cgCInput.cgEditCur,G_LOCK_OFF);
+			cODevOut->SetCurLeft(cgCInput.cgEditCur);
 			cODevOut->OutputStr(strTemp,RICH_LIN_clDefault,G_LOCK_OFF);
-			cODevOut->SetCurLeft(cgCInput.GetLength(),G_LOCK_OFF);
+			cODevOut->SetCurLeft(cgCInput.GetLength());
 			cgCInput.SetData(cgCLH->GetData(),(uint32)cgCLH->GetData().length());
 			cODevOut->OutputStr(cgCInput.GetData(),RICH_LIN_clDefault,G_LOCK_OFF);
 			cODevOut->Spin_InUse_clr();
@@ -416,7 +416,7 @@ void CON_ReadInLine::KeyDown(void){
 		if (cODevOut != nullptr){
 #ifdef CommonDefH_VC
 			cODevOut->Spin_InUse_set();
-			cODevOut->DelCharFromEnd(0,cgCInput.GetData().length(),G_LOCK_OFF);
+			cODevOut->DelCharFromEnd(0,cgCInput.GetData().length());
 			cgCInput.SetData(cgCLH->GetData(),(uint32)cgCLH->GetData().length());
 			cODevOut->OutputStr(cgCInput.GetData(),RICH_CF_clBlack,G_LOCK_OFF);
 			cODevOut->Spin_InUse_clr();
@@ -426,9 +426,9 @@ void CON_ReadInLine::KeyDown(void){
 			strTemp = "";
 			strTemp.insert(0,cgCInput.GetLength(),' ');
 			cODevOut->Spin_InUse_set();
-			cODevOut->SetCurLeft(cgCInput.cgEditCur,G_LOCK_OFF);
+			cODevOut->SetCurLeft(cgCInput.cgEditCur);
 			cODevOut->OutputStr(strTemp,RICH_LIN_clDefault,G_LOCK_OFF);
-			cODevOut->SetCurLeft(cgCInput.GetLength(),G_LOCK_OFF);
+			cODevOut->SetCurLeft(cgCInput.GetLength());
 			cgCInput.SetData(cgCLH->GetData(),(uint32)cgCLH->GetData().length());
 			cODevOut->OutputStr(cgCInput.GetData(),RICH_LIN_clDefault,G_LOCK_OFF);
 			cODevOut->Spin_InUse_clr();
@@ -459,7 +459,7 @@ void CON_ReadInLine::KeyTab(void){
 	if (cODevOut != nullptr){
 #ifdef CommonDefH_VC
 		cODevOut->Spin_InUse_set();
-		cODevOut->DelCharFromEnd(0,cgCInput.GetData().length(),G_LOCK_OFF);
+		cODevOut->DelCharFromEnd(0,cgCInput.GetData().length());
 		newData = cgCLH->GetSimilar(cgCInput.GetData());
 		cgCInput.SetData(newData,(uint32)newData.length());
 		cODevOut->OutputStr(cgCInput.GetData(),RICH_CF_clBlack,G_LOCK_OFF);
@@ -470,9 +470,9 @@ void CON_ReadInLine::KeyTab(void){
 		strTemp = "";
 		strTemp.insert(0,cgCInput.GetLength(),' ');
 		cODevOut->Spin_InUse_set();
-		cODevOut->SetCurLeft(cgCInput.cgEditCur,G_LOCK_OFF);
+		cODevOut->SetCurLeft(cgCInput.cgEditCur);
 		cODevOut->OutputStr(strTemp,RICH_LIN_clDefault,G_LOCK_OFF);
-		cODevOut->SetCurLeft(cgCInput.GetLength(),G_LOCK_OFF);
+		cODevOut->SetCurLeft(cgCInput.GetLength());
 		newData = cgCLH->GetSimilar(cgCInput.GetData());
 		cgCInput.SetData(newData,(uint32)newData.length());
 		cODevOut->OutputStr(cgCInput.GetData(),RICH_LIN_clDefault,G_LOCK_OFF);
@@ -490,7 +490,7 @@ void CON_ReadInLine::KeyDBTab(void){
 	if (cODevOut != nullptr){
 #ifdef CommonDefH_VC
 		cODevOut->Spin_InUse_set();
-		cODevOut->DelCharFromEnd(0,cgCInput.GetData().length(),G_LOCK_OFF);
+		cODevOut->DelCharFromEnd(0,cgCInput.GetData().length());
 		cODevOut->OutputStr(newData,RICH_CF_clPurple,G_LOCK_OFF);
 		cODevOut->OutputStrN(">" + cgCInput.GetData(),RICH_CF_clBlack,G_LOCK_OFF);
 		cODevOut->Spin_InUse_clr();
@@ -500,9 +500,9 @@ void CON_ReadInLine::KeyDBTab(void){
 		strTemp = "";
 		strTemp.insert(0,cgCInput.GetLength(),' ');
 		cODevOut->Spin_InUse_set();
-		cODevOut->SetCurLeft(cgCInput.cgEditCur,G_LOCK_OFF);
+		cODevOut->SetCurLeft(cgCInput.cgEditCur);
 		cODevOut->OutputStr(strTemp,RICH_LIN_clCyan,G_LOCK_OFF);
-		cODevOut->SetCurLeft(cgCInput.GetLength(),G_LOCK_OFF);
+		cODevOut->SetCurLeft(cgCInput.GetLength());
 		cODevOut->OutputStr(newData,RICH_LIN_clCyan,G_LOCK_OFF);
 		cODevOut->OutputStrN(">" + cgCInput.GetData(),RICH_LIN_clDefault,G_LOCK_OFF);
 		cODevOut->Spin_InUse_clr();
@@ -525,9 +525,9 @@ int32 CON_ReadInLine::InsertChar(uint8 key){
 #endif
 #ifdef CommonDefH_Unix
 			cODevOut->Spin_InUse_set();
-			cODevOut->SetCurLeft(cgCInput.cgEditCur - 1,G_LOCK_OFF);
+			cODevOut->SetCurLeft(cgCInput.cgEditCur - 1);
 			cODevOut->OutputStr(cgCInput.GetData(),RICH_LIN_clDefault,G_LOCK_OFF);
-			cODevOut->SetCurLeft(cgCInput.GetLength() - cgCInput.cgEditCur,G_LOCK_OFF);
+			cODevOut->SetCurLeft(cgCInput.GetLength() - cgCInput.cgEditCur);
 			cODevOut->Spin_InUse_clr();
 #endif
 		}
@@ -546,9 +546,9 @@ int32 CON_ReadInLine::InsertChar(const uint8 *key,uint32 length){
 #endif
 #ifdef CommonDefH_Unix
 		cODevOut->Spin_InUse_set();
-		cODevOut->SetCurLeft(cgCInput.cgEditCur - 1,G_LOCK_OFF);
+		cODevOut->SetCurLeft(cgCInput.cgEditCur - 1);
 		cODevOut->OutputStr(cgCInput.GetData(), RICH_LIN_clDefault,G_LOCK_OFF);
-		cODevOut->SetCurLeft(cgCInput.GetLength() - cgCInput.cgEditCur,G_LOCK_OFF);
+		cODevOut->SetCurLeft(cgCInput.GetLength() - cgCInput.cgEditCur);
 		cODevOut->Spin_InUse_clr();
 #endif
 		return 1;

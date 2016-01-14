@@ -59,16 +59,16 @@ class BuildInCommand : public BIC_Node{
 			AddNode(&cgC_NTPS);
 		#endif
 			AddNode(&cgC_Calc);
-			AddNode(&cgC_TS);
 			AddNode(&cgC_NEWRECORD);
+			AddNode(&cgC_TS);
 		#ifdef USE_OPENSSL
+			AddNode(&cgC_RST);
 		#ifdef CommonDefH_MAC
 			AddNode(&cgC_PATCHSDT);
+			AddNode(&cgC_APPROVE);
 			AddNode(&cgC_LSERVER);
 		#endif
-		#ifdef CommonDefH_EnableLicense
 			AddNode(&cgC_CREGREPORT);
-		#endif
 		#endif
 	};
 	virtual ~BuildInCommand(void){;};
@@ -111,14 +111,16 @@ class BuildInCommand : public BIC_Node{
 		BIC_NTPSERVER	cgC_NTPS;
 	#endif
 		BIC_CALC		cgC_Calc;
-		BIC_TERMINALSERVER	cgC_TS;
 		BIC_NEWRECORD	cgC_NEWRECORD;
+		BIC_TERMINALSERVER	cgC_TS;
 	#ifdef USE_OPENSSL
 	#ifdef CommonDefH_MAC
 		BIC_PATCHSDT	cgC_PATCHSDT;
+		BIC_APPROVE		cgC_APPROVE;
 		BIC_LSERVER		cgC_LSERVER;
 	#endif
 		BIC_CREGREPORT	cgC_CREGREPORT;
+		BIC_RST			cgC_RST;
 	#endif
 };
 //------------------------------------------------------------------------------------------//

@@ -22,25 +22,25 @@
 #endif
 //------------------------------------------------------------------------------------------//
 int32 ODEV_NODE_FILE::Print(G_LOCK_VAILD blLock){
-	std::string	strName;
+	std::string	strName,strT;
 	
-	Spin_InUse_set(blLock);
+	Spin_InUse_set(G_LOCK_ON);
 #ifdef CommonDefH_VC
 	strName = ODEV_CreateLOGDIR() + "\\" + cgfileName;
 #endif
 #ifdef CommonDefH_Unix
 	strName = ODEV_CreateLOGDIR() + "/" + cgfileName;
 #endif
-	if ((GetUnreadLength(G_LOCK_OFF) > 1024 * 8) || (SYS_Delay_CheckTS(&cgTimeS) != 0)){
+	Spin_InUse_clr(G_LOCK_ON);
+	if ((GetUnreadLength(G_LOCK_ON) > 1024 * 8) || (SYS_Delay_CheckTS(&cgTimeS) != 0)){
 		SYS_Delay_SetTS(&cgTimeS, 1000);
 		if (cgCOLType == COLType_COL){
-			ODEV_AddToRTFFile(strName, ReadStr(G_LOCK_OFF));
+			ODEV_AddToRTFFile(strName, ReadStr(&strT,G_LOCK_OFF));
 		}
 		else if (cgCOLType == COLType_TXT){
-			ODEV_AddToTXTFile(strName, ReadStr(G_LOCK_OFF));
+			ODEV_AddToTXTFile(strName, ReadStr(&strT,G_LOCK_OFF));
 		}
 	}
-	Spin_InUse_clr(blLock);
 	return 1;
 }
 //------------------------------------------------------------------------------------------//

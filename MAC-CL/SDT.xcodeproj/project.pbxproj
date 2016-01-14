@@ -64,6 +64,7 @@
 		03C638301BF34B0C00141D0F /* License_SSLSocket.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 03C638291BF34B0C00141D0F /* License_SSLSocket.cpp */; };
 		03C638311BF34B0C00141D0F /* SMC.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 03C6382B1BF34B0C00141D0F /* SMC.cpp */; };
 		03C638321BF34B0C00141D0F /* SystemInfo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 03C6382D1BF34B0C00141D0F /* SystemInfo.cpp */; };
+		29EFB4751C4255CB00386E07 /* Commu_RMS.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 29EFB4731C4255CB00386E07 /* Commu_RMS.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -267,20 +268,22 @@
 		03560EBC1BD35BE7008740E4 /* BuildInCommand.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BuildInCommand.h; sourceTree = "<group>"; };
 		03560EBD1BD35BE7008740E4 /* Console.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Console.cpp; sourceTree = "<group>"; };
 		03560EBE1BD35BE7008740E4 /* Console.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Console.h; sourceTree = "<group>"; };
-		03560EBF1BD35BE7008740E4 /* Terminal.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Terminal.cpp; sourceTree = "<group>"; };
+		03560EBF1BD35BE7008740E4 /* Terminal.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 2; path = Terminal.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		03560EC01BD35BE7008740E4 /* Terminal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Terminal.h; sourceTree = "<group>"; };
 		03560F001BD3B5B4008740E4 /* libcrypto.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libcrypto.a; sourceTree = "<group>"; };
 		03560F011BD3B5B4008740E4 /* libssl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libssl.a; sourceTree = "<group>"; };
-		0384E0641BDE19A100157F54 /* Commu_SSLSocket.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 2; path = Commu_SSLSocket.cpp; sourceTree = "<group>"; };
+		0384E0641BDE19A100157F54 /* Commu_SSLSocket.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 2; path = Commu_SSLSocket.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		0384E0651BDE19A100157F54 /* Commu_SSLSocket.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Commu_SSLSocket.h; sourceTree = "<group>"; };
 		03C638271BF34B0C00141D0F /* License_Checker.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = License_Checker.cpp; sourceTree = "<group>"; };
 		03C638281BF34B0C00141D0F /* License_Checker.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = License_Checker.h; sourceTree = "<group>"; };
-		03C638291BF34B0C00141D0F /* License_SSLSocket.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = License_SSLSocket.cpp; sourceTree = "<group>"; };
+		03C638291BF34B0C00141D0F /* License_SSLSocket.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 2; path = License_SSLSocket.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		03C6382A1BF34B0C00141D0F /* License_SSLSocket.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = License_SSLSocket.h; sourceTree = "<group>"; };
 		03C6382B1BF34B0C00141D0F /* SMC.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SMC.cpp; sourceTree = "<group>"; };
 		03C6382C1BF34B0C00141D0F /* SMC.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SMC.h; sourceTree = "<group>"; };
 		03C6382D1BF34B0C00141D0F /* SystemInfo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SystemInfo.cpp; sourceTree = "<group>"; };
 		03C6382E1BF34B0C00141D0F /* SystemInfo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SystemInfo.h; sourceTree = "<group>"; };
+		29EFB4731C4255CB00386E07 /* Commu_RMS.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Commu_RMS.cpp; sourceTree = "<group>"; };
+		29EFB4741C4255CB00386E07 /* Commu_RMS.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Commu_RMS.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -439,6 +442,8 @@
 				0384E0641BDE19A100157F54 /* Commu_SSLSocket.cpp */,
 				035608151BD35BD4008740E4 /* Commu_SocketServer.h */,
 				035608141BD35BD4008740E4 /* Commu_SocketServer.cpp */,
+				29EFB4741C4255CB00386E07 /* Commu_RMS.h */,
+				29EFB4731C4255CB00386E07 /* Commu_RMS.cpp */,
 				035608111BD35BD4008740E4 /* Commu_NTPServer.h */,
 				035608101BD35BD4008740E4 /* Commu_NTPServer.cpp */,
 			);
@@ -769,6 +774,7 @@
 				03560EFB1BD35BE7008740E4 /* Terminal.cpp in Sources */,
 				03560EC21BD35BE7008740E4 /* CommandGList.cpp in Sources */,
 				03560EC91BD35BE7008740E4 /* SBIC_Condition.cpp in Sources */,
+				29EFB4751C4255CB00386E07 /* Commu_RMS.cpp in Sources */,
 				03560EFA1BD35BE7008740E4 /* Console.cpp in Sources */,
 				03560EDF1BD35BE7008740E4 /* Commu_SocketServer.cpp in Sources */,
 				03560EE71BD35BE7008740E4 /* ODEV_SDOUT.cpp in Sources */,

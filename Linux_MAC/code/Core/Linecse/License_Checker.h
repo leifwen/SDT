@@ -129,7 +129,7 @@ class Linense_Content :public Field_Node{
 		CCY_FN_AES_MK	fn_approveTime;
 		FNode_LC		fn_CYCode;
 	public:
-		int32	Encode(std::string *retStrWhole,RSA **rsa_sdtpuk,const std::string &strRegSignature,const std::string &strApproveTime,RSA *rsa_sprk);
+		int32	Encode(std::string *retStrWhole,RSA **rsa_sdtpuk,const std::string &strRegSignature,uint64 approveSeconds,RSA *rsa_sprk);
 };
 //------------------------------------------------------------------------------------------//
 class Linense_Signature : public CCY_FR_Signature{
@@ -139,7 +139,7 @@ class Linense_Signature : public CCY_FR_Signature{
 	public:
 		Linense_Content	linenseContent;
 	public:
-		int32	Encode(std::string *retStrWhole,const std::string &strRegSignature,const std::string &strApproveTime);
+		int32	Encode(std::string *retStrWhole,const std::string &strRegSignature,uint64 approveSeconds);
 		int32	Decode(const std::string &strInput);
 		int32	Decode(const FIFO_UINT8 *fifoInput);
 };

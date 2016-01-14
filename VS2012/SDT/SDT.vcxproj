@@ -149,6 +149,7 @@
     <ClInclude Include="..\..\Linux_MAC\code\Core\Communication\Commu_Com.h" />
     <ClInclude Include="..\..\Linux_MAC\code\Core\Communication\Commu_DBuf.h" />
     <ClInclude Include="..\..\Linux_MAC\code\Core\Communication\Commu_NTPServer.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\Core\Communication\Commu_RMS.h" />
     <ClInclude Include="..\..\Linux_MAC\code\Core\Communication\Commu_Socket.h" />
     <ClInclude Include="..\..\Linux_MAC\code\Core\Communication\Commu_SocketServer.h" />
     <ClInclude Include="..\..\Linux_MAC\code\Core\Communication\Commu_SSLSocket.h" />
@@ -225,6 +226,7 @@
     <ClCompile Include="..\..\Linux_MAC\code\Core\Communication\Commu_Com.cpp" />
     <ClCompile Include="..\..\Linux_MAC\code\Core\Communication\Commu_DBuf.cpp" />
     <ClCompile Include="..\..\Linux_MAC\code\Core\Communication\Commu_NTPServer.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\Core\Communication\Commu_RMS.cpp" />
     <ClCompile Include="..\..\Linux_MAC\code\Core\Communication\Commu_Socket.cpp" />
     <ClCompile Include="..\..\Linux_MAC\code\Core\Communication\Commu_SocketServer.cpp" />
     <ClCompile Include="..\..\Linux_MAC\code\Core\Communication\Commu_SSLSocket.cpp" />

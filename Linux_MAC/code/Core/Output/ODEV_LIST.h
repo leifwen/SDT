@@ -24,9 +24,7 @@
 #define ODEV_FLAG_EnMSReport	B_FLAG64(5)
 //------------------------------------------------------------------------------------------//
 class ODEV_NODE_FILE;
-class ODEV_NODE_DBUF;
 class ODEV_NODE_SDOUT;
-class COMMU_DBUF;
 //------------------------------------------------------------------------------------------//
 class ODEV_LIST_POOL : public RTREE_NODE{
 	public:
@@ -35,7 +33,9 @@ class ODEV_LIST_POOL : public RTREE_NODE{
 		virtual ~ODEV_LIST_POOL(void){DestroyAll();};
 	public:
 		int32	Print		(void);
+#ifdef CommonDefH_VC
 		void	PrintSDOUT	(void);
+#endif
 		void	Clean		(void){RTREE_LChildRChain_T(ODEV_NODE,Clean());};
 	
 		void	WriteChar			(uint8 charData,const std::string &rColor,COLSTRING::COLEnforcePrint blEP = COLSTRING::COL_EP_NO)
@@ -64,20 +64,16 @@ class ODEV_LIST_POOL : public RTREE_NODE{
 	private:
 		ODEV_NODE_FILE		*CreateNewODevFile	(const std::string &tODEV,COLSTRING::COLType tCOLType = COLSTRING::COLType_COL);
 		ODEV_NODE_SDOUT		*CreateNewODevSDOUT	(const void *tRichEdit,const void *tCFrm,COLSTRING::COLType tCOLType = COLSTRING::COLType_COL);
-		//ODEV_NODE_DBUF		*CreateNewODevDBUF	(COMMU_DBUF *tODEV,COLSTRING::COLType tCOLType = COLSTRING::COLType_TXT);
 	public:
 		ODEV_NODE_SDOUT		*cODevSDOUT;
 		ODEV_NODE_FILE		*cODevFileTXT;
 		ODEV_NODE_FILE		*cODevFileRTF;
-		ODEV_NODE_DBUF		*cODevDBUF;
 	
-
 		ODEV_NODE_FILE		*CreateODevFileTXT	(const std::string &tfileName);
 		ODEV_NODE_FILE		*CreateODevFileRTF	(const std::string &tfileName);
 		void				CreateODevFile		(const std::string &tfileName);
 	
 		ODEV_NODE_SDOUT		*CreateODevSDOUT	(const void *tRichEdit,const void *tCFrm,COLSTRING::COLType tCOLType = COLSTRING::COLType_COL);
-		//ODEV_NODE_DBUF		*CreateODevDBUF		(COMMU_DBUF *tODEV);
 };
 //------------------------------------------------------------------------------------------//
 class ODEV_LIST{

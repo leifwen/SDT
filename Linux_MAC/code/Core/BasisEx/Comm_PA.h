@@ -58,11 +58,7 @@ class Field_Node : public RTREE_NODE{
 	public:
 		uint32			AnalysisFrame	(const FIFO_UINT8 &fifoIn,uint32 fifoInOffset = 0);
 		uint32			AnalysisFrameTryAgain(const FIFO_UINT8 &fifoIn);
-		uint32			Out				(FIFO_UINT8 *fifobuf = nullptr){
-			if (fifobuf == nullptr)
-				fifobuf = cgDefFifo;
-				return(fifobuf->Out(fnlength + fnOffset));
-		};
+		uint32			Out				(FIFO_UINT8 *fifobuf = nullptr);
 		uint32			TryGetFrame		(void);
 		uint32			TryGetFrame		(const FIFO_UINT8 &fifoIn);
 		int32			TryGetFrame		(const uint8 *tInput,uint32 num);
@@ -84,6 +80,7 @@ class Field_Node : public RTREE_NODE{
 		const Field_Node	&ReadAllContent	(Field_Node *retFN,const FIFO_UINT8 *fifobuf = nullptr)const;
 	public:
 		void			FillZero		(void){cgDefFifo->FillZero();};
+		void			Clean			(void){cgDefFifo->Empty();};
 		void			SetFIFO			(void);
 		void			SetFIFO_1Byte	(uint32 tInput);
 		void			SetFIFO_2Byte	(uint32 tInput);
@@ -167,8 +164,8 @@ class FNode_LC :public Field_Node{
 		inline	const	PUB_SBUF&		ReadContent		(PUB_SBUF *retPSBUF,const FIFO_UINT8 *fifobuf = nullptr){
 			return(fnlc_content.ReadAllContent(retPSBUF,fifobuf));
 		};
-		inline	const	uint32&			GetContentOffset(void){return(fnlc_content.GetOffset());};
-		inline	const	uint32&			GetContentLength(void){return(fnlc_content.GetLength());};
+		inline	const	uint32&			GetContentOffset(void)const{return(fnlc_content.GetOffset());};
+		inline	const	uint32&			GetContentLength(void)const{return(fnlc_content.GetLength());};
 		inline			void			HoldOffset		(void){
 			Field_Node::HoldOffset();
 			fnlc_len.SetFIFOByte(0);
@@ -181,54 +178,60 @@ class FNode_LC :public Field_Node{
 		};
 };
 //------------------------------------------------------------------------------------------//
-class CCY_FNLC_MESG :public FNode_LC{
+class FNode_MESG :public Field_Node{
 	public:
-				 CCY_FNLC_MESG(void) :FNode_LC(){AddSubNode(&fn_MesgID);AddSubNode(&fnlc_Mesg);};
-		virtual ~CCY_FNLC_MESG(void){;};
-	public:
+				 FNode_MESG(void) : Field_Node(){AddNode(&fn_MesgID);AddNode(&fnlc_Mesg);};
+		virtual ~FNode_MESG(void){;};
+	private:
 		Field_Node	fn_MesgID;
 		FNode_LC	fnlc_Mesg;
 	public:
 		void Init(const FIFO_UINT8 *tfifo,G_Endian_VAILD tEV = G_LITTLE_ENDIAN){
-			FNode_LC::Init	(tfifo,4,tEV);
-			fn_MesgID.Init	(FNT_CTRL,tfifo,4,tEV);
+			Field_Node::Init(FNT_MESSAGE,tfifo,0,tEV);
+			fn_MesgID.Init	(FNT_CTRL,tfifo,1,tEV);
 			fnlc_Mesg.Init	(tfifo,4,tEV);
 		}
 	public:
-		inline	const	std::string		&ReadContent(std::string *retStrMesg,uint32 *RetMesgID,const FIFO_UINT8 *fifobuf = nullptr){
-			*RetMesgID = fn_MesgID.GetValueCalc();
-			return(fnlc_Mesg.ReadContent(retStrMesg));
+		inline	const	std::string	&ReadContent(std::string *retStrMesg,uint32 *RetMesgID = nullptr,const FIFO_UINT8 *fifobuf = nullptr){
+			if (RetMesgID != nullptr)
+				*RetMesgID = fn_MesgID.GetValueCalc(fifobuf);
+			return(fnlc_Mesg.ReadContent(retStrMesg,fifobuf));
 		};
-		inline	const	FIFO_UINT8		&ReadContent(FIFO_UINT8 *retfifoMesg,uint32 *RetMesgID,const FIFO_UINT8 *fifobuf = nullptr){
-			*RetMesgID = fn_MesgID.GetValueCalc();
-			return(fnlc_Mesg.ReadContent(retfifoMesg));
+		inline	const	FIFO_UINT8	&ReadContent(FIFO_UINT8 *retfifoMesg,uint32 *RetMesgID = nullptr,const FIFO_UINT8 *fifobuf = nullptr){
+			if (RetMesgID != nullptr)
+				*RetMesgID = fn_MesgID.GetValueCalc(fifobuf);
+			return(fnlc_Mesg.ReadContent(retfifoMesg,fifobuf));
 		};
-		inline	const	PUB_SBUF		&ReadContent(PUB_SBUF *retPSBUFMesg,uint32 *RetMesgID,const FIFO_UINT8 *fifobuf = nullptr){
-			*RetMesgID = fn_MesgID.GetValueCalc();
-			return(fnlc_Mesg.ReadContent(retPSBUFMesg));
+		inline	const	PUB_SBUF	&ReadContent(PUB_SBUF *retPSBUFMesg,uint32 *RetMesgID = nullptr,const FIFO_UINT8 *fifobuf = nullptr){
+			if (RetMesgID != nullptr)
+				*RetMesgID = fn_MesgID.GetValueCalc(fifobuf);
+			return(fnlc_Mesg.ReadContent(retPSBUFMesg,fifobuf));
 		};
-		inline	const	CCY_FNLC_MESG	&SetContent	(const FIFO_UINT8 &fifoIn,uint32 num,uint32 offset,uint8 tMesgID){
-			FNode_LC::HoldOffset();
+		inline	const	uint32		&GetMesgOffset(void)const{return(fnlc_Mesg.GetContentOffset());};
+		inline	const	uint32		&GetMesgLength(void)const{return(fnlc_Mesg.GetLength());};
+		inline			uint32		ReadID(const FIFO_UINT8 *fifobuf = nullptr){return(fn_MesgID.GetValueCalc(fifobuf));};
+		inline	const	FNode_MESG	&SetContent	(const FIFO_UINT8 &fifoIn,uint32 num,uint32 offset,uint8 tMesgID){
+			Field_Node::HoldOffset();
 			fn_MesgID.SetFIFOByte(tMesgID);
 			fnlc_Mesg.SetContent(fifoIn, num, offset);
-			FNode_LC::UpdateLength();
+			Field_Node::UpdateLength();
 			return(*this);
 		};
-		inline	const	CCY_FNLC_MESG	&SetContent	(const uint8 *data,uint32 num,uint32 tMesgID){
-			FNode_LC::HoldOffset();
+		inline	const	FNode_MESG	&SetContent	(const uint8 *data,uint32 num,uint32 tMesgID){
+			Field_Node::HoldOffset();
 			fn_MesgID.SetFIFOByte(tMesgID);
 			fnlc_Mesg.SetContent(data, num);
-			FNode_LC::UpdateLength();
+			Field_Node::UpdateLength();
 			return(*this);
 		};
-		inline	const	CCY_FNLC_MESG	&SetContent	(const std::string &strInput,uint32 tMesgID){
-			return(CCY_FNLC_MESG::SetContent((uint8*)strInput.c_str(),(uint32)strInput.length(),tMesgID));
+		inline	const	FNode_MESG	&SetContent	(const std::string &strInput,uint32 tMesgID){
+			return(FNode_MESG::SetContent((uint8*)strInput.c_str(),(uint32)strInput.length(),tMesgID));
 		};
-		inline	const	CCY_FNLC_MESG	&SetContent	(const Field_Node &fnInput,uint32 tMesgID){
-			FNode_LC::HoldOffset();
+		inline	const	FNode_MESG	&SetContent	(const Field_Node &fnInput,uint32 tMesgID){
+			Field_Node::HoldOffset();
 			fn_MesgID.SetFIFOByte(tMesgID);
 			fnlc_Mesg.SetContent(fnInput);
-			FNode_LC::UpdateLength();
+			Field_Node::UpdateLength();
 			return(*this);
 		};
 };

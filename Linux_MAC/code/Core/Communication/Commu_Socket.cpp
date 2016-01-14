@@ -18,6 +18,7 @@
 #include "Commu_Socket.h"
 #include "Comm_Convert.h"
 #include "ODEV_Include.h"
+#include "SMC.h"
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 #ifdef CommonDefH_VC
@@ -30,22 +31,21 @@ int32 CheckWSAStartup(void){
 #endif
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
-int32 APISocket::OpenDev(const std::string &tCDBufName,int32 tCDBufPar,CSType tCSType){
+int32 APISocket::Socket_OpenDev(const std::string &tCDBufName,int32 tCDBufPar,CSType tCSType){
 	sockaddr_in		tcpaddr;
 	hostent			*lpHostEnt;
-	int				rcvbuf;
-	
-	SetCSType((GetCSType() == CSType_None) ? CSType_TCP : tCSType);
 
+	SetCSType(tCSType);
+	
 	lpHostEnt = gethostbyname(tCDBufName.c_str());
 	if (lpHostEnt == nullptr)
 		return 0;
-	tcpaddr.sin_addr = *((struct in_addr *)lpHostEnt->h_addr);
 	
+	tcpaddr.sin_addr = *((struct in_addr *)lpHostEnt->h_addr);
 	tcpaddr.sin_family = AF_INET;
 	tcpaddr.sin_port = htons(tCDBufPar);
 	
-	if (GetCSType() == CSType_TCP){
+	if (tCSType == CSType_TCP){
 		Handle = socket(AF_INET,SOCK_STREAM,IPPROTO_TCP);
 	}
 	else{
@@ -55,6 +55,80 @@ int32 APISocket::OpenDev(const std::string &tCDBufName,int32 tCDBufPar,CSType tC
 		Close_Do();
 		return 0;
 	}
+	
+	SetSocketBufferSize();
+	
+	if (connect(Handle,(struct sockaddr *)&tcpaddr, sizeof(tcpaddr)) == SOCKET_ERROR){
+		Close_Do();
+		return 0;
+	}
+	return 1;
+}
+//------------------------------------------------------------------------------------------//
+void APISocket::Socket_CloseDev(void){
+	if (Handle != INVALID_SOCKET){
+		shutdown(Handle,SD_BOTH);
+#ifdef CommonDefH_Unix
+		close(Handle);
+#endif
+#ifdef CommonDefH_VC
+		
+		closesocket(Handle);
+#endif
+	}
+	Handle = INVALID_SOCKET;
+}
+//------------------------------------------------------------------------------------------//
+int32 APISocket::Server_OpenDev(const std::string &tCDBufName,int32 tCDBufPar,CSType tCSType){
+	SetCSType(tCSType);
+	if (tCSType == CSType_TCPS)
+		return 1;
+#ifdef CommonDefH_Unix
+	cgUDPS_RemoteAddr.sin_addr.s_addr = inet_addr(tCDBufName.c_str());
+#endif
+#ifdef CommonDefH_VC
+	cgUDPS_RemoteAddr.sin_addr.S_un.S_addr = inet_addr(tCDBufName.c_str());
+#endif
+	cgUDPS_RemoteAddr.sin_family = AF_INET;
+	cgUDPS_RemoteAddr.sin_port = htons(tCDBufPar);
+	return 1;
+}
+//------------------------------------------------------------------------------------------//
+void APISocket::Server_CloseDev(void){
+	if (GetCSType() == CSType_TCPS)
+		Socket_CloseDev();
+	Handle = INVALID_SOCKET;
+}
+//------------------------------------------------------------------------------------------//
+int32 APISocket::OpenDev(const std::string &tCDBufName,int32 tCDBufPar,CSType tCSType){
+	switch (tCSType) {
+		case CSType_TCP:;
+		case CSType_UDP:;
+			return(Socket_OpenDev(tCDBufName,tCDBufPar,tCSType));
+		case CSType_TCPS:;
+		case CSType_UDPS:;
+			return(Server_OpenDev(tCDBufName,tCDBufPar,tCSType));
+		default:;
+	};
+	return 0;
+}
+//------------------------------------------------------------------------------------------//
+void APISocket::CloseDev(void){
+	switch (GetCSType()) {
+		case CSType_TCPS:;
+		case CSType_UDPS:;
+			Server_CloseDev();
+			break;
+		case CSType_TCP:;
+		case CSType_UDP:;
+		default:;
+			Socket_CloseDev();
+	};
+	COMMU_DBUF::CloseDev();
+}
+//------------------------------------------------------------------------------------------//
+void APISocket::SetSocketBufferSize(void){
+	int	rcvbuf;
 #ifdef CommonDefH_Unix
 	socklen_t	rcvbufsize;
 	rcvbufsize = sizeof(socklen_t);
@@ -73,26 +147,6 @@ int32 APISocket::OpenDev(const std::string &tCDBufName,int32 tCDBufPar,CSType tC
 			rcvbuf = (int32)cgTxBuffer.BufferMaxSize();//PACKAGE_MAX_SIZE;
 		setsockopt(Handle,SOL_SOCKET,SO_SNDBUF,(char*)&rcvbuf,rcvbufsize);
 	}
-	
-	if (connect(Handle,(struct sockaddr *)&tcpaddr, sizeof(tcpaddr)) == SOCKET_ERROR){
-		Close_Do();
-		return 0;
-	}
-	return 1;
-}
-//------------------------------------------------------------------------------------------//
-void APISocket::CloseDev(void){
-	if (Handle != INVALID_SOCKET){
-		shutdown(Handle,SD_BOTH);
-#ifdef CommonDefH_Unix
-		close(Handle);
-#endif
-#ifdef CommonDefH_VC
-
-		closesocket(Handle);
-#endif
-	}
-	Handle = INVALID_SOCKET;
 }
 //------------------------------------------------------------------------------------------//
 int32 APISocket::ReadFromDevice(uint32 *retNum,uint8 *buffer,uint32 length){
@@ -100,15 +154,16 @@ int32 APISocket::ReadFromDevice(uint32 *retNum,uint8 *buffer,uint32 length){
 	*retNum = 0;
 	
 	retCode = recv(Handle,(char*)buffer,length,0);
-	if (GetCSType() == CSType_TCP){
+	if ((GetCSType() == CSType_TCP) || (GetCSType() == CSType_TCPS)){
 		if (((retCode == SOCKET_ERROR) && (errno != EINTR) && (errno != EWOULDBLOCK) && (errno != EAGAIN))
 			|| ((retCode == 0) && (errno != EINTR))){
 			SYS_SleepMS(50);
-			ClrblConnected();
 			if (CheckblAClose() == 0){
 				SetblSDC();
-				PrintUserDisconnectReport(" TCP " + GetBufName() + ":" + Str_IntToString(GetBufPar()) + " connection disconnected.\r\n");
+				if (GetCSType() == CSType_TCP)
+					PrintUserDisconnectReport(" TCP " + GetBufName() + ":" + Str_IntToString(GetBufPar()) + " connection disconnected.\r\n");
 			}
+			ClrblConnected();
 			CloseDev();
 			return -1;
 		}
@@ -123,6 +178,8 @@ int32 APISocket::ReadFromDevice(uint32 *retNum,uint8 *buffer,uint32 length){
 int32 APISocket::SendToDevice(uint32 *retNum,const uint8 *buffer,uint32 length){
 	int64		retCode;
 	uint32		i;
+	if (GetCSType() == CSType_UDPS)
+		return(UDPS_SendToDevice(retNum,buffer,length));
 	
 	i = 0;
 	while((i < length) && (CheckblAClose() == 0)){
@@ -135,6 +192,46 @@ int32 APISocket::SendToDevice(uint32 *retNum,const uint8 *buffer,uint32 length){
 	}
 	*retNum = i;
 	return 1;
+}
+//------------------------------------------------------------------------------------------//
+int32 APISocket::UDPS_SendToDevice(uint32 *retNum,const uint8 *buffer,uint32 length){
+	int64		retCode;
+	uint32		i;
+	
+	i = 0;
+	while((i < length) && (CheckblAClose() == 0)){
+		retCode = sendto(Handle,(char*)&buffer[i],length - i,0,(struct sockaddr *)&cgUDPS_RemoteAddr,sizeof(cgUDPS_RemoteAddr));
+		if (retCode == SOCKET_ERROR){
+			*retNum = i;
+			return -1;
+		}
+		i += (uint32)retCode;
+	}
+	*retNum = i;
+	return 1;
+}
+//------------------------------------------------------------------------------------------//
+void APISocket::ThreadsStart(void){
+	if (GetCSType() == CSType_UDPS)
+		return UDPS_ThreadsStart();
+	Socket_ThreadsStart();
+}
+//------------------------------------------------------------------------------------------//
+void APISocket::Socket_ThreadsStart(void){
+	SMC_EncryptI(0)
+	SMC_EncryptS(0)
+	txThread.ThreadRun();
+	rxThread.ThreadRun();
+	ex2Thread.ThreadRun();
+	SMC_EncryptE(0)
+}
+//------------------------------------------------------------------------------------------//
+void APISocket::UDPS_ThreadsStart(void){
+	SMC_EncryptI(0)
+	SMC_EncryptS(0)
+	txThread.ThreadRun();
+	ex2Thread.ThreadRun();
+	SMC_EncryptE(0)
 }
 //------------------------------------------------------------------------------------------//
 void APISocket::PrintConnectInfo(int32 blSendWelcome){
@@ -224,4 +321,5 @@ void APISocket::PrintDisconnectInfo(void){
 	}
 	Spin_InUse_clr();
 }
+//------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//

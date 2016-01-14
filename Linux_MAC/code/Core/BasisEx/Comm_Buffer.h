@@ -105,7 +105,7 @@ class PUB_DBUF : public RTREE_NODE{
 	public:
 		virtual	void	Enable	(void){cgRxBuffer.Enable();cgTxBuffer.Enable();RTREE_NODE::Enable();};
 		virtual	void	Disable	(void){cgRxBuffer.Disable();cgTxBuffer.Disable();RTREE_NODE::Disable();};
-
+		virtual	void	Clean	(void);
 		inline	const uint32&	BufferRxMaxSize	(void)const	{return(cgRxBuffer.BufferMaxSize());};
 		inline	const uint32&	BufferTxMaxSize	(void)const	{return(cgRxBuffer.BufferMaxSize());};
 		inline	uint32			UnreadBytes		(void)const	{return(cgRxBuffer.Used());};
@@ -114,9 +114,11 @@ class PUB_DBUF : public RTREE_NODE{
 		inline	const uint64&	RxBytes			(void)const	{return(cgRxBytes);};
 		inline	const uint64&	TxBytes			(void)const	{return(cgTxBytes);};
 
-				void	Clean			(void);
+	
 		inline	uint32	Read			(uint8 *dataBuf,uint32 num)						{return(cgRxBuffer.Get(dataBuf,num));};
 		inline	uint32	Write			(const uint8 *dataBuf,uint32 num)				{return(cgTxBuffer.Put(dataBuf,num));};
+		inline	uint32	Write			(const FIFO_UINT8 &dataFIFO,uint32 num,uint32 offset = 0)
+																						{return(cgTxBuffer.Put(dataFIFO,num,offset));};
 		inline	uint32	ReadInHEX		(std::string *strData,G_SPACE_VAILD blSpace)	{return(cgRxBuffer.GetInHEX(strData,blSpace));};
 		inline	uint32	ReadInASCII		(std::string *strData,G_ESCAPE_VAILD blEscape)	{return(cgRxBuffer.GetInASCII(strData,blEscape));};
 		inline	uint32	WriteInHEX		(const std::string &strNewData)					{return(cgTxBuffer.PutInHEX(strNewData));};

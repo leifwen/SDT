@@ -23,7 +23,62 @@
 	SYS_Lock		logLock;
 #endif
 //------------------------------------------------------------------------------------------//
-void MyLogPrint(const RTREE_NODE *treeNode,const char * format, ...){
+void MyLogPrint(const RTREE_NODE *treeNode1,const RTREE_NODE *treeNode2,const char *format, ...){
+#ifdef LOGPRINT
+	logLock.Lock();
+	va_list arg_ptr;
+	va_start(arg_ptr, format);
+#ifdef CommonDefH_Unix
+	vsnprintf(Logbuffer,sizeof(Logbuffer),format, arg_ptr);
+#endif
+#ifdef CommonDefH_VC
+	vsnprintf_s(Logbuffer, sizeof(Logbuffer), format, arg_ptr);
+#endif
+	va_end(arg_ptr);
+	logTime.Now();
+	if (treeNode1 != nullptr){
+		if (treeNode2 != nullptr){
+			printf("%s  [%s][%s]::%s\n",logTime.FormatDateTime("[hh:mm:ss.zzz]").c_str()
+				   ,treeNode1->selfName.c_str(),treeNode2->selfName.c_str()
+				   ,Logbuffer);
+		}
+		else{
+			printf("%s  [%s]::%s\n",logTime.FormatDateTime("[hh:mm:ss.zzz]").c_str(),treeNode1->selfName.c_str(),Logbuffer);
+		}
+	}
+	else{
+		if (treeNode2 != nullptr){
+			printf("%s  [%s]::%s\n",logTime.FormatDateTime("[hh:mm:ss.zzz]").c_str(),treeNode2->selfName.c_str(),Logbuffer);
+		}
+		else{
+			printf("%s  %s\n",logTime.FormatDateTime("[hh:mm:ss.zzz]").c_str(),Logbuffer);
+		}
+	}
+	logLock.Unlock();
+#endif
+}
+//------------------------------------------------------------------------------------------//
+void MyLogPrint(const RTREE_NODE &treeNode1,const RTREE_NODE &treeNode2,const char *format, ...){
+#ifdef LOGPRINT
+	logLock.Lock();
+	va_list arg_ptr;
+	va_start(arg_ptr, format);
+#ifdef CommonDefH_Unix
+	vsnprintf(Logbuffer, sizeof(Logbuffer), format, arg_ptr);
+#endif
+#ifdef CommonDefH_VC
+	vsnprintf_s(Logbuffer, sizeof(Logbuffer), format, arg_ptr);
+#endif
+	va_end(arg_ptr);
+	logTime.Now();
+	printf("%s  [%s][%s]::%s\n",logTime.FormatDateTime("[hh:mm:ss.zzz]").c_str()
+		   ,treeNode1.selfName.c_str(),treeNode2.selfName.c_str()
+		   ,Logbuffer);
+	logLock.Unlock();
+#endif
+}
+//------------------------------------------------------------------------------------------//
+void MyLogPrint(const RTREE_NODE *treeNode,const char *format, ...){
 #ifdef LOGPRINT
 	logLock.Lock();
 	va_list arg_ptr;
@@ -37,7 +92,7 @@ void MyLogPrint(const RTREE_NODE *treeNode,const char * format, ...){
 	va_end(arg_ptr);
 	logTime.Now();
 	if (treeNode != nullptr){
-		printf("%s  %s::%s\n",logTime.FormatDateTime("[hh:mm:ss.zzz]").c_str(),treeNode->selfName.c_str(),Logbuffer);
+		printf("%s  [%s]::%s\n",logTime.FormatDateTime("[hh:mm:ss.zzz]").c_str(),treeNode->selfName.c_str(),Logbuffer);
 	}
 	else{
 		printf("%s  %s\n",logTime.FormatDateTime("[hh:mm:ss.zzz]").c_str(),Logbuffer);
@@ -46,7 +101,7 @@ void MyLogPrint(const RTREE_NODE *treeNode,const char * format, ...){
 #endif
 }
 //------------------------------------------------------------------------------------------//
-void MyLogPrint(const RTREE_NODE &treeNode,const char * format, ...){
+void MyLogPrint(const RTREE_NODE &treeNode,const char *format, ...){
 #ifdef LOGPRINT
 	logLock.Lock();
 	va_list arg_ptr;
@@ -59,12 +114,12 @@ void MyLogPrint(const RTREE_NODE &treeNode,const char * format, ...){
 #endif
 	va_end(arg_ptr);
 	logTime.Now();
-	printf("%s  %s::%s\n",logTime.FormatDateTime("[hh:mm:ss.zzz]").c_str(),treeNode.selfName.c_str(),Logbuffer);
+	printf("%s  [%s]::%s\n",logTime.FormatDateTime("[hh:mm:ss.zzz]").c_str(),treeNode.selfName.c_str(),Logbuffer);
 	logLock.Unlock();
 #endif
 }
 //------------------------------------------------------------------------------------------//
-void MyLogPrint(const char * format, ...){
+void MyLogPrint(const char *format, ...){
 #ifdef LOGPRINT
 	logLock.Lock();
 	va_list arg_ptr;
@@ -83,7 +138,6 @@ void MyLogPrint(const char * format, ...){
 }
 //------------------------------------------------------------------------------------------//
 ODEV_LIST_POOL::ODEV_LIST_POOL(void) : RTREE_NODE(){
-	cODevDBUF = nullptr;
 	cODevSDOUT = nullptr;
 	cODevFileTXT = nullptr;
 	cODevFileRTF = nullptr;
@@ -92,28 +146,31 @@ ODEV_LIST_POOL::ODEV_LIST_POOL(void) : RTREE_NODE(){
 //------------------------------------------------------------------------------------------//
 int32 ODEV_LIST_POOL::Print(void){
 	int32		blPrint;
+	ODEV_NODE	*nextNode;
 	
 	blPrint = 0;
-	
-#ifdef CommonDefH_VC
-	RTREE_LChildRChain_Traversal_LINE(ODEV_NODE, this,
-		if ((operateNode_t != cODevSDOUT) && (operateNode_t->Print() != 0))
+	nextNode = (ODEV_NODE*)GetFirstChild(this);
+
+	while (nextNode != nullptr){
+		#ifdef CommonDefH_VC
+		if ((nextNode != cODevSDOUT) && (nextNode->Print() != 0))
 			blPrint = 1;
-	);
-#endif
-#ifdef CommonDefH_Unix
-	RTREE_LChildRChain_Traversal_LINE(ODEV_NODE,this,
-		if (operateNode_t->Print() != 0)
+		#endif
+		#ifdef CommonDefH_Unix
+		if (nextNode->Print() != 0)
 			blPrint = 1;
-	);
-#endif
+		#endif
+		nextNode = (ODEV_NODE*)GetNextBrother(nextNode);
+	}
 	return(blPrint);
 }
 //------------------------------------------------------------------------------------------//
+#ifdef CommonDefH_VC
 void ODEV_LIST_POOL::PrintSDOUT(void){
- if (cODevSDOUT != nullptr)
-	 cODevSDOUT->Print();
+	if (cODevSDOUT != nullptr)
+		cODevSDOUT->Print();
 };
+#endif
 //------------------------------------------------------------------------------------------//
 ODEV_NODE_FILE *ODEV_LIST_POOL::CreateNewODevFile(const std::string &tODEV,COLSTRING::COLType tCOLType){
 	ODEV_NODE_FILE	*tNewODev;

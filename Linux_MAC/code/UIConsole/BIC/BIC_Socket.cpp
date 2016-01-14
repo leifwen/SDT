@@ -27,7 +27,7 @@ int32 BIC_TCP::Help(BICPAR *tBICPAR,int32 blDetail)const{
 	PrintHelpItem(tBICPAR,cgCommand,"Set as TCP mode.");
 	if (blDetail == 0)
 		return(cgReturnCode);
-	PrintHelpItem(tBICPAR,"     [IP][port]","Destination IP and port.");
+	PrintHelpItem(tBICPAR,"     [IP][PORT]","Destination IP and port.");
 	return(cgReturnCode);
 }
 //------------------------------------------------------------------------------------------//
@@ -43,7 +43,7 @@ int32 BIC_UDP::Help(BICPAR *tBICPAR,int32 blDetail)const{
 	PrintHelpItem(tBICPAR,cgCommand,"Set as UDP mode.");
 	if (blDetail == 0)
 		return(cgReturnCode);
-	PrintHelpItem(tBICPAR,"     [IP][port]","Destination IP and port.");
+	PrintHelpItem(tBICPAR,"     [IP][PORT]","Destination IP and port.");
 	return(cgReturnCode);
 }
 //------------------------------------------------------------------------------------------//
@@ -59,7 +59,7 @@ int32 BIC_TCPS::Help(BICPAR *tBICPAR,int32 blDetail)const{
 	PrintHelpItem(tBICPAR,cgCommand,"Set as TCP server mode.");
 	if (blDetail == 0)
 		return(cgReturnCode);
-	PrintHelpItem(tBICPAR,"     [port]","Local listen port.");
+	PrintHelpItem(tBICPAR,"     [PORT]","Local listen port.");
 	return(cgReturnCode);
 }
 //------------------------------------------------------------------------------------------//
@@ -75,7 +75,7 @@ int32 BIC_UDPS::Help(BICPAR *tBICPAR,int32 blDetail)const{
 	PrintHelpItem(tBICPAR,cgCommand,"Set as UDP server mode.");
 	if (blDetail == 0)
 		return(cgReturnCode);
-	PrintHelpItem(tBICPAR,"     [port]","Local listen port.");
+	PrintHelpItem(tBICPAR,"     [PORT]","Local listen port.");
 	return(cgReturnCode);
 }
 //------------------------------------------------------------------------------------------//
@@ -98,12 +98,12 @@ int32 BIC_PORT::Help(BICPAR *tBICPAR,int32 blDetail)const{
 }
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
-int32 BIC_SL::Help(BICPAR *tBICPAR,int32 blDetail)const{
-	PrintHelpItem(tBICPAR,cgCommand,"Socket list.");
+int32 BIC_SI::Help(BICPAR *tBICPAR,int32 blDetail)const{
+	PrintHelpItem(tBICPAR,cgCommand,"Socket information.");
 	return(cgReturnCode);
 }
 //------------------------------------------------------------------------------------------//
-int32 BIC_SL::Command(BICPAR *tBICPAR, const std::string &par,std::string *ret)const{
+int32 BIC_SI::Command(BICPAR *tBICPAR, const std::string &par,std::string *ret)const{
 	*ret = "";
 	if (par.length() > 0)
 		return(Help(tBICPAR));
@@ -111,7 +111,7 @@ int32 BIC_SL::Command(BICPAR *tBICPAR, const std::string &par,std::string *ret)c
 	if ((tBICPAR->sdtApp->m_Device.cgDevType == DEVICE::DEVID_TCPServer) || (tBICPAR->sdtApp->m_Device.cgDevType == DEVICE::DEVID_UDPServer)){
 		PrintStrN(tBICPAR,DEV_LINE_START,RICH_LIN_clDefault);
 		tBICPAR->sdtApp->m_Device.cgAPISocketServer->Spin_InUse_set();
-		RTREE_LChildRChain_Traversal_LINE(APISocket,tBICPAR->sdtApp->m_Device.cgAPISocketServer,BIC_SL_LS_PrintSocket(tBICPAR,operateNode_t));
+		RTREE_LChildRChain_Traversal_LINE_nolock(APISocket,tBICPAR->sdtApp->m_Device.cgAPISocketServer,BIC_SI_LS_PrintSocket(tBICPAR,operateNode_t));
 		tBICPAR->sdtApp->m_Device.cgAPISocketServer->Spin_InUse_clr();
 		PrintStrN(tBICPAR,DEV_LINE_START,RICH_LIN_clDefault);
 	}
@@ -121,7 +121,7 @@ int32 BIC_SL::Command(BICPAR *tBICPAR, const std::string &par,std::string *ret)c
 	return(cgReturnCode);
 }
 //------------------------------------------------------------------------------------------//
-int32 BIC_SL::BIC_SL_LS_PrintSocket(BICPAR *tBICPAR,APISocket *tSocket){
+int32 BIC_SI::BIC_SI_LS_PrintSocket(BICPAR *tBICPAR,APISocket *tSocket){
 	std::string		strPrintData;
 	
 	if (tSocket != nullptr){
@@ -148,7 +148,7 @@ int32 BIC_SL::BIC_SL_LS_PrintSocket(BICPAR *tBICPAR,APISocket *tSocket){
 }
 //------------------------------------------------------------------------------------------//
 int32 BIC_SS::Help(BICPAR *tBICPAR,int32 blDetail)const{
-	PrintHelpItem(tBICPAR,cgCommand,"Select socket.");
+	PrintHelpItem(tBICPAR,cgCommand,"Socket select.");
 	if (blDetail == 0)
 		return(cgReturnCode);
 	PrintHelpItem(tBICPAR,"     <num>","Socket number.");
@@ -177,12 +177,12 @@ int32 BIC_SS::Command(BICPAR *tBICPAR, const std::string &par,std::string *ret)c
 				tBICPAR->sdtApp->m_Device.cgAPISocketServer->SetblUpdate();
 				if (GetdRNodeID(socketSelected) == (uint32)num){
 					PrintStrN(tBICPAR,DEV_LINE_START,RICH_LIN_clDefault);
-					BIC_SL::BIC_SL_LS_PrintSocket(tBICPAR,socketSelected);
+					BIC_SI::BIC_SI_LS_PrintSocket(tBICPAR,socketSelected);
 					PrintStrN(tBICPAR,DEV_LINE_START,RICH_LIN_clDefault);
 					break;
 				}
 			}
-			socketSelected = (APISocket*)FindInLChildRChainByDRNodeID(socketPool,num);
+			socketSelected = (APISocket*)FindInLChildRChainByDRNodeID_nolock(socketPool,num);
 			if (socketSelected != nullptr){
 				socketSelected->SetblSelected();
 				socketSelected->UseExternalFwSBL(&tBICPAR->sdtApp->m_Device.rxBufferList);
@@ -190,7 +190,7 @@ int32 BIC_SS::Command(BICPAR *tBICPAR, const std::string &par,std::string *ret)c
 					socketSelected->LinkCoupleNode(tBICPAR->sdtApp->m_Device2.cgCurrentDB);
 				
 				PrintStrN(tBICPAR,DEV_LINE_START,RICH_LIN_clDefault);
-				BIC_SL::BIC_SL_LS_PrintSocket(tBICPAR,socketSelected);
+				BIC_SI::BIC_SI_LS_PrintSocket(tBICPAR,socketSelected);
 				PrintStrN(tBICPAR,DEV_LINE_START,RICH_LIN_clDefault);
 				tBICPAR->sdtApp->m_Device.cgAPISocketServer->SetblUpdate();
 			}
@@ -204,15 +204,15 @@ int32 BIC_SS::Command(BICPAR *tBICPAR, const std::string &par,std::string *ret)c
 }
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
-int32 BIC_SD::Help(BICPAR *tBICPAR,int32 blDetail)const{
-	PrintHelpItem(tBICPAR,cgCommand,"Disconnect socket.");
+int32 BIC_SSD::Help(BICPAR *tBICPAR,int32 blDetail)const{
+	PrintHelpItem(tBICPAR,cgCommand,"Socket shutdown.");
 	if (blDetail == 0)
 		return(cgReturnCode);
 	PrintHelpItem(tBICPAR,"     <num>","Socket number.");
 	return(cgReturnCode);
 }
 //------------------------------------------------------------------------------------------//
-int32 BIC_SD::Command(BICPAR *tBICPAR, const std::string &par,std::string *ret)const{
+int32 BIC_SSD::Command(BICPAR *tBICPAR, const std::string &par,std::string *ret)const{
 	APISocket			*tSocket;
 	APISocketServer		*socketPool;
 	int32 			num;
@@ -224,7 +224,7 @@ int32 BIC_SD::Command(BICPAR *tBICPAR, const std::string &par,std::string *ret)c
 		socketPool = tBICPAR->sdtApp->m_Device.cgAPISocketServer;
 		num = atoi(par.c_str());
 		socketPool->Spin_InUse_set();
-		tSocket = (APISocket*)FindInLChildRChainByDRNodeID(socketPool, num);
+		tSocket = (APISocket*)FindInLChildRChainByDRNodeID_nolock(socketPool, num);
 		if (tSocket != nullptr)
 			tSocket->CloseD(0);
 		socketPool->Spin_InUse_clr();

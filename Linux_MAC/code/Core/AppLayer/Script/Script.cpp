@@ -229,7 +229,7 @@ int32 Script::ECommandThreadFun(void){
 }
 //------------------------------------------------------------------------------------------//
 int32 Script::ExecuteGroupList(GC_LIST *tGroupList,const int32 &runTotalTimes){
-	RTREE_LChildRChain_Traversal_LINE(COMMAND_GROUP,tGroupList,
+	RTREE_LChildRChain_Traversal_LINE_nolock(COMMAND_GROUP,tGroupList,
 		if (IsTerminated() != 0)
 			break;
 		if (operateNode_t->blEnableAutoRun != 0)
@@ -474,7 +474,7 @@ void Script::ShowResult(GC_LIST *tGroupList,const std::string &tExecuteTime){
 		cgDevice->cgODevList.cgOutput->WriteStr(tExecuteTime,RICH_CF_clPurple);
 		
 		i = 0;
-		RTREE_LChildRChain_Traversal_LINE(COMMAND_GROUP,tGroupList,
+		RTREE_LChildRChain_Traversal_LINE_nolock(COMMAND_GROUP,tGroupList,
 			++ i;
 			if (operateNode_t->blEnableAutoRun != 0){
 				strGroupName = "G" + Str_IntToString(i) + "::" + operateNode_t->name + ":\r\n";

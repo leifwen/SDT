@@ -27,10 +27,10 @@ class COMMU_DBUF_ODEV : public ODEV_NODE{
 				 COMMU_DBUF_ODEV(const COMMU_DBUF_B *tODEV,COLType tCOLType = COLType_TXT) : ODEV_NODE(){Init(tODEV,tCOLType);};
 		virtual ~COMMU_DBUF_ODEV(void){;};
 	public:
-		virtual int32	Print		(G_LOCK_VAILD blLock = G_LOCK_ON){	Spin_InUse_set(blLock);
+		virtual int32	Print		(G_LOCK_VAILD blLock = G_LOCK_ON){
+			std::string		strT;
 			if (cgDBuffer != nullptr)
-				cgDBuffer->WriteInASCII(ReadStr(G_LOCK_OFF),G_ESCAPE_OFF);
-			Spin_InUse_clr(blLock);
+				cgDBuffer->WriteInASCII(ReadStr(&strT,blLock),G_ESCAPE_OFF);
 			return 1;
 		};
 		virtual void	UnInit		(G_LOCK_VAILD blLock = G_LOCK_ON){Spin_InUse_set(blLock);cgDBuffer = nullptr;Spin_InUse_clr(blLock);};
@@ -110,6 +110,10 @@ void COMMU_DBUF_B::Run(const std::string &tCDBufName,int32 tCDBufPar,CSType tCST
 	Enable();
 }
 //------------------------------------------------------------------------------------------//
+int32 COMMU_DBUF_B::DoAfterOpen(void){
+	return 1;
+};
+//------------------------------------------------------------------------------------------//
 void COMMU_DBUF_B::ThreadsStart(void){
 	SMC_EncryptI(0)
 	SMC_EncryptS(0)
@@ -127,30 +131,43 @@ int32 COMMU_DBUF_B::CloseD(int32 blClrBufName){
 }
 //------------------------------------------------------------------------------------------//
 int32 COMMU_DBUF_B::Close_Do(int32 blClrBufName){
-	SetblAClose();
+	OnCloseDev();
 	CloseDev();
-	ClrblSDC();
-	
 	cgThreadList.LThreadStop();
-	
-	ClrblConnected();
 	if (blClrBufName != 0){
 		cgCDBufName = "";
 		cgCDBufPar = 0;
 	}
+	ClrblSDC();
 	return 1;
 }
 //------------------------------------------------------------------------------------------//
-void COMMU_DBUF_B::RxForward(const uint8 *databuf,int32 num){
+void COMMU_DBUF_B::OnCloseDev(void){
+	PushSend();
+	SetblPushSend();
+};
+//------------------------------------------------------------------------------------------//
+void COMMU_DBUF_B::CloseDev(void){
+	SetblAClose();
+	ClrblConnected();
+};
+//------------------------------------------------------------------------------------------//
+void COMMU_DBUF_B::DoAfterReadFromDevice(const uint8 *databuf,int32 num){
 	if (CheckEnableEcho() != 0)
 		cgFwBytes += cgTxBuffer.Put(databuf,num);//Echo
 	Spin_InUse_set();
 	if (GetcgCoupleNode(this) != nullptr)
-		((COMMU_DBUF*)GetcgCoupleNode(this))->Write(databuf,num);//used for forward
+		ForwardToCouple(databuf,num);
 	if (rxFwSBufList != nullptr)
 		rxFwSBufList->LPut(databuf,num);//used for internal AP
 	Spin_InUse_clr();
-	cgRxBuffer.Put(databuf,num);
+	if (CheckblcgRxBufferUsed() > 0)
+		cgRxBuffer.Put(databuf,num);
+}
+//------------------------------------------------------------------------------------------//
+void COMMU_DBUF_B::ForwardToCouple(const uint8 *databuf,int32 num){
+	if (num > 0)
+		((COMMU_DBUF_B*)GetcgCoupleNode(this))->Write(databuf,num);
 }
 //------------------------------------------------------------------------------------------//
 int32 COMMU_DBUF_B::RxThreadFun(void){
@@ -158,14 +175,16 @@ int32 COMMU_DBUF_B::RxThreadFun(void){
 	uint32	retNum;
 	int32	errCode;
 	
+	if (GetCSType() == CSType_UDPS)
+		return 1;
 	while(rxThread.IsTerminated() == 0){
-		if (IsConnected() > 0){
+		if ((IsConnected() > 0) && (CheckblHold() == 0)){
 			errCode = ReadFromDevice(&retNum,buffer,PACKAGE_MAX_SIZE);
 			if (errCode == -1)
 				break;
 			if ((errCode > 0) && (retNum > 0)){
 				cgRxBytes += retNum;
-				RxForward(buffer,retNum);
+				DoAfterReadFromDevice(buffer,retNum);
 				continue;
 			}
 		}
@@ -174,13 +193,24 @@ int32 COMMU_DBUF_B::RxThreadFun(void){
 	return 1;
 }
 //------------------------------------------------------------------------------------------//
+void COMMU_DBUF_B::PushSend(void){
+	SYS_TIME_S		Timedly;
+	SYS_Delay_SetTS(&Timedly, 100);
+	SetblPushSend();
+	while((CheckblPushSend() > 0) && (SYS_Delay_CheckTS(&Timedly) == 0))
+		SYS_DelayMS(2);
+};
+//------------------------------------------------------------------------------------------//
 int32 COMMU_DBUF_B::TxThreadFun(void){
 	int32	errCode;
 	uint32	length,offset,retNum;
 	std::string	strBuf;
 	
 	while(txThread.IsTerminated() == 0){
-		if ((IsConnected() > 0) && (cgTxBuffer.Used() > 0)){
+		if (((IsConnected() > 0) && (CheckblHold() == 0) && (cgTxBuffer.Used() > 0))
+			|| (CheckblPushSend() > 0)){
+			if (CheckblPushSend() > 0)
+				ClrblPushSend();
 			if (cgFNode_TX != nullptr){//only in UDP mode need usd this
 				cgFNode_TX->Spin_InUse_set();
 				cgTxBuffer.Spin_InUse_set();
@@ -205,8 +235,10 @@ int32 COMMU_DBUF_B::TxThreadFun(void){
 						break;
 					if ((errCode > 0) && (retNum > 0))
 						cgTxBytes += retNum;
-				}while(length > 0);
+				}while((length > 0) && (CheckblAClose() == 0));
 				cgTxBuffer.Spin_InUse_clr();
+				if (errCode == -1)
+					break;
 			}
 		}
 		SYS_SleepMS(2);
@@ -245,16 +277,22 @@ ODEV_NODE *COMMU_DBUF_B::CreateSelfODev(COLSTRING::COLType tCOLType){
 //------------------------------------------------------------------------------------------//
 void COMMU_DBUF::Init(const ODEV_LIST *tODEV_LIST){
 	exThread.ThreadInit(this, &COMMU_DBUF::ExThreadFun);
-	printThread.ThreadInit(this, &COMMU_DBUF::PrintThreadFun);
+	ex2Thread.ThreadInit(this, &COMMU_DBUF::Ex2ThreadFun);
 	cgThreadList.AddNode(&exThread);
-	cgThreadList.AddNode(&printThread);
+	cgThreadList.AddNode(&ex2Thread);
 	
+	SetODEV_LIST(tODEV_LIST);
+	
+	cgODevPool = nullptr;
+}
+//------------------------------------------------------------------------------------------//
+void COMMU_DBUF::SetODEV_LIST(const ODEV_LIST *tODEV_LIST){
+	Spin_InUse_set();
 	cgODevList = (ODEV_LIST*)tODEV_LIST;
 	cgOutput = nullptr;
 	if (cgODevList != nullptr)
-		cgOutput = tODEV_LIST->cgOutput;
-	
-	cgODevPool = nullptr;
+		cgOutput = cgODevList->cgOutput;
+	Spin_InUse_clr();
 }
 //------------------------------------------------------------------------------------------//
 void COMMU_DBUF::PrintOpenSuccessReport(const std::string &strData){
@@ -366,13 +404,14 @@ void COMMU_DBUF::PrintRecData_lock(ODEV_LIST_POOL *output, const std::string &st
 	output->Spin_InUse_clr();
 }
 //------------------------------------------------------------------------------------------//
-int32 COMMU_DBUF::PrintThreadFun(void){
+int32 COMMU_DBUF::Ex2ThreadFun(void){
 	int32		byteNum;
 	uint64		oDevFlagU64;
 	std::string	strPrintdata;
 	
 	strPrintdata = "";
-	while(printThread.IsTerminated() == 0){
+	SetblcgRxBufferUsed();
+	while(ex2Thread.IsTerminated() == 0){
 		oDevFlagU64 = 0;
 		if (cgRxBuffer.Used() > 0){
 			Spin_InUse_set();
@@ -403,19 +442,27 @@ int32 COMMU_DBUF::PrintThreadFun(void){
 }
 //------------------------------------------------------------------------------------------//
 ODEV_NODE_SDOUT *COMMU_DBUF::CreateODevSDOUT(const void *tRichEdit,const void *tCFrm){
+	ODEV_NODE_SDOUT *ret;
+	ret = nullptr;
 	Spin_InUse_set();
-	if (CreateOutputList() != nullptr)
+	if (CreateOutputList() != nullptr){
 		cgODevPool->CreateODevSDOUT(tRichEdit, tCFrm);
+		ret = cgODevPool->cODevSDOUT;
+	}
 	Spin_InUse_clr();
-	return(cgODevPool->cODevSDOUT);
+	return(ret);
 }
 //------------------------------------------------------------------------------------------//
 ODEV_NODE_FILE *COMMU_DBUF::CreateODevFile(const std::string &tfileName){
+	ODEV_NODE_FILE *ret;
+	ret = nullptr;
 	Spin_InUse_set();
-	if (CreateOutputList() != nullptr)
+	if (CreateOutputList() != nullptr){
 		cgODevPool->CreateODevFile(tfileName);
+		ret = cgODevPool->cODevFileTXT;
+	}
 	Spin_InUse_clr();
-	return(cgODevPool->cODevFileTXT);
+	return(ret);
 }
 //------------------------------------------------------------------------------------------//
 ODEV_LIST_POOL *COMMU_DBUF::CreateOutputList(void){
@@ -432,6 +479,17 @@ void COMMU_DBUF::UpdataRecordUI(void){
 		cgODevPool->Print();
 	Spin_InUse_clr();
 }
+//------------------------------------------------------------------------------------------//
+#ifdef CommonDefH_VC
+//------------------------------------------------------------------------------------------//
+void COMMU_DBUF::UpdataRecordUISDOUT(void){
+	Spin_InUse_set();
+	if (cgODevPool != nullptr)
+		cgODevPool->PrintSDOUT();
+	Spin_InUse_clr();
+}
+//------------------------------------------------------------------------------------------/
+#endif
 //------------------------------------------------------------------------------------------//
 
 

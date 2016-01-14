@@ -99,14 +99,14 @@ void CSCTree::OnEditSave(HTREEITEM hItem){
 			if (node->StrCommand.substr(0,2) != "//"){
 				node->StrCommand = "//" + node->StrCommand;
 				text = _T("//") + text;
-				SetItemText(m_EditItem,text);
+				SetItemText(hItem, text);
 			}
 		}
 		else{
 			if (node->StrCommand.substr(0,2) == "//"){
 				node->StrCommand = node->StrCommand.substr(2);
 				text = Str_ANSIToUnicode(node->StrCommand).c_str();
-				SetItemText(m_EditItem,text);
+				SetItemText(hItem, text);
 			}
 		}
 		node->Spin_InUse_clr();

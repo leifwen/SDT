@@ -155,7 +155,7 @@ void CGCTree::OnEditCheckSave(HTREEITEM hItem){
 		case 0:
 		case 1:
 		case 2:
-			SaveNodeL2(hItem);
+			SaveNodeCheckL2(hItem);
 			break;
 		case 3:
 			SaveNodeCheckL3(hItem);
@@ -166,12 +166,19 @@ void CGCTree::OnEditCheckSave(HTREEITEM hItem){
 	m_GCList->Spin_InUse_clr();
 }
 //------------------------------------------------------------------------------------------//
+void CGCTree::SaveNodeCheckL2(HTREEITEM hItem){
+	COMMAND_GROUP	*node;
+
+	node = GetGroup(hItem);
+	if (node != NULL){
+		node->Spin_InUse_set();
+		node->blEnableAutoRun = GetCheck(hItem);
+		node->Spin_InUse_clr();
+	}
+}
+//------------------------------------------------------------------------------------------//
 void CGCTree::SaveNodeCheckL3(HTREEITEM hItem){
 	COMMAND_NODE	*command;
-	CString			text;
-	std::wstring	strwText;
-	if (hItem == NULL)
-		return;
 
 	command = GetCommand(hItem);
 
@@ -207,9 +214,8 @@ void CGCTree::SaveNodeL2(HTREEITEM hItem){
 	COMMAND_GROUP	*node;
 	CString			text;
 	std::wstring	strwText;
-	if (hItem == NULL)
-		return;
-	node = (COMMAND_GROUP*)RTREE_NODE::FindInLChildRChainByDRNodeID(m_GCList, GetItemData(hItem));
+
+	node = GetGroup(hItem);
 	if (node != NULL){
 		node->Spin_InUse_set();
 		text = GetItemText(hItem);
@@ -220,7 +226,7 @@ void CGCTree::SaveNodeL2(HTREEITEM hItem){
 			if (node->name.substr(0,2) != "//"){
 				node->name= "//" + node->name;
 				text = _T("//") + text;
-				SetItemText(m_EditItem,text);
+				SetItemText(hItem, text);
 			}
 		}
 		else{
@@ -228,7 +234,7 @@ void CGCTree::SaveNodeL2(HTREEITEM hItem){
 				node->name = Str_Trim(node->name.substr(2));
 				text = Str_ANSIToUnicode(node->name).c_str();
 			}
-			SetItemText(m_EditItem, Str_ANSIToUnicode(Str_IntToString(RTREE_NODE::GetdRNodeID(node)) + " : " + node->name).c_str());
+			SetItemText(hItem, Str_ANSIToUnicode(Str_IntToString(RTREE_NODE::GetdRNodeID(node)) + " : " + node->name).c_str());
 		}
 		node->Spin_InUse_clr();
 	}
@@ -238,8 +244,6 @@ void CGCTree::SaveNodeL3(HTREEITEM hItem){
 	COMMAND_NODE	*command;
 	CString			text;
 	std::wstring	strwText;
-	if (hItem == NULL)
-		return;
 
 	command = GetCommand(hItem);
 
@@ -250,7 +254,7 @@ void CGCTree::SaveNodeL3(HTREEITEM hItem){
 		command->StrCommand = Str_UnicodeToANSI(strwText);
 		command->blEnableSend = GetCheck(hItem);
 		if (command->blSameAsCommand == 0)
-			SetItemText(m_EditItem,Str_ANSIToUnicode(command->StrShowName).c_str());
+			SetItemText(hItem, Str_ANSIToUnicode(command->StrShowName).c_str());
 		command->Spin_InUse_clr();
 	}
 }
@@ -289,7 +293,7 @@ HTREEITEM CGCTree::CreateNode(HTREEITEM hItem){
 			}
 			break;
 		case 2:
-			node = (COMMAND_GROUP*)RTREE_NODE::FindInLChildRChainByDRNodeID(m_GCList, GetItemData(hItem));
+			node = GetGroup(hItem);
 			if (node->GetFirstChild(node) != NULL){
 				retItem = CreateNodeL2(hItem);
 			}
@@ -405,7 +409,7 @@ HTREEITEM CGCTree::CreateNodeL1(HTREEITEM hItem){
 			node = NULL;
 		}
 		else{
-			node = (COMMAND_GROUP*)RTREE_NODE::GetPriorBrother(RTREE_NODE::FindInLChildRChainByDRNodeID(m_GCList, GetItemData(retItem)));
+			node = (COMMAND_GROUP*)RTREE_NODE::GetPriorBrother(GetGroup(retItem));
 		}
 	}
 	newNode = new COMMAND_GROUP;
@@ -439,7 +443,7 @@ HTREEITEM CGCTree::CreateNodeL2(HTREEITEM hItem){
 	nodeLevel = CheckNodeLevel(hItem);
 	if (nodeLevel == 2){//create item after hItem
 		fatherItem = GetParentItem(hItem);
-		hNode = (COMMAND_GROUP*)RTREE_NODE::FindInLChildRChainByDRNodeID(m_GCList, GetItemData(hItem));
+		hNode = GetGroup(hItem);
 	}
 	else{//create item in the last
 		fatherItem = hItem;
@@ -448,7 +452,7 @@ HTREEITEM CGCTree::CreateNodeL2(HTREEITEM hItem){
 			hNode = (COMMAND_GROUP*)RTREE_NODE::GetLastChild(m_GCList);
 		}
 		else{
-			hNode = (COMMAND_GROUP*)RTREE_NODE::GetPriorBrother(RTREE_NODE::FindInLChildRChainByDRNodeID(m_GCList, GetItemData(hItem)));
+			hNode = (COMMAND_GROUP*)RTREE_NODE::GetPriorBrother(GetGroup(hItem));
 		}
 		hItem = TVI_LAST;
 	}
@@ -478,17 +482,17 @@ HTREEITEM CGCTree::CreateNodeL3(HTREEITEM hItem){
 		return NULL;
 
 	retItem = NULL;
+	hNode = NULL;
 	nodeLevel = CheckNodeLevel(hItem);
 	if (nodeLevel == 3){//create item after hItem
 		fatherItem = GetParentItem(hItem);
-		fatherNode = (COMMAND_GROUP*)RTREE_NODE::FindInLChildRChainByDRNodeID(m_GCList, GetItemData(fatherItem));
-		hNode = (COMMAND_NODE*)RTREE_NODE::FindInLChildRChainByDRNodeID(fatherNode, GetItemData(hItem));
+		fatherNode = GetGroup(fatherItem);
+		hNode = GetCommand(hItem);
 	}
 	else{//create item in the last
 		fatherItem = hItem;
 		hItem = TVI_LAST;
-		fatherNode = (COMMAND_GROUP*)RTREE_NODE::FindInLChildRChainByDRNodeID(m_GCList, GetItemData(fatherItem));
-		hNode = (COMMAND_NODE*)RTREE_NODE::GetLastChild(fatherNode);
+		fatherNode = GetGroup(fatherItem);
 	}
 	newCommand = new COMMAND_NODE;
 	if (newCommand != NULL){
@@ -498,7 +502,12 @@ HTREEITEM CGCTree::CreateNodeL3(HTREEITEM hItem){
 		}
 		else{
 			newCommand->StrCommand = "New command";
-			RTREE_NODE::InsertRChild(hNode, newCommand);
+			if (hNode == NULL){
+				fatherNode->AddNode(newCommand);
+			}
+			else{
+				RTREE_NODE::InsertRChild(hNode, newCommand);
+			}
 			SetItemData(retItem, RTREE_NODE::GetdRNodeID(newCommand));
 		}
 	}
@@ -540,15 +549,14 @@ HTREEITEM CGCTree::DelNodeL1(HTREEITEM delItem){
 	if (delItem == m_HotItem)
 		m_HotItem = NULL;
 
-	delNode = (COMMAND_GROUP*)RTREE_NODE::FindInLChildRChainByDRNodeID(m_GCList,GetItemData(delItem));
+	delNode = GetGroup(delItem);
 	nextItem = GetNextItem(delItem,TVGN_NEXT);
 	if (nextItem == NULL){
 		endNode = (COMMAND_GROUP*)RTREE_NODE::GetLastChild(m_GCList);
 		nextItem = GetNextItem(delItem,TVGN_PREVIOUS);
 	}
 	else{
-		endNode = (COMMAND_GROUP*)RTREE_NODE::FindInLChildRChainByDRNodeID(m_GCList, GetItemData(nextItem));
-		endNode = (COMMAND_GROUP*)RTREE_NODE::GetPriorBrother(endNode);
+		endNode = (COMMAND_GROUP*)RTREE_NODE::GetPriorBrother(GetGroup(nextItem));
 	}
 	RTREE_NODE::MoveNodesToTrash(delNode, endNode, m_GCList);
 	DeleteItem(delItem);
@@ -557,7 +565,6 @@ HTREEITEM CGCTree::DelNodeL1(HTREEITEM delItem){
 //------------------------------------------------------------------------------------------//
 HTREEITEM CGCTree::DelNodeL2(HTREEITEM delItem){
 	HTREEITEM		nextItem;
-	COMMAND_GROUP	*delNode;
 
 	if (delItem == NULL)
 		return NULL;
@@ -571,16 +578,14 @@ HTREEITEM CGCTree::DelNodeL2(HTREEITEM delItem){
 		nextItem = GetNextItem(delItem,TVGN_PREVIOUS);
 	if (nextItem == NULL)
 		nextItem = GetParentItem(delItem);
-	delNode = (COMMAND_GROUP*)RTREE_NODE::FindInLChildRChainByDRNodeID(m_GCList, GetItemData(delItem));
-	RTREE_NODE::MoveNodeToTrash(delNode, m_GCList);
+	RTREE_NODE::MoveNodeToTrash(GetGroup(delItem), m_GCList);
 	DeleteItem(delItem);
 	return(nextItem);
 }
 //------------------------------------------------------------------------------------------//
 HTREEITEM CGCTree::DelNodeL3(HTREEITEM delItem){
-	HTREEITEM		nextItem,fatherItem;
-	COMMAND_GROUP	*fatherNode;
-	COMMAND_NODE	*delCommand;
+	HTREEITEM		nextItem;
+
 	if (delItem == NULL)
 		return NULL;
 	if (delItem == m_SelectItem)
@@ -594,11 +599,7 @@ HTREEITEM CGCTree::DelNodeL3(HTREEITEM delItem){
 	if (nextItem == NULL)
 		nextItem = GetParentItem(delItem);
 
-	fatherItem = GetParentItem(delItem);
-	fatherNode = (COMMAND_GROUP*)RTREE_NODE::FindInLChildRChainByDRNodeID(m_GCList, GetItemData(fatherItem));
-	delCommand = (COMMAND_NODE*)RTREE_NODE::FindInLChildRChainByDRNodeID(fatherNode, GetItemData(delItem));
-
-	RTREE_NODE::MoveNodeToTrash(delCommand, m_GCList);
+	RTREE_NODE::MoveNodeToTrash(GetCommand(delItem), m_GCList);
 	DeleteItem(delItem);
 	return(nextItem);
 }
@@ -657,7 +658,7 @@ HTREEITEM CGCTree::UpNodeL2(HTREEITEM moveItem){
 	}
 	else{//moveItem it the first item in this group
 		m_GCList->Spin_InUse_set();
-		moveNode = (COMMAND_GROUP*)RTREE_NODE::FindInLChildRChainByDRNodeID(m_GCList, GetItemData(moveItem));
+		moveNode = GetGroup(moveItem);
 		priorNode = (COMMAND_GROUP*)RTREE_NODE::GetPriorBrother(moveNode);
 		if (priorNode != (COMMAND_GROUP*)RTREE_NODE::GetFirstChild(m_GCList)){//lv2 item cannot move to the first of link
 			fatherItem = GetParentItem(moveItem);
@@ -723,15 +724,15 @@ HTREEITEM CGCTree::DownNodeL1(HTREEITEM moveItem){
 	if (nextItem == NULL)//moveItem is the last
 		return(moveItem);
 
-	moveNode = (COMMAND_GROUP*)RTREE_NODE::FindInLChildRChainByDRNodeID(m_GCList, GetItemData(moveItem));
-	endNode = (COMMAND_GROUP*)RTREE_NODE::GetPriorBrother(RTREE_NODE::FindInLChildRChainByDRNodeID(m_GCList, GetItemData(nextItem)));
+	moveNode = GetGroup(moveItem);
+	endNode = (COMMAND_GROUP*)RTREE_NODE::GetPriorBrother(GetGroup(nextItem));
 
 	endItem = GetNextItem(nextItem,TVGN_NEXT);
 	if (endItem == NULL){
 		insertNode = (COMMAND_GROUP*)RTREE_NODE::GetLastChild(m_GCList);
 	}
 	else{
-		insertNode = (COMMAND_GROUP*)RTREE_NODE::GetPriorBrother(RTREE_NODE::FindInLChildRChainByDRNodeID(m_GCList, GetItemData(endItem)));
+		insertNode = (COMMAND_GROUP*)RTREE_NODE::GetPriorBrother(GetGroup(endItem));
 	}
 	RTREE_NODE::MoveNodesAfterInRChain(moveNode, endNode, insertNode);
 
@@ -768,7 +769,7 @@ HTREEITEM CGCTree::DownNodeL2(HTREEITEM moveItem){
 		return(moveItem);
 	fatherItem = GetParentItem(moveItem);
 	fatherNextItem = GetNextItem(fatherItem,TVGN_NEXT);//father next item
-	moveNode = (COMMAND_GROUP*)RTREE_NODE::FindInLChildRChainByDRNodeID(m_GCList, GetItemData(moveItem));
+	moveNode = GetGroup(moveItem);
 	if (fatherNextItem == NULL){//moveItem in the last group
 		if (moveNode == (COMMAND_GROUP*)RTREE_NODE::GetLastChild(m_GCList))//moveItem is the last item;
 			return(moveItem);
@@ -806,11 +807,11 @@ HTREEITEM CGCTree::DownNodeL3(HTREEITEM moveItem){
 		return(moveItem);
 
 	fatherItem = GetParentItem(moveItem);
-	fatherNode = (COMMAND_GROUP*)RTREE_NODE::FindInLChildRChainByDRNodeID(m_GCList, GetItemData(fatherItem));
-	moveCommand = (COMMAND_NODE*)RTREE_NODE::FindInLChildRChainByDRNodeID(fatherNode, GetItemData(moveItem));
-	if (moveCommand == (COMMAND_NODE*)RTREE_NODE::GetLastChild(fatherNode)){//last item
+	fatherNode = GetGroup(fatherItem);
+	moveCommand = GetCommand(moveItem);
+	if (moveCommand == (COMMAND_NODE*)RTREE_NODE::GetLastChild(fatherNode))//last item
 		return(moveItem);
-	}
+
 	RTREE_NODE::MoveNodesDownInRChain(moveCommand);
 
 	nextItem = GetNextItem(moveItem,TVGN_NEXT);
@@ -920,7 +921,7 @@ void CGCTree::OnRButtonDown(UINT nFlags, CPoint point){
 	if ((hItem != NULL) && (pItem != NULL)){
 		if ((m_OnShowGroup != hItem) && (m_OnShowGroup != pItem)){
 			m_GCList->Spin_InUse_set();
-			group = (COMMAND_GROUP*)RTREE_NODE::FindInLChildRChainByDRNodeID(m_GCList, GetItemData(hItem));
+			group = GetGroup(hItem);
 			if (group != NULL){
 				Expand(hItem,TVE_COLLAPSE);
 				DelGroupSubNode(m_OnShowGroup);

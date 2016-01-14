@@ -707,7 +707,7 @@ BOOL CMainFrame::PreTranslateMessage(MSG *pMsg){
 		COMBox = (CMFCRibbonComboBox*)m_wndRibbonBar.FindByID(ID_RI_COMBO_AUXCOM);
 		if (pMsg->hwnd == m_wndRibbonBar.GetSafeHwnd()){
 			if (COMBox->GetHighlighted() == COMBox)
-				if (GSDTApp.m_Device.CheckblConnect() == 0)
+				if (GSDTApp.m_Device2.CheckblConnect() == 0)
 					CreateComboBox_AuxCOMList();
 		}
 		#endif
@@ -774,7 +774,7 @@ void CMainFrame::OnUpdateCTS_FLOW(CCmdUI *pCmdUI){
 void CMainFrame::OnUpdateDTRHigh(CCmdUI *pCmdUI){
 	if ((GSDTApp.m_Device.cgDevType == DEVICE::DEVID_APICOM) && (GSDTApp.m_Device.CheckblConnect() != 0)){
 		pCmdUI->Enable();
-		pCmdUI->SetCheck(GSDTApp.m_Device.cgAPIECom->DTR != 0);
+		pCmdUI->SetCheck(GSDTApp.m_Device.cgAPIECom->GetDTRStatus() != 0);
 	}
 	else{
 		pCmdUI->SetCheck(FALSE);
@@ -784,7 +784,7 @@ void CMainFrame::OnUpdateDTRHigh(CCmdUI *pCmdUI){
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnUpdateDTRLow(CCmdUI *pCmdUI){
 	if ((GSDTApp.m_Device.cgDevType == DEVICE::DEVID_APICOM) && (GSDTApp.m_Device.CheckblConnect() != 0)){
-		pCmdUI->SetCheck(GSDTApp.m_Device.cgAPIECom->DTR == 0);
+		pCmdUI->SetCheck(GSDTApp.m_Device.cgAPIECom->GetDTRStatus() == 0);
 	}
 	else{
 		pCmdUI->SetCheck();
@@ -795,7 +795,7 @@ void CMainFrame::OnUpdateDTRLow(CCmdUI *pCmdUI){
 void CMainFrame::OnUpdateRTSHigh(CCmdUI *pCmdUI){
 	if ((GSDTApp.m_Device.cgDevType == DEVICE::DEVID_APICOM) && (GSDTApp.m_Device.CheckblConnect() != 0)){
 		pCmdUI->Enable();
-		pCmdUI->SetCheck(GSDTApp.m_Device.cgAPIECom->RTS != 0);
+		pCmdUI->SetCheck(GSDTApp.m_Device.cgAPIECom->GetRTSStatus() != 0);
 	}
 	else{
 		pCmdUI->SetCheck(FALSE);
@@ -806,7 +806,7 @@ void CMainFrame::OnUpdateRTSHigh(CCmdUI *pCmdUI){
 void CMainFrame::OnUpdateRTSLow(CCmdUI *pCmdUI){
 	if ((GSDTApp.m_Device.cgDevType == DEVICE::DEVID_APICOM) && (GSDTApp.m_Device.CheckblConnect() != 0)){
 		pCmdUI->Enable();
-		pCmdUI->SetCheck(GSDTApp.m_Device.cgAPIECom->RTS == 0);
+		pCmdUI->SetCheck(GSDTApp.m_Device.cgAPIECom->GetRTSStatus() == 0);
 	}
 	else{
 		pCmdUI->SetCheck();
@@ -1376,7 +1376,7 @@ void CMainFrame::OnUpdateRiCheckAuxdsr(CCmdUI *pCmdUI){
 void CMainFrame::OnUpdateRiCheckAuxdtrh(CCmdUI *pCmdUI){
 	if ((GSDTApp.m_Device2.cgDevType == DEVICE::DEVID_APICOM) && (GSDTApp.m_Device2.CheckblConnect() != 0)){
 		pCmdUI->Enable();
-		pCmdUI->SetCheck(GSDTApp.m_Device2.cgAPIECom->DTR != 0);
+		pCmdUI->SetCheck(GSDTApp.m_Device2.cgAPIECom->GetDTRStatus() != 0);
 	}
 	else{
 		pCmdUI->SetCheck(FALSE);
@@ -1387,7 +1387,7 @@ void CMainFrame::OnUpdateRiCheckAuxdtrh(CCmdUI *pCmdUI){
 void CMainFrame::OnUpdateRiCheckAuxdtrl(CCmdUI *pCmdUI){
 	if ((GSDTApp.m_Device2.cgDevType == DEVICE::DEVID_APICOM) && (GSDTApp.m_Device2.CheckblConnect() != 0)){
 		pCmdUI->Enable();
-		pCmdUI->SetCheck(GSDTApp.m_Device2.cgAPIECom->DTR == 0);
+		pCmdUI->SetCheck(GSDTApp.m_Device2.cgAPIECom->GetDTRStatus() == 0);
 	}
 	else{
 		pCmdUI->SetCheck(TRUE);
@@ -1409,7 +1409,7 @@ void CMainFrame::OnUpdateRiCheckAuxcts(CCmdUI *pCmdUI){
 void CMainFrame::OnUpdateRiCheckAuxrtsh(CCmdUI *pCmdUI){
 	if ((GSDTApp.m_Device2.cgDevType == DEVICE::DEVID_APICOM) && (GSDTApp.m_Device2.CheckblConnect() != 0)){
 		pCmdUI->Enable();
-		pCmdUI->SetCheck(GSDTApp.m_Device2.cgAPIECom->RTS != 0);
+		pCmdUI->SetCheck(GSDTApp.m_Device2.cgAPIECom->GetRTSStatus() != 0);
 	}
 	else{
 		pCmdUI->SetCheck(FALSE);
@@ -1420,7 +1420,7 @@ void CMainFrame::OnUpdateRiCheckAuxrtsh(CCmdUI *pCmdUI){
 void CMainFrame::OnUpdateRiCheckAuxrtsl(CCmdUI *pCmdUI){
 	if ((GSDTApp.m_Device2.cgDevType == DEVICE::DEVID_APICOM) && (GSDTApp.m_Device2.CheckblConnect() != 0)){
 		pCmdUI->Enable();
-		pCmdUI->SetCheck(GSDTApp.m_Device2.cgAPIECom->RTS == 0);
+		pCmdUI->SetCheck(GSDTApp.m_Device2.cgAPIECom->GetRTSStatus() == 0);
 	}
 	else{
 		pCmdUI->SetCheck(TRUE);
@@ -1720,8 +1720,9 @@ void CMainFrame::OnTimer(UINT nIDEvent){
 			m_wndStatusBar.DoPB();
 			break;
 		case 2:
-			if (GSDTApp.m_oDevOutputListPool.CheckblEnabled() != 0)
-				GSDTApp.m_oDevOutputListPool.PrintSDOUT();
+			//if (GSDTApp.m_oDevOutputListPool.CheckblEnabled() != 0)
+				//GSDTApp.m_oDevOutputListPool.PrintSDOUT();
+			GSDTApp.m_Device.UpdataUIRecordSDOUT();
 			break;
 		default:
 			break;

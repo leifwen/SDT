@@ -173,7 +173,7 @@ void CSDTRegDlg::OnBnClickedButton2()
 	if (file.length() > 0){
 		ret = "Create 99Y \"License.key\" ";
 		CFS_ReadFile(&strReg, Str_UnicodeToANSI(file));
-		if (tLS.Encode(&strContent, strReg, Str_DecToHex((int32)aTime.GetSec())) > 0){
+		if (tLS.Encode(&strContent, strReg, (uint64)aTime.GetSec()) > 0){
 			CFS_WriteFile("License.key", strContent);
 			ret += "successful.\r\n";
 		}
@@ -201,7 +201,7 @@ void CSDTRegDlg::OnBnClickedButton4()
 	if (file.length() > 0){
 		ret = "Create 2H \"License.key\" ";
 		CFS_ReadFile(&strReg, Str_UnicodeToANSI(file));
-		if (tLS.Encode(&strContent, strReg, Str_DecToHex((int32)aTime.GetSec())) > 0){
+		if (tLS.Encode(&strContent, strReg, (uint64)aTime.GetSec()) > 0){
 			CFS_WriteFile("License.key", strContent);
 			ret += "successful.\r\n";
 		}

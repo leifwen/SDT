@@ -32,7 +32,7 @@ RTREE_NODE::RTREE_NODE(void) : BASIC_CFLAG(){
 	cgCNType = CN_None;
 	cgCoupleNode = nullptr;
 	Enable();
-	selfName = "";
+	selfName = "RTREE_NODE";
 }
 //------------------------------------------------------------------------------------------//
 RTREE_NODE	*RTREE_NODE::GetFather_nolock(RTREE_NODE *tTreeNode){

@@ -407,6 +407,12 @@ uint32 Field_Node::CalcCLength(const FIFO_UINT8 &fifobuf)const{
 	return(GetValueCalc(&fifobuf) - vaildAreaLength);
 }
 //------------------------------------------------------------------------------------------//
+uint32 Field_Node::Out(FIFO_UINT8 *fifobuf){
+	if (fifobuf == nullptr)
+		fifobuf = cgDefFifo;
+	return(fifobuf->Out(fnlength + fnOffset));
+};
+//------------------------------------------------------------------------------------------//
 enum{
 	RET_OK = 1,
 	RET_AbandonFirstData = 0,

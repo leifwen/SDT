@@ -44,9 +44,9 @@ enum{
 	BI_RETCODE_UDPS,
 	BI_RETCODE_PORT,
 	
-	BI_RETCODE_SL,
+	BI_RETCODE_SI,
 	BI_RETCODE_SS,
-	BI_RETCODE_SD,
+	BI_RETCODE_SSD,
 	
 	BI_RETCODE_CONNECT,
 	BI_RETCODE_DISCONNECT,
@@ -112,16 +112,25 @@ enum{
 	BI_RETCODE_CMUX_CLD,
 	BI_RETCODE_CMUX_PSC,
 	BI_RETCODE_CMUX_FC,
+	BI_RETCODE_CMUX_DTR,
+	BI_RETCODE_CMUX_RTS,
 	BI_RETCODE_DLCI,
 	
 	BI_RETCODE_NEWRECORD,
 	BI_RETCODE_PATCHSDT,
+	BI_RETCODE_APPROVE,
 	BI_RETCODE_LSERVER,
 	BI_RETCODE_CREGREPORT,
 	BI_RETCODE_NTP,
 	BI_RETCODE_NTPSERVER,
-	
 	BI_RETCODE_TERMINALSERVER,
+		
+	BI_RETCODE_RST,
+	BI_RETCODE_RST_ON,
+	BI_RETCODE_RST_OFF,
+	BI_RETCODE_RST_LINK,
+	BI_RETCODE_RST_MAPPING,
+	BI_RETCODE_RST_LOGIN,
 	
 	BI_RETCODE_CALC,
 	BI_RETCODE_CALC_HEX2DEC,
@@ -203,7 +212,7 @@ class BIC_HELP : public BIC_Node{
 	public:
 		enum{RFLAG_C = 0, RFLAG_S = BIC_Node::RFLAG_S + BIC_Node::RFLAG_C};
 	public:
-				 BIC_HELP(void) : BIC_Node() {cgCommand = "help/?";cgReturnCode = BI_RETCODE_HELP;};
+				 BIC_HELP(void) : BIC_Node() {cgCommand = "?/help";cgReturnCode = BI_RETCODE_HELP;};
 		virtual ~BIC_HELP(void){;};
 	public:
 		virtual	int32	Help	(BICPAR *tBICPAR,int32 blDetail = 1)const;
@@ -225,7 +234,7 @@ class BIC_EXEC : public BIC_Node{
 	public:
 		enum{RFLAG_C = 0, RFLAG_S = BIC_Node::RFLAG_S + BIC_Node::RFLAG_C};
 	public:
-				 BIC_EXEC(void) : BIC_Node() {cgCommand = "execute/ex";cgReturnCode = BI_RETCODE_EXECUTE;};
+				 BIC_EXEC(void) : BIC_Node() {cgCommand = "ex/execute";cgReturnCode = BI_RETCODE_EXECUTE;};
 		virtual ~BIC_EXEC(void){;};
 	public:
 		virtual	int32	Help	(BICPAR *tBICPAR,int32 blDetail = 1)const;
@@ -247,7 +256,7 @@ class BIC_EXE_SH : public BIC_Node{
 	public:
 	    enum{RFLAG_C = 0, RFLAG_S = BIC_Node::RFLAG_S + BIC_Node::RFLAG_C};
 	public:
-			     BIC_EXE_SH(void) : BIC_Node() {cgCommand = "sh";cgReturnCode = BI_RETCODE_EXECUTE_SH;};
+			     BIC_EXE_SH(void) : BIC_Node() {cgCommand = "exsh";cgReturnCode = BI_RETCODE_EXECUTE_SH;};
 	    virtual ~BIC_EXE_SH(void){;};
 	public:
 	    virtual	int32	Help	(BICPAR *tBICPAR,int32 blDetail = 1)const;

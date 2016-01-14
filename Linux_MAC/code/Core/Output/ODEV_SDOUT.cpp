@@ -32,18 +32,18 @@ ODEV_NODE_SDOUT::~ODEV_NODE_SDOUT(void){
 //------------------------------------------------------------------------------------------//
 #ifdef CommonDefH_VC
 void ODEV_NODE_SDOUT::Clean(G_LOCK_VAILD blLock){
-	Spin_InUse_set(blLock);
+	Spin_Print_Lock(blLock);
 	COLSTRING::Clean(G_LOCK_OFF);
 	if (cgRichEdit != nullptr){
 		cgRichEdit->GetRichEditCtrl().SetSel(0,-1);
 		cgRichEdit->GetRichEditCtrl().Clear();
 	}
-	Spin_InUse_clr(blLock);
+	Spin_Print_Unlock(blLock);
 }
 #endif
 //------------------------------------------------------------------------------------------//
 #ifdef CommonDefH_VC
-void ODEV_NODE_SDOUT::SetExPar(CHARFORMAT2 *tcf, G_LOCK_VAILD blLock){
+void ODEV_NODE_SDOUT::SetExPar(CHARFORMAT2 *tcf){
 	memset(tcf,0,sizeof(CHARFORMAT2));
 	tcf->cbSize = sizeof(CHARFORMAT2);
 	tcf->dwMask = CFM_BOLD | CFM_CHARSET | CFM_COLOR | CFM_FACE | CFM_OFFSET | CFM_SIZE;
@@ -57,8 +57,8 @@ void ODEV_NODE_SDOUT::SetExPar(CHARFORMAT2 *tcf, G_LOCK_VAILD blLock){
 }
 #endif
 //------------------------------------------------------------------------------------------//
-void ODEV_NODE_SDOUT::SetCurLeft(int32 num,G_LOCK_VAILD blLock){
-	Spin_InUse_set(blLock);
+void ODEV_NODE_SDOUT::SetCurLeft(int32 num){
+	Spin_Print_Lock();
 #ifdef CommonDefH_Unix
 	std::string	strT;
 	if (num > 0){
@@ -75,11 +75,11 @@ void ODEV_NODE_SDOUT::SetCurLeft(int32 num,G_LOCK_VAILD blLock){
 		cgRichEdit->GetRichEditCtrl().SetSel(nStartChar,nStartChar);
 	}
 #endif
-	Spin_InUse_clr(blLock);
+	Spin_Print_Unlock();
 }
 //------------------------------------------------------------------------------------------//
-void ODEV_NODE_SDOUT::SetCurRight(int32 num,G_LOCK_VAILD blLock){
-	Spin_InUse_set(blLock);
+void ODEV_NODE_SDOUT::SetCurRight(int32 num){
+	Spin_Print_Lock();
 #ifdef CommonDefH_Unix
 	std::string	strT;
 	if (num > 0){
@@ -96,27 +96,27 @@ void ODEV_NODE_SDOUT::SetCurRight(int32 num,G_LOCK_VAILD blLock){
 		cgRichEdit->GetRichEditCtrl().SetSel(nStartChar,nStartChar);
 	}
 #endif
-	Spin_InUse_clr(blLock);
+	Spin_Print_Unlock();
 }
 //------------------------------------------------------------------------------------------//
 #ifdef CommonDefH_VC
-void ODEV_NODE_SDOUT::SetCurFromEnd(int32 offset,G_LOCK_VAILD blLock){
+void ODEV_NODE_SDOUT::SetCurFromEnd(int32 offset){
 	long	nStartChar, nEndChar;
-	Spin_InUse_set(blLock);
+	Spin_Print_Lock();
 	if (cgRichEdit != nullptr){
 		cgRichEdit->GetRichEditCtrl().SetSel(-1,-1);
 		cgRichEdit->GetRichEditCtrl().GetSel(nStartChar,nEndChar);
 		nStartChar = nStartChar - offset;
 		cgRichEdit->GetRichEditCtrl().SetSel(nStartChar,nStartChar);
 	}
-	Spin_InUse_clr(blLock);
+	Spin_Print_Unlock();
 }
 #endif
 //------------------------------------------------------------------------------------------//
 #ifdef CommonDefH_VC
-void ODEV_NODE_SDOUT::DelCharFromEnd(int32 offset,int32 length,G_LOCK_VAILD blLock){
+void ODEV_NODE_SDOUT::DelCharFromEnd(int32 offset,int32 length){
 	long	nStartChar,nEndChar;
-	Spin_InUse_set(blLock);
+	Spin_Print_Lock();
 	if (cgRichEdit != nullptr){
 		if (cgRichEdit != nullptr){
 			cgRichEdit->GetRichEditCtrl().HideSelection(TRUE,FALSE);
@@ -129,14 +129,14 @@ void ODEV_NODE_SDOUT::DelCharFromEnd(int32 offset,int32 length,G_LOCK_VAILD blLo
 			cgRichEdit->GetRichEditCtrl().HideSelection(FALSE,FALSE);
 		}
 	}
-	Spin_InUse_clr(blLock);
+	Spin_Print_Unlock();
 }
 #endif
 //------------------------------------------------------------------------------------------//
 #ifdef CommonDefH_VC
-void ODEV_NODE_SDOUT::InsterCharFromEnd(int32 offset,const std::string &strIn,G_LOCK_VAILD blLock){
+void ODEV_NODE_SDOUT::InsterCharFromEnd(int32 offset,const std::string &strIn){
 	long	nStartChar,nEndChar;
-	Spin_InUse_set(blLock);
+	Spin_Print_Lock();
 	if (cgRichEdit != nullptr){
 		cgRichEdit->GetRichEditCtrl().HideSelection(TRUE,FALSE);
 		cgRichEdit->GetRichEditCtrl().SetSel(-1,-1);
@@ -150,7 +150,7 @@ void ODEV_NODE_SDOUT::InsterCharFromEnd(int32 offset,const std::string &strIn,G_
 		cgRichEdit->GetRichEditCtrl().SetSel(nStartChar + strIn.length(), nStartChar + strIn.length());
 		cgRichEdit->GetRichEditCtrl().HideSelection(FALSE,FALSE);
 	}
-	Spin_InUse_clr(blLock);
+	Spin_Print_Unlock();
 }
 #endif
 //------------------------------------------------------------------------------------------//
@@ -164,16 +164,16 @@ int32 ODEV_NODE_SDOUT::Print(G_LOCK_VAILD blLock){
 }
 //------------------------------------------------------------------------------------------//
 #ifdef CommonDefH_Unix
-void ODEV_NODE_SDOUT::DoPrintf(std::string *strOutput,G_LOCK_VAILD blLock){
+void ODEV_NODE_SDOUT::DoPrintf(std::string *strOutput){
 	uint32			length,num;
 	std::string		stringOut,str0;
 	
 	length = 1024;// * 3;
 	if (strOutput->length() <= length){
-		Spin_InUse_set(blLock);
+		Spin_Print_Lock();
 		printf("%s",strOutput->c_str());
 		fflush(stdout);
-		Spin_InUse_clr(blLock);
+		Spin_Print_Unlock();;
 	}
 	else{
 		num = 0;
@@ -182,28 +182,29 @@ void ODEV_NODE_SDOUT::DoPrintf(std::string *strOutput,G_LOCK_VAILD blLock){
 			while(str0.length() > length){
 				stringOut = str0.substr(0,length);
 				str0 = str0.substr(length);
-				Spin_InUse_set(blLock);
+				Spin_Print_Lock();
 				printf("%s",stringOut.c_str());
 				fflush(stdout);
-				Spin_InUse_clr(blLock);
-				SYS_SleepMS(1);
+				Spin_Print_Unlock();
+				SYS_SleepMS(2);
 			}
 			if (str0.length() > 0){
-				Spin_InUse_set(blLock);
+				Spin_Print_Lock();
 				printf("%s",str0.c_str());
 				fflush(stdout);
-				Spin_InUse_clr(blLock);
+				Spin_Print_Unlock();
 				num += str0.length();
 				if (num > length){
 					num = 0;
-					SYS_SleepMS(1);
+					SYS_SleepMS(2);
 				}
 			}
 		}while(strOutput->length() > 0);
-		Spin_InUse_set(blLock);
+		Spin_Print_Lock();
 		fflush(stdout);
-		Spin_InUse_clr(blLock);
+		Spin_Print_Unlock();
 	}
+	SYS_SleepMS(10);
 }
 #endif
 //------------------------------------------------------------------------------------------//
@@ -470,7 +471,7 @@ int32 ODEV_NODE_SDOUT::PrintCOL(G_LOCK_VAILD blLock){
 		strOutput += stringOut;
 	}
 	
-	DoPrintf(&strOutput,blLock);
+	DoPrintf(&strOutput);
 	return(blPrint);
 }
 //------------------------------------------------------------------------------------------//
@@ -490,7 +491,7 @@ int32 ODEV_NODE_SDOUT::PrintTXT(G_LOCK_VAILD blLock){
 		strOutput = Str_Replace(strOutput,str0,"\\0");
 	}
 	
-	DoPrintf(&strOutput,blLock);
+	DoPrintf(&strOutput);
 	return(blPrint);
 }
 #endif
@@ -503,9 +504,9 @@ int32 ODEV_NODE_SDOUT::PrintCOL(G_LOCK_VAILD blLock){
 	blPrint = 0;
 	strColor = "";
 	
-	Spin_InUse_set(blLock);
-	ReadStr(&stringTemp,G_LOCK_OFF);
+	ReadStr(&stringTemp,blLock);
 	
+	Spin_Print_Lock();
 	SetExPar(&cgCF);
 	while(stringTemp.length() > 0){
 		blPrint = 1;
@@ -654,7 +655,7 @@ int32 ODEV_NODE_SDOUT::PrintCOL(G_LOCK_VAILD blLock){
 			cgRichEdit->GetRichEditCtrl().ReplaceSel(Str_ANSIToUnicode(stringOut).c_str());
 		}
 	}
-	Spin_InUse_clr(blLock);
+	Spin_Print_Unlock();
 	return(blPrint);
 }
 //------------------------------------------------------------------------------------------//
@@ -663,9 +664,9 @@ int32 ODEV_NODE_SDOUT::PrintTXT(G_LOCK_VAILD blLock){
 	std::string		stringTemp,str0;
 	
 	blPrint = 0;
-	Spin_InUse_set(blLock);
-	ReadStr(&stringTemp,G_LOCK_OFF);
+	ReadStr(&stringTemp,blLock);
 	
+	Spin_Print_Lock();
 	SetExPar(&cgCF);
 	if (stringTemp.length() > 0){
 		blPrint = 1;
@@ -683,7 +684,7 @@ int32 ODEV_NODE_SDOUT::PrintTXT(G_LOCK_VAILD blLock){
 			cgRichEdit->GetRichEditCtrl().ReplaceSel(Str_ANSIToUnicode(stringTemp).c_str());
 		}
 	}
-	Spin_InUse_clr(blLock);
+	Spin_Print_Unlock();
 	return(blPrint);
 }
 #endif

@@ -189,55 +189,56 @@ inline int32 SYS_DelayMS(double timeMS,int32 *blExit = nullptr){
 }
 //------------------------------------------------------------------------------------------//
 struct SYS_TIME_S{
-	double			timeMS;
+	double 			timeMS;
+	int32			dfTim;
 	SYS_DateTime	DTime1;
+	SYS_DateTime	DTime2;
 #ifdef CommonDefH_VC
 	LARGE_INTEGER	litmp;
 	LONGLONG		QTime1;
+	LONGLONG		QTime2;
 	double			dfFreq;
 #endif
 };
 //------------------------------------------------------------------------------------------//
 inline void SYS_Delay_SetTS(SYS_TIME_S *timeS,double timeMS){
-	timeS->timeMS = timeMS;
-#ifdef CommonDefH_Unix
 	timeS->DTime1.Now();
-#endif
+	timeS->DTime1 += (timeMS / 1000);
+	timeS->timeMS = timeMS;
 #ifdef CommonDefH_VC
-	timeS->timeMS = timeMS;
-	timeS->DTime1.Now();
 	QueryPerformanceFrequency(&timeS->litmp);
 	timeS->dfFreq = (double)timeS->litmp.QuadPart;		// get Frequency
 	QueryPerformanceCounter(&timeS->litmp);
 	timeS->QTime1 = timeS->litmp.QuadPart;				// get first count.
+	timeS->QTime1 += (LONGLONG)((timeMS * timeS->dfFreq) / 1000);
+#endif
+}
+//------------------------------------------------------------------------------------------//
+inline void SYS_Delay_AddTS(SYS_TIME_S *timeS,double timeMS){
+	timeS->timeMS += timeMS;
+	timeS->DTime1 += (timeMS / 1000);
+#ifdef CommonDefH_VC
+	timeS->QTime1 += (LONGLONG)((timeMS * timeS->dfFreq) / 1000);
 #endif
 }
 //------------------------------------------------------------------------------------------//
 inline int32 SYS_Delay_CheckTS(SYS_TIME_S *timeS){
 #ifdef CommonDefH_Unix
-	SYS_DateTime	DTime2;
-	double			dfTim;
-	DTime2.Now();
-	DTime2.MinusDateTime(timeS->DTime1);
-	dfTim = DTime2.GetSec() * 1000;
+	timeS->DTime2.Now();
+	timeS->dfTim = (timeS->DTime2 >= timeS->DTime1);
 #endif
 #ifdef CommonDefH_VC
-	double dfTim;
-	dfTim = 0;
 	if (timeS->timeMS > 99){
-		SYS_DateTime	DTime2;
-		DTime2.Now();
-		DTime2.MinusDateTime(timeS->DTime1);
-		dfTim = DTime2.GetSec() * 1000;
+		timeS->DTime2.Now();
+		timeS->dfTim = (timeS->DTime2 >= timeS->DTime1);
 	}
 	else{
-		LONGLONG QTime2;
 		QueryPerformanceCounter(&timeS->litmp);
-		QTime2 = timeS->litmp.QuadPart;			// get last count
-		dfTim = (double)(QTime2 - timeS->QTime1) * 1000 / timeS->dfFreq;	// get time,uint is ms
+		timeS->QTime2 = timeS->litmp.QuadPart;			// get last count
+		timeS->dfTim = (timeS->QTime2 >= timeS->QTime1);	// get time,uint is ms
 	}
 #endif
-	return(timeS->timeMS - dfTim < 0.5);
+	return(timeS->dfTim);
 }
 //------------------------------------------------------------------------------------------//
 uint64		SYS_TimeToNTP		(const double &sec);

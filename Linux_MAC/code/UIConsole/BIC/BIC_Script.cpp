@@ -49,7 +49,7 @@ int32 BIC_RUN::Command(BICPAR *tBICPAR, const std::string &par,std::string *ret)
 		num = (uint32)strtol(strPar1.c_str(),nullptr,10);
 
 		tBICPAR->sdtApp->m_GCList.Spin_InUse_set();
-		group = (COMMAND_GROUP*)FindInLChildRChainByDRNodeID(&tBICPAR->sdtApp->m_GCList, num);
+		group = (COMMAND_GROUP*)FindInLChildRChainByDRNodeID_nolock(&tBICPAR->sdtApp->m_GCList, num);
 		if (group != nullptr){
 			if (strPar2.length() > 0)
 				group->autoRunTimes = atoi(strPar2.c_str());
@@ -117,6 +117,7 @@ int32 BIC_SEND::Command(BICPAR *tBICPAR, const std::string &par,std::string *ret
 		tBICPAR->oDevNode->Enable();
 		tBICPAR->sdtApp->m_Device.SendCommand(par,0,0,G_ESCAPE_ON);
 		PressAnyKey(tBICPAR);
+		PrintDoRet(tBICPAR,"");
 	}
 	else{
 		PrintDoRet(tBICPAR,"Fail execute due to no connected");
@@ -194,9 +195,9 @@ int32 BIC_SCRIPT::Help(BICPAR *tBICPAR, int32 blDetail)const{
 	if (blDetail == 0)
 		return(cgReturnCode);
 	PrintHelpItem(tBICPAR, "     [-l"				, "List Script Build-in Command.");
-	PrintHelpItem(tBICPAR, "      |[-AT <on|off>]"	, "Check standard AT response.");
-	PrintHelpItem(tBICPAR, "       [-E <on|off>]"	, "Display script BIC excution.");
-	PrintHelpItem(tBICPAR, "       [-CE <on|off>]]"	, "Display script BIC explain report.");
+	PrintHelpItem(tBICPAR, "     |[-AT<on|off>]"	, "Check standard AT response.");
+	PrintHelpItem(tBICPAR, "      [-E<on|off>]"		, "Display script BIC excution.");
+	PrintHelpItem(tBICPAR, "      [-CE<on|off>]]"	, "Display script BIC explain report.");
 	return(cgReturnCode);
 }
 //------------------------------------------------------------------------------------------//
@@ -214,36 +215,30 @@ int32 BIC_SCRIPT::Command(BICPAR *tBICPAR, const std::string &par, std::string *
 	do{
 		strPar1 = Str_ReadSubItem(&strCommand, " ");
 		Str_LTrimSelf(strCommand);
-		strPar2 = Str_ReadSubItem(&strCommand, " ");
-		if (strPar1 == "-AT"){
-			if (strPar2 == "on"){
-				tBICPAR->sdtApp->m_Device.cEDevFlag.blScriptAT = 1;
-				blcheck = 1;
-			}
-			else if (strPar2 == "off"){
-				tBICPAR->sdtApp->m_Device.cEDevFlag.blScriptAT = 0;
-				blcheck = 1;
-			}
+
+		if (strPar1 == "-ATon"){
+			tBICPAR->sdtApp->m_Device.cEDevFlag.blScriptAT = 1;
+			blcheck = 1;
 		}
-		else if (strPar1 == "-E"){
-			if (strPar2 == "on"){
-				tBICPAR->sdtApp->m_Device.cEDevFlag.blEnablePrintSBICinfo = 1;
-				blcheck = 1;
-			}
-			else if (strPar2 == "off"){
-				tBICPAR->sdtApp->m_Device.cEDevFlag.blEnablePrintSBICinfo = 0;
-				blcheck = 1;
-			}
+		else if (strPar1 == "-AToff"){
+			tBICPAR->sdtApp->m_Device.cEDevFlag.blScriptAT = 0;
+			blcheck = 1;
 		}
-		else if (strPar1 == "-CE"){
-			if (strPar2 == "on"){
-				tBICPAR->sdtApp->m_Device.cEDevFlag.blCommandExplain = 1;
-				blcheck = 1;
-			}
-			else	if (strPar2 == "off"){
-				tBICPAR->sdtApp->m_Device.cEDevFlag.blCommandExplain = 0;
-				blcheck = 1;
-			}
+		else if (strPar1 == "-Eon"){
+			tBICPAR->sdtApp->m_Device.cEDevFlag.blEnablePrintSBICinfo = 1;
+			blcheck = 1;
+		}
+		else if (strPar1 == "-Eoff"){
+			tBICPAR->sdtApp->m_Device.cEDevFlag.blEnablePrintSBICinfo = 0;
+			blcheck = 1;
+		}
+		else if (strPar1 == "-CEon"){
+			tBICPAR->sdtApp->m_Device.cEDevFlag.blCommandExplain = 1;
+			blcheck = 1;
+		}
+		else	if (strPar1 == "-CEoff"){
+			tBICPAR->sdtApp->m_Device.cEDevFlag.blCommandExplain = 0;
+			blcheck = 1;
 		}
 	} while (strCommand.length() > 0);
 	
@@ -389,7 +384,7 @@ int32 BIC_SCM_LS::Command(BICPAR *tBICPAR, const std::string &par,std::string *r
 		}
 		else{
 			breakNode = nullptr;
-			fromNode = (SC_NODE*)FindInLChildRChainByDRNodeID(&tBICPAR->sdtApp->m_SCList, fromNodeDRID);
+			fromNode = (SC_NODE*)FindInLChildRChainByDRNodeID_nolock(&tBICPAR->sdtApp->m_SCList, fromNodeDRID);
 		}
 		RTREE_RChain_Traversal_LINE(SC_NODE,fromNode,
 			operateNode_t->Spin_InUse_set();
@@ -458,7 +453,7 @@ int32 BIC_SCM_SET::Command(BICPAR *tBICPAR, const std::string &par,std::string *
 					blCR = 0;
 				}
 				else if (strPar1 == "all"){
-					RTREE_LChildRChain_Traversal_LINE(SC_NODE,(&tBICPAR->sdtApp->m_SCList),
+					RTREE_LChildRChain_Traversal_LINE_nolock(SC_NODE,(&tBICPAR->sdtApp->m_SCList),
 						operateNode_t->Spin_InUse_set();
 						operateNode_t->blEnableSendCR = blCR;
 						operateNode_t->Spin_InUse_clr();
@@ -467,7 +462,7 @@ int32 BIC_SCM_SET::Command(BICPAR *tBICPAR, const std::string &par,std::string *
 				}
 				else{
 					sID = (uint32)strtol(strPar1.c_str(),nullptr,10);
-					selectNode = (SC_NODE*)FindInLChildRChainByDRNodeID(&tBICPAR->sdtApp->m_SCList, sID);
+					selectNode = (SC_NODE*)FindInLChildRChainByDRNodeID_nolock(&tBICPAR->sdtApp->m_SCList, sID);
 					if (selectNode != nullptr){
 						selectNode->Spin_InUse_set();
 						selectNode->blEnableSendCR = blCR;
@@ -501,7 +496,7 @@ int32 BIC_SCM_CLONE::Command(BICPAR *tBICPAR, const std::string &par,std::string
 	tBICPAR->sdtApp->m_SCList.Spin_InUse_set();
 	if (par.length() > 0){
 		sDID = (uint32)strtol(par.c_str(),nullptr,10);
-		nextNode = (SC_NODE*)FindInLChildRChainByDRNodeID(&tBICPAR->sdtApp->m_SCList, sDID);
+		nextNode = (SC_NODE*)FindInLChildRChainByDRNodeID_nolock(&tBICPAR->sdtApp->m_SCList, sDID);
 		if (nextNode != nullptr){
 			newNode = new SC_NODE;
 			if (newNode != nullptr){
@@ -546,7 +541,7 @@ int32 BIC_SCM_DEL::Command(BICPAR *tBICPAR, const std::string &par,std::string *
 			strPar1 = Str_Trim(Str_ReadSubItem(&strPar2, " "));
 			if (strPar1.length() > 0){
 				sDID = (uint32)strtol(strPar1.c_str(),nullptr,10);
-				MoveNodeToTrash(FindInLChildRChainByDRNodeID(&tBICPAR->sdtApp->m_SCList, sDID),&tBICPAR->sdtApp->m_SCList);
+				MoveNodeToTrash(FindInLChildRChainByDRNodeID_nolock(&tBICPAR->sdtApp->m_SCList, sDID),&tBICPAR->sdtApp->m_SCList);
 				tBICPAR->sdtApp->m_SCList.SetblUpdate();
 			}
 		}
@@ -581,7 +576,7 @@ int32 BIC_SCM_MVUP::Command(BICPAR *tBICPAR, const std::string &par,std::string 
 		if (step == 0)
 			step = 1;
 		tBICPAR->sdtApp->m_SCList.Spin_InUse_set();
-		nextNode = (SC_NODE*)FindInLChildRChainByDRNodeID(&tBICPAR->sdtApp->m_SCList, sDID);
+		nextNode = (SC_NODE*)FindInLChildRChainByDRNodeID_nolock(&tBICPAR->sdtApp->m_SCList, sDID);
 		if (nextNode != nullptr){
 			while(step-- > 0)
 				MoveNodesUpInRChain(nextNode);
@@ -618,7 +613,7 @@ int32 BIC_SCM_MVDN::Command(BICPAR *tBICPAR, const std::string &par,std::string 
 		if (step == 0)
 			step = 1;
 		tBICPAR->sdtApp->m_SCList.Spin_InUse_set();
-		nextNode = (SC_NODE*)FindInLChildRChainByDRNodeID(&tBICPAR->sdtApp->m_SCList, sDID);
+		nextNode = (SC_NODE*)FindInLChildRChainByDRNodeID_nolock(&tBICPAR->sdtApp->m_SCList, sDID);
 		if (nextNode != nullptr){
 			while(step-- > 0)
 				MoveNodesDownInRChain(nextNode);
@@ -657,7 +652,7 @@ int32 BIC_SCM_SEND::Help(BICPAR *tBICPAR, int32 blDetail)const{
 	PrintHelpItem(tBICPAR, cgCommand, "Send command by sID if connected.");
 	if (blDetail == 0)
 		return(cgReturnCode);
-	PrintHelpItem(tBICPAR,"    <sID>"		,"Command sID.");
+	PrintHelpItem(tBICPAR,"     <sID>"		,"Command sID.");
 	return(cgReturnCode);
 }
 //------------------------------------------------------------------------------------------//
@@ -675,7 +670,7 @@ int32 BIC_SCM_SEND::Command(BICPAR *tBICPAR, const std::string &par,std::string 
 		if (par.length() > 0){
 			sDID = (uint32)strtol(par.c_str(),nullptr,10);
 			tBICPAR->sdtApp->m_SCList.Spin_InUse_set();
-			nextNode = (SC_NODE*)FindInLChildRChainByDRNodeID(&tBICPAR->sdtApp->m_SCList, sDID);
+			nextNode = (SC_NODE*)FindInLChildRChainByDRNodeID_nolock(&tBICPAR->sdtApp->m_SCList, sDID);
 			if (nextNode != nullptr){
 				nextNode->Spin_InUse_set();
 				StrCommand = nextNode->StrCommand;
@@ -704,8 +699,8 @@ int32 BIC_SCM_COMMAND::Help(BICPAR *tBICPAR, int32 blDetail)const{
 	PrintHelpItem(tBICPAR, cgCommand, "Set command content by sID.");
 	if (blDetail == 0)
 		return(cgReturnCode);
-	PrintHelpItem(tBICPAR,"    <sID>"		,"Command sID.");
-	PrintHelpItem(tBICPAR,"    <content>"	,"Content.");
+	PrintHelpItem(tBICPAR,"     <sID>"		,"Command sID.");
+	PrintHelpItem(tBICPAR,"     <content>"	,"Content.");
 	return(cgReturnCode);
 }
 //------------------------------------------------------------------------------------------//
@@ -721,7 +716,7 @@ int32 BIC_SCM_COMMAND::Command(BICPAR *tBICPAR, const std::string &par,std::stri
 		strPar1 = Str_ReadSubItem(&strPar2, " ");
 		sDID = (uint32)strtol(strPar1.c_str(),nullptr,10);
 		tBICPAR->sdtApp->m_SCList.Spin_InUse_set();
-		nextNode = (SC_NODE*)FindInLChildRChainByDRNodeID(&tBICPAR->sdtApp->m_SCList, sDID);
+		nextNode = (SC_NODE*)FindInLChildRChainByDRNodeID_nolock(&tBICPAR->sdtApp->m_SCList, sDID);
 		if (nextNode != nullptr){
 			nextNode->Spin_InUse_set();
 			nextNode->StrCommand = strPar2;
@@ -868,7 +863,7 @@ int32 BIC_GCM_LS::Command(BICPAR *tBICPAR, const std::string &par,std::string *r
 			else {
 				groupNum = (uint32)strtol(strPar1.c_str(),nullptr,10);
 				tBICPAR->sdtApp->m_GCList.Spin_InUse_set();
-				BIC_GCM_LS_PringCommandList(tBICPAR,(COMMAND_GROUP*)FindInLChildRChainByDRNodeID(&tBICPAR->sdtApp->m_GCList, groupNum),flag_gl);
+				BIC_GCM_LS_PringCommandList(tBICPAR,(COMMAND_GROUP*)FindInLChildRChainByDRNodeID_nolock(&tBICPAR->sdtApp->m_GCList, groupNum),flag_gl);
 				tBICPAR->sdtApp->m_GCList.Spin_InUse_clr();
 			}
 		}
@@ -907,7 +902,7 @@ int32 BIC_GCM_LS::BIC_GCM_LS_PrintGroupList(BICPAR *tBICPAR,GC_LIST *tGroupList,
 		}
 		else{
 			breakNode = nullptr;
-			fromNode = (COMMAND_GROUP*)FindInLChildRChainByDRNodeID(tGroupList, fromNodeDRID);
+			fromNode = (COMMAND_GROUP*)FindInLChildRChainByDRNodeID_nolock(tGroupList, fromNodeDRID);
 		}
 		RTREE_RChain_Traversal_LINE(COMMAND_GROUP,fromNode,
 			operateNode_t->Spin_InUse_set();
@@ -994,7 +989,7 @@ int32 BIC_GCM_LS::BIC_GCM_LS_PringCommandList(BICPAR *tBICPAR,COMMAND_GROUP *tGr
 		PrintStrN(tBICPAR,DEV_LINE_START,RICH_LIN_clDefault);
 		
 		BIC_GCM_LS_PringCommandTitle(tBICPAR,flag);
-		RTREE_RChain_Traversal_LINE(COMMAND_NODE, GetcgLChild(tGroup),
+		RTREE_RChain_Traversal_LINE_nolock(COMMAND_NODE, GetcgLChild(tGroup),
 			operateNode_t->Spin_InUse_set();
 			BIC_GCM_LS_PringCommand(tBICPAR,operateNode_t,flag);
 			operateNode_t->Spin_InUse_clr();
@@ -1164,7 +1159,7 @@ int32 BIC_GCM_SET::Command(BICPAR *tBICPAR, const std::string &par,std::string *
 					else{
 						groupDID = (uint32)strtol(strPar1.c_str(),nullptr,10);
 						tBICPAR->sdtApp->m_GCList.Spin_InUse_set();
-						group = (COMMAND_GROUP*)FindInLChildRChainByDRNodeID(&tBICPAR->sdtApp->m_GCList,groupDID);
+						group = (COMMAND_GROUP*)FindInLChildRChainByDRNodeID_nolock(&tBICPAR->sdtApp->m_GCList,groupDID);
 						tSetPar.flag &= (~BIC_GCM_LS_FLAG_GLSelect);
 						if (group != nullptr){
 							group->Spin_InUse_set();
@@ -1197,7 +1192,7 @@ int32 BIC_GCM_SET::SetPar(BICPAR *tBICPAR, COMMAND_GROUP *tGroup, struct BIC_GCM
 int32 BIC_GCM_SET::SetPar(BICPAR *tBICPAR, GC_LIST *tGroupList, struct BIC_GCM_SET_PAR *tPar){
 	if (tGroupList == nullptr)
 		return 0;
-	RTREE_LChildRChain_Traversal_LINE(COMMAND_GROUP,tGroupList,
+	RTREE_LChildRChain_Traversal_LINE_nolock(COMMAND_GROUP,tGroupList,
 		operateNode_t->Spin_InUse_set();
 		if (((tPar->flag & BIC_GCM_LS_FLAG_GLSelect) != 0) && (operateNode_t->blEnableAutoRun != 0))
 			SetPar(tBICPAR,operateNode_t,tPar);
@@ -1231,7 +1226,7 @@ int32 BIC_GCM_CLONE::Command(BICPAR *tBICPAR, const std::string &par,std::string
 			strPar1 = Str_Trim(Str_ReadSubItem(&strPar2, " "));
 			if (strPar1.length() > 0){
 				groupDID = (uint32)strtol(strPar1.c_str(),nullptr,10);
-				nextGroup = (COMMAND_GROUP*)FindInLChildRChainByDRNodeID(&tBICPAR->sdtApp->m_GCList,groupDID);
+				nextGroup = (COMMAND_GROUP*)FindInLChildRChainByDRNodeID_nolock(&tBICPAR->sdtApp->m_GCList,groupDID);
 				if (nextGroup != nullptr){
 					if (newGroup == nullptr){
 						newGroup = new COMMAND_GROUP;
@@ -1290,7 +1285,7 @@ int32 BIC_GCM_DEL::Command(BICPAR *tBICPAR, const std::string &par,std::string *
 			strPar1 = Str_Trim(Str_ReadSubItem(&strPar2, " "));
 			if (strPar1.length() > 0){
 				groupDID = (uint32)strtol(strPar1.c_str(),nullptr,10);
-				MoveNodeToTrash(FindInLChildRChainByDRNodeID(&tBICPAR->sdtApp->m_GCList, groupDID),&tBICPAR->sdtApp->m_GCList);
+				MoveNodeToTrash(FindInLChildRChainByDRNodeID_nolock(&tBICPAR->sdtApp->m_GCList, groupDID),&tBICPAR->sdtApp->m_GCList);
 				tBICPAR->sdtApp->m_GCList.SetblUpdate();
 			}
 		}
@@ -1326,7 +1321,7 @@ int32 BIC_GCM_MVUP::Command(BICPAR *tBICPAR, const std::string &par,std::string 
 		if (step == 0)
 			step = 1;
 		tBICPAR->sdtApp->m_GCList.Spin_InUse_set();
-		nextGroup = (COMMAND_GROUP*)FindInLChildRChainByDRNodeID(&tBICPAR->sdtApp->m_GCList, groupDID);
+		nextGroup = (COMMAND_GROUP*)FindInLChildRChainByDRNodeID_nolock(&tBICPAR->sdtApp->m_GCList, groupDID);
 		if (nextGroup != nullptr){
 			while(step-- > 0)
 				MoveNodesUpInRChain(nextGroup);
@@ -1364,7 +1359,7 @@ int32 BIC_GCM_MVDN::Command(BICPAR *tBICPAR, const std::string &par,std::string 
 		if (step == 0)
 			step = 1;
 		tBICPAR->sdtApp->m_GCList.Spin_InUse_set();
-		nextGroup = (COMMAND_GROUP*)FindInLChildRChainByDRNodeID(&tBICPAR->sdtApp->m_GCList, groupDID);
+		nextGroup = (COMMAND_GROUP*)FindInLChildRChainByDRNodeID_nolock(&tBICPAR->sdtApp->m_GCList, groupDID);
 		if (nextGroup != nullptr){
 			while(step-- > 0)
 				MoveNodesDownInRChain(nextGroup);
@@ -1422,8 +1417,8 @@ int32 BIC_GCM_GN::Help(BICPAR *tBICPAR, int32 blDetail)const{
 	PrintHelpItem(tBICPAR, cgCommand, "Set group name by gID.");
 	if (blDetail == 0)
 		return(cgReturnCode);
-	PrintHelpItem(tBICPAR,"    <gID>"		,"Group gID.");
-	PrintHelpItem(tBICPAR,"    <name>"		,"Name.");
+	PrintHelpItem(tBICPAR,"     <gID>"		,"Group gID.");
+	PrintHelpItem(tBICPAR,"     <name>"		,"Name.");
 	return(cgReturnCode);
 }
 //------------------------------------------------------------------------------------------//
@@ -1440,7 +1435,7 @@ int32 BIC_GCM_GN::Command(BICPAR *tBICPAR, const std::string &par,std::string *r
 		strPar1 = Str_ReadSubItem(&strPar2, " ");
 		gDID = (uint32)strtol(strPar1.c_str(),nullptr,10);
 		tBICPAR->sdtApp->m_GCList.Spin_InUse_set();
-		nextGroup = (COMMAND_GROUP*)FindInLChildRChainByDRNodeID(&tBICPAR->sdtApp->m_GCList, gDID);
+		nextGroup = (COMMAND_GROUP*)FindInLChildRChainByDRNodeID_nolock(&tBICPAR->sdtApp->m_GCList, gDID);
 		if (nextGroup != nullptr){
 			nextGroup->Spin_InUse_set();
 			nextGroup->name = strPar2;
@@ -1478,7 +1473,7 @@ int32 BIC_GCM_GROUP::Help(BICPAR *tBICPAR, int32 blDetail)const{
 	PrintHelpItem(tBICPAR, cgCommand, "->Into group by gID.");
 	if (blDetail == 0)
 		return(cgReturnCode);
-	PrintHelpItem(tBICPAR,"    <gID>"		,"Group gID.");
+	PrintHelpItem(tBICPAR,"     <gID>"		,"Group gID.");
 	return(cgReturnCode);
 }
 //------------------------------------------------------------------------------------------//
@@ -1494,7 +1489,9 @@ int32 BIC_GCM_GROUP::Command(BICPAR *tBICPAR, const std::string &par,std::string
 		strPar2 = par;
 		strPar1 = Str_ReadSubItem(&strPar2, " ");
 		gDID = (uint32)strtol(strPar1.c_str(),nullptr,10);
-		nextGroup = (COMMAND_GROUP*)FindInLChildRChainByDRNodeID(&tBICPAR->sdtApp->m_GCList, gDID);
+		tBICPAR->sdtApp->m_GCList.Spin_InUse_set();
+		nextGroup = (COMMAND_GROUP*)FindInLChildRChainByDRNodeID_nolock(&tBICPAR->sdtApp->m_GCList, gDID);
+		tBICPAR->sdtApp->m_GCList.Spin_InUse_clr();
 		if (nextGroup != nullptr){
 			tBICPAR->gDID = gDID;
 			retCode = ExecuteLC(tBICPAR,strPar2,"-" + Str_IntToString(gDID),ret);
@@ -1531,7 +1528,7 @@ int32 BIC_GCM_GROUP_LS::Command(BICPAR *tBICPAR, const std::string &par,std::str
 	flag_gl = 0;
 	strcDID = "";
 	tBICPAR->sdtApp->m_GCList.Spin_InUse_set();
-	group = (COMMAND_GROUP*)FindInLChildRChainByDRNodeID(&tBICPAR->sdtApp->m_GCList, tBICPAR->gDID);
+	group = (COMMAND_GROUP*)FindInLChildRChainByDRNodeID_nolock(&tBICPAR->sdtApp->m_GCList, tBICPAR->gDID);
 	if (group == nullptr){
 		PrintDoRet(tBICPAR,"ERROR gID");
 		ret_Code = BI_RETCODE_RETURN;
@@ -1575,7 +1572,7 @@ int32 BIC_GCM_GROUP_LS::Command(BICPAR *tBICPAR, const std::string &par,std::str
 			while(strcDID.length() > 0){
 				strPar1 = Str_ReadSubItem(&strcDID," ");
 				cDID = (uint32)strtol(strPar1.c_str(),nullptr,10);
-					command = (COMMAND_NODE*)FindInLChildRChainByDRNodeID(group, cDID);
+					command = (COMMAND_NODE*)FindInLChildRChainByDRNodeID_nolock(group, cDID);
 				if (command != nullptr){
 					command->Spin_InUse_set();
 					BIC_GCM_LS::BIC_GCM_LS_PringCommand(tBICPAR,command,flag_gl);
@@ -1644,7 +1641,7 @@ int32 BIC_GCM_GROUP_SET::Command(BICPAR *tBICPAR, const std::string &par,std::st
 	ret_code = cgReturnCode;
 	if (par.length() > 0){
 		tBICPAR->sdtApp->m_GCList.Spin_InUse_set();
-		group = (COMMAND_GROUP*)FindInLChildRChainByDRNodeID(&tBICPAR->sdtApp->m_GCList, tBICPAR->gDID);
+		group = (COMMAND_GROUP*)FindInLChildRChainByDRNodeID_nolock(&tBICPAR->sdtApp->m_GCList, tBICPAR->gDID);
 		if (group != nullptr){
 			strPar2 = par;
 			while(strPar2.length() > 0){
@@ -1704,7 +1701,7 @@ int32 BIC_GCM_GROUP_SET::Command(BICPAR *tBICPAR, const std::string &par,std::st
 						}
 						else{
 							cDID = (uint32)strtol(strPar1.c_str(),nullptr,10);
-							command = (COMMAND_NODE*)FindInLChildRChainByDRNodeID(group, cDID);
+							command = (COMMAND_NODE*)FindInLChildRChainByDRNodeID_nolock(group, cDID);
 							setPar.flag &= (~BIC_GCM_LS_FLAG_CLSelect);
 							if (command != nullptr){
 								command->Spin_InUse_set();
@@ -1747,7 +1744,7 @@ int32 BIC_GCM_GROUP_SET::SetPar(BICPAR *tBICPAR, COMMAND_GROUP *tGroup, struct B
 
 	if (tGroup == nullptr)
 		return 0;
-	RTREE_LChildRChain_Traversal_LINE(COMMAND_NODE,tGroup,
+	RTREE_LChildRChain_Traversal_LINE_nolock(COMMAND_NODE,tGroup,
 		operateNode_t->Spin_InUse_set();
 		if (((tPar->flag & BIC_GCM_LS_FLAG_CLSelect) != 0) && (operateNode_t->blEnableSend != 0))
 			SetPar(tBICPAR,operateNode_t,tPar);
@@ -1776,14 +1773,14 @@ int32 BIC_GCM_GROUP_CLONE::Command(BICPAR *tBICPAR, const std::string &par,std::
 	newNode = nullptr;
 	group = nullptr;
 	tBICPAR->sdtApp->m_GCList.Spin_InUse_set();
-	group = (COMMAND_GROUP*)FindInLChildRChainByDRNodeID(&tBICPAR->sdtApp->m_GCList, tBICPAR->gDID);
+	group = (COMMAND_GROUP*)FindInLChildRChainByDRNodeID_nolock(&tBICPAR->sdtApp->m_GCList, tBICPAR->gDID);
 	if (group != nullptr){
 		newNode = new COMMAND_NODE;
 		if (newNode != nullptr){
 			newNode->StrCommand = "new command";
 			if (par.length() > 0){
 				cDID = (uint32)strtol(par.c_str(),nullptr,10);
-				nextNode = (COMMAND_NODE*)FindInLChildRChainByDRNodeID(group, cDID);
+				nextNode = (COMMAND_NODE*)FindInLChildRChainByDRNodeID_nolock(group, cDID);
 				if (nextNode != nullptr)
 					COMMAND_NODE::CopyCOMMAND_NODE(nextNode, newNode);
 			}
@@ -1794,7 +1791,6 @@ int32 BIC_GCM_GROUP_CLONE::Command(BICPAR *tBICPAR, const std::string &par,std::
 			PrintStrN(tBICPAR,DEV_LINE_START,RICH_LIN_clDefault);
 			PrintDoRet(tBICPAR,"Success");
 			group->AddNode(newNode);
-			tBICPAR->sdtApp->m_GCList.Spin_InUse_set();
 		}
 		else{
 			PrintDoRet(tBICPAR,"Fail");
@@ -1827,14 +1823,14 @@ int32 BIC_GCM_GROUP_DEL::Command(BICPAR *tBICPAR, const std::string &par,std::st
 	nextNode = nullptr;
 	if (par.length() > 0){
 		tBICPAR->sdtApp->m_GCList.Spin_InUse_set();
-		group = (COMMAND_GROUP*)FindInLChildRChainByDRNodeID(&tBICPAR->sdtApp->m_GCList, tBICPAR->gDID);
+		group = (COMMAND_GROUP*)FindInLChildRChainByDRNodeID_nolock(&tBICPAR->sdtApp->m_GCList, tBICPAR->gDID);
 		if (group != nullptr){
 			strPar2 = par;
 			while(strPar2.length() > 0){
 				strPar1 = Str_Trim(Str_ReadSubItem(&strPar2, " "));
 				if (strPar1.length() > 0){
 					cDID = (uint32)strtol(strPar1.c_str(),nullptr,10);
-					nextNode = (COMMAND_NODE*)FindInLChildRChainByDRNodeID(group, cDID);
+					nextNode = (COMMAND_NODE*)FindInLChildRChainByDRNodeID_nolock(group, cDID);
 					MoveNodeToTrash(nextNode,&tBICPAR->sdtApp->m_GCList);
 					tBICPAR->sdtApp->m_GCList.SetblUpdate();
 				}
@@ -1872,7 +1868,7 @@ int32 BIC_GCM_GROUP_MVUP::Command(BICPAR *tBICPAR, const std::string &par,std::s
 	strDoRet = "Fail";
 	if (par.length() > 0){
 		tBICPAR->sdtApp->m_GCList.Spin_InUse_set();
-		group = (COMMAND_GROUP*)FindInLChildRChainByDRNodeID(&tBICPAR->sdtApp->m_GCList, tBICPAR->gDID);
+		group = (COMMAND_GROUP*)FindInLChildRChainByDRNodeID_nolock(&tBICPAR->sdtApp->m_GCList, tBICPAR->gDID);
 		if (group != nullptr){
 			strPar2 = par;
 			strPar1 = Str_Trim(Str_ReadSubItem(&strPar2, " "));
@@ -1881,7 +1877,7 @@ int32 BIC_GCM_GROUP_MVUP::Command(BICPAR *tBICPAR, const std::string &par,std::s
 			if (step == 0)
 				step = 1;
 			
-			nextNode = (COMMAND_NODE*)FindInLChildRChainByDRNodeID(group, cDID);
+			nextNode = (COMMAND_NODE*)FindInLChildRChainByDRNodeID_nolock(group, cDID);
 			if (nextNode != nullptr){
 				while(step-- > 0)
 					MoveNodesUpInRChain(nextNode);
@@ -1920,7 +1916,7 @@ int32 BIC_GCM_GROUP_MVDN::Command(BICPAR *tBICPAR, const std::string &par,std::s
 	strDoRet = "Fail";
 	if (par.length() > 0){
 		tBICPAR->sdtApp->m_GCList.Spin_InUse_set();
-		group = (COMMAND_GROUP*)FindInLChildRChainByDRNodeID(&tBICPAR->sdtApp->m_GCList, tBICPAR->gDID);
+		group = (COMMAND_GROUP*)FindInLChildRChainByDRNodeID_nolock(&tBICPAR->sdtApp->m_GCList, tBICPAR->gDID);
 		if (group != nullptr){
 			strPar2 = par;
 			strPar1 = Str_Trim(Str_ReadSubItem(&strPar2, " "));
@@ -1929,7 +1925,7 @@ int32 BIC_GCM_GROUP_MVDN::Command(BICPAR *tBICPAR, const std::string &par,std::s
 			if (step == 0)
 				step = 1;
 			
-			nextNode = (COMMAND_NODE*)FindInLChildRChainByDRNodeID(group, cDID);
+			nextNode = (COMMAND_NODE*)FindInLChildRChainByDRNodeID_nolock(group, cDID);
 			if (nextNode != nullptr){
 				while(step-- > 0)
 					MoveNodesDownInRChain(nextNode);
@@ -1951,8 +1947,8 @@ int32 BIC_GCM_GROUP_COMMAND::Help(BICPAR *tBICPAR, int32 blDetail)const{
 	PrintHelpItem(tBICPAR, cgCommand, "Set command by cID.");
 	if (blDetail == 0)
 		return(cgReturnCode);
-	PrintHelpItem(tBICPAR,"    <cID>"		,"Command cID.");
-	PrintHelpItem(tBICPAR,"    <name>"		,"Name.");
+	PrintHelpItem(tBICPAR,"     <cID>"		,"Command cID.");
+	PrintHelpItem(tBICPAR,"     <name>"		,"Name.");
 	return(cgReturnCode);
 }
 //------------------------------------------------------------------------------------------//
@@ -1967,12 +1963,12 @@ int32 BIC_GCM_GROUP_COMMAND::Command(BICPAR *tBICPAR, const std::string &par,std
 	group = nullptr;
 	if (par.length() > 0){
 		tBICPAR->sdtApp->m_GCList.Spin_InUse_set();
-		group = (COMMAND_GROUP*)FindInLChildRChainByDRNodeID(&tBICPAR->sdtApp->m_GCList, tBICPAR->gDID);
+		group = (COMMAND_GROUP*)FindInLChildRChainByDRNodeID_nolock(&tBICPAR->sdtApp->m_GCList, tBICPAR->gDID);
 		if (group != nullptr){
 			strPar2 = par;
 			strPar1 = Str_ReadSubItem(&strPar2, " ");
 			cDID = (uint32)strtol(strPar1.c_str(),nullptr,10);
-			command = (COMMAND_NODE*)FindInLChildRChainByDRNodeID(group, cDID);
+			command = (COMMAND_NODE*)FindInLChildRChainByDRNodeID_nolock(group, cDID);
 			if (command != nullptr){
 				command->Spin_InUse_set();
 				command->StrCommand = strPar2;
@@ -1999,8 +1995,8 @@ int32 BIC_GCM_GROUP_CONTINUE::Help(BICPAR *tBICPAR, int32 blDetail)const{
 	PrintHelpItem(tBICPAR, cgCommand, "Set continue by cID.");
 	if (blDetail == 0)
 		return(cgReturnCode);
-	PrintHelpItem(tBICPAR,"    <cID>"		,"Command cID.");
-	PrintHelpItem(tBICPAR,"    <name>"		,"Name.");
+	PrintHelpItem(tBICPAR,"     <cID>"		,"Command cID.");
+	PrintHelpItem(tBICPAR,"     <name>"		,"Name.");
 	return(cgReturnCode);
 }
 //------------------------------------------------------------------------------------------//
@@ -2015,12 +2011,12 @@ int32 BIC_GCM_GROUP_CONTINUE::Command(BICPAR *tBICPAR, const std::string &par,st
 	group = nullptr;
 	if (par.length() > 0){
 		tBICPAR->sdtApp->m_GCList.Spin_InUse_set();
-		group = (COMMAND_GROUP*)FindInLChildRChainByDRNodeID(&tBICPAR->sdtApp->m_GCList, tBICPAR->gDID);
+		group = (COMMAND_GROUP*)FindInLChildRChainByDRNodeID_nolock(&tBICPAR->sdtApp->m_GCList, tBICPAR->gDID);
 		if (group != nullptr){
 			strPar2 = par;
 			strPar1 = Str_ReadSubItem(&strPar2, " ");
 			cDID = (uint32)strtol(strPar1.c_str(),nullptr,10);
-			command = (COMMAND_NODE*)FindInLChildRChainByDRNodeID(group, cDID);
+			command = (COMMAND_NODE*)FindInLChildRChainByDRNodeID_nolock(group, cDID);
 			if (command != nullptr){
 				command->Spin_InUse_set();
 				command->StrContinue = strPar2;
@@ -2047,8 +2043,8 @@ int32 BIC_GCM_GROUP_RESEND::Help(BICPAR *tBICPAR, int32 blDetail)const{
 	PrintHelpItem(tBICPAR, cgCommand, "Set resend by cID.");
 	if (blDetail == 0)
 		return(cgReturnCode);
-	PrintHelpItem(tBICPAR,"    <cID>"		,"Command cID.");
-	PrintHelpItem(tBICPAR,"    <name>"		,"Name.");
+	PrintHelpItem(tBICPAR,"     <cID>"		,"Command cID.");
+	PrintHelpItem(tBICPAR,"     <name>"		,"Name.");
 	return(cgReturnCode);
 }
 //------------------------------------------------------------------------------------------//
@@ -2063,12 +2059,12 @@ int32 BIC_GCM_GROUP_RESEND::Command(BICPAR *tBICPAR, const std::string &par,std:
 	group = nullptr;
 	if (par.length() > 0){
 		tBICPAR->sdtApp->m_GCList.Spin_InUse_set();
-		group = (COMMAND_GROUP*)FindInLChildRChainByDRNodeID(&tBICPAR->sdtApp->m_GCList, tBICPAR->gDID);
+		group = (COMMAND_GROUP*)FindInLChildRChainByDRNodeID_nolock(&tBICPAR->sdtApp->m_GCList, tBICPAR->gDID);
 		if (group != nullptr){
 			strPar2 = par;
 			strPar1 = Str_ReadSubItem(&strPar2, " ");
 			cDID = (uint32)strtol(strPar1.c_str(),nullptr,10);
-			command = (COMMAND_NODE*)FindInLChildRChainByDRNodeID(group, cDID);
+			command = (COMMAND_NODE*)FindInLChildRChainByDRNodeID_nolock(group, cDID);
 			if (command != nullptr){
 				command->Spin_InUse_set();
 				command->StrResend = strPar2;
@@ -2095,8 +2091,8 @@ int32 BIC_GCM_GROUP_CSTOP::Help(BICPAR *tBICPAR, int32 blDetail)const{
 	PrintHelpItem(tBICPAR, cgCommand, "Set cstop by cID.");
 	if (blDetail == 0)
 		return(cgReturnCode);
-	PrintHelpItem(tBICPAR,"    <cID>"		,"Command cID.");
-	PrintHelpItem(tBICPAR,"    <name>"		,"Name.");
+	PrintHelpItem(tBICPAR,"     <cID>"		,"Command cID.");
+	PrintHelpItem(tBICPAR,"     <name>"		,"Name.");
 	return(cgReturnCode);
 }
 //------------------------------------------------------------------------------------------//
@@ -2111,12 +2107,12 @@ int32 BIC_GCM_GROUP_CSTOP::Command(BICPAR *tBICPAR, const std::string &par,std::
 	group = nullptr;
 	if (par.length() > 0){
 		tBICPAR->sdtApp->m_GCList.Spin_InUse_set();
-		group = (COMMAND_GROUP*)FindInLChildRChainByDRNodeID(&tBICPAR->sdtApp->m_GCList, tBICPAR->gDID);
+		group = (COMMAND_GROUP*)FindInLChildRChainByDRNodeID_nolock(&tBICPAR->sdtApp->m_GCList, tBICPAR->gDID);
 		if (group != nullptr){
 			strPar2 = par;
 			strPar1 = Str_ReadSubItem(&strPar2, " ");
 			cDID = (uint32)strtol(strPar1.c_str(),nullptr,10);
-			command = (COMMAND_NODE*)FindInLChildRChainByDRNodeID(group, cDID);
+			command = (COMMAND_NODE*)FindInLChildRChainByDRNodeID_nolock(group, cDID);
 			if (command != nullptr){
 				command->Spin_InUse_set();
 				command->StrStop = strPar2;
@@ -2143,8 +2139,8 @@ int32 BIC_GCM_GROUP_CATCH::Help(BICPAR *tBICPAR, int32 blDetail)const{
 	PrintHelpItem(tBICPAR, cgCommand, "Set catch by cID.");
 	if (blDetail == 0)
 		return(cgReturnCode);
-	PrintHelpItem(tBICPAR,"    <cID>"		,"Command cID.");
-	PrintHelpItem(tBICPAR,"    <name>"		,"Name.");
+	PrintHelpItem(tBICPAR,"     <cID>"		,"Command cID.");
+	PrintHelpItem(tBICPAR,"     <name>"		,"Name.");
 	return(cgReturnCode);
 }
 //------------------------------------------------------------------------------------------//
@@ -2159,12 +2155,12 @@ int32 BIC_GCM_GROUP_CATCH::Command(BICPAR *tBICPAR, const std::string &par,std::
 	group = nullptr;
 	if (par.length() > 0){
 		tBICPAR->sdtApp->m_GCList.Spin_InUse_set();
-		group = (COMMAND_GROUP*)FindInLChildRChainByDRNodeID(&tBICPAR->sdtApp->m_GCList, tBICPAR->gDID);
+		group = (COMMAND_GROUP*)FindInLChildRChainByDRNodeID_nolock(&tBICPAR->sdtApp->m_GCList, tBICPAR->gDID);
 		if (group != nullptr){
 			strPar2 = par;
 			strPar1 = Str_ReadSubItem(&strPar2, " ");
 			cDID = (uint32)strtol(strPar1.c_str(),nullptr,10);
-			command = (COMMAND_NODE*)FindInLChildRChainByDRNodeID(group, cDID);
+			command = (COMMAND_NODE*)FindInLChildRChainByDRNodeID_nolock(group, cDID);
 			if (command != nullptr){
 				command->Spin_InUse_set();
 				command->StrCatch = strPar2;
@@ -2191,7 +2187,7 @@ int32 BIC_GCM_GROUP_SEND::Help(BICPAR *tBICPAR, int32 blDetail)const{
 	PrintHelpItem(tBICPAR, cgCommand, "Send command by cID.");
 	if (blDetail == 0)
 		return(cgReturnCode);
-	PrintHelpItem(tBICPAR,"    <cID>"		,"Command cID.");
+	PrintHelpItem(tBICPAR,"     <cID>"		,"Command cID.");
 	return(cgReturnCode);
 }
 //------------------------------------------------------------------------------------------//
@@ -2206,10 +2202,10 @@ int32 BIC_GCM_GROUP_SEND::Command(BICPAR *tBICPAR, const std::string &par,std::s
 	
 	if (par.length() > 0){
 		tBICPAR->sdtApp->m_GCList.Spin_InUse_set();
-		group = (COMMAND_GROUP*)FindInLChildRChainByDRNodeID(&tBICPAR->sdtApp->m_GCList, tBICPAR->gDID);
+		group = (COMMAND_GROUP*)FindInLChildRChainByDRNodeID_nolock(&tBICPAR->sdtApp->m_GCList, tBICPAR->gDID);
 		if (group != nullptr){
 			cDID = (uint32)strtol(par.c_str(),nullptr,10);
-			node = (COMMAND_NODE*)FindInLChildRChainByDRNodeID(group, cDID);
+			node = (COMMAND_NODE*)FindInLChildRChainByDRNodeID_nolock(group, cDID);
 			if (node != nullptr){
 				COMMAND_NODE::CopyCOMMAND_NODE(node, &command);
 				command.blEnableSend = 1;

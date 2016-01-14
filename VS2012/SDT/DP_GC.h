@@ -39,7 +39,8 @@ class CGCTree : public CMyCTreeCtrl{
 		void		OnEditSave		(HTREEITEM hItem);
 		void		OnEditCheckSave	(HTREEITEM hItem);
 		void		SaveNodeL2		(HTREEITEM hItem);
-		void		SaveNodeL3		(HTREEITEM hItem);
+		void		SaveNodeL3		(HTREEITEM hItem); 
+		void		SaveNodeCheckL2(HTREEITEM hItem);
 		void		SaveNodeCheckL3	(HTREEITEM hItem);
 		HTREEITEM	CreateNodeL1	(HTREEITEM hItem = NULL);
 		HTREEITEM	CreateNodeL2	(HTREEITEM hItem = NULL);

@@ -192,8 +192,8 @@ class CMUXCOM : public APICOM{
 				 CMUXCOM(const ODEV_LIST *tODEV_LIST,uint32 tSize) : APICOM(tODEV_LIST,tSize){Init();exThread.Disable();};
 		virtual ~CMUXCOM(void){CloseD(0);};
 	private:
-		virtual	int32	PrintThreadFun	(void);
-		void	Init	(void);
+		virtual	int32	Ex2ThreadFun(void);
+				void	Init		(void);
 	public:
 		int32	cgTrackingID;
 		int32	vPortDSR;

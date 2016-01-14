@@ -36,7 +36,7 @@ class BIC_CONNECT : public BIC_Node{
 	public:
 		enum{RFLAG_C = 0, RFLAG_S = BIC_Node::RFLAG_S + BIC_Node::RFLAG_C};
 	public:
-				 BIC_CONNECT(void) : BIC_Node() {cgCommand = "connect/c";cgReturnCode = BI_RETCODE_CONNECT;};
+				 BIC_CONNECT(void) : BIC_Node() {cgCommand = "c/connect";cgReturnCode = BI_RETCODE_CONNECT;};
 		virtual ~BIC_CONNECT(void){;};
 	public:
 		virtual	int32	Command	(BICPAR *tBICPAR,const std::string &par,std::string *ret)const;
@@ -47,7 +47,7 @@ class BIC_DISCONNECT : public BIC_Node{
 	public:
 		enum{RFLAG_C = 0, RFLAG_S = BIC_Node::RFLAG_S + BIC_Node::RFLAG_C};
 	public:
-				 BIC_DISCONNECT(void) : BIC_Node() {cgCommand = "disconnect/d";cgReturnCode = BI_RETCODE_DISCONNECT;};
+				 BIC_DISCONNECT(void) : BIC_Node() {cgCommand = "d/disconnect";cgReturnCode = BI_RETCODE_DISCONNECT;};
 		virtual ~BIC_DISCONNECT(void){;};
 	public:
 		virtual	int32	Command	(BICPAR *tBICPAR,const std::string &par,std::string *ret)const;
@@ -154,9 +154,9 @@ class BIC_MAIN : public BIC_Node_S{
         	    AddNode(&cgSub_port);
 			#endif
 			#ifdef SWVERSION_Server
-        	    AddNode(&cgSub_sl);
+        	    AddNode(&cgSub_si);
         	    AddNode(&cgSub_ss);
-        	    AddNode(&cgSub_sd);
+        	    AddNode(&cgSub_ssd);
 			#endif
 	    }
 	    BIC_ECHO		cgC_ECHO;
@@ -186,9 +186,9 @@ class BIC_MAIN : public BIC_Node_S{
 	    BIC_PORT		cgSub_port;
 	#endif
 	#ifdef SWVERSION_Server
-	    BIC_SL			cgSub_sl;
+	    BIC_SI			cgSub_si;
 	    BIC_SS			cgSub_ss;
-	    BIC_SD			cgSub_sd;
+	    BIC_SSD			cgSub_ssd;
 	#endif
 };
 //------------------------------------------------------------------------------------------//

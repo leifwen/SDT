@@ -141,6 +141,9 @@ class DEVICE : public RTREE_NODE{
     
 		int32	CheckblConnect	(void){return(CheckSFlag(RFLAG_CREATE(0)));}
 		void	UpdataUIRecord	(void);
+#ifdef CommonDefH_VC
+		void	UpdataUIRecordSDOUT(void);
+#endif
 		std::string	MakeFrmTitle(void);
 	protected:
 		uint32	cgBufMaxSize;

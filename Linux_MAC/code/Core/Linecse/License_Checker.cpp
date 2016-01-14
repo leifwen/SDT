@@ -305,7 +305,7 @@ int32 Reg_Signature::Decode(RSA **rsa_sdtpuk,std::string *retStrCYCode,std::stri
 
 
 //------------------------------------------------------------------------------------------//
-int32 Linense_Content::Encode(std::string *retStrWhole,RSA **rsa_sdtpuk,const std::string &strRegSignature,const std::string &strApproveTime,RSA *rsa_sPrk){
+int32 Linense_Content::Encode(std::string *retStrWhole,RSA **rsa_sdtpuk,const std::string &strRegSignature,uint64 approveSeconds,RSA *rsa_sPrk){
 	int32 			retCode;
 	SYS_DateTime	regTime;
 	std::string		strContent,strCYCode,strMKEY;
@@ -335,7 +335,7 @@ int32 Linense_Content::Encode(std::string *retStrWhole,RSA **rsa_sdtpuk,const st
 	GetcgDefFifo(this)->Empty();
 	HoldOffset();
 	fn_regTime.SetContent(Str_DecToHex((uint64)regTime.GetSec()), strMKEY);
-	fn_approveTime.SetContent(strApproveTime, strMKEY);
+	fn_approveTime.SetContent(Str_DecToHex(approveSeconds), strMKEY);
 	
 	fn_CYCode.HoldOffset();
 	cyCodeStreamOffset = 0;
@@ -352,7 +352,7 @@ int32 Linense_Content::Encode(std::string *retStrWhole,RSA **rsa_sdtpuk,const st
 	return(retCode);
 }
 //------------------------------------------------------------------------------------------//
-int32 Linense_Signature::Encode(std::string *retStrWhole,const std::string &strRegSignature,const std::string &strApproveTime){
+int32 Linense_Signature::Encode(std::string *retStrWhole,const std::string &strRegSignature,uint64 approveSeconds){
 	int32 		retCode;
 	std::string	strContent;
 	RSA 		*rsa_sdtPuk,*rsa_sPrk;
@@ -365,7 +365,7 @@ int32 Linense_Signature::Encode(std::string *retStrWhole,const std::string &strR
 		if (GetRSA_S(&rsa_sPrk) < 1)
 			break;
 
-		retCode = linenseContent.Encode(&strContent,&rsa_sdtPuk,strRegSignature,strApproveTime,rsa_sPrk);
+		retCode = linenseContent.Encode(&strContent,&rsa_sdtPuk,strRegSignature,approveSeconds,rsa_sPrk);
 		if (retCode > 0)
 			CCY_FR_Signature::Encode(retStrWhole, strContent, rsa_sdtPuk);
 	}while(0);

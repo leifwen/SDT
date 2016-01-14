@@ -19,36 +19,17 @@
 #include "Commu_Socket.h"
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
-class APISocketS_TCP : public APISocket{
+class APISocketServer_Socket : public APISocket{
 	public:
 		enum{RFLAG_C = 0, RFLAG_S = APISocket::RFLAG_S + APISocket::RFLAG_C};
 	public:
-				 APISocketS_TCP(const ODEV_LIST *tODEV_LIST,uint32 tSize) : APISocket(tODEV_LIST,tSize){;};
-		virtual ~APISocketS_TCP(void){;};
+				 APISocketServer_Socket(const ODEV_LIST *tODEV_LIST,uint32 tSize) : APISocket(tODEV_LIST,tSize){selfName = "APISocketServer->Socket";};
+		virtual ~APISocketServer_Socket(void){;};
 	private:
-		void	PrintUserDisconnectReport	(const std::string &strDevName){;};
-		void	PrintRecDataTitle			(ODEV_LIST_POOL *output, uint32 byteNum);
-		virtual int32	PrintThreadFun		(void);
+				void	PrintRecDataTitle	(ODEV_LIST_POOL *output, uint32 byteNum);
+		virtual int32	Ex2ThreadFun		(void);
 	public:
 		virtual void	CreateLogFile		(void);
-	private:
-		virtual	void	ThreadsStart		(void);
-		virtual int32	OpenDev				(const std::string &tCDBufName,int32 tCDBufPar,CSType tCSType){return 1;};
-};
-//------------------------------------------------------------------------------------------//
-class APISocketS_UDP : public APISocketS_TCP{
-	public:
-		enum{RFLAG_C = 0, RFLAG_S = APISocketS_TCP::RFLAG_S + APISocketS_TCP::RFLAG_C};
-	public:
-				 APISocketS_UDP(const ODEV_LIST *tODEV_LIST,uint32 tSize) : APISocketS_TCP(tODEV_LIST,tSize){;};
-		virtual ~APISocketS_UDP(void){;};
-	private:
-		sockaddr_in		cgRemoteAddr;
-	private:
-		virtual void	ThreadsStart		(void);
-		virtual int32	SendToDevice		(const uint8 *buffer,uint32 length,uint32 *retNum);
-		virtual int32	OpenDev				(const std::string &tCDBufName,int32 tCDBufPar,CSType tCSType);
-		virtual void	CloseDev			(void){;};
 };
 //------------------------------------------------------------------------------------------//
 class APISocketServer : public CDBUF_POOL{
@@ -56,18 +37,21 @@ class APISocketServer : public CDBUF_POOL{
 		enum{RFLAG_C = 2, RFLAG_S = CDBUF_POOL::RFLAG_S + CDBUF_POOL::RFLAG_C};
 	public:
 				 APISocketServer(const ODEV_LIST *tODEV_LIST,uint32 tSize);
-		virtual ~APISocketServer(void);
+		virtual ~APISocketServer(void){CloseD();};
 	protected:
 		SYS_ThreadEx_List					cgThreadList;
 		SYS_ThreadEx<APISocketServer>		disconnectThread;
 		SYS_ThreadEx<APISocketServer>		tcplistionThread;
 		SYS_ThreadEx<APISocketServer>		udplistionThread;
 	private:
+		virtual	int32		OnDoDisconnect(APISocket *delSocket){return 1;};
 				int32		DisconnectThreadFun	(void);
 		virtual int32		TCPThreadListionFun	(void);
 		virtual int32		UDPThreadListionFun	(void);
 		virtual APISocket*	CreateNewSocket_TCP(const ODEV_LIST *tODEV_LIST,uint32 tSize);
-		virtual APISocket*	CreateNewSocket_UDP(const ODEV_LIST *tODEV_LIST,uint32 tSize);
+		virtual APISocket*	CreateNewSocket_UDP(const ODEV_LIST *tODEV_LIST,uint32 tSize){return(CreateNewSocket_TCP(tODEV_LIST,tSize));};
+		virtual int32		OnOpenTCPSocket(APISocket *newSocket){return 1;};
+		virtual int32		OnOpenUDPSocket(APISocket *newSocket){return(OnOpenTCPSocket(newSocket));};
 	protected:
 		void	DisconnectAll	(void);
 		int32	OpenDev			(int32 port,COMMU_DBUF::CSType tStype,int32 blEnEcho);
@@ -76,10 +60,11 @@ class APISocketServer : public CDBUF_POOL{
 		int32	OpenD			(int32 port,COMMU_DBUF::CSType tStype,int32 blEnEcho);
 		int32	CloseD			(void);
 	protected:
+		APISocket			*cgNewSocket;
 		COMMU_DBUF::CSType	cgCSType;
-		SOCKET	listionSocket;
-		uint32	cgBufMaxSize;
-		int32	cgPort;
+		SOCKET				listionSocket;
+		uint32				cgBufMaxSize;
+		int32				cgPort;
 	protected:
 		inline	void	SetblConnected		(void)		{SetSFlag(RFLAG_CREATE(0));};
 		inline	void	ClrblConnected		(void)		{ClrSFlag(RFLAG_CREATE(0));};
@@ -96,6 +81,10 @@ class APISocketServer : public CDBUF_POOL{
 		void	PrintOpenSuccessReport		(void);
 		void	PrintOpenFailReport			(void);
 		void	PrintUserDisconnectReport	(const std::string &strType);
+	public:
+		inline	const	COMMU_DBUF::CSType	&GetCSType	(void)const{return(cgCSType);};
+		inline	int32	GetcgPort			(void){return(cgPort);};
+				void	SetODEV_LIST		(const ODEV_LIST *tODEV_LIST);
 	private:
     	ODEV_LIST		*cgODevList;	//used for external
 		ODEV_LIST_POOL	*cgOutput;

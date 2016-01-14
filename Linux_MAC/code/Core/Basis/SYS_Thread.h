@@ -33,7 +33,7 @@ class SYS_ThreadEx: public RTREE_NODE{
 	public:
 		enum{RFLAG_C = 3, RFLAG_S = RTREE_NODE::RFLAG_S + RTREE_NODE::RFLAG_C};
 	public:
-				 SYS_ThreadEx(void) : RTREE_NODE(){thread_T_CLASS = nullptr;thread_CVoidFunP = nullptr;Enable();SetblIsTerminated();};
+				 SYS_ThreadEx(void) : RTREE_NODE(){ thread_T_CLASS = nullptr; thread_CVoidFunP = nullptr; Enable(); SetblThreadFinish(); SetblIsTerminated(); };
 		virtual	~SYS_ThreadEx(void){ThreadStop();};
 	private:
 		#ifdef CommonDefH_Unix
@@ -105,7 +105,7 @@ class SYS_ThreadEx: public RTREE_NODE{
 		void	ThreadStop			(void){
 			if (CheckblThreadCreated() != 0){
 				SetblIsTerminated();
-				while(CheckblThreadFinish() == 0){;};
+				while(CheckblThreadFinish() == 0){SetblIsTerminated();};
 				#ifdef CommonDefH_Unix
 					void *t;
 					pthread_join(ThreadHandle, &t);
@@ -128,6 +128,7 @@ class SYS_ThreadEx: public RTREE_NODE{
 		void	ThreadInit			(T_FUN_CLASS *tT_CLASS,T_CVoidFunP tT_CVoidFunP){
 			thread_T_CLASS = tT_CLASS;
 			thread_CVoidFunP = tT_CVoidFunP;
+			SetblThreadFinish();
 			SetblIsTerminated();
 		};
 };

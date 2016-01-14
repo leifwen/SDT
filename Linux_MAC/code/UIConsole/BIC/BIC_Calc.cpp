@@ -64,7 +64,7 @@ int32 BIC_CALC_MD5::Help(BICPAR *tBICPAR,int32 blDetail)const{
 	PrintHelpItem(tBICPAR,cgCommand,"MD5");
 	if (blDetail == 0)
 		return(cgReturnCode);
-	PrintHelpItem(tBICPAR,"     <filename/input>","File name/input.");
+	PrintHelpItem(tBICPAR,"     <filename|input>","File name or input string.");
 	return(cgReturnCode);
 }
 //------------------------------------------------------------------------------------------//
@@ -94,7 +94,7 @@ int32 BIC_CALC_SHA1::Help(BICPAR *tBICPAR,int32 blDetail)const{
 	PrintHelpItem(tBICPAR,cgCommand,"SHA1");
 	if (blDetail == 0)
 		return(cgReturnCode);
-	PrintHelpItem(tBICPAR,"     <filename/input>","File name/input.");
+	PrintHelpItem(tBICPAR,"     <filename|input>","File name or input string.");
 	return(cgReturnCode);
 }
 //------------------------------------------------------------------------------------------//
@@ -124,7 +124,7 @@ int32 BIC_CALC_SHA224::Help(BICPAR *tBICPAR,int32 blDetail)const{
 	PrintHelpItem(tBICPAR,cgCommand,"SHA224");
 	if (blDetail == 0)
 		return(cgReturnCode);
-	PrintHelpItem(tBICPAR,"     <filename/input>","File name/input.");
+	PrintHelpItem(tBICPAR,"     <filename|input>","File name or input string.");
 	return(cgReturnCode);
 }
 //------------------------------------------------------------------------------------------//
@@ -154,7 +154,7 @@ int32 BIC_CALC_SHA256::Help(BICPAR *tBICPAR,int32 blDetail)const{
 	PrintHelpItem(tBICPAR,cgCommand,"SHA256");
 	if (blDetail == 0)
 		return(cgReturnCode);
-	PrintHelpItem(tBICPAR,"     <filename/input>","File name/input.");
+	PrintHelpItem(tBICPAR,"     <filename|input>","File name or input string.");
 	return(cgReturnCode);
 }
 //------------------------------------------------------------------------------------------//
@@ -184,7 +184,7 @@ int32 BIC_CALC_SHA384::Help(BICPAR *tBICPAR,int32 blDetail)const{
 	PrintHelpItem(tBICPAR,cgCommand,"SHA384");
 	if (blDetail == 0)
 		return(cgReturnCode);
-	PrintHelpItem(tBICPAR,"     <filename/input>","File name/input.");
+	PrintHelpItem(tBICPAR,"     <filename|input>","File name or input string.");
 	return(cgReturnCode);
 }
 //------------------------------------------------------------------------------------------//
@@ -214,7 +214,7 @@ int32 BIC_CALC_SHA512::Help(BICPAR *tBICPAR,int32 blDetail)const{
 	PrintHelpItem(tBICPAR,cgCommand,"SHA512");
 	if (blDetail == 0)
 		return(cgReturnCode);
-	PrintHelpItem(tBICPAR,"     <filename/input>","File name/input.");
+	PrintHelpItem(tBICPAR,"     <filename|input>","File name or input string.");
 	return(cgReturnCode);
 }
 //------------------------------------------------------------------------------------------//
@@ -246,9 +246,9 @@ int32 BIC_CALC_BASE64::Help(BICPAR *tBICPAR,int32 blDetail)const{
 	PrintHelpItem(tBICPAR,cgCommand,"BASE64");
 	if (blDetail == 0)
 		return(cgReturnCode);
-	PrintHelpItem(tBICPAR,"     <+/->","Encode/Decode.");
-	PrintHelpItem(tBICPAR,"     <filename/input>"	,"File name/input.");
-	PrintHelpItem(tBICPAR,"     [output filename]"	,"Output file name.");
+	PrintHelpItem(tBICPAR,"     <+|->"				,"Encode/Decode.");
+	PrintHelpItem(tBICPAR,"     <filename|input>"	,"File name or input string.");
+	PrintHelpItem(tBICPAR,"     [filename]"			,"Output file name.");
 	return(cgReturnCode);
 }
 //------------------------------------------------------------------------------------------//
@@ -279,7 +279,7 @@ int32 BIC_CALC_BASE64::Command(BICPAR *tBICPAR, const std::string &par,std::stri
 					}
 				}
 				else{
-					PrintDoRet(tBICPAR,"Input error.");
+					PrintDoRet(tBICPAR,"Input error");
 				}
 			}
 			else{
@@ -299,7 +299,7 @@ int32 BIC_CALC_BASE64::Command(BICPAR *tBICPAR, const std::string &par,std::stri
 		}
 	}
 	else{
-		PrintDoRet(tBICPAR,"Input error.");
+		PrintDoRet(tBICPAR,"Input error");
 	}
 	return(cgReturnCode);
 }

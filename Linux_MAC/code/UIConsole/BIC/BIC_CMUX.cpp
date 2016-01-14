@@ -49,7 +49,7 @@ int32 BIC_CMUX_ON::Command(BICPAR *tBICPAR, const std::string &par,std::string *
 		gDID = (uint32)strtoll(strPar1.c_str(),nullptr,10);
 
 		tBICPAR->sdtApp->m_GCList.Spin_InUse_set();
-		group = (COMMAND_GROUP*)FindInLChildRChainByDRNodeID(&tBICPAR->sdtApp->m_GCList, gDID);
+		group = (COMMAND_GROUP*)FindInLChildRChainByDRNodeID_nolock(&tBICPAR->sdtApp->m_GCList, gDID);
 		if (group != nullptr){
 			group->Spin_InUse_set();
 			retCode = tBICPAR->sdtApp->m_Script.Execute(&tBICPAR->sdtApp->m_Device,group);
@@ -198,15 +198,163 @@ int32 BIC_CMUX_FC::Command(BICPAR *tBICPAR, const std::string &par,std::string *
 }
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
+int32 BIC_CMUX_DTR::Help(BICPAR *tBICPAR,int32 blDetail)const{
+	PrintHelpItem(tBICPAR,cgCommand,"Set DTR.");
+	if (blDetail == 0)
+		return(cgReturnCode);
+	PrintHelpItem(tBICPAR,"     <num>"		,"CUX virtual COM num(1-4).");
+	PrintHelpItem(tBICPAR,"     <[-H[t]]"	,"Set to High, t is time, unit is S.");
+	PrintHelpItem(tBICPAR,"      [-L[t]]>"	,"Set to Low, t is time, unit is S.");
+	return(cgReturnCode);
+}
+//------------------------------------------------------------------------------------------//
+int32 BIC_CMUX_DTR::Command(BICPAR *tBICPAR, const std::string &par,std::string *ret)const{
+#ifdef	SWVERSION_CMUX
+	std::string		strSub,strPar1,strPar2;
+	double			timeMs;
+	SYS_TIME_S		timeS;
+	int32			num;
+	CMUXCOM			*tCMUXCOM;
+	*ret = "";
+	if (tBICPAR->sdtApp->m_CMUXDriver.CheckblStart() == 0){
+		PrintDoRet(tBICPAR,"CMUX No Start");
+		return(cgReturnCode);
+	}
+	strPar2 = Str_Trim(par);
+	strPar1 = Str_ReadSubItem(&strPar2," ");
+	Str_LTrimSelf(strPar2);
+	
+	num = atoi(strPar1.c_str());
+	if ((num == 0) || (num > CMUX_MAX_DLCI_INDEX)){
+		PrintDoRet(tBICPAR,"ERROR");
+		return(cgReturnCode);
+	}
+	tBICPAR->sdtApp->m_CMUXDriver.Spin_InUse_set();
+	tCMUXCOM = tBICPAR->sdtApp->m_CMUXDriver.Find_nolock(num);
+	while(strPar2.length() > 0){
+		strPar1 = Str_Trim(Str_ReadSubItem(&strPar2, " "));
+		if (strPar1 == "-H"){
+			tCMUXCOM->vPortDTR = 1;
+			tBICPAR->sdtApp->m_CMUXDriver.SendMSC(num,tCMUXCOM->vPortDTR,tCMUXCOM->vPortRTS);
+		}
+		else if (strPar1 == "-L"){
+			tCMUXCOM->vPortDTR = 0;
+			tBICPAR->sdtApp->m_CMUXDriver.SendMSC(num,tCMUXCOM->vPortDTR,tCMUXCOM->vPortRTS);
+		}
+		else if(strPar1.length() > 2){
+			strSub = strPar1.substr(0,2);
+			strSub = strPar1.substr(2);
+			timeMs = atof(strSub.c_str());
+
+			if (strSub == "-H"){
+				tCMUXCOM->vPortDTR = 1;
+			}
+			else if (strSub == "-L"){
+				tCMUXCOM->vPortDTR = 0;
+			}
+			tBICPAR->sdtApp->m_CMUXDriver.SendMSC(num,tCMUXCOM->vPortDTR,tCMUXCOM->vPortRTS);
+			SYS_Delay_SetTS(&timeS,timeMs * 1000);
+			
+			while ((tBICPAR->blExit == 0) && (SYS_Delay_CheckTS(&timeS) == 0)){
+				tBICPAR->blInPressKeyMode = 1;
+				if (BI_ReadChar(tBICPAR,0) == 27){
+					PrintStrN(tBICPAR,"Pressed ESC, stop execute command.\r\n",RICH_LIN_clRed);
+					tBICPAR->blInPressKeyMode = 0;
+					break;
+				}
+			}
+			tBICPAR->blInPressKeyMode = 0;
+			continue;
+		}
+		break;
+	}
+	tBICPAR->sdtApp->m_CMUXDriver.Spin_InUse_clr();
+#endif
+	return(cgReturnCode);
+}
+//------------------------------------------------------------------------------------------//
+int32 BIC_CMUX_RTS::Help(BICPAR *tBICPAR,int32 blDetail)const{
+	PrintHelpItem(tBICPAR,cgCommand,"Set RTS.");
+	if (blDetail == 0)
+		return(cgReturnCode);
+	PrintHelpItem(tBICPAR,"     <num>"		,"CUX virtual COM num(1-4).");
+	PrintHelpItem(tBICPAR,"     <[-H[t]]"	,"Set to High, t is time, unit is S.");
+	PrintHelpItem(tBICPAR,"      [-L[t]]>"	,"Set to Low, t is time, unit is S.");
+	return(cgReturnCode);
+}
+//------------------------------------------------------------------------------------------//
+int32 BIC_CMUX_RTS::Command(BICPAR *tBICPAR, const std::string &par,std::string *ret)const{
+#ifdef	SWVERSION_CMUX
+	std::string		strSub,strPar1,strPar2;
+	double			timeMs;
+	SYS_TIME_S		timeS;
+	int32			num;
+	CMUXCOM			*tCMUXCOM;
+	*ret = "";
+	if (tBICPAR->sdtApp->m_CMUXDriver.CheckblStart() == 0){
+		PrintDoRet(tBICPAR,"CMUX No Start");
+		return(cgReturnCode);
+	}
+	strPar2 = Str_Trim(par);
+	strPar1 = Str_ReadSubItem(&strPar2," ");
+	Str_LTrimSelf(strPar2);
+	
+	num = atoi(strPar1.c_str());
+	if ((num == 0) || (num > CMUX_MAX_DLCI_INDEX)){
+		PrintDoRet(tBICPAR,"ERROR");
+		return(cgReturnCode);
+	}
+	tBICPAR->sdtApp->m_CMUXDriver.Spin_InUse_set();
+	tCMUXCOM = tBICPAR->sdtApp->m_CMUXDriver.Find_nolock(num);
+	while(strPar2.length() > 0){
+		strPar1 = Str_Trim(Str_ReadSubItem(&strPar2, " "));
+		if (strPar1 == "-H"){
+			tCMUXCOM->vPortRTS = 1;
+			tBICPAR->sdtApp->m_CMUXDriver.SendMSC(num,tCMUXCOM->vPortDTR,tCMUXCOM->vPortRTS);
+		}
+		else if (strPar1 == "-L"){
+			tCMUXCOM->vPortRTS = 0;
+			tBICPAR->sdtApp->m_CMUXDriver.SendMSC(num,tCMUXCOM->vPortDTR,tCMUXCOM->vPortRTS);
+		}
+		else if(strPar1.length() > 2){
+			strSub = strPar1.substr(0,2);
+			strSub = strPar1.substr(2);
+			timeMs = atof(strSub.c_str());
+			
+			if (strSub == "-H"){
+				tCMUXCOM->vPortRTS = 1;
+			}
+			else if (strSub == "-L"){
+				tCMUXCOM->vPortRTS = 0;
+			}
+			tBICPAR->sdtApp->m_CMUXDriver.SendMSC(num,tCMUXCOM->vPortDTR,tCMUXCOM->vPortRTS);
+			SYS_Delay_SetTS(&timeS,timeMs * 1000);
+			
+			while ((tBICPAR->blExit == 0) && (SYS_Delay_CheckTS(&timeS) == 0)){
+				tBICPAR->blInPressKeyMode = 1;
+				if (BI_ReadChar(tBICPAR,0) == 27){
+					PrintStrN(tBICPAR,"Pressed ESC, stop execute command.\r\n",RICH_LIN_clRed);
+					tBICPAR->blInPressKeyMode = 0;
+					break;
+				}
+			}
+			tBICPAR->blInPressKeyMode = 0;
+			continue;
+		}
+		break;
+	}
+	tBICPAR->sdtApp->m_CMUXDriver.Spin_InUse_clr();
+#endif
+	return(cgReturnCode);
+}
+//------------------------------------------------------------------------------------------//
 int32 BIC_DLCI::Help(BICPAR *tBICPAR,int32 blDetail)const{
 	PrintHelpItem(tBICPAR,cgCommand,"Set/list CMUX virtual COM status.");
 	if (blDetail == 0)
 		return(cgReturnCode);
 	PrintHelpItem(tBICPAR,"     [num"			,"CUX virtual COM num(1-4).");
-	PrintHelpItem(tBICPAR,"      <-DTR <H|L>"	,"Send MSC to set DTR H/L.");
-	PrintHelpItem(tBICPAR,"       |-RTS <H|L>"	,"Send MSC to set RTS H/L.");
-	PrintHelpItem(tBICPAR,"       |-m <H|A>"	,"Receive mode: Hex/ASCII.");
-	PrintHelpItem(tBICPAR,"       |-E <on|off>>]","Enable/disable escape.");
+	PrintHelpItem(tBICPAR,"      <-m<H|A>"		,"Receive mode: Hex/ASCII.");
+	PrintHelpItem(tBICPAR,"      |-E<on|off>>]"	,"Enable/disable escape.");
 	return(cgReturnCode);
 }
 //------------------------------------------------------------------------------------------//
@@ -297,7 +445,6 @@ int32 BIC_DLCI::Command(BICPAR *tBICPAR, const std::string &par,std::string *ret
 	tBICPAR->sdtApp->m_CMUXDriver.Spin_InUse_set();
 	tCMUXCOM = tBICPAR->sdtApp->m_CMUXDriver.Find_nolock(num);
 	do{
-		strPar1 = Str_ReadSubItem(&strPar2," ");
 		Str_LTrimSelf(strPar2);
 		
 		if (strPar2.length() == 0){
@@ -305,50 +452,24 @@ int32 BIC_DLCI::Command(BICPAR *tBICPAR, const std::string &par,std::string *ret
 			break;
 		}
 		
-		if (strPar1 == "-DTR"){
-			if (strPar2 == "H"){
-				tCMUXCOM->vPortDTR = 1;
-				tBICPAR->sdtApp->m_CMUXDriver.SendMSC(num,tCMUXCOM->vPortDTR,tCMUXCOM->vPortRTS);
-			}
-			else if (strPar2 == "L"){
-				tCMUXCOM->vPortDTR = 0;
-				tBICPAR->sdtApp->m_CMUXDriver.SendMSC(num,tCMUXCOM->vPortDTR,tCMUXCOM->vPortRTS);
-			}
-			break;
-		}
-		if (strPar1 == "-RTS"){
-			if (strPar2 == "H"){
-				tCMUXCOM->vPortRTS = 1;
-				tBICPAR->sdtApp->m_CMUXDriver.SendMSC(num,tCMUXCOM->vPortDTR,tCMUXCOM->vPortRTS);
-			}
-			else if (strPar2 == "L"){
-				tCMUXCOM->vPortRTS = 0;
-				tBICPAR->sdtApp->m_CMUXDriver.SendMSC(num,tCMUXCOM->vPortDTR,tCMUXCOM->vPortRTS);
-			}
-			break;
-		}
 		retCode = 0;
-		if (strPar1 == "-m"){
-			if (strPar2 == "H"){
-				tCMUXCOM->vPortHEX = 1;
-				tCMUXCOM->vPortEscape = 0;
-				retCode = 1;
-			}
-			else if (strPar2 == "A"){
-				tCMUXCOM->vPortHEX = 0;
-				retCode = 1;
-			}
+		if (strPar2 == "-mH"){
+			tCMUXCOM->vPortHEX = 1;
+			tCMUXCOM->vPortEscape = 0;
+			retCode = 1;
 		}
-		if (strPar1 == "-E"){
-			if (strPar2 == "on"){
-				tCMUXCOM->vPortEscape = 1;
-				tCMUXCOM->vPortHEX = 0;
-				retCode = 1;
-			}
-			else if (strPar2 == "off"){
-				tCMUXCOM->vPortEscape = 0;
-				retCode = 1;
-			}
+		else if (strPar2 == "-mA"){
+			tCMUXCOM->vPortHEX = 0;
+			retCode = 1;
+		}
+		else if (strPar2 == "-Eon"){
+			tCMUXCOM->vPortEscape = 1;
+			tCMUXCOM->vPortHEX = 0;
+			retCode = 1;
+		}
+		else if (strPar2 == "-Eoff"){
+			tCMUXCOM->vPortEscape = 0;
+			retCode = 1;
 		}
 		if (retCode == 1){
 			strPrintData = " DLCI " + Str_IntToString(num) + " :";

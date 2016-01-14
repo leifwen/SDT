@@ -18,8 +18,7 @@
 //------------------------------------------------------------------------------------------//
 SDTAPP	GSDTApp;
 //------------------------------------------------------------------------------------------//
-void SDTAPP::Init(void){	
-	cgBufMaxSize = G_MAXBUFFER_SIZE;
+void SDTAPP::Init(void){
 	m_blExit = 0;
 #ifdef USE_OPENSSL
 	CY_Init();
@@ -52,7 +51,7 @@ void SDTAPP::Init(void){
 #ifdef	SWVERSION_CMUX
 	m_CMUXDriver.Init(&m_Device,cgBufMaxSize);
 #endif
-	m_BIC_Terminal.cgC_TS.RemoveSelf();
+
 	m_ReadInline.Init(&m_ConsoleBICPAR,m_oDevOutputListPool.cODevSDOUT);
 
 	m_PrintThread.ThreadInit(this,&SDTAPP::PrintThreadFun);
@@ -63,8 +62,15 @@ void SDTAPP::Init(void){
 }
 //------------------------------------------------------------------------------------------//
 void SDTAPP::Exit(void){
-	m_NTPServer.CloseD();
+#ifdef SWVERSION_SCRIPT
+	ParRecordSave("Default.ini");
+#endif
 	m_TS.CloseD();
+#ifdef USE_OPENSSL
+	m_RSTCilent.CloseD();
+	m_RST.CloseD();
+#endif
+	m_NTPServer.CloseD();
 	m_Script.StopRun();
 	m_FileSend.StopSend();
 #ifdef	SWVERSION_CMUX
@@ -75,9 +81,6 @@ void SDTAPP::Exit(void){
 	m_ConsoleBICPAR.blExit = -1;
 	m_ConsoleThread.ThreadStop();
 	m_PrintThread.ThreadStop();
-#ifdef SWVERSION_SCRIPT
-	ParRecordSave("Default.ini");
-#endif
 }
 //------------------------------------------------------------------------------------------//
 int32 SDTAPP::ExecBIC(const std::string &tCommand){
@@ -169,13 +172,13 @@ T_S:;
 }
 //------------------------------------------------------------------------------------------//
 void SDTAPP::DoOutput(void){
-	if (m_Device.cgODevList.cgOutput->CheckblEnabled() != 0)
+	if (m_Device.cgODevList.cgOutput->CheckblEnabled() > 0)
 		m_Device.UpdataUIRecord();
-	if (m_Device2.cgODevList.cgOutput->CheckblEnabled() != 0)
+	if (m_Device2.cgODevList.cgOutput->CheckblEnabled() > 0)
 		m_Device2.UpdataUIRecord();
 #ifdef CommonDefH_Unix
 	if ((m_Device.cgDevType == DEVICE::DEVID_TCPClient) && (m_Device.cgAPISocket != nullptr)){
-		if (m_Device.cgAPISocket->CheckblSDC() != 0){
+		if (m_Device.cgAPISocket->CheckblSDC() > 0){
 			if (m_Script.IsRunSocketCommand() == 0){
 				m_Script.StopRun();
 				m_Device.Close(0);
@@ -183,7 +186,7 @@ void SDTAPP::DoOutput(void){
 		}
 	}
 	if ((m_Device.cgDevType == DEVICE::DEVID_APICOM) && (m_Device.cgAPIECom != nullptr)){
-		if (m_Device.cgAPIECom->CheckblSDC() != 0){
+		if (m_Device.cgAPIECom->CheckblSDC() > 0){
 			m_Script.StopRun();
 			m_Device.Close(0);
 		}
@@ -196,7 +199,6 @@ void SDTAPP::DoOutput(void){
 		if (m_Device2.cgAPIECom->CheckblSDC() != 0)
 			m_Device2.Close(0);
 	}
-	
 #endif
 }
 //------------------------------------------------------------------------------------------//

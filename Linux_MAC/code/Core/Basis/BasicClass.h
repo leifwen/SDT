@@ -18,7 +18,7 @@
 #include "BasicDef.h"
 #include "SYS_Lock.h"
 //------------------------------------------------------------------------------------------//
-//#define B_FLAG64(offset)				(((uint64)0x01) << (offset))
+#define BD_FLAG64(offset)				(((uint64)0x01) << (offset))
 //#define B_SetFLAG64(variable,u64)		(variable |= (u64))
 //#define B_ClrFLAG64(variable,u64)		(variable &= (~u64))
 //#define B_ChkFLAG64(variable,u64)		((variable & (u64)) != 0)
@@ -26,6 +26,10 @@ inline uint64	B_FLAG64	(uint64 offset)						{return((uint64)0x01 << offset);};
 inline void		B_SetFLAG64	(uint64 &variable,uint64 u64)		{variable |= u64;};
 inline void		B_ClrFLAG64	(uint64 &variable,uint64 u64)		{variable &= (~u64);};
 inline int32	B_ChkFLAG64	(uint64 variable,uint64 u64)		{return((variable & u64) != 0);};
+inline uint64	B_FLAG32	(uint32 offset)						{return((uint64)0x01 << offset);};
+inline void		B_SetFLAG32	(uint32 &variable,uint32 u64)		{variable |= u64;};
+inline void		B_ClrFLAG32	(uint32 &variable,uint32 u64)		{variable &= (~u64);};
+inline int32	B_ChkFLAG32	(uint32 variable,uint32 u64)		{return((variable & u64) != 0);};
 //------------------------------------------------------------------------------------------//
 #define RFLAG_CREATE(offset)			(((uint64)0x01) << (RFLAG_S + (offset)))
 //------------------------------------------------------------------------------------------//

@@ -879,6 +879,17 @@ void DEVICE::UpdataUIRecord(void){
 	if (cgAPISocketServer != nullptr)
 		cgAPISocketServer->LUpdataRecordUI();
 }
+//------------------------------------------------------------------------------------------/
+#ifdef CommonDefH_VC
+//------------------------------------------------------------------------------------------//
+void DEVICE::UpdataUIRecordSDOUT(void){
+	if (cgODevList.cgOutput != nullptr)
+		cgODevList.cgOutput->PrintSDOUT();
+	if (cgAPISocketServer != nullptr)
+		cgAPISocketServer->LUpdataRecordUISDOUT();
+}
+//------------------------------------------------------------------------------------------//
+#endif
 //------------------------------------------------------------------------------------------//
 std::string DEVICE::MakeFrmTitle(void){
 	std::string	strRet;

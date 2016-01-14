@@ -21,8 +21,8 @@ int32 BIC_DISPLAY::Help(BICPAR *tBICPAR,int32 blDetail)const{
 	if (blDetail == 0)
 		return(BI_RETCODE_DISPLAY);
 	PrintHelpItem(tBICPAR,"     [on"		,"Always enable.");
-	PrintHelpItem(tBICPAR,"      |off"		,"Always disable.");
-	PrintHelpItem(tBICPAR,"      |auto]"	,"Set in auto mode.");
+	PrintHelpItem(tBICPAR,"     |off"		,"Always disable.");
+	PrintHelpItem(tBICPAR,"     |auto]"		,"Set in auto mode.");
 	return(cgReturnCode);
 }
 //------------------------------------------------------------------------------------------//

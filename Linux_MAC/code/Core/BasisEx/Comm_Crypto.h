@@ -209,19 +209,19 @@ inline int32		CCY_Decode_RSAPublicKey		(RSA **retRSA,const std::string &strData)
 #endif
 #if (defined USE_OPENSSL) || (defined CommonDefH_MAC)
 //------------------------------------------------------------------------------------------//
-class CCY_FNLC_Hash :public FNode_LC{
+class CCY_FN_Hash :public Field_Node{
 	public:
-				 CCY_FNLC_Hash(void) : FNode_LC(){AddSubNode(&fnlc_Hash);AddSubNode(&fnlc_Substance);cgDigestType = CCT_MD5;};
-		virtual	~CCY_FNLC_Hash(void){;};
+				 CCY_FN_Hash(void) : Field_Node(){AddNode(&fnlc_Hash);AddNode(&fnlc_Substance);cgDigestType = CCT_MD5;};
+		virtual	~CCY_FN_Hash(void){;};
 	private:
 		CCT_Digest 	cgDigestType;
-		FNode_LC	fnlc_Hash;
 		FNode_LC	fnlc_Substance;
+		FNode_LC	fnlc_Hash;
 	public:
 		void	Init(const FIFO_UINT8 *tfifo,CCT_Digest digestType = CCT_MD5,G_Endian_VAILD tEV = G_LITTLE_ENDIAN){
-			FNode_LC::Init		(tfifo,4,tEV);
-			fnlc_Hash.Init		(tfifo,1,tEV);
+			Field_Node::Init	(FNT_MESSAGE,tfifo,0,tEV);
 			fnlc_Substance.Init	(tfifo,4,tEV);
+			fnlc_Hash.Init		(tfifo,1,tEV);
 
 			cgDigestType = digestType;
 		};
@@ -251,42 +251,39 @@ class CCY_FNLC_Hash :public FNode_LC{
 			}
 			return 0;
 		};
-		inline	const	CCY_FNLC_Hash&	SetContent	(const FIFO_UINT8 &fifoIn,uint32 num,uint32 offset = 0){
-			FNode_LC::HoldOffset();
-			fnlc_Hash = CCY_Digest(cgDigestType,fifoIn,num,offset);
+		inline	const	CCY_FN_Hash&	SetContent	(const FIFO_UINT8 &fifoIn,uint32 num,uint32 offset = 0){
+			Field_Node::HoldOffset();
 			fnlc_Substance.SetContent(fifoIn,num,offset);
-			FNode_LC::UpdateLength();
+			fnlc_Hash = CCY_Digest(cgDigestType,fifoIn,num,offset);
+			Field_Node::UpdateLength();
 			return(*this);
 		};
-		inline	const	CCY_FNLC_Hash&	SetContent	(const uint8 *data,uint32 num){
-			FNode_LC::HoldOffset();
-			fnlc_Hash = CCY_Digest(cgDigestType,data,num);
+		inline	const	CCY_FN_Hash&	SetContent	(const uint8 *data,uint32 num){
+			Field_Node::HoldOffset();
 			fnlc_Substance.SetContent(data,num);
-			FNode_LC::UpdateLength();
+			fnlc_Hash = CCY_Digest(cgDigestType,data,num);
+			Field_Node::UpdateLength();
 			return(*this);
 		};
-		inline	const	CCY_FNLC_Hash&	SetContent	(const std::string &strInput){
-			return(CCY_FNLC_Hash::SetContent((uint8*)strInput.c_str(),(uint32)strInput.length()));
+		inline	const	CCY_FN_Hash&	SetContent	(const std::string &strInput){
+			return(CCY_FN_Hash::SetContent((uint8*)strInput.c_str(),(uint32)strInput.length()));
 		};
-		inline	const	CCY_FNLC_Hash&	SetContent	(const Field_Node &fnInput){
-			FNode_LC::HoldOffset();
-			fnlc_Hash = CCY_Digest(cgDigestType,*GetcgDefFifo(&fnInput),fnInput.GetLength(),fnInput.GetOffset());
+		inline	const	CCY_FN_Hash&	SetContent	(const Field_Node &fnInput){
+			Field_Node::HoldOffset();
 			fnlc_Substance.SetContent(fnInput);
-			FNode_LC::UpdateLength();
+			fnlc_Hash = CCY_Digest(cgDigestType,*GetcgDefFifo(&fnInput),fnInput.GetLength(),fnInput.GetOffset());
+			Field_Node::UpdateLength();
 			return(*this);
 		};
 
 		inline			void			HoldOffset	(void){
-			FNode_LC::HoldOffset();
-			fnlc_Hash = CCY_Digest(cgDigestType,"usedforhold");
+			Field_Node::HoldOffset();
 			fnlc_Substance.HoldOffset();
 		};
 		inline			void			UpdateLength(void){
-			std::string strTemp;
 			fnlc_Substance.UpdateLength();
-			strTemp = CCY_Digest(cgDigestType,*GetcgDefFifo(this),fnlc_Substance.GetContentLength(),fnlc_Substance.GetContentOffset());
-			GetcgDefFifo(this)->Update((uint8*)strTemp.c_str(), fnlc_Hash.GetContentLength(), fnlc_Hash.GetContentOffset());
-			FNode_LC::HoldOffset();
+			fnlc_Hash = CCY_Digest(cgDigestType,*GetcgDefFifo(this),fnlc_Substance.GetContentLength(),fnlc_Substance.GetContentOffset());
+			Field_Node::HoldOffset();
 		};
 };
 //------------------------------------------------------------------------------------------//
@@ -297,14 +294,12 @@ class CCY_FNLC_AES :public FNode_LC{
 	private:
 		CCT_AES_KEYL	cgAES_type;
 		CCT_AES_MODE	cgAES_mode;
-		uint32			cgInvalidLength;
 	public:
-		inline 	const uint32&	GetcgInvalidLength()const{return(cgInvalidLength);};
+		inline  uint32	GetInvalidLength(void)const{return(4);};
 		void	Init(const FIFO_UINT8 *tfifo,CCT_AES_KEYL type = CCT_AES128,CCT_AES_MODE mode = CCT_AES_CBC,G_Endian_VAILD tEV = G_LITTLE_ENDIAN){
 			FNode_LC::Init(tfifo,4,tEV);
 			cgAES_type = type;
 			cgAES_mode = mode;
-			cgInvalidLength = 4;
 		};
 		void	SetConfig(CCT_AES_KEYL type = CCT_AES128,CCT_AES_MODE mode = CCT_AES_CBC,G_Endian_VAILD tEV = G_LITTLE_ENDIAN){
 			FNode_LC::SetEndianType(this,tEV);
@@ -374,39 +369,36 @@ class CCY_FNLC_AES :public FNode_LC{
 		};
 };
 //------------------------------------------------------------------------------------------//
-class CCY_FN_AES :public FNode_LC{
+class CCY_FN_AES :public Field_Node{
 	public:
-				 CCY_FN_AES(void) :FNode_LC(){AddSubNode(&fnlc_Hash);AddSubNode(&fnlc_Crypto);cgDigestType = CCT_MD5;};
+				 CCY_FN_AES(void) :Field_Node(){AddNode(&fnlc_Hash);AddNode(&fnlc_AES);cgDigestType = CCT_MD5;};
 		virtual	~CCY_FN_AES(void){;};
 	private:
 		CCT_Digest		cgDigestType;
 	
 		FNode_LC		fnlc_Hash;
-		CCY_FNLC_AES	fnlc_Crypto;
-	
-		uint32			cgInvalidLength;
+		CCY_FNLC_AES	fnlc_AES;
 	public:
-		inline 	const uint32&	GetcgInvalidLength(void)const{return(cgInvalidLength);};
+		inline	uint32	GetInvalidLength(void)const{return(1 + CCY_DigestSize(cgDigestType) + fnlc_AES.GetInvalidLength());};
 		void	Init(const FIFO_UINT8 *tfifo,CCT_AES_KEYL type = CCT_AES128,CCT_AES_MODE mode = CCT_AES_CBC
 					 ,CCT_Digest digestType = CCT_MD5,G_Endian_VAILD tEV = G_LITTLE_ENDIAN){
-			FNode_LC::Init	(tfifo,4,tEV);
+			Field_Node::Init(FNT_MESSAGE,tfifo,0,tEV);
 			fnlc_Hash.Init	(tfifo,1,tEV);
-			fnlc_Crypto.Init(tfifo,type,mode,tEV);
+			fnlc_AES.Init	(tfifo,type,mode,tEV);
 			cgDigestType = digestType;
-			cgInvalidLength = 4 + 1 + CCY_DigestSize(digestType) + fnlc_Crypto.GetcgInvalidLength();
 		};
 		void	SetConfig(CCT_AES_KEYL type = CCT_AES128,CCT_AES_MODE mode = CCT_AES_CBC
 						  ,CCT_Digest digestType = CCT_MD5,G_Endian_VAILD tEV = G_LITTLE_ENDIAN){
-			FNode_LC::SetEndianType(this,tEV);
+			Field_Node::SetEndianType(this,tEV);
 			FNode_LC::SetEndianType(&fnlc_Hash,tEV);
-			fnlc_Crypto.SetConfig(type,mode,tEV);
+			fnlc_AES.SetConfig(type,mode,tEV);
 			cgDigestType = digestType;
 		}
 	public:
 		inline	int32	CheckContent(std::string *retStrOriginal,const std::string &strKey,const FIFO_UINT8 *fifobuf = nullptr){
 			std::string	strHash;
 			*retStrOriginal = "";
-			if (fnlc_Hash.ReadContent(&strHash,fifobuf) == CCY_Digest(cgDigestType,fnlc_Crypto.ReadContent(retStrOriginal,strKey,fifobuf)))
+			if (fnlc_Hash.ReadContent(&strHash,fifobuf) == CCY_Digest(cgDigestType,fnlc_AES.ReadContent(retStrOriginal,strKey,fifobuf)))
 				return 1;
 			return 0;
 		}
@@ -430,27 +422,27 @@ class CCY_FN_AES :public FNode_LC{
 			return 0;
 		};
 		inline	const CCY_FN_AES&	SetContent	(const FIFO_UINT8 &fifoIn,uint32 num,uint32 offset,const std::string &strKey){
-			FNode_LC::HoldOffset();
+			Field_Node::HoldOffset();
 			fnlc_Hash = CCY_Digest(cgDigestType, fifoIn, num, offset);
-			fnlc_Crypto.SetContent(fifoIn, num, offset, strKey);
-			FNode_LC::UpdateLength();
+			fnlc_AES.SetContent(fifoIn, num, offset, strKey);
+			Field_Node::UpdateLength();
 			return(*this);
 		};
 		inline	const CCY_FN_AES&	SetContent	(const uint8 *data,uint32 num,const std::string &strKey){
-			FNode_LC::HoldOffset();
+			Field_Node::HoldOffset();
 			fnlc_Hash = CCY_Digest(cgDigestType, data, num);
-			fnlc_Crypto.SetContent(data, num, strKey);
-			FNode_LC::UpdateLength();
+			fnlc_AES.SetContent(data, num, strKey);
+			Field_Node::UpdateLength();
 			return(*this);
 		};
 		inline	const CCY_FN_AES&	SetContent	(const std::string &strInput,const std::string &strKey){
 			return(CCY_FN_AES::SetContent((uint8*)strInput.c_str(),(uint32)strInput.length(),strKey));
 		};
 		inline	const CCY_FN_AES&	SetContent	(const Field_Node &fnInput,const std::string &strKey){
-			FNode_LC::HoldOffset();
+			Field_Node::HoldOffset();
 			fnlc_Hash = CCY_Digest(cgDigestType,*GetcgDefFifo(&fnInput),fnInput.GetLength(),fnInput.GetOffset());
-			fnlc_Crypto.SetContent(fnInput, strKey);
-			FNode_LC::UpdateLength();
+			fnlc_AES.SetContent(fnInput, strKey);
+			Field_Node::UpdateLength();
 			return(*this);
 		};
 };

@@ -411,9 +411,9 @@ int32 SYS_CompareDateTime(const SYS_DateTime &tStrartDateTime,const SYS_DateTime
 		return 1;
 	if (tStrartDateTime.gDateTime.tv_sec < tEndDateTime.gDateTime.tv_sec)
 		return -1;
-	if (tStrartDateTime.gDateTime.tv_usec > tStrartDateTime.gDateTime.tv_usec)
+	if (tStrartDateTime.gDateTime.tv_usec > tEndDateTime.gDateTime.tv_usec)
 		return 1;
-	if (tStrartDateTime.gDateTime.tv_usec < tStrartDateTime.gDateTime.tv_usec)
+	if (tStrartDateTime.gDateTime.tv_usec < tEndDateTime.gDateTime.tv_usec)
 		return -1;
 	return 0;
 #endif

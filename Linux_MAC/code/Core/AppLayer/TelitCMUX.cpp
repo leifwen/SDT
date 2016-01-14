@@ -354,7 +354,7 @@ void CMUXCOM::Init(void){
 	vPortName = "";
 }
 //------------------------------------------------------------------------------------------//
-int32 CMUXCOM::PrintThreadFun(void){
+int32 CMUXCOM::Ex2ThreadFun(void){
 	uint8				modemStatus;
 	uint64				byteNum;
 	std::string			strPrintdata,strRecData,strCommand,strTemp;
@@ -362,8 +362,8 @@ int32 CMUXCOM::PrintThreadFun(void){
 	DEVICE				*tDevice;
 	strPrintdata = "";
 	tDevice = ((CMUXDriver*)GetFather(this))->cDevice;
-	
-	while(printThread.IsTerminated() == 0){
+	SetblcgRxBufferUsed();
+	while(ex2Thread.IsTerminated() == 0){
 		strRecData = "";
 		byteNum = cgRxBuffer.Used();
 		if (byteNum == 3){

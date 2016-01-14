@@ -24,7 +24,7 @@ class APICOM : public COMMU_DBUF{
 	public:
 		enum{RFLAG_C = 0, RFLAG_S = COMMU_DBUF::RFLAG_S + COMMU_DBUF::RFLAG_C};
 	public:
-				 APICOM(const ODEV_LIST *tODEV_LIST,uint32 tSize) : COMMU_DBUF(tODEV_LIST,tSize){Init();};
+				 APICOM(const ODEV_LIST *tODEV_LIST,uint32 tSize) : COMMU_DBUF(tODEV_LIST,tSize){Init();selfName = "APICOM";};
 		virtual ~APICOM(void){CloseD();};
 	private:
 		void			Init(void);
@@ -49,15 +49,17 @@ class APICOM : public COMMU_DBUF{
 		std::string		DSR;
 		std::string		RING;
 		std::string		DCD;
-	public:
 		int32			DTR;
 		int32			RTS;
+	public:
 		void			SetDSRFlow			(int32 blEnable);
 		void			SetCTSFlow			(int32 blEnable);
 		std::string		GetCTSStatus		(void);
 		std::string		GetDSRStatus		(void);
 		std::string		GetRINGStatus		(void);
 		std::string		GetDCDStatus		(void);
+		int32			GetDTRStatus		(void){return(DTR);};
+		int32			GetRTSStatus		(void){return(RTS);};
 		void			SetDTRToHigh		(void);
 		void			SetDTRToLow			(void);
 		void			SetRTSToHigh		(void);

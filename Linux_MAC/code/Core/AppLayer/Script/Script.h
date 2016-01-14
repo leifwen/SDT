@@ -95,8 +95,8 @@ class Script : public SBIC_Node{
 		int32	ExecuteGroup				(COMMAND_GROUP *tGroup,const int32 &runTotalTimes,int32 blType);
 		int32	ExecuteCommand				(COMMAND_NODE *tCommand,int32 frameTimeout);
 	private:
-		void	SetblIsTerminated	(void)		{SetSFlag(RFLAG_CREATE(0));cgSBICPAR.blExit = 0;};
-		void	ClrblIsTerminated	(void)		{ClrSFlag(RFLAG_CREATE(0));cgSBICPAR.blExit = 1;};
+		void	SetblIsTerminated	(void)		{SetSFlag(RFLAG_CREATE(0));SetblExit(&cgSBICPAR);};
+		void	ClrblIsTerminated	(void)		{ClrSFlag(RFLAG_CREATE(0));ClrblExit(&cgSBICPAR);};
 		int32	IsTerminated		(void)const	{return(CheckSFlag(RFLAG_CREATE(0)));};
 		void	SetblRSC			(void)		{SetSFlag(RFLAG_CREATE(1));cgSBICPAR.blRSC = 1;};
 		void	ClrblRSC			(void)		{ClrSFlag(RFLAG_CREATE(1));cgSBICPAR.blRSC = 0;};

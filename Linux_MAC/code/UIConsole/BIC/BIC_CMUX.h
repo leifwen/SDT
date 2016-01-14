@@ -69,6 +69,28 @@ class BIC_CMUX_FC : public BIC_Node{
 	    virtual	int32	Help	(BICPAR *tBICPAR,int32 blDetail = 1)const;
 };
 //------------------------------------------------------------------------------------------//
+class BIC_CMUX_DTR : public BIC_Node{
+	public:
+		enum{RFLAG_C = 0, RFLAG_S = BIC_Node::RFLAG_S + BIC_Node::RFLAG_C};
+	public:
+				 BIC_CMUX_DTR(void) : BIC_Node() {cgCommand = "dtr";cgReturnCode = BI_RETCODE_CMUX_DTR;};
+		virtual ~BIC_CMUX_DTR(void){;};
+	public:
+		virtual	int32	Command	(BICPAR *tBICPAR,const std::string &par,std::string *ret)const;
+		virtual	int32	Help	(BICPAR *tBICPAR,int32 blDetail = 1)const;
+};
+//------------------------------------------------------------------------------------------//
+class BIC_CMUX_RTS : public BIC_Node{
+	public:
+		enum{RFLAG_C = 0, RFLAG_S = BIC_Node::RFLAG_S + BIC_Node::RFLAG_C};
+	public:
+				 BIC_CMUX_RTS(void) : BIC_Node() {cgCommand = "rts";cgReturnCode = BI_RETCODE_CMUX_RTS;};
+		virtual ~BIC_CMUX_RTS(void){;};
+	public:
+		virtual	int32	Command	(BICPAR *tBICPAR,const std::string &par,std::string *ret)const;
+		virtual	int32	Help	(BICPAR *tBICPAR,int32 blDetail = 1)const;
+};
+//------------------------------------------------------------------------------------------//
 class BIC_DLCI : public BIC_Node{
 	public:
 	    enum{RFLAG_C = 0, RFLAG_S = BIC_Node::RFLAG_S + BIC_Node::RFLAG_C};
@@ -94,6 +116,8 @@ class BIC_CMUX : public BIC_Node_S{
 	        AddNode(&cgSub_cld);
 	        AddNode(&cgSub_psc);
 	        AddNode(&cgSub_fc);
+			AddNode(&cgSub_dtr);
+			AddNode(&cgSub_rts);
             AddNode(&cgSub_dlci);
 	    }
 	    BIC_CMUX_ON		cgSub_on;
@@ -101,6 +125,8 @@ class BIC_CMUX : public BIC_Node_S{
 	    BIC_CMUX_CLD	cgSub_cld;
 	    BIC_CMUX_PSC	cgSub_psc;
 	    BIC_CMUX_FC		cgSub_fc;
+		BIC_CMUX_DTR	cgSub_dtr;
+		BIC_CMUX_RTS	cgSub_rts;
 	    BIC_DLCI		cgSub_dlci;
 };
 //------------------------------------------------------------------------------------------//

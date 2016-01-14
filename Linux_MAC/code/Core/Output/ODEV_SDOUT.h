@@ -26,6 +26,12 @@ class ODEV_NODE_SDOUT : public ODEV_NODE{
 				 ODEV_NODE_SDOUT(void) : ODEV_NODE(){cgRichEdit = nullptr;cgCFrm = nullptr; };
 				 ODEV_NODE_SDOUT(const void *tRichEdit,const void *tCFrm,COLType tCOLType = COLType_COL) : ODEV_NODE(){Init(tRichEdit,tCFrm,tCOLType);};
 		virtual ~ODEV_NODE_SDOUT(void);
+	private:
+		SYS_Lock		cgPrintLock;
+	public:
+		inline	void	Spin_Print_Lock		(G_LOCK_VAILD blVaild = G_LOCK_ON){cgPrintLock.Lock(blVaild);};
+		inline	void	Spin_Print_Unlock	(G_LOCK_VAILD blVaild = G_LOCK_ON){cgPrintLock.Unlock(blVaild);};
+		inline	int32	Spin_Print_Try		(G_LOCK_VAILD blVaild = G_LOCK_ON){return(cgPrintLock.TryLock(blVaild));};
 	public:
 		#ifdef CommonDefH_VC
 		virtual	void	Clean	(G_LOCK_VAILD blLock = G_LOCK_ON);
@@ -36,7 +42,7 @@ class ODEV_NODE_SDOUT : public ODEV_NODE{
 		int32	PrintTXT(G_LOCK_VAILD blLock);
 		int32	PrintCOL(G_LOCK_VAILD blLock);
 		#ifdef CommonDefH_Unix
-	    void	DoPrintf(std::string * strOutput,G_LOCK_VAILD blLock);
+	    void	DoPrintf(std::string * strOutput);
 		#endif
 	public:
 		#ifdef CommonDefH_VC
@@ -65,13 +71,13 @@ class ODEV_NODE_SDOUT : public ODEV_NODE{
 		};
 	public:
 		#ifdef CommonDefH_VC
-			void	SetExPar			(CHARFORMAT2 *tcf,G_LOCK_VAILD blLock = G_LOCK_ON);
-			void	SetCurFromEnd		(int32 offset,G_LOCK_VAILD blLock = G_LOCK_ON);
-			void	DelCharFromEnd		(int32 offset,int32 length,G_LOCK_VAILD blLock = G_LOCK_ON);
-			void	InsterCharFromEnd	(int32 offset,const std::string &strIn,G_LOCK_VAILD blLock = G_LOCK_ON);
+			void	SetExPar			(CHARFORMAT2 *tcf);
+			void	SetCurFromEnd		(int32 offset);
+			void	DelCharFromEnd		(int32 offset,int32 length);
+			void	InsterCharFromEnd	(int32 offset,const std::string &strIn);
 		#endif
-		void	SetCurLeft		(int32 num,G_LOCK_VAILD blLock = G_LOCK_ON);
-		void	SetCurRight		(int32 num,G_LOCK_VAILD blLock = G_LOCK_ON);
+		void	SetCurLeft		(int32 num);
+		void	SetCurRight		(int32 num);
 		void	OutputStr		(const std::string &outStr,const std::string rColor,G_LOCK_VAILD blLock = G_LOCK_ON)
 									{WriteToStr (outStr,rColor,COL_EP_YES,blLock);Print(blLock);};
 	    void	OutputStrN		(const std::string &outStr,const std::string rColor,G_LOCK_VAILD blLock = G_LOCK_ON)

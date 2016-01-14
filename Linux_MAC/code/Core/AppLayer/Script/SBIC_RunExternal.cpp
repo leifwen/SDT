@@ -164,13 +164,12 @@ int32 SBIC_RE_LIST::ECPThreadFun(void){
 	while(eECPThread.IsTerminated() == 0){
 		waitpid(-1,nullptr,WNOHANG);
 		Spin_InUse_set();
-		Spin_Link_Lock();
 		
 		fromNode = (SBIC_RE_Node*)GetcgLChild(this);
 		blupdate = 0;
 		do{
 			delNode = nullptr;
-			RTREE_RChain_Traversal_LINE(SBIC_RE_Node,fromNode,
+			RTREE_RChain_Traversal_LINE_nolock(SBIC_RE_Node,fromNode,
 				if (operateNode_t->CheckblKilled() != 0)
 					operateNode_t->Kill();
 				childPID = operateNode_t->GetChildStatus(&status);
@@ -193,7 +192,6 @@ int32 SBIC_RE_LIST::ECPThreadFun(void){
 		}while(fromNode != nullptr);
 		if (blupdate != 0)
 			CleanTrash(this);
-		Spin_Link_Unlock();
 		Spin_InUse_clr();
 		PrintBuffer();
 		SYS_SleepMS(2);
@@ -209,7 +207,7 @@ int32 SBIC_RE_LIST::Kill(const std::string &lable,const std::string &cmd,int32 t
 	
 	delNode = nullptr;
 	Spin_InUse_set();
-	RTREE_LChildRChain_Traversal_LINE(SBIC_RE_Node,this,
+	RTREE_LChildRChain_Traversal_LINE_nolock(SBIC_RE_Node,this,
 		if ((operateNode_t->CheckblKilled() == 0) && (operateNode_t->GetLable() == lable) && (operateNode_t->GetCommand() == cmd)){
 			delNode = operateNode_t;
 			RemoveNodesInRChain(delNode,nullptr,G_LOCK_OFF);
@@ -244,15 +242,19 @@ int32 SBIC_RE_LIST::Kill(const std::string &lable,const std::string &cmd,int32 t
 }
 //------------------------------------------------------------------------------------------//
 void SBIC_RE_LIST::Start(DEVICE *tDevice){
+	Spin_InUse_set();
 	cgDevice = tDevice;
+	Spin_InUse_clr();
 	eECPThread.ThreadRun();
 }
 //------------------------------------------------------------------------------------------//
 void SBIC_RE_LIST::Stop(void){
-	RTREE_LChildRChain_Traversal_LINE(SBIC_RE_Node,this,
+	Spin_InUse_set();
+	RTREE_LChildRChain_Traversal_LINE_nolock(SBIC_RE_Node,this,
 		operateNode_t->SetblKilled();
 		operateNode_t->Kill();
 	);
+	Spin_InUse_clr();
 	eECPThread.ThreadStop();
 }
 //------------------------------------------------------------------------------------------//
@@ -318,7 +320,9 @@ int32 SBIC_RunExternal::Command(SBICPAR *tBICPAR,const std::string &par,std::str
 						break;
 					}
 				}while(tBICPAR->blExit == 0 && timeout == 0 && (*ret == "F"));
+				tBICPAR->cgSBIC_RE_LIST->Spin_InUse_set();
 				tBICPAR->cgSBIC_RE_LIST->AddNode(NewRENode);
+				tBICPAR->cgSBIC_RE_LIST->Spin_InUse_clr();
 				tBICPAR->cgSBIC_RE_LIST->Start(tBICPAR->cgDevice);
 			}
 		}

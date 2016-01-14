@@ -162,12 +162,9 @@ class COLSTRING : public RTREE_NODE{
 	public:
 		uint64			GetUnreadLength(G_LOCK_VAILD blLock = G_LOCK_ON);
 		virtual	void	Clean		(G_LOCK_VAILD blLock = G_LOCK_ON);
-				void	WriteToStr	(const std::string &strContent,const std::string &rColor
-									 ,COLEnforcePrint blEP = COL_EP_NO,G_LOCK_VAILD blLock = G_LOCK_ON);
-				void	WriteToStrN	(const std::string &strContent,const std::string &rColor
-									 ,COLEnforcePrint blEP = COL_EP_NO,G_LOCK_VAILD blLock = G_LOCK_ON);//newline
-		std::string		ReadStr		(G_LOCK_VAILD blLock = G_LOCK_ON);
-		void			ReadStr		(std::string *retStr,G_LOCK_VAILD blLock = G_LOCK_ON);
+				void	WriteToStr	(const std::string &strContent,const std::string &rColor,COLEnforcePrint blEP = COL_EP_NO,G_LOCK_VAILD blLock = G_LOCK_ON);
+				void	WriteToStrN	(const std::string &strContent,const std::string &rColor,COLEnforcePrint blEP = COL_EP_NO,G_LOCK_VAILD blLock = G_LOCK_ON);
+		const	std::string &ReadStr(std::string *retStr,G_LOCK_VAILD blLock = G_LOCK_ON);
 };
 //------------------------------------------------------------------------------------------//
 #endif

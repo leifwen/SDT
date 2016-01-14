@@ -26,6 +26,7 @@
 
 #include "TelitCMUX.h"
 #include "SendFiles.h"
+#include "Commu_RMS.h"
 #include "Commu_NTPServer.h"
 
 #include "BuildInCommand.h"
@@ -38,7 +39,13 @@
 //------------------------------------------------------------------------------------------//
 class SDTAPP{
 	public:
-				 SDTAPP(void){ m_blExit = 0; cgBufMaxSize = 0; };
+				 SDTAPP(int32 tSize = G_MAXBUFFER_SIZE)
+					: m_TS(tSize)
+					#ifdef USE_OPENSSL
+					, m_RST(tSize)
+					, m_RSTCilent(nullptr,tSize)
+					#endif
+					{ m_blExit = 0; cgBufMaxSize = tSize; };
 		virtual ~SDTAPP(void){;};
 	public:
 		SYS_DateTime	m_LoginTime;
@@ -71,9 +78,12 @@ class SDTAPP{
 		#endif
 		TFileSend		m_FileSend;
 	    NTPServer		m_NTPServer;
+		TerminalServer	m_TS;
 	public:
-	    TerminalServer	m_TS;
-		BuildInCommand	m_BIC_Terminal;
+		#ifdef USE_OPENSSL
+			RSTServer		m_RST;
+			RSTSocket		m_RSTCilent;
+		#endif
 	public:
 		CON_ReadInLine	m_ReadInline;
 		BICPAR			m_ConsoleBICPAR;

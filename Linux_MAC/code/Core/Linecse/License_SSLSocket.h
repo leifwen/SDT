@@ -18,58 +18,56 @@
 //------------------------------------------------------------------------------------------//
 class LicenseSSLSocket : public SSLSocket{
 	public:
-		enum{RFLAG_C = 1, RFLAG_S = SSLSocket::RFLAG_S + SSLSocket::RFLAG_C};
-				 LicenseSSLSocket(const ODEV_LIST *tODEV_LIST,int32 tSize): SSLSocket(tODEV_LIST,tSize){selfName = "LicenseSSLSocket ";};
+		enum{RFLAG_C = 2, RFLAG_S = SSLSocket::RFLAG_S + SSLSocket::RFLAG_C};
+				 LicenseSSLSocket(const ODEV_LIST *tODEV_LIST,int32 tSize): SSLSocket(nullptr,tSize){SetSelfName("LicenseSSLSocket");};
 		virtual ~LicenseSSLSocket(void){;};
 	private:
 		virtual	void	PrintUserDisconnectReport(const std::string &strDevName){;};
 		virtual	void	PrintConnectInfo	(int32 blSendWelcome){;};
 		virtual	void	PrintDisconnectInfo	(void){;};
-		virtual	int32	PrintThreadFun		(void);
+		virtual	int32	MessageProcessing	(FNode_MESG *RecMesg,int32 blReady);
 	private:
 		inline	void	SetblANSLicense		(void)		{SetSFlag(RFLAG_CREATE(0));};
 		inline	void	ClrblANSLicense		(void)		{ClrSFlag(RFLAG_CREATE(0));};
 		inline	int32	CheckblANSLicense	(void)const	{return(CheckSFlag(RFLAG_CREATE(0)));};
-				int32	CheckANSLicense		(uint32 waitTimeS);
+		inline	void	SetblANSLicenseOK	(void)		{SetSFlag(RFLAG_CREATE(1));};
+		inline	void	ClrblANSLicenseOK	(void)		{ClrSFlag(RFLAG_CREATE(1));};
+		inline	int32	CheckblANSLicenseOK	(void)const	{return(CheckSFlag(RFLAG_CREATE(1)));};
 	public:
-		int32	GetLicense(uint32 waitTimeS,std::string *retStatus = nullptr);
-};
-//------------------------------------------------------------------------------------------//
-//------------------------------------------------------------------------------------------//
-class LicenseSSLSocketS : public LicenseSSLSocket{
-	public:
-		enum{RFLAG_C = 0, RFLAG_S = LicenseSSLSocket::RFLAG_S + LicenseSSLSocket::RFLAG_C};
-				 LicenseSSLSocketS(const ODEV_LIST *tODEV_LIST,int32 tSize): LicenseSSLSocket(tODEV_LIST,tSize){selfName = "LicenseSSLSocketS";};
-		virtual ~LicenseSSLSocketS(void){;};
-	private:
-	
-		virtual	void	Handshake	(CCY_FNLC_MESG *fnMesg){;};
-		virtual int32	OpenDev		(const std::string &tCDBufName,int32 tCDBufPar,CSType tCSType){return 1;};
+		int32	CreateRegSignature(std::string *strReg,std::string *retStatus);
+		int32	SendRequestLicense(const std::string &regSignature,uint32 waitTimeS);
 };
 //------------------------------------------------------------------------------------------//
 class LicenseSSLServer : public APISocketServer{
 	public:
-		enum{RFLAG_C = 0, RFLAG_S = APISocketServer::RFLAG_S + APISocketServer::RFLAG_C};
-				 LicenseSSLServer(const ODEV_LIST *tODEV_LIST,int32 tSize) : APISocketServer(tODEV_LIST,tSize){
-					 selfName = "LicenseSSLServer";
-					 cgLicenseSBUF.Init(tSize);
-					 cgfnMesg.Init(&cgLicenseSBUF.cgBufFIFO);
-				 };
+		enum{RFLAG_C = 2, RFLAG_S = APISocketServer::RFLAG_S + APISocketServer::RFLAG_C};
+				 LicenseSSLServer(int32 tSize) : APISocketServer(nullptr,tSize){ClrblApprove();ClrblRequset();selfName = "LicenseSSLServer";};
 		virtual ~LicenseSSLServer(void){;};
 	private:
-		PUB_SBUF		cgLicenseSBUF;
-		CCY_FNLC_MESG 	cgfnMesg;
 		virtual APISocket	*CreateNewSocket_TCP(const ODEV_LIST *tODEV_LIST,uint32 tSize){
-			LicenseSSLSocketS *tPDB;
-			tPDB = new LicenseSSLSocketS(tODEV_LIST,tSize);
-				AddNode(tPDB);
+			LicenseSSLSocket *tPDB = new LicenseSSLSocket(tODEV_LIST,tSize);
 			return(tPDB);
 		};
+	private:
+		SYS_Lock		cgRequestLock;
+		inline	void	Spin_Request_Lock	(G_LOCK_VAILD blVaild = G_LOCK_ON){cgRequestLock.Lock(blVaild);};
+		inline	void	Spin_Request_Unlock	(G_LOCK_VAILD blVaild = G_LOCK_ON){cgRequestLock.Unlock(blVaild);};
+		inline	int32	Spin_Request_Try	(G_LOCK_VAILD blVaild = G_LOCK_ON){return(cgRequestLock.TryLock(blVaild));};
+		LicenseSSLSocket	*cgRequestSocket;
+		uint64				*cgApproveSecond;
+	private:
+		inline	void	SetblApprove		(void)		{SetSFlag(RFLAG_CREATE(0));};
+		inline	void	ClrblApprove		(void)		{ClrSFlag(RFLAG_CREATE(0));};
+		inline	int32	CheckblApprove		(void)const	{return(CheckSFlag(RFLAG_CREATE(0)));};
+	
+		inline	void	SetblRequest		(void)		{SetSFlag(RFLAG_CREATE(1));};
+		inline	void	ClrblRequset		(void)		{ClrSFlag(RFLAG_CREATE(1));};
 	public:
-		void	SendRegistrationMesg(const std::string &strMesg,uint32 mID){cgfnMesg.SetContent(strMesg, mID);};
-		void	ApproveRegistration	(const uint64 &approveSecond);
-		void	RejectRegistration	(void);
-		int32	GetRegistration		(uint32 *mID);
+		inline	int32	CheckblRequest		(void)const	{return(CheckSFlag(RFLAG_CREATE(1)));};
+				int32	CheckApprove		(LicenseSSLSocket *tSocket,uint64 *retSeconds);
+				void	ApproveRegistration	(const uint64 &approveSecond);
+				void	RejectRegistration	(void);
+		const std::string	&RequestSocketInfo(std::string *strPrint);
 	
 		int32	Run		(int32 port){return(APISocketServer::OpenD(port,COMMU_DBUF::CSType_TCP,0));};
 };

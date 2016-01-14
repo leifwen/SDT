@@ -10,6 +10,7 @@
  */
 //------------------------------------------------------------------------------------------//
 #include "stdafx.h"
+//#define LOGPRINT_ENABLE
 #include "License_SSLSocket.h"
 #include "Comm_Convert.h"
 #include "SYS_Time.h"
@@ -19,83 +20,89 @@
 #ifdef USE_OPENSSL
 //------------------------------------------------------------------------------------------//
 enum{
-	MESG_Request_License,
-	MESG_ANS_License,
-	MESG_LoopBack_ATime,
+	MESG_REQ_License = MESG_NEXT_SSL,
+	MESG_ANS_Approve,
+	MESG_ANS_Reject,
 };
 //------------------------------------------------------------------------------------------//
-int32 LicenseSSLSocket::PrintThreadFun(void){
-	std::string			strMesg,strContent;
-	uint32 				mID,kbps;
-	CCY_FNLC_MESG		fnMesg;
-	FIFO_UINT8			rxfifo;
-	Linense_Signature	tLS;
+int32 LicenseSSLSocket::MessageProcessing(FNode_MESG *RecMesg,int32 blReady){
+	std::string		strMesg,strContent;
+	uint32 			mID;
+	int32			blDo;
+	static	Linense_Signature	tLS;
+	static	uint64	approveSecond = 0;
 	
-	kbps = 8;
-	rxfifo.Init(1024 * 16);
-	fnMesg.Init(&rxfifo);
-	while((printThread.IsTerminated() == 0) && (IsConnected() > 0)){
-		rxfifo.Empty();
-		if (CSSL_T1D_CH1.RX_Packaging(&rxfifo,kbps) > 0){
-			if (fnMesg.AnalysisFrame(rxfifo) > 0){
-				fnMesg.ReadContent(&strMesg, &mID,&rxfifo);
-				rxfifo.Empty();
-				switch (mID){
-					case MESG_Request_License:
-						//MyLogPrint(this, "Rec MESG_Request_License");
-						((LicenseSSLServer*)GetFather(this))->SendRegistrationMesg(strMesg,GetdRNodeID(this));
-						break;
-					case MESG_ANS_License:
-						//MyLogPrint(this, "Rec MESG_ANS_License");
-						CFS_WriteFile("License.key", strMesg);
-						SetblANSLicense();
-						break;
-					default:
-						break;
+	if (SSLSocket::MessageProcessing(RecMesg,blReady) > 0)
+		return 1;
+	
+	if (blReady == 0)
+		return 0;
+	
+	blDo = 1;
+	RecMesg->ReadContent(&strMesg,&mID);
+	switch (mID){
+		case MESG_REQ_License:
+			ELogPrint(this, "MessageProcessing()::Rec  MESG_REQ_License");
+			if (((LicenseSSLServer*)GetFather(this))->CheckApprove(this,&approveSecond) > 0){
+				if (approveSecond == 0){
+					ELogPrint(this, "MessageProcessing()::Send MESG_ANS_Reject");
+					CtrlCHWrite("",MESG_ANS_Reject);
+				}
+				else if (tLS.Encode(&strContent, strMesg, approveSecond) > 0){
+					ELogPrint(this, "MessageProcessing()::Send MESG_ANS_Approve");
+					CtrlCHWrite(strContent,MESG_ANS_Approve);
+				}
+				else{
+					ELogPrint(this, "MessageProcessing()::Send MESG_ANS_Reject ,linense create fail");
+					CtrlCHWrite("",MESG_ANS_Reject);
 				}
 			}
-		}
-		SYS_SleepMS(10);
-	}
-	return 1;
-}
-//------------------------------------------------------------------------------------------//
-int32 LicenseSSLSocket::CheckANSLicense(uint32 waitTimeS){
-	SYS_TIME_S	Timedly;
-	SYS_Delay_SetTS(&Timedly, waitTimeS << 10);
-	while((CheckblANSLicense() == 0) && (IsConnected() > 0) && (SYS_Delay_CheckTS(&Timedly) == 0))
-		SYS_DelayMS(100);
-	return(CheckblANSLicense());
-}
-//------------------------------------------------------------------------------------------//
-int32 LicenseSSLSocket::GetLicense(uint32 waitTimeS,std::string *retStatus){
-	CCY_FNLC_MESG	fnMesg;
-	FIFO_UINT8		rxfifo;
-	Reg_Signature	regS;
-	std::string		strReg,retStatusT;
-	int32			ret;
-	
-	regS.selfName = "GetLicense";
-	rxfifo.Init(1024 * 16);
-	fnMesg.Init(&rxfifo);
-	
-	ret = regS.Encode(&strReg,&retStatusT);
-	while(ret > 0){
-		retStatusT = "Create registration data successful.\r\n";
-		retStatusT += "Send registration data to server.\r\n";
-		CSSL_T1D_CH1.TX_Packaging(fnMesg.SetContent(strReg, MESG_Request_License),8);
-		ret = 0;
-		if (CheckANSLicense(waitTimeS) == 0){
-			retStatusT += "Timeout for getting License.key successful.\r\n";
+			//SendREQ_CloseSocket();
+			PushSend();
+			ClrblConnected();
 			break;
-		}
-		ret = 1;
-		retStatusT += "Update License.key successful.\r\n";
+		case MESG_ANS_Approve:
+			ELogPrint(this, "MessageProcessing()::Rec  MESG_ANS_Approve");
+			ELogPrint(this, "MessageProcessing()::Write to License.key");
+			CFS_WriteFile("License.key", strMesg);
+			SetblANSLicenseOK();
+			SetblANSLicense();
+			ClrblConnected();
+			break;
+		case MESG_ANS_Reject:
+			ELogPrint(this, "MessageProcessing()::Rec  MESG_ANS_Reject");
+			ClrblANSLicenseOK();
+			SetblANSLicense();
+			ClrblConnected();
+			break;
+		default:
+			blDo = 0;
 		break;
 	}
-	if (retStatus != nullptr)
-		*retStatus = retStatusT;
-	return(ret);
+	return(blDo);
+}
+//------------------------------------------------------------------------------------------//
+int32 LicenseSSLSocket::CreateRegSignature(std::string *strReg,std::string *retStatus){
+	Reg_Signature	regS;
+	return(regS.Encode(strReg,retStatus));
+}
+//------------------------------------------------------------------------------------------//
+int32 LicenseSSLSocket::SendRequestLicense(const std::string &regSignature,uint32 waitTimeS){
+	SYS_TIME_S		Timedly;
+	
+	SYS_Delay_SetTS(&Timedly, waitTimeS << 10);	
+	ClrblANSLicense();
+	ClrblANSLicenseOK();
+	ELogPrint(this, "Send MESG_Request_License");
+	if (CtrlCHWrite(regSignature,MESG_REQ_License) > 0){
+		while((CheckblANSLicense() == 0) && (IsConnected() > 0) && (SYS_Delay_CheckTS(&Timedly) == 0))
+			SYS_SleepMS(100);
+	}
+	if (CheckblANSLicenseOK() > 0)
+		return 1;
+	if (CheckblANSLicense() > 0)
+		return 0;
+	return -1;
 }
 //------------------------------------------------------------------------------------------//
 
@@ -107,51 +114,49 @@ int32 LicenseSSLSocket::GetLicense(uint32 waitTimeS,std::string *retStatus){
 
 
 //------------------------------------------------------------------------------------------//
+int32 LicenseSSLServer::CheckApprove(LicenseSSLSocket *tSocket,uint64 *retSecond){
+	while (Spin_Request_Try() == 0){
+		if (tSocket->IsConnected() == 0)
+			return(CheckblApprove());
+	}
+	ClrblApprove();
+	cgRequestSocket = tSocket;
+	cgApproveSecond = retSecond;
+	*cgApproveSecond = 0;
+	SetblRequest();
+	while((tSocket->IsConnected() > 0) && (CheckblApprove() == 0))
+		SYS_SleepMS(10);
+	if (tSocket->IsConnected() == 0)
+		cgApproveSecond = nullptr;
+	return(CheckblApprove());
+};
+//------------------------------------------------------------------------------------------//
 void LicenseSSLServer::RejectRegistration(void){
-	uint32	mID;
-	LicenseSSLSocketS	*lSocket;
-
-	mID = cgfnMesg.fn_MesgID.GetValueCalc();
-	cgfnMesg.Out();
-
-	Spin_InUse_set();
-	lSocket = (LicenseSSLSocketS*)FindInLChildRChainByDRNodeID(this, mID);
-	if (lSocket != nullptr)
-		lSocket->CloseD();
-	Spin_InUse_clr();
+	if (cgApproveSecond != nullptr)
+		*cgApproveSecond = 0;
+	ClrblRequset();
+	SetblApprove();
+	Spin_Request_Unlock();
 };
 //------------------------------------------------------------------------------------------//
 void LicenseSSLServer::ApproveRegistration(const uint64 &approveSecond){
-	std::string			strContent,strMesg;
-	uint32				mID;
-	LicenseSSLSocketS	*lSocket;
-	Linense_Signature	tLS;
-	CCY_FNLC_MESG		fnMesg;
-	FIFO_UINT8			rxfifo;
-	
-	rxfifo.Init(1024 * 16);
-	fnMesg.Init(&rxfifo);
-	
-	Spin_InUse_set();
-	cgfnMesg.ReadContent(&strMesg, &mID);
-	cgfnMesg.Out();
-	lSocket = (LicenseSSLSocketS*)FindInLChildRChainByDRNodeID(this, mID);
-	if (lSocket != nullptr){
-		if (tLS.Encode(&strContent, strMesg, Str_DecToHex(approveSecond)) > 0)
-			lSocket->SSLWrite(fnMesg.SetContent(strContent,MESG_ANS_License),8);
-		lSocket->CloseD();
-	}
-	Spin_InUse_clr();
+	if (cgApproveSecond != nullptr)
+		*cgApproveSecond = approveSecond;
+	ClrblRequset();
+	SetblApprove();
+	Spin_Request_Unlock();
 }
 //------------------------------------------------------------------------------------------//
-int32 LicenseSSLServer::GetRegistration(uint32 *mID){
-	if (cgLicenseSBUF.cgBufFIFO.Used() > 0){
-		if (cgfnMesg.AnalysisFrame(cgLicenseSBUF.cgBufFIFO) > 0){
-			*mID = cgfnMesg.fn_MesgID.GetValueCalc();
-			return 1;
-		}
-	}
-	return 0;
+const std::string &LicenseSSLServer::RequestSocketInfo(std::string *strPrint){
+	SYS_DateTime	tNow;
+	tNow.Now();
+	*strPrint  = tNow.FormatDateTime("[hh:mm:ss.zzz]  ");
+	*strPrint += "Receive registration request from ";
+	*strPrint += cgRequestSocket->GetBufName();
+	*strPrint += '@';
+	*strPrint += Str_IntToString(cgRequestSocket->GetBufPar());
+	*strPrint += ".\r\n";
+	return(*strPrint);
 }
 //------------------------------------------------------------------------------------------//
 #endif

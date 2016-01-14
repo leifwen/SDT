@@ -21,7 +21,7 @@
 #include "SMC.h"
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
-void APISocketS_TCP::PrintRecDataTitle(ODEV_LIST_POOL *output, uint32 byteNum){
+void APISocketServer_Socket::PrintRecDataTitle(ODEV_LIST_POOL *output, uint32 byteNum){
 	std::string	strName,strSelfName;
 	
 	if (output == nullptr)
@@ -47,13 +47,14 @@ void APISocketS_TCP::PrintRecDataTitle(ODEV_LIST_POOL *output, uint32 byteNum){
 	}
 }
 //------------------------------------------------------------------------------------------//
-int32 APISocketS_TCP::PrintThreadFun(void){
+int32 APISocketServer_Socket::Ex2ThreadFun(void){
 	int32		byteNum;
 	std::string	strPrintdata;
 	uint64		oDevFlagU64;
 	
 	strPrintdata = "";
-	while(printThread.IsTerminated() == 0){
+	SetblcgRxBufferUsed();
+	while(ex2Thread.IsTerminated() == 0){
 		oDevFlagU64 = 0;
 		if (cgRxBuffer.Used() > 0){
 			Spin_InUse_set();
@@ -89,16 +90,7 @@ int32 APISocketS_TCP::PrintThreadFun(void){
 	return 1;
 }
 //------------------------------------------------------------------------------------------//
-void APISocketS_TCP::ThreadsStart(void){
-	SMC_EncryptI(0)
-	SMC_EncryptS(0)
-	txThread.ThreadRun();
-	rxThread.ThreadRun();
-	printThread.ThreadRun();
-	SMC_EncryptE(0)
-}
-//------------------------------------------------------------------------------------------//
-void APISocketS_TCP::CreateLogFile(void){
+void APISocketServer_Socket::CreateLogFile(void){
 	SMC_EncryptI(0)
 	std::string strName;
 	
@@ -112,59 +104,6 @@ void APISocketS_TCP::CreateLogFile(void){
 	SMC_EncryptE(0)
 }
 //------------------------------------------------------------------------------------------//
-
-
-
-
-
-
-
-
-
-//------------------------------------------------------------------------------------------//
-int32 APISocketS_UDP::OpenDev(const std::string &tCDBufName,int32 tCDBufPar,CSType tCSType){
-#ifdef CommonDefH_Unix
-	cgRemoteAddr.sin_addr.s_addr = inet_addr(GetBufName().c_str());
-#endif
-#ifdef CommonDefH_VC
-	cgRemoteAddr.sin_addr.S_un.S_addr = inet_addr(GetBufName().c_str());
-#endif
-	cgRemoteAddr.sin_family = AF_INET;
-	cgRemoteAddr.sin_port = htons(GetBufPar());
-	return 1;
-}
-//------------------------------------------------------------------------------------------//
-int32 APISocketS_UDP::SendToDevice(const uint8 *buffer,uint32 length,uint32 *retNum){
-	int64		retCode;
-	uint32		i;
-
-	i = 0;
-	while((i < length) && (CheckblAClose() == 0)){
-		retCode = sendto(Handle,(char*)&buffer[i],length - i,0,(struct sockaddr *)&cgRemoteAddr,sizeof(cgRemoteAddr));
-		if (retCode == SOCKET_ERROR){
-			*retNum = i;
-			return -1;
-		}
-		i += (uint32)retCode;
-	}
-	*retNum = i;
-	return 1;
-}
-//------------------------------------------------------------------------------------------//
-void APISocketS_UDP::ThreadsStart(void){
-	SMC_EncryptI(0)
-	SMC_EncryptS(0)
-	txThread.ThreadRun();
-	printThread.ThreadRun();
-	SMC_EncryptE(0)
-}
-//------------------------------------------------------------------------------------------//
-
-
-
-
-
-
 
 
 
@@ -195,27 +134,22 @@ APISocketServer::APISocketServer(const ODEV_LIST *tODEV_LIST,uint32 tSize) : CDB
 	
 	cgBufMaxSize = tSize;
 	cgPort = 0;
+	SetODEV_LIST(tODEV_LIST);
+	selfName = "APISocketServer";
+	cgNewSocket = nullptr;
+}
+//------------------------------------------------------------------------------------------//
+void APISocketServer::SetODEV_LIST(const ODEV_LIST *tODEV_LIST){
+	Spin_InUse_set();
 	cgODevList = (ODEV_LIST*)tODEV_LIST;
 	cgOutput = nullptr;
 	if (cgODevList != nullptr)
 		cgOutput = cgODevList->cgOutput;
-}
-//------------------------------------------------------------------------------------------//
-APISocketServer::~APISocketServer(void){
-	CloseD();
+	Spin_InUse_clr();
 }
 //------------------------------------------------------------------------------------------//
 APISocket *APISocketServer::CreateNewSocket_TCP(const ODEV_LIST *tODEV_LIST,uint32 tSize){
-	APISocketS_TCP *tPDB;
-	tPDB = new APISocketS_TCP(tODEV_LIST,tSize);
-	AddNode(tPDB);
-	return(tPDB);
-}
-//------------------------------------------------------------------------------------------//
-APISocket *APISocketServer::CreateNewSocket_UDP(const ODEV_LIST *tODEV_LIST,uint32 tSize){
-	APISocketS_UDP *tPDB;
-	tPDB = new APISocketS_UDP(tODEV_LIST,tSize);
-	AddNode(tPDB);
+	APISocketServer_Socket *tPDB = new APISocketServer_Socket(tODEV_LIST,tSize);
 	return(tPDB);
 }
 //------------------------------------------------------------------------------------------//
@@ -233,10 +167,9 @@ int32 APISocketServer::OpenD(int32 port,COMMU_DBUF::CSType tStype,int32 blEnEcho
 //------------------------------------------------------------------------------------------//
 int32 APISocketServer::OpenDev(int32 port,COMMU_DBUF::CSType tStype,int32 blEnEcho){
 	sockaddr_in		serviceAddr;
-	cgCSType = tStype;
-	if (cgCSType == COMMU_DBUF::CSType_None)
-		cgCSType = COMMU_DBUF::CSType_TCP;
 	
+	cgCSType = (tStype == COMMU_DBUF::CSType_None) ? COMMU_DBUF::CSType_TCP : tStype;
+
 	Close_Do();
 	
 	serviceAddr.sin_family = AF_INET;
@@ -271,9 +204,11 @@ int32 APISocketServer::OpenDev(int32 port,COMMU_DBUF::CSType tStype,int32 blEnEc
 			Close_Do();
 			return 0;
 		}
+		cgNewSocket = CreateNewSocket_TCP(cgODevList,cgBufMaxSize);
 		tcplistionThread.ThreadRun();
 	}
 	else if (cgCSType == COMMU_DBUF::CSType_UDP){
+		cgNewSocket = CreateNewSocket_UDP(cgODevList,cgBufMaxSize);
 		udplistionThread.ThreadRun();
 	}
 	disconnectThread.ThreadRun();
@@ -297,6 +232,8 @@ int32 APISocketServer::CloseD(void){
 //------------------------------------------------------------------------------------------//
 int32 APISocketServer::Close_Do(void){
 	cgPort = 0;
+	MoveNodeToTrash(cgNewSocket,this);
+	cgNewSocket = nullptr;
 	DisconnectAll();
 	DestroyAll();
 
@@ -327,19 +264,19 @@ int32 APISocketServer::TCPThreadListionFun(void){
 	int			addrlen;
 #endif
 	SOCKET			newSocket;
-	APISocket		*newTCPClient;
 	std::string		strTemp,strIP;
 	int32			port;
 	
 	addrlen = sizeof(ListionAddr);
 	while(tcplistionThread.IsTerminated() == 0){
 		newSocket = accept(listionSocket,(struct sockaddr *)&ListionAddr,&addrlen);
-		strIP = inet_ntoa(ListionAddr.sin_addr);
-		port = ntohs(ListionAddr.sin_port);
 		if (newSocket != INVALID_SOCKET){
+			strIP = inet_ntoa(ListionAddr.sin_addr);
+			port = ntohs(ListionAddr.sin_port);
 			Spin_InUse_set();
-			newTCPClient = (APISocket*)CreateNewSocket_TCP(cgODevList,cgBufMaxSize);
-			if (newTCPClient == nullptr){
+			if (cgNewSocket == nullptr)
+				cgNewSocket = (APISocket*)CreateNewSocket_TCP(cgODevList,cgBufMaxSize);
+			if (cgNewSocket == nullptr){
 				shutdown(newSocket,SD_BOTH);
 				#ifdef CommonDefH_Unix
 					close(newSocket);
@@ -356,11 +293,25 @@ int32 APISocketServer::TCPThreadListionFun(void){
 				}
 			}
 			else{
-				newTCPClient->Handle = newSocket;
-				newTCPClient->OpenD(strIP,port,COMMU_DBUF::CSType_TCP,CheckblEcho());
-				newTCPClient->CreateLogFile();
-				newTCPClient->PrintConnectInfo(0);
-				SetblUpdate();
+				cgNewSocket->Handle = newSocket;
+				cgNewSocket->SetSocketBufferSize();
+				if (OnOpenTCPSocket(cgNewSocket) > 0){
+					if (cgNewSocket->OpenD(strIP,port,COMMU_DBUF::CSType_TCPS,CheckblEcho()) > 0){
+						cgNewSocket->SetblHold();
+						cgNewSocket->CreateLogFile();
+						cgNewSocket->PrintConnectInfo(0);
+						cgNewSocket->ClrblHold();
+						AddNode(cgNewSocket);
+						SetblUpdate();
+						cgNewSocket = (APISocket*)CreateNewSocket_TCP(cgODevList,cgBufMaxSize);
+					}
+					else{
+						cgNewSocket->CloseD(1);
+					}
+				}
+				else{
+					cgNewSocket->CloseD(1);
+				}
 			}
 			Spin_InUse_clr();
 		}
@@ -376,7 +327,7 @@ int32 APISocketServer::UDPThreadListionFun(void){
 #ifdef CommonDefH_VC
 	int			addrlen;
 #endif
-	APISocket		*newClient;
+	APISocket		*udpSocket;
 	uint8			*tempBuffer;
 	std::string		strIP;
 	int32			bytesNum;
@@ -392,10 +343,11 @@ int32 APISocketServer::UDPThreadListionFun(void){
 			strIP = inet_ntoa(ListionAddr.sin_addr);
 			port = ntohs(ListionAddr.sin_port);
 			Spin_InUse_set();
-			newClient = (APISocket*)Find(strIP,port);
-			if (newClient == nullptr){
-				newClient = (APISocket*)CreateNewSocket_UDP(cgODevList,cgBufMaxSize);
-				if (newClient == nullptr){
+			udpSocket = (APISocket*)Find(strIP,port);
+			if (udpSocket == nullptr){
+				if (cgNewSocket == nullptr)
+					cgNewSocket = (APISocket*)CreateNewSocket_UDP(cgODevList,cgBufMaxSize);
+				if (cgNewSocket == nullptr){
 					if (cgOutput != nullptr){
 						cgOutput->Spin_InUse_set();
 						cgOutput->WriteDividingLine(RICH_CF_clMaroon,COLSTRING::COL_EP_YES);
@@ -405,14 +357,28 @@ int32 APISocketServer::UDPThreadListionFun(void){
 					}
 				}
 				else{
-					newClient->Handle = listionSocket;
-					newClient->OpenD(strIP,port,COMMU_DBUF::CSType_UDP,CheckblEcho());
-					newClient->CreateLogFile();
-					SetblUpdate();
+					udpSocket = cgNewSocket;
+					cgNewSocket->Handle = listionSocket;
+					if (OnOpenUDPSocket(cgNewSocket) > 0){
+						if (cgNewSocket->OpenD(strIP,port,COMMU_DBUF::CSType_UDPS,CheckblEcho()) > 0){
+							cgNewSocket->SetblHold();
+							cgNewSocket->CreateLogFile();
+							cgNewSocket->ClrblHold();
+							AddNode(cgNewSocket);
+							SetblUpdate();
+							cgNewSocket = (APISocket*)CreateNewSocket_UDP(cgODevList,cgBufMaxSize);
+						}
+						else{
+							cgNewSocket->CloseD(1);
+						}
+					}
+					else{
+						cgNewSocket->CloseD(1);
+					}
 				}
 			}
-			if (newClient != nullptr)
-				newClient->RxForward(tempBuffer,bytesNum);
+			if (udpSocket != nullptr)
+				udpSocket->DoAfterReadFromDevice(tempBuffer,bytesNum);
 			Spin_InUse_clr();
 		}
 	}
@@ -425,25 +391,25 @@ int32 APISocketServer::UDPThreadListionFun(void){
 }
 //------------------------------------------------------------------------------------------//
 int32 APISocketServer::DisconnectThreadFun(void){
-	APISocket	*delSocket,*fromNode;
+	APISocket	*delNode,*fromNode;
 	int32		blNeedUpdate;
 	
 	while(disconnectThread.IsTerminated() == 0){
 		SYS_SleepMS(20);
 		Spin_InUse_set();
-		Spin_Link_Lock();
 		
 		fromNode = (APISocket*)GetcgLChild(this);
 		blNeedUpdate = 0;
 		do{
-			RTREE_RChain_Find(APISocket,fromNode,delSocket,(operateNode_t->IsConnected() == 0));
+			RTREE_RChain_Find(APISocket,fromNode,delNode,(operateNode_t->IsConnected() == 0));
 			fromNode = nullptr;
-			if (delSocket != nullptr){
-				fromNode = (APISocket*)GetcgRChild(delSocket);
-				delSocket->PrintDisconnectInfo();
-				delSocket->CloseD(0);
-				RemoveNodesInRChain(delSocket,nullptr,G_LOCK_OFF);
-				InsertLChild(GetcgTrash(this), delSocket);
+			if (delNode != nullptr){
+				OnDoDisconnect(delNode);
+				fromNode = (APISocket*)GetcgRChild(delNode);
+				delNode->PrintDisconnectInfo();
+				delNode->CloseD(0);
+				RemoveNodesInRChain(delNode,nullptr,G_LOCK_OFF);
+				InsertLChild(GetcgTrash(this), delNode);
 				blNeedUpdate = 1;
 			}
 		}while(fromNode != nullptr);
@@ -451,7 +417,6 @@ int32 APISocketServer::DisconnectThreadFun(void){
 			CleanTrash(this);
 			SetblUpdate();
 		}
-		Spin_Link_Unlock();
 		Spin_InUse_clr();
 	}
 	return 1;
@@ -459,7 +424,7 @@ int32 APISocketServer::DisconnectThreadFun(void){
 //------------------------------------------------------------------------------------------//
 void APISocketServer::DisconnectAll(void){
 	Spin_InUse_set();
-	RTREE_LChildRChain_Traversal_LINE(APISocket,this,operateNode_t->CloseD(0));
+	RTREE_RChain_Traversal_LINE_nolock(APISocket,GetcgLChild(this),operateNode_t->CloseD(0));
 	SetblUpdate();
 	Spin_InUse_clr();
 }

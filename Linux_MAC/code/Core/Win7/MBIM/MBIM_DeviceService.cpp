@@ -29,7 +29,7 @@ void MBIM_DevService::Init(void){
 	txThread.Enable();
 	rxThread.Enable();
 	exThread.Enable();
-	printThread.Enable();
+	ex2Thread.Enable();
 }
 //------------------------------------------------------------------------------------------//
 int32 MBIM_DevService::Open(const std::string &tCDBufName, int32 tCDBufPar, CSType tCSType, int32 blEnEcho){

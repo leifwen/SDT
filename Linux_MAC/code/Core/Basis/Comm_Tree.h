@@ -96,7 +96,7 @@ class RTREE_NODE : public BASIC_CFLAG{
 		enum{RFLAG_C = 3, RFLAG_S = BASIC_CFLAG::RFLAG_S + BASIC_CFLAG::RFLAG_C};
 		enum CNType	{CN_None = 0,CN_1,CN_0};
 				 RTREE_NODE(void);
-		virtual	~RTREE_NODE(void){ DestroyTrash(this); };
+		virtual	~RTREE_NODE(void){ Spin_InUse_set();DestroyTrash(this); Spin_InUse_clr();};
 	public:
 		std::string	selfName;
 	private:
@@ -169,15 +169,15 @@ class RTREE_NODE : public BASIC_CFLAG{
 	public:
 		virtual	void	Enable			(void)		{SetSFlag(RFLAG_CREATE(0));};
 		virtual	void	Disable			(void)		{ClrSFlag(RFLAG_CREATE(0));};
-		inline		int32	CheckblEnabled	(void)const	{return(CheckSFlag(RFLAG_CREATE(0)));};
+		inline	int32	CheckblEnabled	(void)const	{return(CheckSFlag(RFLAG_CREATE(0)));};
 	
-		inline		void	SetblSelected	(void)		{SetSFlag(RFLAG_CREATE(1));};
-		inline		void	ClrblSelected	(void)		{ClrSFlag(RFLAG_CREATE(1));};
-		inline		int32	CheckblSelected	(void)const	{return(CheckSFlag(RFLAG_CREATE(1)));};
+		inline	void	SetblSelected	(void)		{SetSFlag(RFLAG_CREATE(1));};
+		inline	void	ClrblSelected	(void)		{ClrSFlag(RFLAG_CREATE(1));};
+		inline	int32	CheckblSelected	(void)const	{return(CheckSFlag(RFLAG_CREATE(1)));};
 	
-		inline		void	SetblUpdate		(void)		{SetSFlag(RFLAG_CREATE(2));};
-		inline		void	ClrblUpdate		(void)		{ClrSFlag(RFLAG_CREATE(2));};
-		inline		int32	CheckblUpdate	(void)const	{return(CheckSFlag(RFLAG_CREATE(2)));};
+		inline	void	SetblUpdate		(void)		{SetSFlag(RFLAG_CREATE(2));};
+		inline	void	ClrblUpdate		(void)		{ClrSFlag(RFLAG_CREATE(2));};
+		inline	int32	CheckblUpdate	(void)const	{return(CheckSFlag(RFLAG_CREATE(2)));};
 	public://used as linklist
 		static	RTREE_NODE*	GetFather				(RTREE_NODE *tTreeNode);
 		static	RTREE_NODE*	GetFirstChild			(RTREE_NODE *tTreeNode);

@@ -38,6 +38,7 @@
 #include "Commu_Com.h"
 #include "Commu_Socket.h"
 #include "Commu_SocketServer.h"
+#include "Commu_RMS.h"
 #include "Commu_NTPServer.h"
 
 #include "MBIM_DeviceService.h"

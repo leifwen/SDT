@@ -197,8 +197,8 @@ int32 BIC_AUX_DTR::Help(BICPAR *tBICPAR,int32 blDetail)const{
 	PrintHelpItem(tBICPAR,cgCommand,"Set auxiliary COM DTR.");
 	if (blDetail == 0)
 		return(cgReturnCode);
-	PrintHelpItem(tBICPAR,"     [-H<t>]","Set to High, t is time, unit is S.");
-	PrintHelpItem(tBICPAR,"     [-L<t>]","Set to Low, t is time, unit is S.");
+	PrintHelpItem(tBICPAR,"     [-H[t]]"	,"Set to High, t is time, unit is S.");
+	PrintHelpItem(tBICPAR,"     [-L[t]]"	,"Set to Low, t is time, unit is S.");
 	return(cgReturnCode);
 }
 //------------------------------------------------------------------------------------------//
@@ -210,7 +210,7 @@ int32 BIC_AUX_DTR::Command(BICPAR *tBICPAR,const std::string &par,std::string *r
 	*ret = "";
 	if ((tBICPAR->sdtApp->m_Device2.cgDevType == DEVICE::DEVID_APICOM) && (tBICPAR->sdtApp->m_Device2.CheckblConnect() != 0)){
 		if (par.length() == 0){
-			if (tBICPAR->sdtApp->m_Device2.cgAPIECom->DTR == 0){
+			if (tBICPAR->sdtApp->m_Device2.cgAPIECom->GetDTRStatus() == 0){
 				PrintStrN(tBICPAR," DTR is high.\n",RICH_LIN_clDefault);
 			}
 			else{
@@ -316,8 +316,8 @@ int32 BIC_AUX_RTS::Help(BICPAR *tBICPAR,int32 blDetail)const{
 	PrintHelpItem(tBICPAR,cgCommand,"Set auxiliary COM RTS.");
 	if (blDetail == 0)
 		return(cgReturnCode);
-	PrintHelpItem(tBICPAR,"     [-H<t>]","Set to High, t is time, unit is S.");
-	PrintHelpItem(tBICPAR,"     [-L<t>]","Set to Low, t is time, unit is S.");
+	PrintHelpItem(tBICPAR,"     [-H[t]]"	,"Set to High, t is time, unit is S.");
+	PrintHelpItem(tBICPAR,"     [-L[t]]"	,"Set to Low, t is time, unit is S.");
 	return(cgReturnCode);
 }
 //------------------------------------------------------------------------------------------//
@@ -329,7 +329,7 @@ int32 BIC_AUX_RTS::Command(BICPAR *tBICPAR,const std::string &par,std::string *r
 	*ret = "";
 	if ((tBICPAR->sdtApp->m_Device2.cgDevType == DEVICE::DEVID_APICOM) && (tBICPAR->sdtApp->m_Device2.CheckblConnect() != 0)){
 		if (par.length() == 0){
-			if (tBICPAR->sdtApp->m_Device2.cgAPIECom->RTS == 0){
+			if (tBICPAR->sdtApp->m_Device2.cgAPIECom->GetRTSStatus() == 0){
 				PrintStrN(tBICPAR," RTS is high.\n",RICH_LIN_clDefault);
 			}
 			else{
@@ -453,13 +453,13 @@ int32 BIC_AUX_MS::Command(BICPAR *tBICPAR,const std::string &par,std::string *re
 			PrintStrN(tBICPAR," disable auxiliary modem status report.\n",RICH_LIN_clDefault);
 		}
 		else if (par.length() == 0){
-			if (tBICPAR->sdtApp->m_Device2.cgAPIECom->DTR == 0){
+			if (tBICPAR->sdtApp->m_Device2.cgAPIECom->GetDTRStatus() == 0){
 				strPrintData = " DTR=L,";
 			}
 			else{
 				strPrintData += " DTR=H,";
 			}
-			if (tBICPAR->sdtApp->m_Device2.cgAPIECom->RTS == 0){
+			if (tBICPAR->sdtApp->m_Device2.cgAPIECom->GetRTSStatus() == 0){
 				strPrintData += " RTS=L,";
 			}
 			else{

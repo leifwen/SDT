@@ -224,7 +224,7 @@ class BIC_SCM_COMMAND : public BIC_Node{
 	public:
 	    enum{RFLAG_C = 0, RFLAG_S = BIC_Node::RFLAG_S + BIC_Node::RFLAG_C};
 	public:
-			     BIC_SCM_COMMAND(void) : BIC_Node() {cgCommand = "command/cmd";cgReturnCode = BI_RETCODE_SC_COMMAND;};
+			     BIC_SCM_COMMAND(void) : BIC_Node() {cgCommand = "cmd/command";cgReturnCode = BI_RETCODE_SC_COMMAND;};
 	    virtual ~BIC_SCM_COMMAND(void){;};
 	public:
 	    virtual	int32	Command	(BICPAR *tBICPAR,const std::string &par,std::string *ret)const;
@@ -470,7 +470,7 @@ class BIC_GCM_GROUP_COMMAND : public BIC_Node{
 	public:
 	    enum{RFLAG_C = 0, RFLAG_S = BIC_Node::RFLAG_S + BIC_Node::RFLAG_C};
 	public:
-		    	 BIC_GCM_GROUP_COMMAND(void) : BIC_Node() {cgCommand = "command/cmd";cgReturnCode = BI_RETCODE_GC_GROUP_COMMAND;};
+		    	 BIC_GCM_GROUP_COMMAND(void) : BIC_Node() {cgCommand = "cmd/command";cgReturnCode = BI_RETCODE_GC_GROUP_COMMAND;};
 	    virtual ~BIC_GCM_GROUP_COMMAND(void){;};
 	public:
 	    virtual	int32	Command	(BICPAR *tBICPAR,const std::string &par,std::string *ret)const;
@@ -536,7 +536,7 @@ class BIC_GCM_GROUP : public BIC_Node_S{
 	public:
 	    enum{RFLAG_C = 0, RFLAG_S = BIC_Node_S::RFLAG_S + BIC_Node_S::RFLAG_C};
 	public:
-                 BIC_GCM_GROUP(void) : BIC_Node_S() {cgCommand = "group/g";cgTitle = "group";cgReturnCode = BI_RETCODE_GC_GROUP;Init();};
+                 BIC_GCM_GROUP(void) : BIC_Node_S() {cgCommand = "g/group";cgTitle = "group";cgReturnCode = BI_RETCODE_GC_GROUP;Init();};
 	    virtual ~BIC_GCM_GROUP(void){;};
 	public:
 	    virtual	int32	Command	(BICPAR *tBICPAR,const std::string &par,std::string *ret)const;

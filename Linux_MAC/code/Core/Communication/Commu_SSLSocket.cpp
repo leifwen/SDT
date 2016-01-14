@@ -1,3 +1,4 @@
+
 /*
  * Copyright (c) 2012-2014
  * All rights reserved.
@@ -10,329 +11,428 @@
  */
 //------------------------------------------------------------------------------------------//
 #include "stdafx.h"
+//#define LOGPRINT_ENABLE
+//#define LOGPRINT_ENABLE2
 #include "Commu_SSLSocket.h"
 #include "Comm_Convert.h"
 #include "SYS_Time.h"
 #include "Comm_File.h"
 //------------------------------------------------------------------------------------------//
-void CSSL_FR_T1::Init(uint32 txfifoSize,uint32 rxfifoSize,uint32 tCH,G_Endian_VAILD tEV){
+#if (defined USE_OPENSSL) || (defined CommonDefH_MAC)
+//------------------------------------------------------------------------------------------//
+void CSSL_FN_T0::Delivery(RTREE_NODE *retFNList,const uint8 *databuf,int32 num){
+	uint32	tCH;
+	cgPSBUF->Put(databuf,num);
+	ELogPrint(this,"Delivery()::cgPSBUF:%d/%d",cgPSBUF->Used(),cgPSBUF->Unused());
+	Lock();
+	retFNList->Spin_InUse_set();
+	while (AnalysisFrameTryAgain(*GetcgDefFifo(this)) > 0){
+		tCH = fn_CH.GetValueCalc();
+		RTREE_LChildRChain_Traversal_LINE_nolock(CSSL_FR_T1,retFNList,
+			if (operateNode_t->GetcgCH() == tCH){
+				ELogPrint(operateNode_t,"Delivery()::T0:%d",GetLength());
+				operateNode_t->ReceiveT0Data(&fn_AESCC,cgKey);
+				break;
+			}
+		);
+		Out();
+	}
+	retFNList->Spin_InUse_clr();
+	Unlock();
+};
+//------------------------------------------------------------------------------------------//
+void CSSL_FN_T0::SetPackageDlyMS(double dlyMS){
+	static	int32 count = 0;
+	Lock();
+	cgPackageDlyMS = 50 + (cgPackageDlyMS + dlyMS) / 2;
+	if (cgPackageDlyMS > MAX_PACKAGE_DEALYTM){
+		++ count;
+		cgPackageDlyMS = MAX_PACKAGE_DEALYTM;
+	}
+	else{
+		count = 0;
+	}
+	if (count > 1){
+		cgPackageDlyMS = 200;
+		count = 0;
+	}
+	Unlock();
+};
+//------------------------------------------------------------------------------------------//
+double CSSL_FN_T0::GetPackageDlyMS(void){
+	double	dt;
+	Lock();
+	dt = cgPackageDlyMS;
+	Unlock();
+	return(dt);
+};
+//------------------------------------------------------------------------------------------//
+void CSSL_FR_T1::ReceiveT0Data(CCY_FN_AES *fnAESofT0,const std::string &strKey){
+	fnAESofT0->ReadContent(&cgRxSBUF,strKey);
+	ELogPrint(this,"ReceiveT0Data()::cgRxSBUF:%d/%d",cgRxSBUF.Used(),cgRxSBUF.Unused());
+};
+//------------------------------------------------------------------------------------------//
+void CSSL_FR_T1::Init(uint32 rxfifoSize,uint32 tCH,G_Endian_VAILD tEV){
 	
-	cgTxFIFO.Init(txfifoSize << 1);
+	cgTxFIFO.Init(MAX_PACKAGE_SIZE << 2);
 	cgRxSBUF.Init(rxfifoSize);
 	
 	Field_Node::Init(FNT_MESSAGE,&cgTxFIFO,tEV);
-	fn_CH.Init		(FNT_CTRL,&cgTxFIFO,1,tEV);
-	fn_ID.Init		(FNT_CTRL,&cgTxFIFO,2,tEV);
-	fn_Control.Init	(FNT_CTRL,&cgTxFIFO,1,tEV);
+	fn_GroupID.Init	(FNT_CTRL,&cgTxFIFO,2,tEV);
+	fn_CtrlID.Init	(FNT_CTRL,&cgTxFIFO,1,tEV);
 	fn_Offset.Init	(FNT_CTRL,&cgTxFIFO,2,tEV);
 	fn_Info.Init	(&cgTxFIFO,2,tEV);
 	
 	cgCH = tCH;
-	cgID = 0;
-	cgInvalidLength = 1 + 2 + 1 + 2 + 2;
+	cgGroupID = 0;
+	cgLastOffset = 0;
+	cgPackageDlyMS = CSSL_FN_T0::MAX_PACKAGE_DEALYTM;
 };
 //------------------------------------------------------------------------------------------//
 void CSSL_FR_T1::SetConfig(G_Endian_VAILD tEV){
 	SetEndianType(this,tEV);
-	SetEndianType(&fn_CH,tEV);
-	SetEndianType(&fn_ID,tEV);
-	SetEndianType(&fn_Control,tEV);
+	SetEndianType(&fn_GroupID,tEV);
+	SetEndianType(&fn_CtrlID,tEV);
 	SetEndianType(&fn_Offset,tEV);
 	SetEndianType(&fn_Info,tEV);
 };
 //------------------------------------------------------------------------------------------//
-void CSSL_FR_T1::Delivery(CSSL_FN_T0 *sslT0Rx,RTREE_NODE *retFNList,const uint8 *databuf,int32 num){
-	cgRxSBUF.Spin_InUse_set();
-	sslT0Rx->Decode(&cgRxSBUF.cgBufFIFO,databuf,num);
-	while (AnalysisFrameTryAgain(cgRxSBUF.cgBufFIFO) > 0){
-		RTREE_LChildRChain_Traversal_LINE(CSSL_FR_T1,retFNList,
-			if (operateNode_t->cgCH == fn_CH.GetOriginalValue(&cgRxSBUF.cgBufFIFO)){
-				ReadAllContent(&operateNode_t->cgRxSBUF,&cgRxSBUF.cgBufFIFO);
-				break;
-			}
-		);
-		Out(&cgRxSBUF.cgBufFIFO);
-	}
-	cgRxSBUF.Spin_InUse_clr();
-};
-//------------------------------------------------------------------------------------------//
 enum{
 	REC_Nothing = 0,
-	REC_Package,
-	REC_NextPackage,
-	REC_EndPackage,
-	REC_TimeOut,
-	REC_UpdataID,
+	REC_RecPackage,
+	REC_GetPackage,
 };
 //------------------------------------------------------------------------------------------//
 enum{
-	CSSL_LoopBack = 0,
+	CSSL_Forward = 0,
 	CSSL_Package,
 	CSSL_ENDPackage,
 	CSSL_ACK,
+	CSSL_ENDACK,
 	CSSL_ResendPackage,
 	CSSL_ResendAll,
 };
 //------------------------------------------------------------------------------------------//
-int32 CSSL_FR_T1::RX_Packaging(CSSL_FN_T0 *sslT0Tx,FIFO_UINT8 *retFifoInfo,uint32 kbps){
-	uint32	offset,next_fn_Offset,requestTimes,recRet;
-	uint32	rec_fn_ID,rec_fn_Ctrl,rec_fn_Offset,rec_fn_ContentL,rec_fnOffset,rec_fnLength;
-	SYS_TIME_S	dlyTime;
-	double	ts;
-
+int32 CSSL_FR_T1::RX_Data(CSSL_FN_T0 *sslT0Tx,uint32 *tGroupID,uint32 *lastOffset,PUB_SBUF *retSBUFInfo
+						  ,uint32 *retGroupID,uint32 *retCtrlID,uint32 *retOffset){
+	uint32		offset,nextOffset,requestTimes;
+	uint32		recResult,rec_CtrlID,rec_GroupID,rec_Offset,rec_InfoL,rec_PGoffset,rec_PGlength;
+	SYS_TIME_S	dlyTS;
+	double		delayMS;
+	
 	requestTimes = 5;
-	next_fn_Offset = 0;
-	ts = (sslT0Tx->GetPackageDataSize() << 1) / kbps + 50;
-	SYS_Delay_SetTS(&dlyTime,ts);
+	nextOffset = *lastOffset;
+	if (sslT0Tx != nullptr)
+		cgPackageDlyMS = sslT0Tx->GetPackageDlyMS();
+	delayMS = cgPackageDlyMS;//4s as first
+
+	SYS_Delay_SetTS(&dlyTS,delayMS);
 	do{
 		offset = 0;
-		recRet = REC_Nothing;
+		recResult = REC_Nothing;
 		if (cgRxSBUF.Used() > 0){
+			ELogPrint(this, "RX_Data()::Rec dly:%dms,D1:%s",(uint32)delayMS,dlyTS.DTime1.FormatDateTime("[hh:mm:ss.zzz]").c_str());
 			cgRxSBUF.Spin_InUse_set();
 			while(AnalysisFrame(cgRxSBUF.cgBufFIFO,offset) > 0){
-				rec_fnOffset = GetOffset();
-				rec_fnLength = GetLength();
-				rec_fn_ID = fn_ID.GetValueCalc(&cgRxSBUF.cgBufFIFO);
-				rec_fn_Ctrl = fn_Control.GetValueCalc(&cgRxSBUF.cgBufFIFO);
-				rec_fn_Offset = fn_Offset.GetValueCalc(&cgRxSBUF.cgBufFIFO);
-				rec_fn_ContentL = fn_Info.GetContentLength();
-				if ((rec_fn_Ctrl == CSSL_LoopBack) && (next_fn_Offset == 0) && (offset == 0)){
-					fn_Info.ReadContent(retFifoInfo,&cgRxSBUF.cgBufFIFO);
-					cgRxSBUF.Out(rec_fnOffset+ rec_fnLength,G_LOCK_OFF);
-					next_fn_Offset = 0;
-					recRet = REC_EndPackage;
-					break;
-				}
-				else{
-					if (cgID > rec_fn_ID){
-						if (cgID - rec_fn_ID < 0x7fffffff){
-							if (offset == 0)
-								cgRxSBUF.Out(rec_fnOffset + rec_fnLength,G_LOCK_OFF);
-							break;
-						}
-						cgID = rec_fn_ID;
+				recResult = REC_RecPackage;
+				rec_PGoffset = GetOffset();
+				rec_PGlength = GetLength();
+				offset = rec_PGoffset + rec_PGlength;
+				rec_GroupID = fn_GroupID.GetValueCalc(&cgRxSBUF.cgBufFIFO);
+				rec_CtrlID = fn_CtrlID.GetValueCalc(&cgRxSBUF.cgBufFIFO);
+				rec_Offset = fn_Offset.GetValueCalc(&cgRxSBUF.cgBufFIFO);
+				rec_InfoL = fn_Info.GetContentLength();
+				ELogPrint(this, "RX_Data()::     GroupID:%d, reqTimes:%d,nextOffset:%d",*tGroupID,requestTimes,nextOffset);
+				ELogPrint(this, "RX_Data()::ANAL GroupID:%d,RecCtrlID:%d, RecOffset:%d,RecInfoL:%d,PGoffset:%d,PGlength:%d"
+						  ,rec_GroupID,rec_CtrlID,rec_Offset,rec_InfoL,rec_PGoffset,rec_PGlength);
+				if (*tGroupID > rec_GroupID){
+					if (*tGroupID - rec_GroupID < 0x7fff){
+						if (rec_PGoffset == 0)
+							cgRxSBUF.Out(rec_PGlength,G_LOCK_OFF);
+						break;
 					}
-					if (cgID == rec_fn_ID){
-						if (next_fn_Offset == rec_fn_Offset){
-							requestTimes = 5;
-							SYS_Delay_SetTS(&dlyTime,ts);
-							fn_Info.ReadContent(retFifoInfo,&cgRxSBUF.cgBufFIFO);
-							recRet = REC_Package;
-							if (offset == 0)
-								cgRxSBUF.Out(rec_fnOffset+ rec_fnLength,G_LOCK_OFF);
-							ANS_ACK(sslT0Tx, cgID, next_fn_Offset);
-							next_fn_Offset += rec_fn_ContentL;
-							if (rec_fn_Ctrl == CSSL_ENDPackage){
-								ANS_ACK(sslT0Tx, cgID, next_fn_Offset);
-								++ cgID;
-								next_fn_Offset = 0;
-								recRet = REC_EndPackage;
+					*tGroupID = rec_GroupID;
+					*lastOffset = 0;
+				}
+				switch (rec_CtrlID){
+					case CSSL_ENDPackage:
+						if ((*tGroupID == rec_GroupID) && (nextOffset == rec_Offset)){
+							fn_Info.ReadContent(retSBUFInfo,&cgRxSBUF.cgBufFIFO);
+							if (rec_PGoffset == 0){
+								cgRxSBUF.Out(rec_PGlength,G_LOCK_OFF);
+								offset = 0;
 							}
-							break;
+							ANS_ENDACK(sslT0Tx, *tGroupID);
+							++ *tGroupID;
+							recResult = REC_GetPackage;
 						}
-						else if (next_fn_Offset > rec_fn_Offset){
-							if (offset == 0){
-								cgRxSBUF.Out(rec_fnOffset + rec_fnLength,G_LOCK_OFF);
+						break;
+					case CSSL_Package:{
+						if (*tGroupID == rec_GroupID){
+							if (nextOffset == rec_Offset){
+								if (retSBUFInfo != nullptr)
+									fn_Info.ReadContent(retSBUFInfo,&cgRxSBUF.cgBufFIFO);
+								if (rec_PGoffset == 0){
+									cgRxSBUF.Out(rec_PGlength,G_LOCK_OFF);
+									offset = 0;
+								}
+								
+								ANS_ACK(sslT0Tx, *tGroupID, rec_Offset);
+								nextOffset += rec_InfoL;
+								requestTimes = 5;
+								SYS_Delay_SetTS(&dlyTS,delayMS);
 								break;
 							}
-						}
-						else{
-							recRet = REC_NextPackage;
-							if (SYS_Delay_CheckTS(&dlyTime) > 0){
+							else if (nextOffset > rec_Offset){
+								if (rec_PGoffset == 0){
+									cgRxSBUF.Out(rec_PGlength,G_LOCK_OFF);
+									offset = 0;
+								}
+							}
+							else if (SYS_Delay_CheckTS(&dlyTS) > 0){
 								if (requestTimes-- == 0){
-									++ cgID;
-									next_fn_Offset = 0;
-									recRet = REC_UpdataID;
+									++ *tGroupID;
+									requestTimes = 5;
+									nextOffset = *lastOffset;
 								}
 								else{
-									ANS_Request_ResendPackage(sslT0Tx, cgID, next_fn_Offset);
+									ANS_Request_ResendPackage(sslT0Tx, *tGroupID, nextOffset);
 								}
-								SYS_Delay_SetTS(&dlyTime,ts);
+								SYS_Delay_SetTS(&dlyTS,delayMS);
 							}
 						}
-					}
-					else{
-						if (SYS_Delay_CheckTS(&dlyTime) > 0){
+						else if (SYS_Delay_CheckTS(&dlyTS) > 0){
 							if (requestTimes-- == 0){
-								cgID = rec_fn_ID;
+								*tGroupID = rec_GroupID;
 								requestTimes = 5;
-								next_fn_Offset = 0;
-								recRet = REC_TimeOut;
+								nextOffset = 0;
+								*lastOffset = 0;
 							}
 							else{
-								ANS_Request_ResendAll(sslT0Tx, rec_fn_ID - 1);
+								ANS_Request_ResendAll(sslT0Tx, *tGroupID);
 							}
-							SYS_Delay_SetTS(&dlyTime,ts);
+							SYS_Delay_SetTS(&dlyTS,delayMS);
 						}
+						break;
+					}
+					case CSSL_ACK:
+					case CSSL_ENDACK:
+					case CSSL_ResendPackage:
+					case CSSL_ResendAll:
+					default:{
+						*retGroupID = rec_GroupID;
+						*retCtrlID = rec_CtrlID;
+						*retOffset = rec_Offset;
+						if (rec_PGoffset == 0){
+							cgRxSBUF.Out(rec_PGlength,G_LOCK_OFF);
+							offset = 0;
+						}
+						recResult = REC_GetPackage;
+						break;
 					}
 				}
-				offset = rec_fnOffset + rec_fnLength;
+				if (recResult == REC_GetPackage)
+					break;
 			}
 			cgRxSBUF.Spin_InUse_clr();
+			if (recResult == REC_GetPackage){
+				*lastOffset = 0;
+				ELogPrint(this, "RX_Data()::Get full Package,cgRxSBUF:%d/%d",cgRxSBUF.Used(),cgRxSBUF.Unused());
+				return 1;
+			}
+			SYS_SleepMS(2);
 		}
-		if (recRet == REC_EndPackage)
-			break;
-		SYS_DelayMS(2);
-	}while(recRet > 0);
-	return(recRet == REC_EndPackage);
+	}while(recResult > 0);
+	*lastOffset = nextOffset;
+	return 0;
 }
 //------------------------------------------------------------------------------------------//
-int32 CSSL_FR_T1::TX_LoopBack(const Field_Node &fnNode,uint32 kbps){
+int32 CSSL_FR_T1::RX_Packaging(CSSL_FN_T0 *sslT0Tx,PUB_SBUF *retSBUFInfo){
+	return(RX_Data(sslT0Tx,&cgGroupID,&cgLastOffset,retSBUFInfo,nullptr,nullptr,nullptr));
+}
+//------------------------------------------------------------------------------------------//
+void CSSL_FR_T1::ANS_ACK(CSSL_FN_T0 *sslT0Tx,const uint32 &tGroupID,const uint32 &offset){
+	if (sslT0Tx == nullptr)
+		return;
 	Spin_InUse_set();
 	GetcgDefFifo(this)->Empty();
 	HoldOffset();
-	fn_CH.SetFIFOByte(cgCH);
-	fn_ID.SetFIFOByte(cgID);
-	fn_Control.SetFIFOByte(CSSL_LoopBack);
-	fn_Offset.SetFIFOByte(0);
-	fn_Info.SetContent(fnNode);
-	UpdateLength();
-	cgRxSBUF.Put(*GetcgDefFifo(this),GetLength(),GetOffset());
-	Spin_InUse_clr();
-	return 1;
-}
-//------------------------------------------------------------------------------------------//
-void CSSL_FR_T1::ANS_ACK(CSSL_FN_T0 *sslT0Tx,const uint32 &tID,const uint32 &offset){
-	Spin_InUse_set();
-	GetcgDefFifo(this)->Empty();
-	HoldOffset();
-	fn_CH.SetFIFOByte(cgCH + 1);
-	fn_ID.SetFIFOByte(tID);
-	fn_Control.SetFIFOByte(CSSL_ACK);
+	fn_GroupID.SetFIFOByte(tGroupID);
+	fn_CtrlID.SetFIFOByte(CSSL_ACK);
 	fn_Offset.SetFIFOByte(offset);
 	fn_Info.SetContent("");
 	UpdateLength();
-	sslT0Tx->SetContent(*GetcgDefFifo(this),GetLength(),GetOffset());
+	sslT0Tx->SetContent(*GetcgDefFifo(this),GetLength(),GetOffset(),cgCH + 1);
+	ELogPrint(this, "RX_Data()::Send GroupID:%d,CtrlID:CSSL_ACK,Offset:%d,T1:%d,T0:%d",tGroupID,offset,GetLength(),sslT0Tx->GetLength());
 	Spin_InUse_clr();
 }
 //------------------------------------------------------------------------------------------//
-void CSSL_FR_T1::ANS_Request_ResendPackage(CSSL_FN_T0 *sslT0Tx,const uint32 &tID,const uint32 &offset){
+void CSSL_FR_T1::ANS_ENDACK(CSSL_FN_T0 *sslT0Tx,const uint32 &tGroupID){
+	if (sslT0Tx == nullptr)
+		return;
 	Spin_InUse_set();
 	GetcgDefFifo(this)->Empty();
 	HoldOffset();
-	fn_CH.SetFIFOByte(cgCH + 1);
-	fn_ID.SetFIFOByte(tID);
-	fn_Control.SetFIFOByte(CSSL_ResendPackage);
-	fn_Offset.SetFIFOByte(offset);
-	fn_Info.SetContent("");
-	UpdateLength();
-	sslT0Tx->SetContent(*GetcgDefFifo(this),GetLength(),GetOffset());
-	Spin_InUse_clr();
-}
-//------------------------------------------------------------------------------------------//
-void CSSL_FR_T1::ANS_Request_ResendAll(CSSL_FN_T0 *sslT0Tx,const uint32 &tID){
-	Spin_InUse_set();
-	GetcgDefFifo(this)->Empty();
-	HoldOffset();
-	fn_CH.SetFIFOByte(cgCH + 1);
-	fn_ID.SetFIFOByte(tID);
-	fn_Control.SetFIFOByte(CSSL_ResendAll);
+	fn_GroupID.SetFIFOByte(tGroupID);
+	fn_CtrlID.SetFIFOByte(CSSL_ENDACK);
 	fn_Offset.SetFIFOByte(0);
 	fn_Info.SetContent("");
 	UpdateLength();
-	sslT0Tx->SetContent(*GetcgDefFifo(this),GetLength(),GetOffset());
+	sslT0Tx->SetContent(*GetcgDefFifo(this),GetLength(),GetOffset(),cgCH + 1);
+	ELogPrint(this, "RX_Data()::Send GroupID:%d,CtrlID:CSSL_ENDACK,Offset:0,T1:%d,T0:%d",tGroupID,GetLength(),sslT0Tx->GetLength());
 	Spin_InUse_clr();
 }
 //------------------------------------------------------------------------------------------//
-int32 CSSL_FR_T1::CHK_Data(uint32 *tID,uint32 *ctrl,uint32 *offset){
-	int32 ret;
-	cgRxSBUF.Spin_InUse_set();
-	ret = 0;
-	while((AnalysisFrame(cgRxSBUF.cgBufFIFO) > 0) && (ret == 0)){
-		if (fn_CH.GetValueCalc(&cgRxSBUF.cgBufFIFO) == cgCH){
-			*tID = fn_ID.GetValueCalc(&cgRxSBUF.cgBufFIFO);
-			*ctrl = fn_Control.GetValueCalc(&cgRxSBUF.cgBufFIFO);
-			*offset = fn_Offset.GetValueCalc(&cgRxSBUF.cgBufFIFO);
-			ret = 1;
-		}
-		Out(&cgRxSBUF.cgBufFIFO);
-	}
-	cgRxSBUF.Spin_InUse_clr();
-	return(ret);
+void CSSL_FR_T1::ANS_Request_ResendPackage(CSSL_FN_T0 *sslT0Tx,const uint32 &tGroupID,const uint32 &offset){
+	if (sslT0Tx == nullptr)
+		return;
+	Spin_InUse_set();
+	GetcgDefFifo(this)->Empty();
+	HoldOffset();
+	fn_GroupID.SetFIFOByte(tGroupID);
+	fn_CtrlID.SetFIFOByte(CSSL_ResendPackage);
+	fn_Offset.SetFIFOByte(offset);
+	fn_Info.SetContent("");
+	UpdateLength();
+	sslT0Tx->SetContent(*GetcgDefFifo(this),GetLength(),GetOffset(),cgCH + 1);
+	ELogPrint(this, "RX_Data()::Send GroupID:%d,CtrlID:CSSL_ResendPackage,Offset:%d,T1:%d,T0:%d",tGroupID,offset,offset,GetLength(),sslT0Tx->GetLength());
+	Spin_InUse_clr();
 }
 //------------------------------------------------------------------------------------------//
-uint32 CSSL_FR_T1::TX_Data(CSSL_FN_T0 *sslT0Tx,const uint8 *&data,const uint32 &num,const uint32 &offset,const uint32 &packageSize,const uint32 &tID){
+void CSSL_FR_T1::ANS_Request_ResendAll(CSSL_FN_T0 *sslT0Tx,const uint32 &tGroupID){
+	if (sslT0Tx == nullptr)
+		return;
+	Spin_InUse_set();
+	GetcgDefFifo(this)->Empty();
+	HoldOffset();
+	fn_GroupID.SetFIFOByte(tGroupID);
+	fn_CtrlID.SetFIFOByte(CSSL_ResendAll);
+	fn_Offset.SetFIFOByte(0);
+	fn_Info.SetContent("");
+	UpdateLength();
+	sslT0Tx->SetContent(*GetcgDefFifo(this),GetLength(),GetOffset(),cgCH + 1);
+	ELogPrint(this, "RX_Data()::Send GroupID:%d,CtrlID:CSSL_ResendAll,Offset:0,T1:%d,T0:%d",tGroupID,GetLength(),sslT0Tx->GetLength());
+	Spin_InUse_clr();
+}
+//------------------------------------------------------------------------------------------//
+int32 CSSL_FR_T1::CHK_Data(uint32 *retGroupID,uint32 *retCtrlID,uint32 *retOffset){
+	uint32 tGroupID,lastOffset;
+	tGroupID = cgGroupID;
+	lastOffset = 0;
+	if (RX_Data(nullptr,&tGroupID,&lastOffset,nullptr,retGroupID,retCtrlID,retOffset) > 0)
+		return(cgGroupID == tGroupID);
+	return 0;
+}
+//------------------------------------------------------------------------------------------//
+uint32 CSSL_FR_T1::TX_Data(CSSL_FN_T0 *sslT0Tx,const uint8 *&data,const uint32 &num,const uint32 &offset,const uint32 &packageSize,const uint32 &tGroup){
 	uint32 length;
 	length = (packageSize < (num - offset)) ? packageSize : (num - offset);
-	Spin_InUse_set();
 	GetcgDefFifo(this)->Empty();
 	HoldOffset();
-	fn_CH.SetFIFOByte(cgCH - 1);
-	fn_ID.SetFIFOByte(tID);
-	fn_Control.SetFIFOByte(((length + offset) < num) ? CSSL_Package : CSSL_ENDPackage);
+	fn_GroupID.SetFIFOByte(tGroup);
+	fn_CtrlID.SetFIFOByte(((length + offset) < num) ? CSSL_Package : CSSL_ENDPackage);
 	fn_Offset.SetFIFOByte(offset);
 	fn_Info.SetContent(data + offset,length);
 	UpdateLength();
-	if (sslT0Tx->SetContent(*GetcgDefFifo(this),GetLength(),GetOffset()) == 0)
-		length = 0;
-	Spin_InUse_clr();
+	
+	sslT0Tx->SetContent(*GetcgDefFifo(this),GetLength(),GetOffset(),cgCH - 1);
+	ELogPrint(this, "TX_Packaging()::TX_Data()::Send GroupID:%d,CtrlID:%s,Offset:%d,DataNum:%d,T1:%d,T0:%d"
+				,tGroup,((length + offset) < num) ? "CSSL_Package" : "CSSL_ENDPackage",offset,length,GetLength(),sslT0Tx->GetLength());
 	return(length);
 }
 //------------------------------------------------------------------------------------------//
-int32 CSSL_FR_T1::TX_Packaging(CSSL_FN_T0 *sslT0Tx,const uint8 *data,uint32 num,uint32 kbps){
-	//8kbps = 1024 bytes per s
-	uint32	packageSize,length,offset;
-	uint32	rxID,rxCtrl,rxOffset,ackOffset;
-	SYS_TIME_S	dlyTime;
-	double	ts;
+int32 CSSL_FR_T1::TX_Packaging(CSSL_FN_T0 *sslT0Tx,const uint8 *data,uint32 num){
+	uint32		packageSize,maxCount,count;
+	uint32		offset,ackOffset,resendTimes,retGroupID,retCtrlID,retOffset;
+	SYS_TIME_S	dlyTS,reDlyTS,totalTS;
+	//SYS_DateTime	dT1,dT2;
+	double		delayMS,avgMS;
 	
-	packageSize = (((sslT0Tx->GetPackageDataSize() - GetcgInvalidLength()) >> 4) << 4);
-	offset = 0;
+	if (num == 0)
+		return 1;
+	
+	Spin_InUse_set();
+	packageSize = (((MAX_PACKAGE_SIZE - sslT0Tx->GetInvalidLength()) >> 4) << 4) - 1 - GetInvalidLength();
+	maxCount = (COMMU_DBUF_B::PACKAGE_MAX_SIZE) / (MAX_PACKAGE_SIZE);
+	resendTimes = 0;
+	ELogPrint(this, "TX_Packaging()::data num:%d,InvalidLength:%d,PGsize:%d,maxCount:%d"
+			  ,num,sslT0Tx->GetInvalidLength() + GetInvalidLength(),packageSize,maxCount);
+
+	cgPackageDlyMS = sslT0Tx->GetPackageDlyMS();
 	ackOffset = 0;
-	length = 0;
-	ts = (((num / packageSize + 1) * packageSize) << 1) / kbps + 50;
-	SYS_Delay_SetTS(&dlyTime,ts);
-	cgRxSBUF.Clean();
+	count = 0;
 	do{
-		if (offset < num){
-			length = TX_Data(sslT0Tx,data,num,offset,packageSize,cgID);
-			offset += length;
-		}
-		while(CHK_Data(&rxID,&rxCtrl,&rxOffset) > 0){
-			if (rxID == cgID){
-				if (rxCtrl == CSSL_ResendPackage){
-					SYS_Delay_SetTS(&dlyTime,ts);
-					do{
-					   if (TX_Data(sslT0Tx,data,num,rxOffset,packageSize,cgID) > 0)
-						   break;
-					}while(SYS_Delay_CheckTS(&dlyTime) == 0);
+		delayMS = sslT0Tx->GetPackageDlyMS();
+		offset = ackOffset;
+		SYS_Delay_SetTS(&dlyTS,0);
+		SYS_Delay_SetTS(&totalTS,delayMS);
+		do{
+			if ((offset < num) && (count < maxCount)){
+				++ count;
+				SYS_Delay_AddTS(&dlyTS,delayMS);
+				ELogPrint(this, "TX_Packaging()::T%d,dly:%dms,D1:%s"
+						  ,resendTimes + 1,(uint32)delayMS,dlyTS.DTime1.FormatDateTime("[hh:mm:ss.zzz]").c_str());
+				offset += TX_Data(sslT0Tx,data,num,offset,packageSize,cgGroupID);
+			}
+			while(CHK_Data(&retGroupID,&retCtrlID,&retOffset) > 0){
+				ELogPrint(this, "TX_Packaging()::Rec RecGroupID:%d,RecCtrlID:%d,RecOffset:%d,offset:%d",retGroupID,retCtrlID,retOffset,offset);
+				if (retCtrlID == CSSL_ResendPackage){
+					SYS_Delay_SetTS(&reDlyTS,delayMS);
+					while((TX_Data(sslT0Tx,data,num,retOffset,packageSize,cgGroupID) == 0) && (SYS_Delay_CheckTS(&reDlyTS) == 0));
+					SYS_Delay_AddTS(&dlyTS,delayMS);
+				}
+				else if (retCtrlID == CSSL_ResendAll){
+					SYS_Delay_SetTS(&dlyTS,delayMS);
+					ackOffset = 0;
+					count = 0;
 					break;
 				}
-				else if (rxCtrl == CSSL_ResendAll){
-					SYS_Delay_SetTS(&dlyTime,ts);
-					offset = 0;
-					ackOffset = 0;
-					continue;
+				else if (retCtrlID == CSSL_ACK){
+					if (ackOffset <= retOffset){
+						if (count != 0)
+							-- count;
+						ackOffset = retOffset + packageSize;
+					}
 				}
-				else if ((rxCtrl == CSSL_ACK) && (ackOffset < rxOffset)){
-					ackOffset = rxOffset;
-					if (ackOffset == num)
-						goto HAPPYEND;
+				else if (retCtrlID == CSSL_ENDACK){
+					ELogPrint(this, "TX_Packaging()::T%d,GroupID:%d,End:OK",resendTimes + 1,cgGroupID);
+					SYS_Delay_CheckTS(&totalTS);
+					totalTS.DTime2 += (delayMS / 1000);
+					totalTS.DTime2 -= totalTS.DTime1;
+					avgMS = totalTS.DTime2.GetSec() * 1000 / (1 + num / MAX_PACKAGE_SIZE);
+					sslT0Tx->SetPackageDlyMS(avgMS);
+					ELogPrint(this, "TX_Packaging()::avgMS:%dms,new dlyMS:%dms",(uint32)avgMS,(uint32)sslT0Tx->GetPackageDlyMS());
+					goto TX_Packaging_END;
 				}
 			}
-		}
-		if (length == 0)
-			SYS_DelayMS(2);
-	}while(SYS_Delay_CheckTS(&dlyTime) == 0);
-HAPPYEND:;
-	++ cgID;
-	return(ackOffset == num);
+			if (count == maxCount)
+				SYS_SleepMS(10);
+		}while(SYS_Delay_CheckTS(&dlyTS) == 0);
+		ELogPrint(this, "TX_Packaging()::T%d,GroupID:%d,End:%s",resendTimes + 1,cgGroupID,(retCtrlID == CSSL_ENDACK)?"OK":"Fail");
+		delayMS = sslT0Tx->GetPackageDlyMS() * 3;
+		sslT0Tx->SetPackageDlyMS(delayMS);
+	}while(++resendTimes < 5);
+TX_Packaging_END:;
+	++ cgGroupID;
+	Spin_InUse_clr();
+	cgPackageDlyMS = sslT0Tx->GetPackageDlyMS();
+	return(retCtrlID == CSSL_ENDACK);
 }
 //------------------------------------------------------------------------------------------//
-int32 CSSL_FR_T1::TX_Packaging(CSSL_FN_T0 *sslT0Tx,const FIFO_UINT8 &fifo,uint32 num,uint32 offset,uint32 kbps){
+int32 CSSL_FR_T1::TX_Packaging(CSSL_FN_T0 *sslT0Tx,const FIFO_UINT8 &fifo,uint32 num,uint32 offset){
 	uint32	slength;
 	int32	ret;
 
 	ret = 0;
 	slength = fifo.CalcOutLength(num, offset);
 	if (num > 0)
-		ret = TX_Packaging(sslT0Tx,fifo.GetOutPointer(offset),num,kbps);
+		ret = TX_Packaging(sslT0Tx,fifo.GetOutPointer(offset),num);
 	if (slength > 0)
-		ret &= TX_Packaging(sslT0Tx,fifo.GetOutPointer(0),slength,kbps);
+		ret &= TX_Packaging(sslT0Tx,fifo.GetOutPointer(0),slength);
 	return(ret);
 }
 //------------------------------------------------------------------------------------------//
-int32 CSSL_FR_T1::TX_Packaging(CSSL_FN_T0 *sslT0Tx,const Field_Node &fnNode,uint32 kbps){
+int32 CSSL_FR_T1::TX_Packaging(CSSL_FN_T0 *sslT0Tx,const Field_Node &fnNode){
 	uint32	slength,num,offset;
 	int32	ret;
 	
@@ -341,22 +441,13 @@ int32 CSSL_FR_T1::TX_Packaging(CSSL_FN_T0 *sslT0Tx,const Field_Node &fnNode,uint
 	offset = fnNode.GetOffset();
 	slength = GetcgDefFifo(&fnNode)->CalcOutLength(num, offset);
 	if (num > 0)
-		ret = TX_Packaging(sslT0Tx,GetcgDefFifo(&fnNode)->GetOutPointer(offset),num,kbps);
+		ret = TX_Packaging(sslT0Tx,GetcgDefFifo(&fnNode)->GetOutPointer(offset),num);
 	if (slength > 0)
-		ret &= TX_Packaging(sslT0Tx,GetcgDefFifo(&fnNode)->GetOutPointer(0),slength,kbps);
+		ret &= TX_Packaging(sslT0Tx,GetcgDefFifo(&fnNode)->GetOutPointer(0),slength);
 	return(ret);
 }
 //------------------------------------------------------------------------------------------//
-
-
-
-
-
-
-
-
-
-
+#endif
 #ifdef USE_OPENSSL
 //------------------------------------------------------------------------------------------//
 class SSLSocket_ODEV : public ODEV_NODE{
@@ -368,10 +459,9 @@ class SSLSocket_ODEV : public ODEV_NODE{
 		virtual ~SSLSocket_ODEV(void){;};
 	public:
 		virtual int32	Print		(G_LOCK_VAILD blLock = G_LOCK_ON){
-			Spin_InUse_set(blLock);
+			std::string		strT;
 			if (cgSSLSocket != nullptr)
-				cgSSLSocket->SSLWrite(ReadStr(G_LOCK_OFF),8);
-			Spin_InUse_clr(blLock);
+				cgSSLSocket->SSLWrite(ReadStr(&strT,blLock));
 			return 1;
 		};
 		virtual void	UnInit		(G_LOCK_VAILD blLock = G_LOCK_ON){Spin_InUse_set(blLock);cgSSLSocket = nullptr;Spin_InUse_clr(blLock);};
@@ -386,44 +476,103 @@ class SSLSocket_ODEV : public ODEV_NODE{
 		};
 };
 //------------------------------------------------------------------------------------------//
+
+
+
+
+//------------------------------------------------------------------------------------------//
+#define SetSSLFLAG(u64)		B_SetFLAG32(cgSSLFlag,(u64))
+#define ClrSSLFLAG(u64)		B_ClrFLAG32(cgSSLFlag,(u64))
+#define ChkSSLFLAG(u64)		B_ChkFLAG32(cgSSLFlag,(u64))
 enum{
-	MESG_NONE = 0,
-	MESG_Request_RSA_Puk,
-	MESG_ANS_RSA_Puk,
-	MESG_Start_Handshake,
-	MESG_SH_Request_RSA_Puk,
-	MESG_SH_ANS_RSA_Puk,
-	MESG_Request_UpdateAESKey,
-	MESG_ANS_UpdatedAESKey,
-	MESG_Request_TestNewConfiguration,
-	MESG_ANS_TestNewConfiguration,
+	blHandshakeS = BD_FLAG64(0),
+	blHandshakeY = BD_FLAG64(1),
+	blHandshakeN = BD_FLAG64(2),
+	blUpdateKeyS = BD_FLAG64(3),
+	blUpdateKeyY = BD_FLAG64(4),
+	blUpdateKeyN = BD_FLAG64(5),
+	blClose		= BD_FLAG64(6),
 };
 //------------------------------------------------------------------------------------------//
 void SSLSocket::Init(CCT_AES_KEYL type,CCT_AES_MODE mode,CCT_Digest digestType,G_Endian_VAILD tEV){
+	dataCHThread.ThreadInit(this, &SSLSocket::DataCHThreadFun);
+	cgThreadList.AddNode(&dataCHThread);
+	
+	cgBufferT0_Rx.Init(1024 * 8);
 	fn_sslT0_Tx.Init(&cgTxBuffer,type,mode,digestType,tEV);
-	fn_sslT0_Rx.Init(&cgRxBuffer,type,mode,digestType,tEV);
-	fn_sslT1_RXFW.Init(fn_sslT0_Tx.GetPackageDataSize(),cgRxBuffer.BufferMaxSize(),tEV);
-	CSSL_T1D_CH0.Init(&fwFNList,&fn_sslT0_Tx,cgRxBuffer.BufferMaxSize(),0,tEV);
-	CSSL_T1D_CH1.Init(&fwFNList,&fn_sslT0_Tx,cgRxBuffer.BufferMaxSize(),1,tEV);
+	fn_sslT0_Rx.Init(&cgBufferT0_Rx,type,mode,digestType,tEV);
+	CSSL_T1D_CH0.Init(&fwFNList,&fn_sslT0_Tx,cgRxBuffer.BufferMaxSize() >> 2,0,tEV);
+	CSSL_T1D_CH1.Init(&fwFNList,&fn_sslT0_Tx,cgRxBuffer.BufferMaxSize() >> 2,1,tEV);
+	Reset(0);
+	SetConfig(type,mode,digestType,tEV);
+	cgFIFOfnMesgTx.Init(1024 * 16);
+	cgfnMesgTx.Init(&cgFIFOfnMesgTx);
+	cgfnSignature.Init(1024 * 8,type,mode,digestType,tEV);
 	
-	SetKey(CCY_AESKey32Bye("LF.W.TZ"));
-	
-	cgAES_type = type;
-	cgAES_mode = mode;
-	cgDigestType = digestType;
-	
-	fn_sslT0_Tx.selfName	= "fn_sslT0_Tx";
-	fn_sslT0_Rx.selfName	= "fn_sslT0_Rx";
-	fn_sslT1_RXFW.selfName	= "fn_sslT1_RXFW";
-	
+	SetSelfName(selfName);
 	cgRSA_Prk = RSA_new();
+	cgRSA_Puk = RSA_new();
 	SetRSA_Prk();
+	cgSSLFlag = 0;
+};
+//------------------------------------------------------------------------------------------//
+void SSLSocket::Reset(int32 blResetPuk){
+	SetConfig(CCT_AES128,CCT_AES_CBC,CCT_MD5,G_LITTLE_ENDIAN);
+	ClrSSLFLAG(blHandshakeS | blHandshakeY | blHandshakeN | blUpdateKeyS | blUpdateKeyY | blUpdateKeyN | blClose);
+	ClrblHold();
+	SetKey(CCY_AESKey32Bye("LF.W.TZ"));
+	fn_sslT0_Rx.SetPackageDlyMS(CSSL_FN_T0::MAX_PACKAGE_DEALYTM * 3);
+	fn_sslT0_Tx.SetPackageDlyMS(CSSL_FN_T0::MAX_PACKAGE_DEALYTM * 3);
+	fn_sslT0_Rx.ResetKey();
+	fn_sslT0_Tx.ResetKey();
+	CSSL_T1D_CH0.Reset();
+	CSSL_T1D_CH1.Reset();
+	CSSL_T1D_CH0.Clean();
+	CSSL_T1D_CH1.Clean();
+	
+	if (blResetPuk > 0){
+		RSA_free(cgRSA_Puk);
+		cgRSA_Puk = RSA_new();
+	}
+};
+//------------------------------------------------------------------------------------------//
+void SSLSocket::OnCloseDev(void){
+	E2LogPrint(this, "SSLSocket::OnCloseDev()");
+	if (IsConnected() > 0){
+		E2LogPrint(this, "SSLSocket::OnCloseDev()::Call SendREQ_CloseSocket()");
+		SendREQ_CloseSocket();
+	}
+	APISocket::OnCloseDev();
+};
+//------------------------------------------------------------------------------------------//
+void SSLSocket::CloseDev(void){
+	E2LogPrint(this, "SSLSocket::CloseDev()");
+	APISocket::CloseDev();
+	Reset();
+};
+//------------------------------------------------------------------------------------------//
+int32 SSLSocket::SendREQ_CloseSocket(void){
+	SYS_TIME_S		Timedly;
+	int32			blRet;
+	blRet = 1;
+	if (IsConnected() > 0){
+		ClrSSLFLAG(blClose);
+		E2LogPrint(this, "Send MESG_REQ_CloseSocket");
+		blRet = CtrlCHWrite("",MESG_REQ_CloseSocket);
+		E2LogPrint(this, "Send MESG_REQ_CloseSocket %s",(blRet > 0) ? "successful" : "fail");
+		if (blRet > 0){
+			SYS_Delay_SetTS(&Timedly, 1000);
+			while((ChkSSLFLAG(blClose) == 0) && (IsConnected() > 0) && (SYS_Delay_CheckTS(&Timedly) == 0))
+				SYS_SleepMS(100);
+		}
+		return(ChkSSLFLAG(blClose));
+	}
+	return(blRet);
 };
 //------------------------------------------------------------------------------------------//
 void SSLSocket::SetConfig(CCT_AES_KEYL type,CCT_AES_MODE mode,CCT_Digest digestType,G_Endian_VAILD tEV){
 	fn_sslT0_Tx.SetConfig(type,mode,digestType,tEV);
 	fn_sslT0_Rx.SetConfig(type,mode,digestType,tEV);
-	fn_sslT1_RXFW.SetConfig(tEV);
 	CSSL_T1D_CH0.SetConfig(tEV);
 	cgAES_type = type;
 	cgAES_mode = mode;
@@ -433,160 +582,321 @@ void SSLSocket::SetConfig(CCT_AES_KEYL type,CCT_AES_MODE mode,CCT_Digest digestT
 //------------------------------------------------------------------------------------------//
 void SSLSocket::ThreadsStart(void){
 	txThread.ThreadRun();
-	rxThread.ThreadRun();
+	if (GetCSType() != CSType_UDPS)
+		rxThread.ThreadRun();
 	exThread.ThreadRun();
-	printThread.ThreadRun();
+	dataCHThread.ThreadRun();
+}
+//------------------------------------------------------------------------------------------//
+void SSLSocket::DoAfterReadFromDevice(const uint8 *databuf,int32 num){
+	E2LogPrint(this, "SSLSocket::DoAfterReadFromDevice()::Rec data num:%d",num);
+	//E2LogPrint(this, "SSLSocket::DoAfterReadFromDevice()::rec data:%s",Str_CharToHEXStr(databuf, num, G_SPACE_ON).c_str());
+	fn_sslT0_Rx.Delivery(&fwFNList,databuf,num);
+};
+//------------------------------------------------------------------------------------------//
+int32 SSLSocket::DoAfterOpen(void){
+	Handshake();
+	if (GetCSType() == CSType_UDPS)
+		return 1;
+	return(CheckHandshake());
 }
 //------------------------------------------------------------------------------------------//
 int32 SSLSocket::ExThreadFun(void){
-	std::string			strMesg,strContent,strOldKey;
-	uint32 				mID,kbps;
-	CCY_FNLC_MESG		fnMesg;
-	CCY_FR_Signature	fnSignature;
-	FIFO_UINT8			rxfifo;
-	RSA					*rsaPuk;
-	SYS_TIME_S			Time_UpdateAESKey,Time_Handshake;
-	int32				blUpdate_AESKey,blUpdate_Handshake;
-	CCT_AES_KEYL		oldAES_type;
-	CCT_AES_MODE		oldAES_mode;
-	CCT_Digest 			oldDigestType;
-	G_Endian_VAILD		oldEndianType;
+	FNode_MESG		fnMesg;
+	int32			blReady;
+	E2LogPrint(this, "ExThreadFun()::Running");
 	
-	kbps = 8;
-	rxfifo.Init(1024 * 8);
-	fnMesg.Init(&rxfifo);
-	fnSignature.Init(1024 * 8,cgAES_type,cgAES_mode,cgDigestType);
+	fnMesg.Init(&cgRxBuffer.cgBufFIFO);
+	SYS_SleepMS(2);//must need, cannot delete , 2016 Jan.1
 	
-	rsaPuk = RSA_new();
-	strOldKey = cgKey;
-	blUpdate_AESKey = 0;
-	Handshake(&fnMesg);
-	blUpdate_Handshake = 1;
-	SYS_Delay_SetTS(&Time_Handshake,HandshakeTime);
+	cgRxBuffer.Clean();
 	while((exThread.IsTerminated() == 0) && (IsConnected() > 0)){
-		rxfifo.Empty();
-		if (CSSL_T1D_CH0.RX_Packaging(&rxfifo,kbps) > 0){
-			if (fnMesg.AnalysisFrame(rxfifo) > 0){
-				fnMesg.ReadContent(&strMesg, &mID,&rxfifo);
-				rxfifo.Empty();
-				switch (mID) {
-					case MESG_Request_RSA_Puk:
-						//MyLogPrint(this, "Rec MESG_Request_RSA_Puk");
-						CCY_Decode_RSAPublicKey(&rsaPuk, strMesg);
-						CCY_Encode_RSAPublicKey(&strContent,cgRSA_Prk);
-						CSSL_T1D_CH0.TX_Packaging(fnMesg.SetContent(fnSignature.Encode(strContent,rsaPuk),MESG_ANS_RSA_Puk),kbps);
-						break;
-					case MESG_ANS_RSA_Puk:
-						//MyLogPrint(this, "Rec MESG_Request_RSA_Puk");
-						if (fnSignature.Decode(&strContent, strMesg, cgRSA_Prk) > 0)
-							CCY_Decode_RSAPublicKey(&rsaPuk, strContent);
-						break;
-					case MESG_Start_Handshake:
-						//MyLogPrint(this, "Rec MESG_Start_Handshake");
-						ClrblUpdatedAESKey();
-						CSSL_T1D_CH0.TX_Packaging(fnMesg.SetContent(CCY_Encode_RSAPublicKey(&strContent,cgRSA_Prk), MESG_SH_Request_RSA_Puk),kbps);
-						break;
-					case MESG_SH_Request_RSA_Puk:
-						//MyLogPrint(this, "Rec MESG_SH_Request_RSA_Puk");
-						CCY_Decode_RSAPublicKey(&rsaPuk, strMesg);
-						CCY_Encode_RSAPublicKey(&strContent,cgRSA_Prk);
-						CSSL_T1D_CH0.TX_Packaging(fnMesg.SetContent(fnSignature.Encode(strContent,rsaPuk),MESG_SH_ANS_RSA_Puk),kbps);
-						break;
-					case MESG_SH_ANS_RSA_Puk:
-						//MyLogPrint(this, "Rec MESG_SH_ANS_RSA_Puk");
-						if (fnSignature.Decode(&strContent, strMesg, cgRSA_Prk) > 0){
-							CCY_Decode_RSAPublicKey(&rsaPuk, strContent);
-							strContent = Str_DecToHex(CCT_AES256);
-							strContent += ',';
-							strContent += Str_DecToHex(CCT_AES_CBC);
-							strContent += ',';
-							strContent += Str_DecToHex(CCT_SHA1);
-							strContent += ',';
-							strContent += Str_DecToHex(G_LITTLE_ENDIAN);
-							strContent += ',';
-							strContent += CCY_CreateRandKey(32);
-							CSSL_T1D_CH0.TX_Packaging(fnMesg.SetContent(fnSignature.Encode(strContent,rsaPuk),MESG_Request_UpdateAESKey),kbps);
-						}
-						break;
-					case MESG_Request_UpdateAESKey:
-						//MyLogPrint(this, "Rec MESG_Request_UpdateAESKey");
-						ClrblUpdatedAESKey();
-						if (fnSignature.Decode(&strContent, strMesg, cgRSA_Prk) > 0){
-							CSSL_T1D_CH0.TX_Packaging(fnMesg.SetContent(fnSignature.Encode(strContent,rsaPuk),MESG_ANS_UpdatedAESKey),kbps);
-							strOldKey = cgKey;
-							strMesg = CCY_AESKey32Bye(strContent);
-							oldAES_type = (CCT_AES_KEYL)Str_HexToDec(Str_ReadSubItem(&strContent, ","));
-							oldAES_mode = (CCT_AES_MODE)Str_HexToDec(Str_ReadSubItem(&strContent, ","));
-							oldDigestType = (CCT_Digest)Str_HexToDec(Str_ReadSubItem(&strContent, ","));
-							oldEndianType = (G_Endian_VAILD)Str_HexToDec(Str_ReadSubItem(&strContent, ","));
-							SetConfig(oldAES_type,oldAES_mode,oldDigestType,oldEndianType);
-							SetKey(strMesg);
-							SYS_DelayMS(10);
-							blUpdate_AESKey = 1;
-							SYS_Delay_SetTS(&Time_UpdateAESKey, HandshakeTime);
-						}
-						break;
-					case MESG_ANS_UpdatedAESKey:
-						//MyLogPrint(this, "Rec MESG_ANS_UpdatedAESKey");
-						if (fnSignature.Decode(&strContent, strMesg, cgRSA_Prk) > 0){
-							strOldKey = cgKey;
-							strMesg = CCY_AESKey32Bye(strContent);
-							oldAES_type = (CCT_AES_KEYL)Str_HexToDec(Str_ReadSubItem(&strContent, ","));
-							oldAES_mode = (CCT_AES_MODE)Str_HexToDec(Str_ReadSubItem(&strContent, ","));
-							oldDigestType = (CCT_Digest)Str_HexToDec(Str_ReadSubItem(&strContent, ","));
-							oldEndianType = (G_Endian_VAILD)Str_HexToDec(Str_ReadSubItem(&strContent, ","));
-							SetConfig(oldAES_type,oldAES_mode,oldDigestType,oldEndianType);
-							SetKey(strMesg);
-							SYS_DelayMS(10);
-							blUpdate_AESKey = 1;
-							SYS_Delay_SetTS(&Time_UpdateAESKey, HandshakeTime);
-							CSSL_T1D_CH0.TX_Packaging(fnMesg.SetContent(CCY_CreateRandKey(32),MESG_Request_TestNewConfiguration),kbps);
-						}
-						break;
-					case MESG_Request_TestNewConfiguration:
-						//MyLogPrint(this, "Rec MESG_Request_TestNewConfiguration");
-						CSSL_T1D_CH0.TX_Packaging(fnMesg.SetContent(CCY_CreateRandKey(32),MESG_ANS_TestNewConfiguration),kbps);
-					case MESG_ANS_TestNewConfiguration:
-						//MyLogPrint(this, "Rec MESG_ANS_TestNewConfiguration");
-						blUpdate_AESKey = 0;
-						SetblUpdatedAESKey();
-						if (blUpdate_Handshake > 0){
-							blUpdate_Handshake = 0;
-							SetblHandshaked();
-						}
-						break;
-					default:
-						break;
-				}
-			}
+		blReady = 0;
+		if (CtrlCHRead(&cgRxBuffer) > 0){
+			E2LogPrint(CSSL_T1D_CH0,"ExThreadFun()::cgRxBuffer:%d/%d",cgRxBuffer.Used(),cgRxBuffer.Unused());
+			blReady = fnMesg.AnalysisFrame(cgRxBuffer.cgBufFIFO);
 		}
-		if ((blUpdate_AESKey > 0) && (SYS_Delay_CheckTS(&Time_UpdateAESKey) > 0)){
-			blUpdate_AESKey = 0;
-			SetKey(strOldKey);
+		if (MessageProcessing_Handshake(&fnMesg,blReady) == 0)
+			MessageProcessing(&fnMesg,blReady);
+		if (blReady > 0){
+			fnMesg.Out();
+			continue;
 		}
-		if ((blUpdate_Handshake > 0) && (SYS_Delay_CheckTS(&Time_Handshake) > 0)){
-			//MyLogPrint(this, "Handshake timeover, disconnect socket");
-			CloseDev();
-			ClrblConnected();
-			break;
-		}
-		SYS_SleepMS(10);
+		SYS_SleepMS(2);
 	}
-	RSA_free(rsaPuk);
 	return 1;
 }
 //------------------------------------------------------------------------------------------//
-void SSLSocket::Handshake(CCY_FNLC_MESG *fnMesg){
-	//MyLogPrint(this, "Send MESG_Start_Handshake");
-	CSSL_T1D_CH0.TX_Packaging(fnMesg->SetContent(CCY_CreateRandKey(32), MESG_Start_Handshake),8);
+int32 SSLSocket::DataCHThreadFun(void){
+	uint32			num,offset,slength;
+	
+	cgDataRXSBUF.Init(cgRxBuffer.BufferMaxSize());
+	cgDataCHSBUF.Init(cgRxBuffer.BufferMaxSize());
+
+	E2LogPrint(this, "DataCHThreadFun()::Running");
+	SYS_SleepMS(2);
+
+	while((dataCHThread.IsTerminated() == 0) && (IsConnected() > 0)){
+		cgDataRXSBUF.Clean();
+		CSSL_T1D_CH1.RX_Packaging(&cgDataRXSBUF);
+		if (cgDataRXSBUF.Used() > 0){
+			num = cgDataRXSBUF.Used();
+			if (CheckEnableEcho() != 0){
+				SSLWrite(cgDataRXSBUF.cgBufFIFO, -1, 0);
+				cgFwBytes += num;//Echo
+			}
+			Spin_InUse_set();
+			if (GetcgCoupleNode(this) != nullptr){
+				offset = 0;
+				slength = cgDataRXSBUF.cgBufFIFO.CalcOutLength(num, offset);
+				if (num > 0)
+					ForwardToCouple(cgDataRXSBUF.cgBufFIFO.GetOutPointer(offset),num);
+				if (slength > 0)
+					ForwardToCouple(cgDataRXSBUF.cgBufFIFO.GetOutPointer(0),slength);
+			}
+			if (GetRxFwSBufList() != nullptr)
+				GetRxFwSBufList()->LPut(cgDataRXSBUF.cgBufFIFO, -1, 0);//used for internal AP
+			Spin_InUse_clr();
+			cgDataCHSBUF.Spin_InUse_set();
+			cgDataRXSBUF.Get(&cgDataCHSBUF.cgBufFIFO, -1);
+			cgDataCHSBUF.Spin_InUse_clr();
+			continue;
+		}
+		SYS_SleepMS(2);
+	}
+	return 1;
+}
+//------------------------------------------------------------------------------------------//
+int32 SSLSocket::MessageProcessing_Handshake(FNode_MESG *RecMesg,int32 blReady){
+	std::string			strMesg,strContent;
+	CCT_AES_KEYL		newAES_type;
+	CCT_AES_MODE		newAES_mode;
+	CCT_Digest 			newDigestType;
+	G_Endian_VAILD		newEndianType;
+	int32				blDo,blRet;
+	uint32				mID;
+
+	static	CCT_AES_KEYL	oldAES_type = cgAES_type;
+	static	CCT_AES_MODE	oldAES_mode = cgAES_mode;
+	static	CCT_Digest 		oldDigestType = cgDigestType;
+	static	G_Endian_VAILD	oldEndianType = cgEndianType;
+	static	std::string		oldStrKey = cgKey;
+	static SYS_TIME_S		Time_UpdateAESKey,Time_Handshake;
+	
+	if (((ChkSSLFLAG(blUpdateKeyN) > 0) && (ChkSSLFLAG(blUpdateKeyS) == 0))
+		|| ((ChkSSLFLAG(blUpdateKeyS) > 0) && (SYS_Delay_CheckTS(&Time_UpdateAESKey) > 0))){
+		E2LogPrint(this, "MessageProcessing_Handshake()::UpdateAESKey fail");
+		SetSSLFLAG(blUpdateKeyN);
+		ClrSSLFLAG(blUpdateKeyS | blUpdateKeyY);
+		SetConfig(oldAES_type,oldAES_mode,oldDigestType,oldEndianType);
+		SetKey(oldStrKey);
+		E2LogPrint(this, "MessageProcessing_Handshake()::Using the old Key");
+	}
+	if (((ChkSSLFLAG(blHandshakeN) > 0) && (ChkSSLFLAG(blUpdateKeyS) == 0))
+		 || ((ChkSSLFLAG(blHandshakeS) > 0) && (SYS_Delay_CheckTS(&Time_Handshake) > 0))){
+		E2LogPrint(this, "MessageProcessing_Handshake()::Handshake fail, disconnect socket");
+		ClrSSLFLAG(blUpdateKeyS | blUpdateKeyY | blUpdateKeyN);
+		SetSSLFLAG(blHandshakeN);
+		ClrSSLFLAG(blHandshakeS | blHandshakeY);
+		ClrblConnected();
+	}
+	if (blReady == 0)
+		return 0;
+	blDo = 1;
+	blRet = 1;
+	RecMesg->ReadContent(&strMesg,&mID);
+	switch (mID){
+		case MESG_INI_HandshakeInit:
+			ClrSSLFLAG(blHandshakeS | blHandshakeY | blHandshakeN | blUpdateKeyS | blUpdateKeyY | blUpdateKeyN);
+			SetSSLFLAG(blHandshakeS);
+			SYS_Delay_SetTS(&Time_Handshake,HandshakeTime);
+			break;
+		case MESG_REQ_StartHandshake:
+			E2LogPrint(this, "MessageProcessing_Handshake()::Rec  MESG_REQ_StartHandshake");
+			ClrSSLFLAG(blHandshakeS | blHandshakeY | blHandshakeN | blUpdateKeyS | blUpdateKeyY | blUpdateKeyN);
+			SetSSLFLAG(blHandshakeS);
+			E2LogPrint(this, "MessageProcessing_Handshake()::Send MESG_REQ_RSAPuk");
+			SYS_Delay_SetTS(&Time_Handshake,HandshakeTime);
+			blRet = CtrlCHWrite(CCY_Encode_RSAPublicKey(&strMesg,cgRSA_Prk),MESG_REQ_RSAPuk);
+			E2LogPrint(this, "MessageProcessing_Handshake()::Send MESG_REQ_RSAPuk %s",(blRet > 0) ? "successful" : "fail");
+			break;
+		case MESG_REQ_RSAPuk:
+			E2LogPrint(this, "MessageProcessing_Handshake()::Rec  MESG_REQ_RSAPuk");
+			CCY_Decode_RSAPublicKey(&cgRSA_Puk,strMesg);
+			CCY_Encode_RSAPublicKey(&strMesg,cgRSA_Prk);
+			E2LogPrint(this, "MessageProcessing_Handshake()::Send MESG_ANS_RSAPuk");
+			SYS_Delay_SetTS(&Time_Handshake,HandshakeTime);
+			blRet = CtrlCHWrite(cgfnSignature.Encode(strMesg,cgRSA_Puk),MESG_ANS_RSAPuk);
+			E2LogPrint(this, "MessageProcessing_Handshake()::Send MESG_ANS_RSAPuk %s",(blRet > 0) ? "successful" : "fail");
+			break;
+		case MESG_ANS_RSAPuk:
+			blRet = 0;
+			E2LogPrint(this, "MessageProcessing_Handshake()::Rec  MESG_ANS_RSAPuk");
+			if (cgfnSignature.Decode(&strContent,strMesg,cgRSA_Prk) > 0){
+				CCY_Decode_RSAPublicKey(&cgRSA_Puk,strContent);
+				strMesg = Str_DecToHex(CCT_AES256);
+				strMesg += ',';
+				strMesg += Str_DecToHex(CCT_AES_CBC);
+				strMesg += ',';
+				strMesg += Str_DecToHex(CCT_SHA1);
+				strMesg += ',';
+				strMesg += Str_DecToHex(G_LITTLE_ENDIAN);
+				strMesg += ',';
+				strMesg += CCY_CreateRandKey(32);
+				E2LogPrint(this, "MessageProcessing_Handshake()::Send MESG_REQ_UpdateAESKey");
+				SYS_Delay_SetTS(&Time_Handshake,HandshakeTime);
+				blRet = CtrlCHWrite(cgfnSignature.Encode(strMesg,cgRSA_Puk),MESG_REQ_UpdateAESKey);
+				E2LogPrint(this, "MessageProcessing_Handshake()::Send MESG_REQ_UpdateAESKey %s",(blRet > 0) ? "successful" : "fail");
+			}
+			else{
+				E2LogPrint(this, "MessageProcessing_Handshake()::Fail MESG_ANS_RSAPuk,Signature");
+			}
+			break;
+		case MESG_REQ_UpdateAESKey:
+			blRet = 0;
+			E2LogPrint(this, "MessageProcessing_Handshake()::Rec  MESG_REQ_UpdateAESKey");
+			ClrSSLFLAG(blUpdateKeyS | blUpdateKeyY | blUpdateKeyN);
+			SetSSLFLAG(blUpdateKeyS);
+			if (cgfnSignature.Decode(&strContent,strMesg,cgRSA_Prk) > 0){
+				E2LogPrint(this, "MessageProcessing_Handshake()::Send MESG_ANS_UpdateAESKey");
+				SYS_Delay_SetTS(&Time_Handshake,HandshakeTime);
+				blRet = CtrlCHWrite(cgfnSignature.Encode(strContent,cgRSA_Puk),MESG_ANS_UpdateAESKey);
+				E2LogPrint(this, "MessageProcessing_Handshake()::Send MESG_ANS_UpdateAESKey %s",(blRet > 0) ? "successful" : "fail");
+				if (blRet > 0){
+					oldAES_type = cgAES_type;
+					oldAES_mode = cgAES_mode;
+					oldDigestType = cgDigestType;
+					oldEndianType = cgEndianType;
+					oldStrKey = cgKey;
+					
+					strMesg = CCY_AESKey32Bye(strContent);
+					newAES_type = (CCT_AES_KEYL)Str_HexToDec(Str_ReadSubItem(&strContent, ","));
+					newAES_mode = (CCT_AES_MODE)Str_HexToDec(Str_ReadSubItem(&strContent, ","));
+					newDigestType = (CCT_Digest)Str_HexToDec(Str_ReadSubItem(&strContent, ","));
+					newEndianType = (G_Endian_VAILD)Str_HexToDec(Str_ReadSubItem(&strContent, ","));
+					
+					SetConfig(newAES_type,newAES_mode,newDigestType,newEndianType);
+					SetKey(strMesg);
+					E2LogPrint(this, "MessageProcessing_Handshake()::Using the new Key");
+					SYS_Delay_SetTS(&Time_UpdateAESKey,HandshakeTime);
+				}
+			}
+			else{
+				E2LogPrint(this, "MessageProcessing_Handshake()::Fail MESG_REQ_UpdateAESKey,Signature");
+			}
+			break;
+		case MESG_ANS_UpdateAESKey:
+			blRet = 0;
+			E2LogPrint(this, "MessageProcessing_Handshake()::Rec  MESG_ANS_UpdateAESKey");
+			ClrSSLFLAG(blUpdateKeyS | blUpdateKeyY | blUpdateKeyN);
+			SetSSLFLAG(blUpdateKeyS);
+			if (cgfnSignature.Decode(&strContent, strMesg, cgRSA_Prk) > 0){
+				oldAES_type = cgAES_type;
+				oldAES_mode = cgAES_mode;
+				oldDigestType = cgDigestType;
+				oldEndianType = cgEndianType;
+				oldStrKey = cgKey;
+				
+				strMesg = CCY_AESKey32Bye(strContent);
+				newAES_type = (CCT_AES_KEYL)Str_HexToDec(Str_ReadSubItem(&strContent, ","));
+				newAES_mode = (CCT_AES_MODE)Str_HexToDec(Str_ReadSubItem(&strContent, ","));
+				newDigestType = (CCT_Digest)Str_HexToDec(Str_ReadSubItem(&strContent, ","));
+				newEndianType = (G_Endian_VAILD)Str_HexToDec(Str_ReadSubItem(&strContent, ","));
+				
+				SetConfig(newAES_type,newAES_mode,newDigestType,newEndianType);
+				SetKey(strMesg);
+				E2LogPrint(this, "MessageProcessing_Handshake()::Using the new Key");
+				SYS_Delay_SetTS(&Time_UpdateAESKey,HandshakeTime);
+				SYS_DelayMS(10);
+				E2LogPrint(this, "MessageProcessing_Handshake()::Send MESG_REQ_Test");
+				SYS_Delay_SetTS(&Time_Handshake,HandshakeTime);
+				blRet = CtrlCHWrite(CCY_CreateRandKey(32),MESG_REQ_Test);
+				E2LogPrint(this, "MessageProcessing_Handshake()::Send MESG_REQ_Test %s",(blRet > 0) ? "successful" : "fail");
+			}
+			else{
+				E2LogPrint(this, "MessageProcessing_Handshake()::Fail MESG_ANS_UpdateAESKey,Signature");
+			}
+			break;
+		case MESG_REQ_Test:
+			E2LogPrint(this, "MessageProcessing_Handshake()::Rec  MESG_REQ_Test");
+			E2LogPrint(this, "MessageProcessing_Handshake()::Send MESG_ANS_Test");
+			blRet = CtrlCHWrite(CCY_CreateRandKey(32),MESG_ANS_Test);
+			E2LogPrint(this, "MessageProcessing_Handshake()::Send MESG_ANS_Test %s",(blRet > 0) ? "successful" : "fail");
+			goto T1;
+		case MESG_ANS_Test:
+			E2LogPrint(this, "MessageProcessing_Handshake()::Rec  MESG_ANS_Test");
+		T1:;
+			if (ChkSSLFLAG(blUpdateKeyS) > 0){
+				SetSSLFLAG(blUpdateKeyY);
+				ClrSSLFLAG(blUpdateKeyS);
+				E2LogPrint(this, "MessageProcessing_Handshake()::UpdateAESKey success");
+			}
+			if (ChkSSLFLAG(blHandshakeS) > 0){
+				SetSSLFLAG(blHandshakeY);
+				ClrSSLFLAG(blHandshakeS);
+				E2LogPrint(this, "MessageProcessing_Handshake()::Handshake success");
+			}
+			break;
+		case MESG_REQ_CloseSocket:
+			E2LogPrint(this, "MessageProcessing_Handshake()::Rec  MESG_REQ_CloseSocket");
+			E2LogPrint(this, "MessageProcessing_Handshake()::Send MESG_ANS_CloseSocket");
+			blRet = CtrlCHWrite("",MESG_ANS_CloseSocket);
+			E2LogPrint(this, "MessageProcessing_Handshake()::Send MESG_ANS_CloseSocket %s",(blRet > 0) ? "successful" : "fail");
+			PushSend();
+			E2LogPrint(this, "MessageProcessing_Handshake()::Call ClrblConnected()");
+			SetSSLFLAG(blClose);
+			ClrblConnected();
+			break;
+		case MESG_ANS_CloseSocket:
+			E2LogPrint(this, "MessageProcessing_Handshake()::Rec  MESG_ANS_CloseSocket");
+			PushSend();
+			E2LogPrint(this, "MessageProcessing_Handshake()::Call ClrblConnected()");
+			SetSSLFLAG(blClose);
+			ClrblConnected();
+			break;
+		default:
+			blDo = 0;
+			break;
+	}
+	if (blRet == 0){
+		if (ChkSSLFLAG(blUpdateKeyS) > 0){
+			SetSSLFLAG(blUpdateKeyN);
+			ClrSSLFLAG(blUpdateKeyS);
+		}
+		if (ChkSSLFLAG(blHandshakeS) > 0){
+			SetSSLFLAG(blHandshakeN);
+			ClrSSLFLAG(blHandshakeS);
+		}
+	}
+	return(blDo);
+}
+//------------------------------------------------------------------------------------------//
+void SSLSocket::Handshake(void){
+	int32 blRet;
+	cgFIFOfnMesgTx.Empty();
+	cgfnMesgTx.SetContent("", MESG_INI_HandshakeInit);
+	MessageProcessing_Handshake(&cgfnMesgTx,1);
+	cgFIFOfnMesgTx.Empty();
+
+	if ((GetCSType() == CSType_TCPS) || (GetCSType() == CSType_UDPS))
+		return;
+	E2LogPrint(this, "Send MESG_REQ_StartHandshake");
+	blRet = CtrlCHWrite(CCY_CreateRandKey(32), MESG_REQ_StartHandshake);
+	E2LogPrint(this, "Send MESG_REQ_StartHandshake %s",(blRet > 0) ? "successful" : "fail");
+	if (blRet > 0){
+		ClrSSLFLAG(blHandshakeY);
+		SetSSLFLAG(blHandshakeS);
+	}
+	else{
+		ClrSSLFLAG(blHandshakeN);
+		ClrSSLFLAG(blHandshakeS);
+	}
 }
 //------------------------------------------------------------------------------------------//
 int32 SSLSocket::CheckHandshake(void){
-	SYS_TIME_S	Timedly;
-	SYS_Delay_SetTS(&Timedly, HandshakeTime + 1000);
-	while((CheckblHandshaked() == 0) && (IsConnected() > 0) && (SYS_Delay_CheckTS(&Timedly) == 0))
-		SYS_DelayMS(100);
-	return(1);//CheckblHandshaked());
+	while(ChkSSLFLAG(blHandshakeS) > 0)
+		SYS_SleepMS(100);
+	return(ChkSSLFLAG(blHandshakeY));
 }
 //------------------------------------------------------------------------------------------//
 ODEV_NODE *SSLSocket::CreateSelfODev(COLSTRING::COLType tCOLType){
