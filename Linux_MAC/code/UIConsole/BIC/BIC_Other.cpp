@@ -15,7 +15,7 @@
 #include "Comm_File.h"
 #include "Comm_Convert.h"
 #include "License_SSLSocket.h"
-#include "License_checker.h"
+#include "License_Checker.h"
 #include "Commu_RMS.h"
 #include "AppLayer.h"
 //------------------------------------------------------------------------------------------//

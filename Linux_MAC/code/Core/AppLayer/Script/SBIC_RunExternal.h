@@ -17,6 +17,8 @@
 #include "Comm_FIFO.h"
 #include "SYS_Thread.h"
 #ifdef CommonDefH_Unix
+#include <sys/types.h>
+#include <sys/wait.h>
 //------------------------------------------------------------------------------------------//
 class SBIC_RE_Node : public RTREE_NODE{
 	public:

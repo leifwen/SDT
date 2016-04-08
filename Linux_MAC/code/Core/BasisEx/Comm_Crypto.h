@@ -33,7 +33,7 @@ enum CCT_BASE64_NL	{CCT_NL_NO = 0,CCT_NL_YES = 1};
 #define CC_SHA1					SHA1
 
 #define CC_SHA224_DIGEST_LENGTH	SHA224_DIGEST_LENGTH
-//#define CC_SHA256_CTX			SHA256_CTX
+//#define CC_SHA224_CTX			SHA224_CTX
 #define	CC_SHA224_Init			SHA224_Init
 #define CC_SHA224_Update		SHA224_Update
 #define CC_SHA224_Final			SHA224_Final
@@ -47,7 +47,7 @@ enum CCT_BASE64_NL	{CCT_NL_NO = 0,CCT_NL_YES = 1};
 #define CC_SHA256				SHA256
 
 #define CC_SHA384_DIGEST_LENGTH	SHA384_DIGEST_LENGTH
-//#define CC_SHA512_CTX			SHA512_CTX
+//#define CC_SHA384_CTX			SHA384_CTX
 #define	CC_SHA384_Init			SHA384_Init
 #define CC_SHA384_Update		SHA384_Update
 #define CC_SHA384_Final			SHA384_Final

@@ -68,6 +68,7 @@
 		03C648931BF3B01500141D0F /* BuildInCommand.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 03C641DD1BF3B01400141D0F /* BuildInCommand.cpp */; };
 		03C648941BF3B01500141D0F /* Console.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 03C641DF1BF3B01400141D0F /* Console.cpp */; };
 		03C648951BF3B01500141D0F /* Terminal.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 03C641E11BF3B01400141D0F /* Terminal.cpp */; };
+		297D96EE1C50DC4700066FA9 /* Commu_RMS.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 297D96EC1C50DC4700066FA9 /* Commu_RMS.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -222,6 +223,8 @@
 		03C641E01BF3B01400141D0F /* Console.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Console.h; sourceTree = "<group>"; };
 		03C641E11BF3B01400141D0F /* Terminal.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Terminal.cpp; sourceTree = "<group>"; };
 		03C641E21BF3B01400141D0F /* Terminal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Terminal.h; sourceTree = "<group>"; };
+		297D96EC1C50DC4700066FA9 /* Commu_RMS.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Commu_RMS.cpp; sourceTree = "<group>"; };
+		297D96ED1C50DC4700066FA9 /* Commu_RMS.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Commu_RMS.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -429,6 +432,8 @@
 		03C638721BF3B00300141D0F /* Communication */ = {
 			isa = PBXGroup;
 			children = (
+				297D96EC1C50DC4700066FA9 /* Commu_RMS.cpp */,
+				297D96ED1C50DC4700066FA9 /* Commu_RMS.h */,
 				03C638731BF3B00300141D0F /* Commu_Com.cpp */,
 				03C638741BF3B00300141D0F /* Commu_Com.h */,
 				03C638751BF3B00300141D0F /* Commu_DBuf.cpp */,
@@ -676,6 +681,7 @@
 				03C6488D1BF3B01500141D0F /* BIC_CMUX.cpp in Sources */,
 				03C641EB1BF3B01400141D0F /* SBIC_Condition.cpp in Sources */,
 				03C641F71BF3B01400141D0F /* Comm_Buffer.cpp in Sources */,
+				297D96EE1C50DC4700066FA9 /* Commu_RMS.cpp in Sources */,
 				03C641FE1BF3B01400141D0F /* Commu_NTPServer.cpp in Sources */,
 				03C6488B1BF3B01500141D0F /* BIC_B.cpp in Sources */,
 				03C641F51BF3B01400141D0F /* Comm_Tree.cpp in Sources */,

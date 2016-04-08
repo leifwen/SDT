@@ -92,7 +92,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>false</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\Linux_MAC\code\Core;$(SolutionDir)..\Linux_MAC\code\Core\AppLayer;$(SolutionDir)..\Linux_MAC\code\Core\AppLayer\Script;$(SolutionDir)..\Linux_MAC\code\Core\Basis;$(SolutionDir)..\Linux_MAC\code\Core\BasisEx;$(SolutionDir)..\Linux_MAC\code\Core\Output;$(SolutionDir)..\Linux_MAC\code\Core\Communication;$(SolutionDir)..\Linux_MAC\code\Core\Linecse;$(SolutionDir)..\Linux_MAC\code\Core\Win7;$(SolutionDir)..\Linux_MAC\code\Core\Win7\MBIM;$(SolutionDir)..\Linux_MAC\code\UIConsole;$(SolutionDir)..\Linux_MAC\code\UIConsole\BIC;$(SolutionDir).\SDT;$(SolutionDir).\SDTReg</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\Linux_MAC\code\Core;$(SolutionDir)..\Linux_MAC\code\Core\AppLayer;$(SolutionDir)..\Linux_MAC\code\Core\AppLayer\Script;$(SolutionDir)..\Linux_MAC\code\Core\Basis;$(SolutionDir)..\Linux_MAC\code\Core\BasisEx;$(SolutionDir)..\Linux_MAC\code\Core\Output;$(SolutionDir)..\Linux_MAC\code\Core\Communication;$(SolutionDir)..\Linux_MAC\code\Core\License;$(SolutionDir)..\Linux_MAC\code\Core\Win7;$(SolutionDir)..\Linux_MAC\code\Core\Win7\MBIM;$(SolutionDir)..\Linux_MAC\code\UIConsole;$(SolutionDir)..\Linux_MAC\code\UIConsole\BIC;$(SolutionDir).\SDT;$(SolutionDir).\SDTReg</AdditionalIncludeDirectories>
       <ExceptionHandling>Async</ExceptionHandling>
     </ClCompile>
     <Link>
@@ -155,10 +155,10 @@
     <ClInclude Include="..\..\Linux_MAC\code\Core\Communication\Commu_SSLSocket.h" />
     <ClInclude Include="..\..\Linux_MAC\code\Core\Global.h" />
     <ClInclude Include="..\..\Linux_MAC\code\Core\GlobalDef.h" />
-    <ClInclude Include="..\..\Linux_MAC\code\Core\Linecse\License_Checker.h" />
-    <ClInclude Include="..\..\Linux_MAC\code\Core\Linecse\License_SSLSocket.h" />
-    <ClInclude Include="..\..\Linux_MAC\code\Core\Linecse\SMC.h" />
-    <ClInclude Include="..\..\Linux_MAC\code\Core\Linecse\SystemInfo.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\Core\License\License_Checker.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\Core\License\License_SSLSocket.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\Core\License\SMC.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\Core\License\SystemInfo.h" />
     <ClInclude Include="..\..\Linux_MAC\code\Core\Output\ColorRecord.h" />
     <ClInclude Include="..\..\Linux_MAC\code\Core\Output\ODEV_FILE.h" />
     <ClInclude Include="..\..\Linux_MAC\code\Core\Output\ODEV_Include.h" />
@@ -230,10 +230,10 @@
     <ClCompile Include="..\..\Linux_MAC\code\Core\Communication\Commu_Socket.cpp" />
     <ClCompile Include="..\..\Linux_MAC\code\Core\Communication\Commu_SocketServer.cpp" />
     <ClCompile Include="..\..\Linux_MAC\code\Core\Communication\Commu_SSLSocket.cpp" />
-    <ClCompile Include="..\..\Linux_MAC\code\Core\Linecse\License_Checker.cpp" />
-    <ClCompile Include="..\..\Linux_MAC\code\Core\Linecse\License_SSLSocket.cpp" />
-    <ClCompile Include="..\..\Linux_MAC\code\Core\Linecse\SMC.cpp" />
-    <ClCompile Include="..\..\Linux_MAC\code\Core\Linecse\SystemInfo.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\Core\License\License_Checker.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\Core\License\License_SSLSocket.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\Core\License\SMC.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\Core\License\SystemInfo.cpp" />
     <ClCompile Include="..\..\Linux_MAC\code\Core\Output\ColorRecord.cpp" />
     <ClCompile Include="..\..\Linux_MAC\code\Core\Output\ODEV_FILE.cpp" />
     <ClCompile Include="..\..\Linux_MAC\code\Core\Output\ODEV_LIST.cpp" />

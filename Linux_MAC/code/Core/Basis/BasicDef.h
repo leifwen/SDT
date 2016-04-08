@@ -70,6 +70,10 @@ enum	G_Endian_VAILD	{G_LITTLE_ENDIAN = 0,G_BIG_ENDIAN};
 #include <string>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#ifdef CommonDefH_Unix
+	#include <unistd.h>
+#endif
 //------------------------------------------------------------------------------------------//
 #include "GlobalDef.h"
 //------------------------------------------------------------------------------------------//

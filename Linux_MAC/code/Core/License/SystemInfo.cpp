@@ -878,7 +878,7 @@ void SystemInfo_GetCPUID(std::string *stringData){
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 #endif
-#ifdef CommonDefH_Unix
+#ifdef CommonDefH_MAC
 #include <net/if.h>
 #include <sys/ioctl.h>
 #include <net/if_dl.h>
@@ -936,5 +936,11 @@ const std::string &SystemInfo_GetNetCardInfo(std::string *retStr){
 	*retStr += '\r';
 	return(*retStr);
 }
-//------------------------------------------------------------------------------------------//
 #endif
+#ifdef CommonDefH_Linux
+const std::string &SystemInfo_GetNetCardInfo(std::string *retStr){
+	*retStr += '\r';
+	return(*retStr);
+};
+#endif
+//------------------------------------------------------------------------------------------//

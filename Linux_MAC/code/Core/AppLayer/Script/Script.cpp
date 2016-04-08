@@ -240,7 +240,6 @@ int32 Script::ExecuteGroupList(GC_LIST *tGroupList,const int32 &runTotalTimes){
 //------------------------------------------------------------------------------------------//
 int32 Script::ExecuteGroup(COMMAND_GROUP *tGroup,const int32 &runTotalTimes,int32 blType){
 	int32			blRun,frameTimeout,exitType,cycleTimes,runTimes;
-	COMMAND_NODE	*tCommandNode;
 	std::string		strRecData,strRET,strTemp,stringCommand,resultLable,retCMDLable,strTempData;
 	SYS_TIME_S		timeS;
 	strRecData = "";
@@ -283,7 +282,6 @@ int32 Script::ExecuteGroup(COMMAND_GROUP *tGroup,const int32 &runTotalTimes,int3
 				frameTimeout = 200;
 			SYS_Delay_SetTS(&timeS,frameTimeout);
 			exitType = ExecuteCommand(operateNode_t,frameTimeout);
-			tCommandNode = cgSBICPAR.cgCommand;
 			if (exitType == 3){//stop
 				SYS_DelayMS(50,&cgSBICPAR.blExit);
 				break;

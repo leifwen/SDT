@@ -1272,12 +1272,10 @@ int32 BIC_GCM_DEL::Help(BICPAR *tBICPAR, int32 blDetail)const{
 }
 //------------------------------------------------------------------------------------------//
 int32 BIC_GCM_DEL::Command(BICPAR *tBICPAR, const std::string &par,std::string *ret)const{
-	COMMAND_GROUP	*nextGroup;
 	std::string		strPar1,strPar2;
 	uint32			groupDID;
 	
 	*ret = "";
-	nextGroup = nullptr;
 	tBICPAR->sdtApp->m_GCList.Spin_InUse_set();
 	if (par.length() > 0){
 		strPar2 = par;

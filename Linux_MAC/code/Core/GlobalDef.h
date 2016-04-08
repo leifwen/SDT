@@ -23,7 +23,7 @@
 	//#undef USE_OPENSSL
 #endif
 #ifdef CommonDefH_Linux
-	#undef USE_OPENSSL
+	//#undef USE_OPENSSL
 #endif
 /***************************************************************************************/
 #define		SWVERSION_COM

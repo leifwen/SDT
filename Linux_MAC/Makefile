@@ -60,7 +60,7 @@ ARFLAGS = rc
 CFLAGS	+=
 
 #c file compile parameters and linked libraries
-CPPFLAGS    = -Wall -std=c++0x -ggdb
+CPPFLAGS    = -Wall -std=c++0x -ggdb -lssl -lcrypto
 LDFLAGS	    = -lpthread
 XLDFLAGS	= -Xlinker "-(" $(LDFLAGS) -Xlinker "-)"
 LDLIBS		+= -L $(LIBDIR) 

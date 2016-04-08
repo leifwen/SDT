@@ -159,7 +159,7 @@ const SYS_DateTime &SYS_MinusDateTime(SYS_DateTime *tRetDateTime,const SYS_DateT
 	__darwin_suseconds_t tv_usec;
 #endif
 #ifdef CommonDefH_Linux
-	suseconds_t tv_usec
+	suseconds_t tv_usec;
 #endif
 	tRetDateTime->gDateTime.tv_sec = tStrartDateTime.gDateTime.tv_sec - tEndDateTime.gDateTime.tv_sec;
 	tv_usec = tStrartDateTime.gDateTime.tv_usec;
@@ -245,7 +245,7 @@ const SYS_DateTime &SYS_AddDateTime(SYS_DateTime *tRetDateTime,const SYS_DateTim
 	__darwin_suseconds_t tv_usec;
 #endif
 #ifdef CommonDefH_Linux
-	suseconds_t tv_usec
+	suseconds_t tv_usec;
 #endif
 	tRetDateTime->gDateTime.tv_sec = tStrartDateTime.gDateTime.tv_sec + tEndDateTime.gDateTime.tv_sec;
 	tv_usec = tStrartDateTime.gDateTime.tv_usec + tEndDateTime.gDateTime.tv_usec;

@@ -63,7 +63,7 @@
     <Filter Include="_Core\Win7\MBIM">
       <UniqueIdentifier>{c9a3e35b-de44-4e15-8933-f58b8c0129c7}</UniqueIdentifier>
     </Filter>
-    <Filter Include="_Core\Linecse">
+    <Filter Include="_Core\License">
       <UniqueIdentifier>{168e48f0-5997-4958-b0c0-50e2a89210f3}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
@@ -296,20 +296,20 @@
     <ClInclude Include="..\..\Linux_MAC\code\Core\Communication\Commu_SSLSocket.h">
       <Filter>_Core\Communication</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Linux_MAC\code\Core\Linecse\License_Checker.h">
-      <Filter>_Core\Linecse</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Linux_MAC\code\Core\Linecse\License_SSLSocket.h">
-      <Filter>_Core\Linecse</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Linux_MAC\code\Core\Linecse\SMC.h">
-      <Filter>_Core\Linecse</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Linux_MAC\code\Core\Linecse\SystemInfo.h">
-      <Filter>_Core\Linecse</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Linux_MAC\code\Core\Communication\Commu_RMS.h">
       <Filter>_Core\Communication</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Linux_MAC\code\Core\License\License_Checker.h">
+      <Filter>_Core\License</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Linux_MAC\code\Core\License\License_SSLSocket.h">
+      <Filter>_Core\License</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Linux_MAC\code\Core\License\SMC.h">
+      <Filter>_Core\License</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Linux_MAC\code\Core\License\SystemInfo.h">
+      <Filter>_Core\License</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -508,20 +508,20 @@
     <ClCompile Include="..\..\Linux_MAC\code\Core\Communication\Commu_SSLSocket.cpp">
       <Filter>_Core\Communication</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Linux_MAC\code\Core\Linecse\License_Checker.cpp">
-      <Filter>_Core\Linecse</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Linux_MAC\code\Core\Linecse\License_SSLSocket.cpp">
-      <Filter>_Core\Linecse</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Linux_MAC\code\Core\Linecse\SMC.cpp">
-      <Filter>_Core\Linecse</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Linux_MAC\code\Core\Linecse\SystemInfo.cpp">
-      <Filter>_Core\Linecse</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Linux_MAC\code\Core\Communication\Commu_RMS.cpp">
       <Filter>_Core\Communication</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Linux_MAC\code\Core\License\License_Checker.cpp">
+      <Filter>_Core\License</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Linux_MAC\code\Core\License\License_SSLSocket.cpp">
+      <Filter>_Core\License</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Linux_MAC\code\Core\License\SMC.cpp">
+      <Filter>_Core\License</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Linux_MAC\code\Core\License\SystemInfo.cpp">
+      <Filter>_Core\License</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

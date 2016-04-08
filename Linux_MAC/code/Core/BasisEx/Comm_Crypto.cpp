@@ -820,7 +820,7 @@ const FIFO_UINT8 &CCY_Decrypt_AES(FIFO_UINT8 *retfifo,const FIFO_UINT8 &fifo,uin
 }
 //------------------------------------------------------------------------------------------//
 #endif
-#if (defined USE_OPENSSL) && (defined CommonDefH_VC)
+#if (defined USE_OPENSSL) && ((defined CommonDefH_VC) || (defined CommonDefH_Linux))
 enum{EncryptType = 0,DecryptType};
 //------------------------------------------------------------------------------------------//
 void CCY_AES_Init(EVP_CIPHER_CTX &ctx, int32 op, const std::string &sKey, CCT_AES_KEYL type, CCT_AES_MODE mode){

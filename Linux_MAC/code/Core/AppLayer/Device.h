@@ -30,8 +30,8 @@ class ExpandDevFlag{
 			com = "/dev/ttyUSB0";
 			baudrate = 115200;
             comType = 0;
-			tcpIP = "www.leifwen.com";
-			tcpPort = 80;
+			tcpIP = "leifwen.com";
+			tcpPort = 9527;
 			udpIP = "127.0.0.1";
 			udpPort = 8192;
 			tcpsPort = 9527;

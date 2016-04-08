@@ -303,7 +303,7 @@ int32 APICOM::SetBaudrate_Do(int32 tCDBufPar){
 				}
 #endif
 #ifdef CommonDefH_Linux
-				Close();
+				Close_Do();
 				return 0;
 #endif
 			}

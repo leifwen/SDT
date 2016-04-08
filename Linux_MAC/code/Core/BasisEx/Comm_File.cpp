@@ -279,7 +279,7 @@ FILE_NODE::FT FILE_NODE::FillBasicInfoToNode(FILE_NODE *tNode,const std::string 
 	tNode->cgLastModifyTime = nodeInfo.st_mtimespec.tv_sec;
 #endif
 #ifdef CommonDefH_Linux
-	tNode->cgLastModifyTime = ;
+	tNode->cgLastModifyTime = 0;
 #endif
 	tNode->cgAttrib = 0;
 	
