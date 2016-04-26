@@ -69,14 +69,17 @@ int32 BIC_CALC_MD5::Help(BICPAR *tBICPAR,int32 blDetail)const{
 }
 //------------------------------------------------------------------------------------------//
 int32 BIC_CALC_MD5::Command(BICPAR *tBICPAR, const std::string &par,std::string *ret)const{
+	std::string	strPar;
+	strPar = par;
+	strPar = Str_SplitSubItem(&strPar, ' ');
 	if (par.length() > 0){
 		if (CFS_CheckFile(par) > 0){
 			PrintStrN(tBICPAR, "FileName: ", RICH_LIN_clBlue);
 			PrintStr(tBICPAR, par, RICH_LIN_clCyan);
 			PrintStrN(tBICPAR, "FileSize: ", RICH_LIN_clBlue);
-			PrintStr(tBICPAR, Str_Int64ToString(CFS_CheckFileSize(par)), RICH_LIN_clCyan);
+			PrintStr(tBICPAR, Str_Int64ToString(CFS_CheckFileSize(strPar)), RICH_LIN_clCyan);
 			PrintStrN(tBICPAR, "MD5:      ", RICH_LIN_clBlue);
-			PrintStr(tBICPAR, Str_ASCIIToHEX(CCY_DigestFile_MD5(par),G_ESCAPE_OFF), RICH_LIN_clCyan);
+			PrintStr(tBICPAR, Str_ASCIIToHEX(CCY_DigestFile_MD5(strPar),G_ESCAPE_OFF), RICH_LIN_clCyan);
 		}
 		else{
 			PrintStrN(tBICPAR, "Input:  ", RICH_LIN_clBlue);
@@ -99,14 +102,17 @@ int32 BIC_CALC_SHA1::Help(BICPAR *tBICPAR,int32 blDetail)const{
 }
 //------------------------------------------------------------------------------------------//
 int32 BIC_CALC_SHA1::Command(BICPAR *tBICPAR, const std::string &par,std::string *ret)const{
+	std::string	strPar;
+	strPar = par;
+	strPar = Str_SplitSubItem(&strPar, ' ');
 	if (par.length() > 0){
 		if (CFS_CheckFile(par) > 0){
 			PrintStrN(tBICPAR, "FileName: ", RICH_LIN_clBlue);
 			PrintStr(tBICPAR, par, RICH_LIN_clCyan);
 			PrintStrN(tBICPAR, "FileSize: ", RICH_LIN_clBlue);
-			PrintStr(tBICPAR, Str_Int64ToString(CFS_CheckFileSize(par)), RICH_LIN_clCyan);
+			PrintStr(tBICPAR, Str_Int64ToString(CFS_CheckFileSize(strPar)), RICH_LIN_clCyan);
 			PrintStrN(tBICPAR, "SHA1:     ", RICH_LIN_clBlue);
-			PrintStr(tBICPAR, Str_ASCIIToHEX(CCY_DigestFile_SHA1(par),G_ESCAPE_OFF), RICH_LIN_clCyan);
+			PrintStr(tBICPAR, Str_ASCIIToHEX(CCY_DigestFile_SHA1(strPar),G_ESCAPE_OFF), RICH_LIN_clCyan);
 		}
 		else{
 			PrintStrN(tBICPAR, "Input:  ", RICH_LIN_clBlue);
@@ -129,14 +135,17 @@ int32 BIC_CALC_SHA224::Help(BICPAR *tBICPAR,int32 blDetail)const{
 }
 //------------------------------------------------------------------------------------------//
 int32 BIC_CALC_SHA224::Command(BICPAR *tBICPAR, const std::string &par,std::string *ret)const{
+	std::string	strPar;
+	strPar = par;
+	strPar = Str_SplitSubItem(&strPar, ' ');
 	if (par.length() > 0){
 		if (CFS_CheckFile(par) > 0){
 			PrintStrN(tBICPAR, "FileName: ", RICH_LIN_clBlue);
 			PrintStr(tBICPAR, par, RICH_LIN_clCyan);
 			PrintStrN(tBICPAR, "FileSize: ", RICH_LIN_clBlue);
-			PrintStr(tBICPAR, Str_Int64ToString(CFS_CheckFileSize(par)), RICH_LIN_clCyan);
+			PrintStr(tBICPAR, Str_Int64ToString(CFS_CheckFileSize(strPar)), RICH_LIN_clCyan);
 			PrintStrN(tBICPAR, "SHA224:   ", RICH_LIN_clBlue);
-			PrintStr(tBICPAR, Str_ASCIIToHEX(CCY_DigestFile_SHA224(par),G_ESCAPE_OFF), RICH_LIN_clCyan);
+			PrintStr(tBICPAR, Str_ASCIIToHEX(CCY_DigestFile_SHA224(strPar),G_ESCAPE_OFF), RICH_LIN_clCyan);
 		}
 		else{
 			PrintStrN(tBICPAR, "Input:  ", RICH_LIN_clBlue);
@@ -159,14 +168,17 @@ int32 BIC_CALC_SHA256::Help(BICPAR *tBICPAR,int32 blDetail)const{
 }
 //------------------------------------------------------------------------------------------//
 int32 BIC_CALC_SHA256::Command(BICPAR *tBICPAR, const std::string &par,std::string *ret)const{
+	std::string	strPar;
+	strPar = par;
+	strPar = Str_SplitSubItem(&strPar, ' ');
 	if (par.length() > 0){
 		if (CFS_CheckFile(par) > 0){
 			PrintStrN(tBICPAR, "FileName: ", RICH_LIN_clBlue);
 			PrintStr(tBICPAR, par, RICH_LIN_clCyan);
 			PrintStrN(tBICPAR, "FileSize: ", RICH_LIN_clBlue);
-			PrintStr(tBICPAR, Str_Int64ToString(CFS_CheckFileSize(par)), RICH_LIN_clCyan);
+			PrintStr(tBICPAR, Str_Int64ToString(CFS_CheckFileSize(strPar)), RICH_LIN_clCyan);
 			PrintStrN(tBICPAR, "SHA256:   ", RICH_LIN_clBlue);
-			PrintStr(tBICPAR, Str_ASCIIToHEX(CCY_DigestFile_SHA256(par),G_ESCAPE_OFF), RICH_LIN_clCyan);
+			PrintStr(tBICPAR, Str_ASCIIToHEX(CCY_DigestFile_SHA256(strPar),G_ESCAPE_OFF), RICH_LIN_clCyan);
 		}
 		else{
 			PrintStrN(tBICPAR, "Input:  ", RICH_LIN_clBlue);
@@ -189,14 +201,17 @@ int32 BIC_CALC_SHA384::Help(BICPAR *tBICPAR,int32 blDetail)const{
 }
 //------------------------------------------------------------------------------------------//
 int32 BIC_CALC_SHA384::Command(BICPAR *tBICPAR, const std::string &par,std::string *ret)const{
+	std::string	strPar;
+	strPar = par;
+	strPar = Str_SplitSubItem(&strPar, ' ');
 	if (par.length() > 0){
 		if (CFS_CheckFile(par) > 0){
 			PrintStrN(tBICPAR, "FileName: ", RICH_LIN_clBlue);
 			PrintStr(tBICPAR, par, RICH_LIN_clCyan);
 			PrintStrN(tBICPAR, "FileSize: ", RICH_LIN_clBlue);
-			PrintStr(tBICPAR, Str_Int64ToString(CFS_CheckFileSize(par)), RICH_LIN_clCyan);
+			PrintStr(tBICPAR, Str_Int64ToString(CFS_CheckFileSize(strPar)), RICH_LIN_clCyan);
 			PrintStrN(tBICPAR, "SHA384:   ", RICH_LIN_clBlue);
-			PrintStr(tBICPAR, Str_ASCIIToHEX(CCY_DigestFile_SHA384(par),G_ESCAPE_OFF), RICH_LIN_clCyan);
+			PrintStr(tBICPAR, Str_ASCIIToHEX(CCY_DigestFile_SHA384(strPar),G_ESCAPE_OFF), RICH_LIN_clCyan);
 		}
 		else{
 			PrintStrN(tBICPAR, "Input:  ", RICH_LIN_clBlue);
@@ -219,14 +234,17 @@ int32 BIC_CALC_SHA512::Help(BICPAR *tBICPAR,int32 blDetail)const{
 }
 //------------------------------------------------------------------------------------------//
 int32 BIC_CALC_SHA512::Command(BICPAR *tBICPAR, const std::string &par,std::string *ret)const{
-	if (par.length() > 0){
+	std::string	strPar;
+	strPar = par;
+	strPar = Str_SplitSubItem(&strPar, ' ');
+		if (par.length() > 0){
 		if (CFS_CheckFile(par) > 0){
 			PrintStrN(tBICPAR, "FileName: ", RICH_LIN_clBlue);
 			PrintStr(tBICPAR, par, RICH_LIN_clCyan);
 			PrintStrN(tBICPAR, "FileSize: ", RICH_LIN_clBlue);
-			PrintStr(tBICPAR, Str_Int64ToString(CFS_CheckFileSize(par)), RICH_LIN_clCyan);
+			PrintStr(tBICPAR, Str_Int64ToString(CFS_CheckFileSize(strPar)), RICH_LIN_clCyan);
 			PrintStrN(tBICPAR, "SHA512:   ", RICH_LIN_clBlue);
-			PrintStr(tBICPAR, Str_ASCIIToHEX(CCY_DigestFile_SHA512(par),G_ESCAPE_OFF), RICH_LIN_clCyan);
+			PrintStr(tBICPAR, Str_ASCIIToHEX(CCY_DigestFile_SHA512(strPar),G_ESCAPE_OFF), RICH_LIN_clCyan);
 		}
 		else{
 			PrintStrN(tBICPAR, "Input:  ", RICH_LIN_clBlue);
@@ -254,12 +272,15 @@ int32 BIC_CALC_BASE64::Help(BICPAR *tBICPAR,int32 blDetail)const{
 //------------------------------------------------------------------------------------------//
 int32 BIC_CALC_BASE64::Command(BICPAR *tBICPAR, const std::string &par,std::string *ret)const{
 	std::string		par1,par2,par3,parR,strRet;
-	parR = Str_Trim(par);
-	par1 = Str_Trim(Str_ReadSubItem(&parR, " "));
+	std::string	strPar;
+	parR = par;
+	strPar = Str_SplitSubItem(&parR, ' ');
 	if ((par1 == "+") || (par1 == "-")){
 		if (parR.length() > 0){
 			par3 = parR;
-			par2 = Str_Trim(Str_ReadSubItem(&par3, " "));
+			par2 = Str_Trim(Str_SplitSubItem(&par3, ' '));
+			par3 = Str_Trim(par3);
+			par3 = Str_SplitSubItem(&par3, ' ');
 			
 			if (CFS_CheckFile(par2) > 0){
 				if (par3.length() > 0){

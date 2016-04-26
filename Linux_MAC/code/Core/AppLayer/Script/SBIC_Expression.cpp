@@ -24,12 +24,12 @@ int32 SBIC_Expression::Help(SBICPAR *tBICPAR,int32 blDetail)const{
 int32 SBIC_Expression::Command(SBICPAR *tBICPAR,const std::string &par,std::string *ret)const{
 	
 	*ret = 'F';
-	if ((tBICPAR != nullptr) && (Expression(tBICPAR,tBICPAR->cgRecvbuf,par) > 0))
+	if ((tBICPAR != nullptr) && (Expression(tBICPAR,par) > 0))
 		*ret = 'T';
 	return(cgReturnCode);
 }
 //------------------------------------------------------------------------------------------//
-void SBIC_Expression::FormatString(const std::string &strInput,std::string *returnStr) const{
+void SBIC_Expression::FormatString(const std::string &strInput,std::string *returnStr){
 	//control char :&& || & | [] !
 	//formate to HEX without space
 	//escape && || & | [] !
@@ -88,7 +88,7 @@ void SBIC_Expression::FormatString(const std::string &strInput,std::string *retu
 	*returnStr += ']';
 }
 //------------------------------------------------------------------------------------------//
-void SBIC_Expression::GetPoland(const std::string &expressions,std::string *polandQueue) const{
+void SBIC_Expression::GetPoland(const std::string &expressions,std::string *polandQueue){
 	std::string		stackT,strExp;
 	std::string		dataT,dataT2;
 	
@@ -136,7 +136,7 @@ void SBIC_Expression::GetPoland(const std::string &expressions,std::string *pola
 	}
 }
 //------------------------------------------------------------------------------------------//
-int32 SBIC_Expression::Expression(SBICPAR *tBICPAR,const std::string &strSource,const std::string &condition) const{
+int32 SBIC_Expression::Expression(SBICPAR *tBICPAR,const std::string &condition) const{
 	std::string		dataT,strPDQueue,strRet,fdata1,fdata2,strSub,strSR,caclRet;
 	
 	GetPoland(condition,&strPDQueue);
@@ -215,7 +215,7 @@ int32 SBIC_Wait::Command(SBICPAR *tBICPAR,const std::string &par,std::string *re
 		do{
 			if (tBICPAR->cgBuffer != nullptr)
 				tBICPAR->cgBuffer->GetInHEX(&tBICPAR->cgRecvbuf,G_SPACE_OFF);
-		}while(!(tBICPAR->blExit != 0 || SYS_Delay_CheckTS(&timeS) != 0 || cgSubC_Expression.Expression(tBICPAR,tBICPAR->cgRecvbuf,strPar2) != 0));
+		}while(!(tBICPAR->blExit != 0 || SYS_Delay_CheckTS(&timeS) != 0 || cgSubC_Expression.Expression(tBICPAR,strPar2) != 0));
 	}
 	return(cgReturnCode);
 }
@@ -254,7 +254,7 @@ int32 SBIC_GOTO::Command(SBICPAR *tBICPAR,const std::string &par,std::string *re
 		strPar2 = par;
 		strPar1 = Str_Trim(Str_ReadSubItem(&strPar2,","));
 		Str_TrimSelf(strPar2);
-		if (strPar2.length() == 0 || cgSubC_Expression.Expression(tBICPAR,tBICPAR->cgRecvbuf,strPar2) != 0){
+		if (strPar2.length() == 0 || cgSubC_Expression.Expression(tBICPAR,strPar2) != 0){
 			if ((tBICPAR->cgDevice->cEDevFlag.blEnablePrintSBICinfo != 0) && (tBICPAR->cgDevice->cEDevFlag.blCommandExplain != 0)){
 				strTempData = SYS_MakeTimeNow();
 				strTempData += " Try to execute: ";

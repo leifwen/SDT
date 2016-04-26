@@ -156,12 +156,12 @@ class COLSTRING : public RTREE_NODE{
 		std::string::size_type	UnreadLength;
 		void					UpdateLastChar(const std::string &inputStr);\
 	protected:
-		COLType			cgCOLType;
-		std::string		GetLastChar	(void)const{return(LastChar);};
-		void			ChageType	(COLType tCOLType,G_LOCK_VAILD blLock = G_LOCK_ON);
+				COLType			cgCOLType;
+		inline	std::string		GetLastChar	(void)const{return(LastChar);};
+				void			ChageType	(COLType tCOLType,G_LOCK_VAILD blLock = G_LOCK_ON);
 	public:
-		uint64			GetUnreadLength(G_LOCK_VAILD blLock = G_LOCK_ON);
-		virtual	void	Clean		(G_LOCK_VAILD blLock = G_LOCK_ON);
+		uint64			GetUnreadLength	(G_LOCK_VAILD blLock = G_LOCK_ON);
+		virtual	void	Clean			(G_LOCK_VAILD blLock = G_LOCK_ON);
 				void	WriteToStr	(const std::string &strContent,const std::string &rColor,COLEnforcePrint blEP = COL_EP_NO,G_LOCK_VAILD blLock = G_LOCK_ON);
 				void	WriteToStrN	(const std::string &strContent,const std::string &rColor,COLEnforcePrint blEP = COL_EP_NO,G_LOCK_VAILD blLock = G_LOCK_ON);
 		const	std::string &ReadStr(std::string *retStr,G_LOCK_VAILD blLock = G_LOCK_ON);

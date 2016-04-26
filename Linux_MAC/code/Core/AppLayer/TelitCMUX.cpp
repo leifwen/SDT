@@ -149,10 +149,10 @@ uint8 CMUX_FRAME::CalcFCS(void){
 	
 	FCS = 0xFF;
 	charTemp = 0;
-	len = (fn_Control_Type.GetValueAMask(GetcgDefFifo(this)) == CMUX_CTRL_UIH) ? fn_Info.GetOffset() : (fn_LengthIndicator.GetOffset() + fn_LengthIndicator.GetLength());
+	len = (fn_Control_Type.GetValueAMask(GetcgDefFifo()) == CMUX_CTRL_UIH) ? fn_Info.GetOffset() : (fn_LengthIndicator.GetOffset() + fn_LengthIndicator.GetLength());
 	i = fnOffset;
 	while(++i < len){
-		if (GetcgDefFifo(this)->Read(&charTemp,1,i) == 1)
+		if (GetcgDefFifo()->Read(&charTemp,1,i) == 1)
 			FCS = CMUX_crctable[FCS ^ charTemp];
 	}
 	return(0xFF - FCS);
@@ -161,7 +161,7 @@ uint8 CMUX_FRAME::CalcFCS(void){
 std::string CMUX_FRAME::CreateCMuxCrtlFrame(uint8 vPort,uint8 ctrlType,uint8 crBit){
 	std::string			strResult;
 
-	GetcgDefFifo(this)->Empty();
+	GetcgDefFifo()->Empty();
 	HoldOffset();
 
 	fn_Head.SetFIFOFixValue();									//0:Head Flag
@@ -182,7 +182,7 @@ std::string CMUX_FRAME::CreateCMuxUIHFrame(uint8 vPort,const FIFO_UINT8 &info,ui
 	uint16	len;
 	uint32	num;
 	
-	GetcgDefFifo(this)->Empty();
+	GetcgDefFifo()->Empty();
 	HoldOffset();
 
 	fn_Head.SetFIFOFixValue();									//0:Head Flag
@@ -216,7 +216,7 @@ std::string CMUX_FRAME::CreateCMuxUIHFrame(uint8 vPort,const std::string &info,u
 	uint16	len;
 	uint32	num;
 	
-	GetcgDefFifo(this)->Empty();
+	GetcgDefFifo()->Empty();
 	HoldOffset();
 	fn_Head.SetFIFOFixValue();									//0:Head Flag
 	fn_Address.SetFIFO_1Byte((vPort << 2) | crBit | CMUX_EA_BIT);//1:Address field

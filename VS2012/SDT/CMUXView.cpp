@@ -1,4 +1,4 @@
-// This MFC Samples source code demonstrates using MFC Microsoft Office Fluent User Interface 
+ï»¿// This MFC Samples source code demonstrates using MFC Microsoft Office Fluent User Interface 
 // (the "Fluent UI") and is provided only as referential material to supplement the 
 // Microsoft Foundation Classes Reference and related electronic documentation 
 // included with the MFC C++ library software.  
@@ -44,7 +44,7 @@ CCMUXView::CCMUXView(void){
 		,CLIP_DEFAULT_PRECIS		// nClipPrecision
 		,DEFAULT_QUALITY			// nQuality
 		,DEFAULT_PITCH | FF_SWISS	// nPitchAndFamily
-		,_T("ËÎÌå"));				//Courier New
+		,_T("å®‹ä½“"));				//Courier New
 }
 //------------------------------------------------------------------------------------------//
 BEGIN_MESSAGE_MAP(CCMUXView, CView)
@@ -209,7 +209,9 @@ CCMUXCOMCtrl::CCMUXCOMCtrl(void){
 	m_Title = "";
 	m_ComNumber = 0;
 	m_blConnect = FALSE;
+#ifdef	SWVERSION_CMUX
 	m_CMUXCOM = NULL;
+#endif
 }
 //------------------------------------------------------------------------------------------//
 IMPLEMENT_DYNCREATE(CCMUXCOMCtrl, CView)

@@ -1673,7 +1673,7 @@ int32 CCY_FN_AES_MK::ReadContent(std::string *retStr,const std::string &strMulit
 	uint32		tOffset;
 	
 	if (fifobuf == nullptr)
-		fifobuf = GetcgDefFifo(this);
+		fifobuf = GetcgDefFifo();
 	
 	tOffset = GetContentOffset();
 	while(tOffset < fifobuf->Used()){
@@ -1744,7 +1744,7 @@ void CCY_FR_Signature::Init(uint32 fifoSize,CCT_AES_KEYL type,CCT_AES_MODE mode,
 //------------------------------------------------------------------------------------------//
 const CCY_FR_Signature&	CCY_FR_Signature::Encode(const FIFO_UINT8 &fifoIn,uint32 num,uint32 offset,RSA *rsa_puk){
 	std::string	strContent,sKey;
-	GetcgDefFifo(this)->Empty();
+	GetcgDefFifo()->Empty();
 	HoldOffset();
 	sKey			= CCY_CreateRandKey(32);
 	fnlc_sKey		= CCY_Encrypt_RSAPublicKey(&strContent, sKey, rsa_puk);
@@ -1756,7 +1756,7 @@ const CCY_FR_Signature&	CCY_FR_Signature::Encode(const FIFO_UINT8 &fifoIn,uint32
 //------------------------------------------------------------------------------------------//
 const CCY_FR_Signature& CCY_FR_Signature::Encode(const uint8 *data,uint32 num,RSA *rsa_puk){
 	std::string	strContent,sKey;
-	GetcgDefFifo(this)->Empty();
+	GetcgDefFifo()->Empty();
 	HoldOffset();
 	sKey			= CCY_CreateRandKey(32);
 	fnlc_sKey		= CCY_Encrypt_RSAPublicKey(&strContent, sKey, rsa_puk);
@@ -1785,11 +1785,11 @@ int32 CCY_FR_Signature::Decode(std::string *retStrOriginal,const FIFO_UINT8 &fif
 int32 CCY_FR_Signature::Decode(std::string *retStrOriginal,const uint8 *data,uint32 num,RSA *rsa_prk){
 	std::string	strContent,sKey;
 
-	GetcgDefFifo(this)->Empty();
-	GetcgDefFifo(this)->Init(num);
-	GetcgDefFifo(this)->Put(data,num);
+	GetcgDefFifo()->Empty();
+	GetcgDefFifo()->Init(num);
+	GetcgDefFifo()->Put(data,num);
 	
-	if (AnalysisFrame(*GetcgDefFifo(this)) < 1)
+	if (AnalysisFrame(*GetcgDefFifo()) < 1)
 		return 0;
 
 	CCY_Decrypt_RSAPrivateKey(&sKey, fnlc_sKey.ReadContent(&strContent), rsa_prk);

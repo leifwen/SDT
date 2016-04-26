@@ -142,6 +142,13 @@ enum{
 	BI_RETCODE_CALC_SHA384,
 	BI_RETCODE_CALC_SHA512,
 	BI_RETCODE_CALC_BAS64,
+	
+	BI_RETCODE_DICT,
+	BI_RETCODE_DICT_DO,
+	BI_RETCODE_DICT_READ,
+	BI_RETCODE_DICT_SAVE,
+	BI_RETCODE_DICT_FIND,
+	BI_RETCODE_DICT_UPDATE,
 };
 //------------------------------------------------------------------------------------------//
 class SDTAPP;

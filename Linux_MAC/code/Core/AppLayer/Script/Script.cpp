@@ -187,13 +187,13 @@ int32 Script::EGroupThreadFun(void){
 	cgDevice->rxBufferList.AddNode(&cgBuffer);
 	
 	runTotalTimes = 0;
-	COMMAND_GROUP::ClearResult(&cgMGroup);
+	cgMGroup.ClearResult();
 	ExecuteGroup(&cgMGroup,runTotalTimes,1);
 	nowTime.Now();
 	executeTime.MinusDateTime(nowTime,executeTime);
 	strETime = SYS_FormatTimeABS(DEFAULT_TIMEFORMATE,executeTime);
 	ShowResult(&cgMGroup,strETime);
-	COMMAND_GROUP::ClearResult(&cgMGroup);
+	cgMGroup.ClearResult();
 	
 	SYS_SleepMS(10);
 	cgBuffer.RemoveSelf();
@@ -354,20 +354,20 @@ int32 Script::ExecuteCommand(COMMAND_NODE *tCommand,int32 frameTimeout){
 			cgSBICPAR.cgRecvbuf = "";
 			while(timeout == 0 && IsTerminated() == 0){
 				cgBuffer.GetInHEX(&cgSBICPAR.cgRecvbuf,G_SPACE_OFF);
-				if ((tCommand->StrCatch.length() > 0) && (cgSubC_Expression.Expression(&cgSBICPAR,cgSBICPAR.cgRecvbuf,tCommand->StrCatch) != 0))
+				if ((tCommand->StrCatch.length() > 0) && (cgSubC_Expression.Expression(&cgSBICPAR,tCommand->StrCatch) != 0))
 					++ tCommand->catchTimes;
-				if ((tCommand->StrContinue.length() > 0) && (cgSubC_Expression.Expression(&cgSBICPAR,cgSBICPAR.cgRecvbuf,tCommand->StrContinue) != 0))
+				if ((tCommand->StrContinue.length() > 0) && (cgSubC_Expression.Expression(&cgSBICPAR,tCommand->StrContinue) != 0))
 					return 2;
-				if ((tCommand->StrResend.length() > 0) && (cgSubC_Expression.Expression(&cgSBICPAR,cgSBICPAR.cgRecvbuf,tCommand->StrResend) != 0)){
+				if ((tCommand->StrResend.length() > 0) && (cgSubC_Expression.Expression(&cgSBICPAR,tCommand->StrResend) != 0)){
 					blEnResend = 1;
 					timeout = SYS_Delay_CheckTS(&timeS);
 					break;
 				}
-				if ((tCommand->StrStop.length() > 0) && (cgSubC_Expression.Expression(&cgSBICPAR,cgSBICPAR.cgRecvbuf,tCommand->StrStop) != 0))
+				if ((tCommand->StrStop.length() > 0) && (cgSubC_Expression.Expression(&cgSBICPAR,tCommand->StrStop) != 0))
 					return 3;
 				if ((tCommand->StrContinue.length() == 0) && (tCommand->StrResend.length() == 0)
 					&& (tCommand->StrStop.length() == 0) && (cgDevice->cEDevFlag.blScriptAT != 0)
-					&& (cgSubC_Expression.Expression(&cgSBICPAR,cgSBICPAR.cgRecvbuf,cgATCondition) != 0)){
+					&& (cgSubC_Expression.Expression(&cgSBICPAR,cgATCondition) != 0)){
 					return 2;
 				}
 				timeout = SYS_Delay_CheckTS(&timeS);
@@ -375,12 +375,12 @@ int32 Script::ExecuteCommand(COMMAND_NODE *tCommand,int32 frameTimeout){
 			if (timeout != 0){
 				if (cgSBICPAR.cgRecvbuf.length() == 0)
 					++ tCommand->timeoutTimes;//no response
-				if ((tCommand->StrContinue.length() > 0) && (cgSubC_Expression.Expression(&cgSBICPAR,cgSBICPAR.cgRecvbuf,tCommand->StrContinue) != 0))
+				if ((tCommand->StrContinue.length() > 0) && (cgSubC_Expression.Expression(&cgSBICPAR,tCommand->StrContinue) != 0))
 					return 2;
-				if ((tCommand->StrResend.length() > 0) && (cgSubC_Expression.Expression(&cgSBICPAR,cgSBICPAR.cgRecvbuf,tCommand->StrResend) != 0)){
+				if ((tCommand->StrResend.length() > 0) && (cgSubC_Expression.Expression(&cgSBICPAR,tCommand->StrResend) != 0)){
 					blEnResend = 1;
 				}
-				else if ((tCommand->StrStop.length() > 0) && (cgSubC_Expression.Expression(&cgSBICPAR,cgSBICPAR.cgRecvbuf,tCommand->StrStop) != 0)){
+				else if ((tCommand->StrStop.length() > 0) && (cgSubC_Expression.Expression(&cgSBICPAR,tCommand->StrStop) != 0)){
 					return 3;
 				}
 				if ((cgSBICPAR.cgRecvbuf.length() > 0) && (tCommand->StrResend.length() > 0) && (blEnResend == 0))

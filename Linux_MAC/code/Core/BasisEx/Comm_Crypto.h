@@ -235,7 +235,7 @@ class CCY_FN_Hash :public Field_Node{
 		inline			int32			ReadContent	(std::string *retStrSubstance,const FIFO_UINT8 *fifobuf = nullptr){
 			*retStrSubstance = "";
 			if (fifobuf == nullptr)
-				fifobuf = GetcgDefFifo(this);
+				fifobuf = GetcgDefFifo();
 			if (ChecksumResult(*fifobuf) > 0){
 				fnlc_Substance.ReadContent(retStrSubstance,fifobuf);
 				return 1;
@@ -244,7 +244,7 @@ class CCY_FN_Hash :public Field_Node{
 		};
 		inline			int32			ReadContent	(FIFO_UINT8 *retfifoSubstance,const FIFO_UINT8 *fifobuf = nullptr){
 			if (fifobuf == nullptr)
-				fifobuf = GetcgDefFifo(this);
+				fifobuf = GetcgDefFifo();
 			if (ChecksumResult(*fifobuf) > 0){
 				fnlc_Substance.ReadContent(retfifoSubstance,fifobuf);
 				return 1;
@@ -271,7 +271,7 @@ class CCY_FN_Hash :public Field_Node{
 		inline	const	CCY_FN_Hash&	SetContent	(const Field_Node &fnInput){
 			Field_Node::HoldOffset();
 			fnlc_Substance.SetContent(fnInput);
-			fnlc_Hash = CCY_Digest(cgDigestType,*GetcgDefFifo(&fnInput),fnInput.GetLength(),fnInput.GetOffset());
+			fnlc_Hash = CCY_Digest(cgDigestType,*fnInput.GetcgDefFifo(),fnInput.GetLength(),fnInput.GetOffset());
 			Field_Node::UpdateLength();
 			return(*this);
 		};
@@ -282,7 +282,7 @@ class CCY_FN_Hash :public Field_Node{
 		};
 		inline			void			UpdateLength(void){
 			fnlc_Substance.UpdateLength();
-			fnlc_Hash = CCY_Digest(cgDigestType,*GetcgDefFifo(this),fnlc_Substance.GetContentLength(),fnlc_Substance.GetContentOffset());
+			fnlc_Hash = CCY_Digest(cgDigestType,*GetcgDefFifo(),fnlc_Substance.GetContentLength(),fnlc_Substance.GetContentOffset());
 			Field_Node::HoldOffset();
 		};
 };
@@ -302,7 +302,7 @@ class CCY_FNLC_AES :public FNode_LC{
 			cgAES_mode = mode;
 		};
 		void	SetConfig(CCT_AES_KEYL type = CCT_AES128,CCT_AES_MODE mode = CCT_AES_CBC,G_Endian_VAILD tEV = G_LITTLE_ENDIAN){
-			FNode_LC::SetEndianType(this,tEV);
+			FNode_LC::SetEndianType(tEV);
 			cgAES_type = type;
 			cgAES_mode = mode;
 		}
@@ -311,21 +311,21 @@ class CCY_FNLC_AES :public FNode_LC{
 			if (strKey.length() == 0)
 				return(FNode_LC::ReadContent(retStrOriginal,fifobuf));
 			if (fifobuf == nullptr)
-				fifobuf = GetcgDefFifo(this);
+				fifobuf = GetcgDefFifo();
 			return(CCY_Decrypt_AES(retStrOriginal, *fifobuf, GetContentLength(), GetContentOffset() , strKey, cgAES_type, cgAES_mode));
 		};
 		inline	const FIFO_UINT8	&ReadContent(FIFO_UINT8 *retfifoOriginal,const std::string &strKey,const FIFO_UINT8 *fifobuf = nullptr){
 			if (strKey.length() == 0)
 				return(FNode_LC::ReadContent(retfifoOriginal,fifobuf));
 			if (fifobuf == nullptr)
-				fifobuf = GetcgDefFifo(this);
+				fifobuf = GetcgDefFifo();
 			return(CCY_Decrypt_AES(retfifoOriginal, *fifobuf, GetContentLength(), GetContentOffset(), strKey, cgAES_type, cgAES_mode));
 		};
 		inline	const PUB_SBUF		&ReadContent(PUB_SBUF *retPSBUF,const std::string &strKey,const FIFO_UINT8 *fifobuf = nullptr){
 			if (strKey.length() == 0)
 				return(FNode_LC::ReadContent(retPSBUF,fifobuf));
 			if (fifobuf == nullptr)
-				fifobuf = GetcgDefFifo(this);
+				fifobuf = GetcgDefFifo();
 			retPSBUF->Spin_InUse_set();
 			CCY_Decrypt_AES(&retPSBUF->cgBufFIFO, *fifobuf, GetContentLength(), GetContentOffset(), strKey, cgAES_type, cgAES_mode);
 			retPSBUF->Spin_InUse_clr();
@@ -337,7 +337,7 @@ class CCY_FNLC_AES :public FNode_LC{
 			}
 			else{
 				FNode_LC::HoldOffset();
-				CCY_Encrypt_AES(GetcgDefFifo(this), fifoIn, num, offset, strKey, cgAES_type, cgAES_mode);
+				CCY_Encrypt_AES(GetcgDefFifo(), fifoIn, num, offset, strKey, cgAES_type, cgAES_mode);
 				FNode_LC::UpdateLength();
 			}
 			return(*this);
@@ -348,7 +348,7 @@ class CCY_FNLC_AES :public FNode_LC{
 			}
 			else{
 				FNode_LC::HoldOffset();
-				CCY_Encrypt_AES(GetcgDefFifo(this), data, num, strKey, cgAES_type, cgAES_mode);
+				CCY_Encrypt_AES(GetcgDefFifo(), data, num, strKey, cgAES_type, cgAES_mode);
 				FNode_LC::UpdateLength();
 			}
 			return(*this);
@@ -362,7 +362,7 @@ class CCY_FNLC_AES :public FNode_LC{
 			}
 			else{
 				FNode_LC::HoldOffset();
-				CCY_Encrypt_AES(GetcgDefFifo(this), *GetcgDefFifo(&fnInput), fnInput.GetLength(),fnInput.GetOffset(), strKey, cgAES_type, cgAES_mode);
+				CCY_Encrypt_AES(GetcgDefFifo(), *fnInput.GetcgDefFifo(), fnInput.GetLength(),fnInput.GetOffset(), strKey, cgAES_type, cgAES_mode);
 				FNode_LC::UpdateLength();
 			}
 			return(*this);
@@ -389,8 +389,8 @@ class CCY_FN_AES :public Field_Node{
 		};
 		void	SetConfig(CCT_AES_KEYL type = CCT_AES128,CCT_AES_MODE mode = CCT_AES_CBC
 						  ,CCT_Digest digestType = CCT_MD5,G_Endian_VAILD tEV = G_LITTLE_ENDIAN){
-			Field_Node::SetEndianType(this,tEV);
-			FNode_LC::SetEndianType(&fnlc_Hash,tEV);
+			Field_Node::SetEndianType(tEV);
+			fnlc_Hash.SetEndianType(tEV);
 			fnlc_AES.SetConfig(type,mode,tEV);
 			cgDigestType = digestType;
 		}
@@ -440,7 +440,7 @@ class CCY_FN_AES :public Field_Node{
 		};
 		inline	const CCY_FN_AES&	SetContent	(const Field_Node &fnInput,const std::string &strKey){
 			Field_Node::HoldOffset();
-			fnlc_Hash = CCY_Digest(cgDigestType,*GetcgDefFifo(&fnInput),fnInput.GetLength(),fnInput.GetOffset());
+			fnlc_Hash = CCY_Digest(cgDigestType,*fnInput.GetcgDefFifo(),fnInput.GetLength(),fnInput.GetOffset());
 			fnlc_AES.SetContent(fnInput, strKey);
 			Field_Node::UpdateLength();
 			return(*this);
@@ -467,7 +467,7 @@ class CCY_FN_AES_MK :public FNode_LC{
 			return(CCY_FN_AES_MK::SetContent((uint8*)strInput.c_str(),(uint32)strInput.length(),strMulitKey));
 		};
 		inline	const CCY_FN_AES_MK&	SetContent	(const Field_Node &fnInput,const std::string &strMulitKey){
-			return(CCY_FN_AES_MK::SetContent(*GetcgDefFifo(&fnInput),fnInput.GetLength(),fnInput.GetOffset(),strMulitKey));
+			return(CCY_FN_AES_MK::SetContent(*fnInput.GetcgDefFifo(),fnInput.GetLength(),fnInput.GetOffset(),strMulitKey));
 		};
 };
 //------------------------------------------------------------------------------------------//
@@ -494,7 +494,7 @@ class CCY_FR_Signature :public Field_Node{
 		return(CCY_FR_Signature::Encode((uint8*)strInput.c_str(),(uint32)strInput.length(),rsa_puk));
 	};
 	inline	const CCY_FR_Signature&	Encode(const Field_Node &fnInput,RSA *rsa_puk){
-		return(CCY_FR_Signature::Encode(*GetcgDefFifo(&fnInput),fnInput.GetLength(),fnInput.GetOffset(),rsa_puk));
+		return(CCY_FR_Signature::Encode(*fnInput.GetcgDefFifo(),fnInput.GetLength(),fnInput.GetOffset(),rsa_puk));
 	};
 	
 	inline	const std::string&	Encode(std::string *retStrWhole,const uint8 *data,uint32 num,RSA *rsa_puk){

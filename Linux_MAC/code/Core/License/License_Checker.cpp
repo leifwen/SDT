@@ -85,7 +85,7 @@ int32 Reg_SDT_PatchCode::PatchToSDT(const std::string &sFN_SDT,std::string *strS
 				strStatusT += "Source code replace successful.\r\n";
 				patchTime.Now();
 				
-				GetcgDefFifo(this)->Empty();
+				GetcgDefFifo()->Empty();
 				HoldOffset();
 				fnSignature.Init(1024 * 32,CCT_AES256,CCT_AES_CBC,CCT_SHA512,G_BIG_ENDIAN);
 				fn_SDT_SHA1		= CCY_Encrypt_RSAPublicKey	(&strContent, CCY_DigestFile_SHA1(sFN_SDT), rsa_sdt);
@@ -93,7 +93,7 @@ int32 Reg_SDT_PatchCode::PatchToSDT(const std::string &sFN_SDT,std::string *strS
 				fn_CYCode		= fnSignature.Encode		(&strContent, strCYCode, rsa_s);
 				fn_RSA_SDTPrk	= CCY_Encode_RSAPrivateKey	(&strContent, rsa_sdt);
 				fn_RSA_sPuk		= CCY_Encode_RSAPublicKey	(&strContent, rsa_s);
-				fn_Length.SetFIFOByte(GetcgDefFifo(this)->Used() + 4);
+				fn_Length.SetFIFOByte(GetcgDefFifo()->Used() + 4);
 				UpdateLength();
 				
 				CFS_AddToFile(sFN_SDT,ReadAllContent(&strContent));
@@ -136,15 +136,15 @@ int32 Reg_SDT_PatchCode::GetPatchCode(void){
 	
 	fileStream.seekp(0 - offset,std::ios::end);
 
-	GetcgDefFifo(this)->Empty();
+	GetcgDefFifo()->Empty();
 	do{
 		fileStream.read((char*)buffer, sizeof(buffer));
 		num = fileStream.gcount();
-		GetcgDefFifo(this)->Init(GetcgDefFifo(this)->Used() + sizeof(buffer));
-		GetcgDefFifo(this)->Put(buffer, (uint32)num);
+		GetcgDefFifo()->Init(GetcgDefFifo()->Used() + sizeof(buffer));
+		GetcgDefFifo()->Put(buffer, (uint32)num);
 	}while(!fileStream.eof());
 	fileStream.close();
-	return(AnalysisFrame(*GetcgDefFifo(this)));
+	return(AnalysisFrame(*GetcgDefFifo()));
 }
 //------------------------------------------------------------------------------------------//
 const std::string &CHK_GetSDT_Hash(std::string *sHash){
@@ -330,9 +330,9 @@ int32 Linense_Content::Encode(std::string *retStrWhole,RSA **rsa_sdtpuk,const st
 	
 	cyBlock.Init(&fifo_CYCodeStream);
 	
-	cyBlock_MK.Init(GetcgDefFifo(this),CCT_AES256,CCT_AES_CBC,CCT_SHA256);
+	cyBlock_MK.Init(GetcgDefFifo(),CCT_AES256,CCT_AES_CBC,CCT_SHA256);
 	regTime.Now();
-	GetcgDefFifo(this)->Empty();
+	GetcgDefFifo()->Empty();
 	HoldOffset();
 	fn_regTime.SetContent(Str_DecToHex((uint64)regTime.GetSec()), strMKEY);
 	fn_approveTime.SetContent(Str_DecToHex(approveSeconds), strMKEY);

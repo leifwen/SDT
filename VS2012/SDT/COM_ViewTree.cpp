@@ -59,7 +59,7 @@ CMyCTreeCtrl::CMyCTreeCtrl(void){
 		,CLIP_DEFAULT_PRECIS		// nClipPrecision
 		,DEFAULT_QUALITY			// nQuality
 		,DEFAULT_PITCH | FF_SWISS	// nPitchAndFamily
-		,_T("宋体"));//Courier New
+		,_T(""));//Courier New
 	m_DrawFont.CreateFont
 		(14							// nHeight
 		,0							// nWidth
@@ -74,7 +74,7 @@ CMyCTreeCtrl::CMyCTreeCtrl(void){
 		,CLIP_DEFAULT_PRECIS		// nClipPrecision
 		,DEFAULT_QUALITY			// nQuality
 		,DEFAULT_PITCH | FF_SWISS	// nPitchAndFamily
-		,_T("宋体"));//Courier New
+		,_T(""));//Courier New
 }
 //------------------------------------------------------------------------------------------//
 BEGIN_MESSAGE_MAP(CMyCTreeCtrl,CTreeCtrl)

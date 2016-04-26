@@ -85,7 +85,7 @@ class Reg_Content :public Field_Node{
 	public:
 		const std::string&	Encode	(std::string *retStrWhole,RSA *rsa_sdtPuk){
 			std::string	strContent;
-			GetcgDefFifo(this)->Empty();
+			GetcgDefFifo()->Empty();
 			HoldOffset();
 			fn_sdtPuKey	= CCY_Encode_RSAPublicKey(&strContent, rsa_sdtPuk);
 			fn_CYCode	= CHK_Get_CYCode(&strContent);

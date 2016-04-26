@@ -888,7 +888,7 @@ void CGCTree::OnLButtonDblClk(UINT nFlags, CPoint point){
 				m_GCList->Spin_InUse_set();
 				command = GetCommand(hItem);
 				if (command != NULL){
-					COMMAND_NODE::Init(&m_CommandNode);
+					m_CommandNode.Init();
 					COMMAND_NODE::CopyCOMMAND_NODE(command, &m_CommandNode);
 					if (nFlags & MK_CONTROL){
 						m_CommandNode.blEnableSend = 1;

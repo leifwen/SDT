@@ -60,6 +60,8 @@ class	QUEUE_FIFO{
 	
 				uint32	Out		(uint32 num);
 				uint32	In		(uint32 num);
+				uint32	Out_RollBack	(uint32 num);
+				uint32	In_RollBack		(uint32 num);	
 };
 //------------------------------------------------------------------------------------------//
 template <typename TYPE_QUEUE_FIFOBUFFER>
@@ -400,7 +402,7 @@ uint32 QUEUE_FIFO<TYPE_QUEUE_FIFOBUFFER>::Read(TYPE_QUEUE_FIFOBUFFER *bufferOut,
 	return(copyNum);
 }
 //------------------------------------------------------------------------------------------//
-/*template <typename TYPE_QUEUE_FIFOBUFFER>
+template <typename TYPE_QUEUE_FIFOBUFFER>
 inline uint32 QUEUE_FIFO<TYPE_QUEUE_FIFOBUFFER>::Out_RollBack(uint32 num){
 	uint32	i;
 	
@@ -410,9 +412,9 @@ inline uint32 QUEUE_FIFO<TYPE_QUEUE_FIFOBUFFER>::Out_RollBack(uint32 num){
 	
 	offsetOut -= num;
 	return(num);
-}*/
+}
 //------------------------------------------------------------------------------------------//
-/*template <typename TYPE_QUEUE_FIFOBUFFER>
+template <typename TYPE_QUEUE_FIFOBUFFER>
  inline uint32 QUEUE_FIFO<TYPE_QUEUE_FIFOBUFFER>::In_RollBack(uint32 num){
 	uint32	i;
 	
@@ -422,7 +424,7 @@ inline uint32 QUEUE_FIFO<TYPE_QUEUE_FIFOBUFFER>::Out_RollBack(uint32 num){
 	
 	offsetIn -= num;
 	return(num);
- }*/
+ }
 //------------------------------------------------------------------------------------------//
 template <typename TYPE_QUEUE_FIFOBUFFER>
 inline uint32 QUEUE_FIFO<TYPE_QUEUE_FIFOBUFFER>::Out(uint32 num){

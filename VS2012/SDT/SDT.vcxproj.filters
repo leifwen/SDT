@@ -311,6 +311,9 @@
     <ClInclude Include="..\..\Linux_MAC\code\Core\License\SystemInfo.h">
       <Filter>_Core\License</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Linux_MAC\code\UIConsole\BIC\BIC_Dict.h">
+      <Filter>_UIConsole\BIC</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="SDT.cpp">
@@ -522,6 +525,9 @@
     </ClCompile>
     <ClCompile Include="..\..\Linux_MAC\code\Core\License\SystemInfo.cpp">
       <Filter>_Core\License</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Linux_MAC\code\UIConsole\BIC\BIC_Dict.cpp">
+      <Filter>_UIConsole\BIC</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -22,7 +22,7 @@ CMyCListCtrl::CMyCListCtrl(void) : CListCtrl(){
 	m_blEditShown = FALSE;
 	m_blComboBoxShown = FALSE;
 	m_EditFont.CreateFont
-		(14							// nHeight
+		(15							// nHeight
 		,0							// nWidth
 		,0							// nEscapement
 		,0							// nOrientation
@@ -35,9 +35,9 @@ CMyCListCtrl::CMyCListCtrl(void) : CListCtrl(){
 		,CLIP_DEFAULT_PRECIS		// nClipPrecision
 		,DEFAULT_QUALITY			// nQuality
 		,DEFAULT_PITCH | FF_SWISS	// nPitchAndFamily
-		,_T("ËÎÌו"));//Courier New
+		,_T(""));//Courier New
 	m_ComboBoxFont.CreateFont
-		(12							// nHeight
+		(13							// nHeight
 		,0							// nWidth
 		,0							// nEscapement
 		,0							// nOrientation
@@ -50,7 +50,7 @@ CMyCListCtrl::CMyCListCtrl(void) : CListCtrl(){
 		,CLIP_DEFAULT_PRECIS		// nClipPrecision
 		,DEFAULT_QUALITY			// nQuality
 		,DEFAULT_PITCH | FF_SWISS	// nPitchAndFamily
-		,_T("ËÎÌו"));//Courier New
+		,_T(""));//Courier New
 }
 //------------------------------------------------------------------------------------------//
 BEGIN_MESSAGE_MAP(CMyCListCtrl, CListCtrl)

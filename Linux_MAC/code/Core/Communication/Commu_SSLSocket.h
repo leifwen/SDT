@@ -49,9 +49,9 @@ class CSSL_FN_T0 :public Field_Node{
 		};
 		void	SetConfig(CCT_AES_KEYL type = CCT_AES128,CCT_AES_MODE mode = CCT_AES_CBC
 						  ,CCT_Digest digestType = CCT_MD5,G_Endian_VAILD tEV = G_LITTLE_ENDIAN){
-			SetEndianType(this,tEV);
-			SetEndianType(&fn_Head,tEV);
-			SetEndianType(&fn_CH,tEV);
+			SetEndianType(tEV);
+			fn_Head.SetEndianType(tEV);
+			fn_CH.SetEndianType(tEV);
 			fn_AESCC.SetConfig(type,mode,digestType,tEV);
 		};
 	public:

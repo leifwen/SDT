@@ -18,14 +18,14 @@ INCLUDEDIR		= $(TOPDIR)/code
 
 #cross compile tools defined 
 CROSS_COMPILE ?= 
-AS      = $(CROSS_COMPILE)as
-LD      = $(CROSS_COMPILE)ld
-CC      = $(CROSS_COMPILE)g++
-CPP     = $(CC) -E
-AR      = $(CROSS_COMPILE)ar
-NM      = $(CROSS_COMPILE)nm
-STRIP   = $(CROSS_COMPILE)strip
-RANLIB 	= $(CROSS_COMPILE)ranlib
+AS		= $(CROSS_COMPILE)as
+LD		= $(CROSS_COMPILE)ld
+CC		= $(CROSS_COMPILE)g++
+CPP		= $(CC) -E
+AR		= $(CROSS_COMPILE)ar
+NM		= $(CROSS_COMPILE)nm
+STRIP	= $(CROSS_COMPILE)strip
+RANLIB	= $(CROSS_COMPILE)ranlib
 
 #local host tools defined
 CP		:= cp
@@ -36,14 +36,14 @@ FIND	:= find
 XARGS	:= xargs
 
 #target name
-TARGETMAIN  = Run.Main
-TARGETLIBS 	= libmk.a
-TARGETSLIBS = libmk.so
+TARGETMAIN	= Run.Main
+TARGETLIBS	= libmk.a
+TARGETSLIBS	= libmk.so
 
 #FILE' INFOMATION COLLECT
-VPATH 		= $(shell ls -AxR $(SRCDIR)|grep ":"|grep -v "\.svn"|tr -d ':')
+VPATH		= $(shell ls -AxR $(SRCDIR)|grep ":"|grep -v "\.svn"|tr -d ':')
 SOURCEDIRS	= $(VPATH)
-VPATH 		= $(shell ls -AxR $(INCLUDEDIR)|grep ":"|grep -v "\.svn"|tr -d ':')
+VPATH		= $(shell ls -AxR $(INCLUDEDIR)|grep ":"|grep -v "\.svn"|tr -d ':')
 INCLUDEDIRS	= $(VPATH)
 
 #search source file in the current dir
@@ -60,9 +60,11 @@ ARFLAGS = rc
 CFLAGS	+=
 
 #c file compile parameters and linked libraries
-CPPFLAGS    = -Wall -std=c++0x -ggdb -lssl -lcrypto
-LDFLAGS	    = -lpthread
+CPPFLAGS	= -Wall -std=c++0x -ggdb
+#CPPFLAGS	+= -static
+LDFLAGS		= -lpthread
 XLDFLAGS	= -Xlinker "-(" $(LDFLAGS) -Xlinker "-)"
+LDLIBS		+= -lssl -lcrypto
 LDLIBS		+= -L $(LIBDIR) 
 
 #defaut target:compile the currrent dir file and sub dir 

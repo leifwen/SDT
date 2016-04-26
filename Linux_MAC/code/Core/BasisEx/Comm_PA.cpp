@@ -362,7 +362,7 @@ void Field_Node::SetFIFO(const FIFO_UINT8 &fifoIn,uint32 num,uint32 offset){
 //------------------------------------------------------------------------------------------//
 void Field_Node::SetFIFO(const Field_Node &fnIn){
 	fnOffset = cgDefFifo->Used();
-	fnlength = cgDefFifo->Put(*GetcgDefFifo(&fnIn),fnIn.GetLength(),fnIn.GetOffset());
+	fnlength = cgDefFifo->Put(*fnIn.GetcgDefFifo(),fnIn.GetLength(),fnIn.GetOffset());
 	if (cgType == FNT_MASK)
 		FillMaskField();
 };

@@ -62,7 +62,6 @@ typedef	signed		int			int32;
 typedef	signed		long long	int64;
 typedef	unsigned	long long	uint64;
 //typedef	signed		__int64		int64;
-enum	G_LOCK_VAILD	{G_LOCK_OFF = 0		,G_LOCK_ON};
 enum	G_ESCAPE_VAILD	{G_ESCAPE_OFF = 0	,G_ESCAPE_ON};
 enum	G_SPACE_VAILD	{G_SPACE_OFF = 0	,G_SPACE_ON};
 enum	G_Endian_VAILD	{G_LITTLE_ENDIAN = 0,G_BIG_ENDIAN};

@@ -540,6 +540,41 @@ std::string Str_Replace(const std::string &str,const std::string &strS,const std
 	return(stringResult);
 }
 //------------------------------------------------------------------------------------------//
+std::string Str_SplitSubItem(std::string *strInput,uint8 subChar){
+	std::string				strResult;
+	std::string::size_type	pos,length;
+	uint8*					charP;
+	
+	length = strInput->length();
+	pos = 0;
+	strResult = "";
+	charP = (uint8*)strInput->c_str();
+	while(pos < length){
+		++ pos;
+		if ((*charP == '\\') && (pos < length)){
+			++ pos;
+			++ charP;
+			if (*charP == subChar){
+				strResult += subChar;
+			}
+			else{
+				strResult += '\\';
+				strResult += *charP;
+			}
+		}
+		else{
+			if (*charP == subChar){
+				*strInput = strInput->substr(pos);
+				return (strResult);
+			}
+			strResult += *charP;
+		}
+		++ charP;
+	}
+	*strInput = "";
+	return(strResult);
+}
+//------------------------------------------------------------------------------------------//
 std::string Str_ReadSubItem(std::string *strInput,const std::string &subChar,int32 blReturnSubChar){
 	std::string	strResult;
 	std::string::size_type		pos;
@@ -629,7 +664,8 @@ std::string	Str_UnTransferChar(const std::string &strInput){
 	return(retStr);
 }
 //------------------------------------------------------------------------------------------//
-const std::string &Str_CharToStr(std::string *retStr,const uint8 *buf,uint64 num,int32 blToHex,G_ESCAPE_VAILD blEscape,G_SPACE_VAILD blSpace){
+const std::string &Str_CharToStr(std::string *retStr,const uint8 *buf,uint64 num,int32 blToHex
+								 ,G_ESCAPE_VAILD blEscape,G_SPACE_VAILD blSpace,G_Append_VAILD blAppend){
 	//eacape \0xhh,\a,\b,\f,\n,\r,\t,\v,\\,\',\",\0,\/
 	std::string				strData;
 	std::string::size_type	i,length,j;
@@ -637,24 +673,25 @@ const std::string &Str_CharToStr(std::string *retStr,const uint8 *buf,uint64 num
 	
 	length = (std::string::size_type)num;
 	i = 0;
-	*retStr = "";
+	if (blAppend == G_Append_OFF)
+		*retStr = "";
 	charData1 = 0;
 	while(i < length){
 		charData = buf[i];
 		if (blEscape != G_ESCAPE_OFF){
 			j = 0;
 			if ((i + 4) < length){
-				j = FIFO_UINT8::Escape0xhhToChar(&charData1,Str_CharToStr(&strData,&buf[i],5,0,G_ESCAPE_OFF,G_SPACE_OFF));
+				j = FIFO_UINT8::Escape0xhhToChar(&charData1,Str_CharToStr(&strData,&buf[i],5,0,G_ESCAPE_OFF,G_SPACE_OFF,G_Append_OFF));
 			}
 			else if ((i + 4) == length){
-				j = FIFO_UINT8::Escape0xhhToChar(&charData1,Str_CharToStr(&strData,&buf[i],4,0,G_ESCAPE_OFF,G_SPACE_OFF));
+				j = FIFO_UINT8::Escape0xhhToChar(&charData1,Str_CharToStr(&strData,&buf[i],4,0,G_ESCAPE_OFF,G_SPACE_OFF,G_Append_OFF));
 			}
 			if (j > 0){
 				i += j;
 				charData = charData1;
 			}
 			else if ((i + 1) < length){
-				j = FIFO_UINT8::EscapeToChar(&charData1,Str_CharToStr(&strData,&buf[i],2,0,G_ESCAPE_OFF,G_SPACE_OFF));
+				j = FIFO_UINT8::EscapeToChar(&charData1,Str_CharToStr(&strData,&buf[i],2,0,G_ESCAPE_OFF,G_SPACE_OFF,G_Append_OFF));
 				if (j > 0){
 					i += j;
 					charData = charData1;
@@ -678,7 +715,7 @@ const std::string &Str_CharToStr(std::string *retStr,const uint8 *buf,uint64 num
 	return(*retStr);
 }
 //------------------------------------------------------------------------------------------//
-const std::string &Str_HEXTo(std::string *retStr,const std::string &strInput,int32 blToASCII,G_SPACE_VAILD blSpace){
+const std::string &Str_HEXTo(std::string *retStr,const std::string &strInput,int32 blToASCII,G_SPACE_VAILD blSpace,G_Append_VAILD blAppend){
 	std::string::size_type	i,length,j;
 	uint8	charP,charData,charResult;
 	
@@ -687,7 +724,8 @@ const std::string &Str_HEXTo(std::string *retStr,const std::string &strInput,int
 	j = 0;
 	charResult = 0;
 	charData = 0;
-	*retStr = "";
+	if (blAppend == G_Append_OFF)
+		*retStr = "";
 	while(i < length){
 		charP = strInput[i ++];
 		

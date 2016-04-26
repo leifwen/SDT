@@ -26,7 +26,7 @@ CSocketListCtrl	g_wndSocketList;
 //------------------------------------------------------------------------------------------//
 CSocketListCtrl::CSocketListCtrl(void) : CMyCListCtrl(){
 	m_Font.CreateFont
-		(15							// nHeight
+		(14							// nHeight
 		,0							// nWidth
 		,0							// nEscapement
 		,0							// nOrientation
@@ -39,7 +39,7 @@ CSocketListCtrl::CSocketListCtrl(void) : CMyCListCtrl(){
 		,CLIP_DEFAULT_PRECIS		// nClipPrecision
 		,DEFAULT_QUALITY			// nQuality
 		,DEFAULT_PITCH | FF_SWISS	// nPitchAndFamily
-		,_T("Calibri"));//Courier New Calibri
+		,_T(""));//Courier New Calibri
 }
 //------------------------------------------------------------------------------------------//
 BEGIN_MESSAGE_MAP(CSocketListCtrl,CMyCListCtrl)

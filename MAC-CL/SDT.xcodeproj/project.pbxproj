@@ -64,6 +64,7 @@
 		03560F021BD3B5B4008740E4 /* libcrypto.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 03560F001BD3B5B4008740E4 /* libcrypto.a */; };
 		03560F031BD3B5B4008740E4 /* libssl.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 03560F011BD3B5B4008740E4 /* libssl.a */; };
 		0384E0661BDE19A100157F54 /* Commu_SSLSocket.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0384E0641BDE19A100157F54 /* Commu_SSLSocket.cpp */; };
+		03A3BA951CC45BD8006594D3 /* BIC_Dict.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 03A3BA931CC45BD8006594D3 /* BIC_Dict.cpp */; };
 		29EFB4751C4255CB00386E07 /* Commu_RMS.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 29EFB4731C4255CB00386E07 /* Commu_RMS.cpp */; };
 /* End PBXBuildFile section */
 
@@ -282,6 +283,8 @@
 		03560F011BD3B5B4008740E4 /* libssl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libssl.a; sourceTree = "<group>"; };
 		0384E0641BDE19A100157F54 /* Commu_SSLSocket.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 2; path = Commu_SSLSocket.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		0384E0651BDE19A100157F54 /* Commu_SSLSocket.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Commu_SSLSocket.h; sourceTree = "<group>"; };
+		03A3BA931CC45BD8006594D3 /* BIC_Dict.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = BIC_Dict.cpp; sourceTree = "<group>"; };
+		03A3BA941CC45BD8006594D3 /* BIC_Dict.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BIC_Dict.h; sourceTree = "<group>"; };
 		29EFB4731C4255CB00386E07 /* Commu_RMS.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Commu_RMS.cpp; sourceTree = "<group>"; };
 		29EFB4741C4255CB00386E07 /* Commu_RMS.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Commu_RMS.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -669,6 +672,8 @@
 		03560EA71BD35BE7008740E4 /* BIC */ = {
 			isa = PBXGroup;
 			children = (
+				03A3BA941CC45BD8006594D3 /* BIC_Dict.h */,
+				03A3BA931CC45BD8006594D3 /* BIC_Dict.cpp */,
 				03560EBC1BD35BE7008740E4 /* BuildInCommand.h */,
 				03560EBB1BD35BE7008740E4 /* BuildInCommand.cpp */,
 				03560EA81BD35BE7008740E4 /* BIC.h */,
@@ -755,6 +760,7 @@
 				03434D171CB8313D000CBEDE /* SMC.cpp in Sources */,
 				03560EDB1BD35BE7008740E4 /* Commu_DBuf.cpp in Sources */,
 				03560EDA1BD35BE7008740E4 /* Commu_Com.cpp in Sources */,
+				03A3BA951CC45BD8006594D3 /* BIC_Dict.cpp in Sources */,
 				03560EF81BD35BE7008740E4 /* BIC_Socket.cpp in Sources */,
 				03560EC61BD35BE7008740E4 /* SBIC.cpp in Sources */,
 				03560EF91BD35BE7008740E4 /* BuildInCommand.cpp in Sources */,

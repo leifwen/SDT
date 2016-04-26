@@ -19,6 +19,8 @@
 #define Comm_ConvertH
 //------------------------------------------------------------------------------------------//
 #include "BasicDef.h"
+enum	G_Append_VAILD	{G_Append_OFF = 0	,G_Append_ON};
+//------------------------------------------------------------------------------------------//
 std::string		Str_FloatToString	(double fZ,int32 blNozero = 1,int32 slen = 5,int32 alen = 3);
 std::string		Str_IntToString		(int32 fZ);
 std::string		Str_UIntToString	(uint32 fZ);
@@ -58,62 +60,64 @@ const	std::string&	Str_LowerCaseSelf	(std::string &str);
 const	std::string&	Str_LowerCase		(std::string *returnStr,const std::string &str);//*returnStr  cannot be the same as &str
 
 std::string		Str_Replace			(const std::string &str,const std::string &strS,const std::string &strD);
+std::string		Str_SplitSubItem	(std::string *strInput,uint8 subChar);
 std::string		Str_ReadSubItem		(std::string *strInput,const std::string &subChar,int32 blReturnSubChar = 0);
 std::string		Str_ReadSubItemR	(std::string *strInput,const std::string &subChar,int32 blReturnSubChar = 0);
 
-const	std::string&	Str_CharToStr		(std::string *retStr,const uint8 *buf,uint64 num,int32 blToHex,G_ESCAPE_VAILD blEscape,G_SPACE_VAILD blSpace);
-const	std::string&	Str_HEXTo			(std::string *retStr,const std::string &strInput,int32 blToASCII,G_SPACE_VAILD blSpace);
+const	std::string&	Str_CharToStr		(std::string *retStr,const uint8 *buf,uint64 num,int32 blToHex
+											 ,G_ESCAPE_VAILD blEscape,G_SPACE_VAILD blSpace,G_Append_VAILD blAppend);
+const	std::string&	Str_HEXTo			(std::string *retStr,const std::string &strInput,int32 blToASCII,G_SPACE_VAILD blSpace,G_Append_VAILD blAppend);
 
 				std::string		Str_UnTransferChar	(const std::string &strInput);
 inline			std::string		Str_CharToASCIIStr	(const uint8 *buf,uint64 num,G_ESCAPE_VAILD blEscape){
 	std::string	retStr;
-	return(Str_CharToStr(&retStr,buf,num,0,blEscape,G_SPACE_OFF));
+	return(Str_CharToStr(&retStr,buf,num,0,blEscape,G_SPACE_OFF,G_Append_OFF));
 };
 inline const 	std::string&	Str_CharToASCIIStr	(std::string *retStr,const uint8 *buf,uint64 num,G_ESCAPE_VAILD blEscape){
-	return(Str_CharToStr(retStr,buf,num,0,blEscape,G_SPACE_OFF));
+	return(Str_CharToStr(retStr,buf,num,0,blEscape,G_SPACE_OFF,G_Append_OFF));
 };
 inline			std::string		Str_CharToHEXStr	(const uint8 *buf,uint64 num,G_SPACE_VAILD blSpace){
 	std::string	retStr;
-	return(Str_CharToStr(&retStr,buf,num,1,G_ESCAPE_OFF,blSpace));
+	return(Str_CharToStr(&retStr,buf,num,1,G_ESCAPE_OFF,blSpace,G_Append_OFF));
 }
 inline const	std::string&	Str_CharToHEXStr	(std::string *retStr,const uint8 *buf,uint64 num,G_SPACE_VAILD blSpace){
-	return(Str_CharToStr(retStr,buf,num,1,G_ESCAPE_OFF,blSpace));
+	return(Str_CharToStr(retStr,buf,num,1,G_ESCAPE_OFF,blSpace,G_Append_OFF));
 }
 inline			std::string		Str_ASCIIToHEXs		(const std::string &strInput,G_ESCAPE_VAILD blEscape){
 	std::string	retStr;
-	return(Str_CharToStr(&retStr,(uint8*)strInput.c_str(),strInput.length(),1,blEscape,G_SPACE_ON));
+	return(Str_CharToStr(&retStr,(uint8*)strInput.c_str(),strInput.length(),1,blEscape,G_SPACE_ON,G_Append_OFF));
 };
 inline const	std::string&	Str_ASCIIToHEXs		(std::string *retStr,const std::string &strInput,G_ESCAPE_VAILD blEscape){
-	return(Str_CharToStr(retStr,(uint8*)strInput.c_str(),strInput.length(),1,blEscape,G_SPACE_ON));
+	return(Str_CharToStr(retStr,(uint8*)strInput.c_str(),strInput.length(),1,blEscape,G_SPACE_ON,G_Append_OFF));
 };
 inline			std::string		Str_ASCIIToHEX		(const std::string &strInput,G_ESCAPE_VAILD blEscape){
 	std::string	retStr;
-	return(Str_CharToStr(&retStr,(uint8*)strInput.c_str(),strInput.length(),1,blEscape,G_SPACE_OFF));
+	return(Str_CharToStr(&retStr,(uint8*)strInput.c_str(),strInput.length(),1,blEscape,G_SPACE_OFF,G_Append_OFF));
 };
 inline const	std::string&	Str_ASCIIToHEX		(std::string *retStr,const std::string &strInput,G_ESCAPE_VAILD blEscape){
-	return(Str_CharToStr(retStr,(uint8*)strInput.c_str(),strInput.length(),1,blEscape,G_SPACE_OFF));
+	return(Str_CharToStr(retStr,(uint8*)strInput.c_str(),strInput.length(),1,blEscape,G_SPACE_OFF,G_Append_OFF));
 };
 
 inline			std::string		Str_HEXToASCII		(const std::string &strInput){
 	std::string	retStr;
-	return(Str_HEXTo(&retStr,strInput,1,G_SPACE_OFF));
+	return(Str_HEXTo(&retStr,strInput,1,G_SPACE_OFF,G_Append_OFF));
 };
 inline const	std::string&	Str_HEXToASCII		(std::string *retStr,const std::string &strInput){
-	return(Str_HEXTo(retStr,strInput,1,G_SPACE_OFF));
+	return(Str_HEXTo(retStr,strInput,1,G_SPACE_OFF,G_Append_OFF));
 };
 inline			std::string		Str_HEXToHEX		(const std::string &strInput){
 	std::string	retStr;
-	return(Str_HEXTo(&retStr,strInput,0,G_SPACE_OFF));
+	return(Str_HEXTo(&retStr,strInput,0,G_SPACE_OFF,G_Append_OFF));
 };
 inline const	std::string&	Str_HEXToHEX		(std::string *retStr,const std::string &strInput){
-	return(Str_HEXTo(retStr,strInput,0,G_SPACE_OFF));
+	return(Str_HEXTo(retStr,strInput,0,G_SPACE_OFF,G_Append_OFF));
 };
 inline			std::string		Str_HEXToHEXs		(const std::string &strInput){
 	std::string	retStr;
-	return(Str_HEXTo(&retStr,strInput,0,G_SPACE_ON));
+	return(Str_HEXTo(&retStr,strInput,0,G_SPACE_ON,G_Append_OFF));
 };
 inline const	std::string&	Str_HEXToHEXs		(std::string *retStr,const std::string &strInput){
-	return(Str_HEXTo(retStr,strInput,0,G_SPACE_ON));
+	return(Str_HEXTo(retStr,strInput,0,G_SPACE_ON,G_Append_OFF));
 };
 
 std::string::size_type  Str_DCompare(const std::string &strContent,const std::string &strD1,std::string::size_type strContentPostion);

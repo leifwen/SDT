@@ -26,7 +26,7 @@ void CSSL_FN_T0::Delivery(RTREE_NODE *retFNList,const uint8 *databuf,int32 num){
 	ELogPrint(this,"Delivery()::cgPSBUF:%d/%d",cgPSBUF->Used(),cgPSBUF->Unused());
 	Lock();
 	retFNList->Spin_InUse_set();
-	while (AnalysisFrameTryAgain(*GetcgDefFifo(this)) > 0){
+	while (AnalysisFrameTryAgain(*GetcgDefFifo()) > 0){
 		tCH = fn_CH.GetValueCalc();
 		RTREE_LChildRChain_Traversal_LINE_nolock(CSSL_FR_T1,retFNList,
 			if (operateNode_t->GetcgCH() == tCH){
@@ -90,11 +90,11 @@ void CSSL_FR_T1::Init(uint32 rxfifoSize,uint32 tCH,G_Endian_VAILD tEV){
 };
 //------------------------------------------------------------------------------------------//
 void CSSL_FR_T1::SetConfig(G_Endian_VAILD tEV){
-	SetEndianType(this,tEV);
-	SetEndianType(&fn_GroupID,tEV);
-	SetEndianType(&fn_CtrlID,tEV);
-	SetEndianType(&fn_Offset,tEV);
-	SetEndianType(&fn_Info,tEV);
+	SetEndianType(tEV);
+	fn_GroupID.SetEndianType(tEV);
+	fn_CtrlID.SetEndianType(tEV);
+	fn_Offset.SetEndianType(tEV);
+	fn_Info.SetEndianType(tEV);
 };
 //------------------------------------------------------------------------------------------//
 enum{
@@ -255,14 +255,14 @@ void CSSL_FR_T1::ANS_ACK(CSSL_FN_T0 *sslT0Tx,const uint32 &tGroupID,const uint32
 	if (sslT0Tx == nullptr)
 		return;
 	Spin_InUse_set();
-	GetcgDefFifo(this)->Empty();
+	GetcgDefFifo()->Empty();
 	HoldOffset();
 	fn_GroupID.SetFIFOByte(tGroupID);
 	fn_CtrlID.SetFIFOByte(CSSL_ACK);
 	fn_Offset.SetFIFOByte(offset);
 	fn_Info.SetContent("");
 	UpdateLength();
-	sslT0Tx->SetContent(*GetcgDefFifo(this),GetLength(),GetOffset(),cgCH + 1);
+	sslT0Tx->SetContent(*GetcgDefFifo(),GetLength(),GetOffset(),cgCH + 1);
 	ELogPrint(this, "RX_Data()::Send GroupID:%d,CtrlID:CSSL_ACK,Offset:%d,T1:%d,T0:%d",tGroupID,offset,GetLength(),sslT0Tx->GetLength());
 	Spin_InUse_clr();
 }
@@ -271,14 +271,14 @@ void CSSL_FR_T1::ANS_ENDACK(CSSL_FN_T0 *sslT0Tx,const uint32 &tGroupID){
 	if (sslT0Tx == nullptr)
 		return;
 	Spin_InUse_set();
-	GetcgDefFifo(this)->Empty();
+	GetcgDefFifo()->Empty();
 	HoldOffset();
 	fn_GroupID.SetFIFOByte(tGroupID);
 	fn_CtrlID.SetFIFOByte(CSSL_ENDACK);
 	fn_Offset.SetFIFOByte(0);
 	fn_Info.SetContent("");
 	UpdateLength();
-	sslT0Tx->SetContent(*GetcgDefFifo(this),GetLength(),GetOffset(),cgCH + 1);
+	sslT0Tx->SetContent(*GetcgDefFifo(),GetLength(),GetOffset(),cgCH + 1);
 	ELogPrint(this, "RX_Data()::Send GroupID:%d,CtrlID:CSSL_ENDACK,Offset:0,T1:%d,T0:%d",tGroupID,GetLength(),sslT0Tx->GetLength());
 	Spin_InUse_clr();
 }
@@ -287,14 +287,14 @@ void CSSL_FR_T1::ANS_Request_ResendPackage(CSSL_FN_T0 *sslT0Tx,const uint32 &tGr
 	if (sslT0Tx == nullptr)
 		return;
 	Spin_InUse_set();
-	GetcgDefFifo(this)->Empty();
+	GetcgDefFifo()->Empty();
 	HoldOffset();
 	fn_GroupID.SetFIFOByte(tGroupID);
 	fn_CtrlID.SetFIFOByte(CSSL_ResendPackage);
 	fn_Offset.SetFIFOByte(offset);
 	fn_Info.SetContent("");
 	UpdateLength();
-	sslT0Tx->SetContent(*GetcgDefFifo(this),GetLength(),GetOffset(),cgCH + 1);
+	sslT0Tx->SetContent(*GetcgDefFifo(),GetLength(),GetOffset(),cgCH + 1);
 	ELogPrint(this, "RX_Data()::Send GroupID:%d,CtrlID:CSSL_ResendPackage,Offset:%d,T1:%d,T0:%d",tGroupID,offset,offset,GetLength(),sslT0Tx->GetLength());
 	Spin_InUse_clr();
 }
@@ -303,14 +303,14 @@ void CSSL_FR_T1::ANS_Request_ResendAll(CSSL_FN_T0 *sslT0Tx,const uint32 &tGroupI
 	if (sslT0Tx == nullptr)
 		return;
 	Spin_InUse_set();
-	GetcgDefFifo(this)->Empty();
+	GetcgDefFifo()->Empty();
 	HoldOffset();
 	fn_GroupID.SetFIFOByte(tGroupID);
 	fn_CtrlID.SetFIFOByte(CSSL_ResendAll);
 	fn_Offset.SetFIFOByte(0);
 	fn_Info.SetContent("");
 	UpdateLength();
-	sslT0Tx->SetContent(*GetcgDefFifo(this),GetLength(),GetOffset(),cgCH + 1);
+	sslT0Tx->SetContent(*GetcgDefFifo(),GetLength(),GetOffset(),cgCH + 1);
 	ELogPrint(this, "RX_Data()::Send GroupID:%d,CtrlID:CSSL_ResendAll,Offset:0,T1:%d,T0:%d",tGroupID,GetLength(),sslT0Tx->GetLength());
 	Spin_InUse_clr();
 }
@@ -327,7 +327,7 @@ int32 CSSL_FR_T1::CHK_Data(uint32 *retGroupID,uint32 *retCtrlID,uint32 *retOffse
 uint32 CSSL_FR_T1::TX_Data(CSSL_FN_T0 *sslT0Tx,const uint8 *&data,const uint32 &num,const uint32 &offset,const uint32 &packageSize,const uint32 &tGroup){
 	uint32 length;
 	length = (packageSize < (num - offset)) ? packageSize : (num - offset);
-	GetcgDefFifo(this)->Empty();
+	GetcgDefFifo()->Empty();
 	HoldOffset();
 	fn_GroupID.SetFIFOByte(tGroup);
 	fn_CtrlID.SetFIFOByte(((length + offset) < num) ? CSSL_Package : CSSL_ENDPackage);
@@ -335,7 +335,7 @@ uint32 CSSL_FR_T1::TX_Data(CSSL_FN_T0 *sslT0Tx,const uint8 *&data,const uint32 &
 	fn_Info.SetContent(data + offset,length);
 	UpdateLength();
 	
-	sslT0Tx->SetContent(*GetcgDefFifo(this),GetLength(),GetOffset(),cgCH - 1);
+	sslT0Tx->SetContent(*GetcgDefFifo(),GetLength(),GetOffset(),cgCH - 1);
 	ELogPrint(this, "TX_Packaging()::TX_Data()::Send GroupID:%d,CtrlID:%s,Offset:%d,DataNum:%d,T1:%d,T0:%d"
 				,tGroup,((length + offset) < num) ? "CSSL_Package" : "CSSL_ENDPackage",offset,length,GetLength(),sslT0Tx->GetLength());
 	return(length);
@@ -439,11 +439,11 @@ int32 CSSL_FR_T1::TX_Packaging(CSSL_FN_T0 *sslT0Tx,const Field_Node &fnNode){
 	ret = 0;
 	num = fnNode.GetLength();
 	offset = fnNode.GetOffset();
-	slength = GetcgDefFifo(&fnNode)->CalcOutLength(num, offset);
+	slength = fnNode.GetcgDefFifo()->CalcOutLength(num, offset);
 	if (num > 0)
-		ret = TX_Packaging(sslT0Tx,GetcgDefFifo(&fnNode)->GetOutPointer(offset),num);
+		ret = TX_Packaging(sslT0Tx,fnNode.GetcgDefFifo()->GetOutPointer(offset),num);
 	if (slength > 0)
-		ret &= TX_Packaging(sslT0Tx,GetcgDefFifo(&fnNode)->GetOutPointer(0),slength);
+		ret &= TX_Packaging(sslT0Tx,fnNode.GetcgDefFifo()->GetOutPointer(0),slength);
 	return(ret);
 }
 //------------------------------------------------------------------------------------------//

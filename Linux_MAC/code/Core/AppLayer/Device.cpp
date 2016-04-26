@@ -864,7 +864,7 @@ int32 DEVICE::CheckResult(PUB_SBUF *cBuffer,const std::string &cCheckResult,int3
 	do
 	{
 		cBuffer->GetInHEX(&tSBICPAR.cgRecvbuf,G_SPACE_OFF);
-		if (subC_Expression.Expression(&tSBICPAR,tSBICPAR.cgRecvbuf,cCheckResult) != 0){
+		if (subC_Expression.Expression(&tSBICPAR,cCheckResult) != 0){
 			cBuffer->Clean();
 			return 1;
 		}

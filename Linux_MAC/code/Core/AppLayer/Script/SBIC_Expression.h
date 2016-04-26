@@ -31,10 +31,10 @@ class SBIC_Expression: public SBIC_Node{
 	private:
 		SBIC_RECEIVE	cgSubC_Receive;
 		SBIC_Conditon	cgSubC_Condition;
-		void			FormatString	(const std::string &strInput,std::string *returnStr) const;
-		void			GetPoland		(const std::string &expressions,std::string *polandQueue) const;
+		static	void	FormatString	(const std::string &strInput,std::string *returnStr);
+		static	void	GetPoland		(const std::string &expressions,std::string *polandQueue);
 	public:
-		int32			Expression		(SBICPAR *tBICPAR,const std::string &strSource,const std::string &condition) const;
+		int32			Expression		(SBICPAR *tBICPAR,const std::string &condition) const;
 };
 //------------------------------------------------------------------------------------------//
 class SBIC_Wait : public SBIC_Node{

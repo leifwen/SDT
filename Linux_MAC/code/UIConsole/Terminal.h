@@ -35,7 +35,8 @@ class TerminalServer : public APISocketServer{
 				 TerminalServer(int32 tSize) : APISocketServer(nullptr,tSize){selfName = "TS";};
 		virtual ~TerminalServer(void){;};
 	private:
-		virtual APISocket	*CreateNewSocket_TCP(const ODEV_LIST *tODEV_LIST,uint32 tSize){	TerminalSocket *tPDB;
+		virtual APISocket	*CreateNewSocket_TCP(const ODEV_LIST *tODEV_LIST,uint32 tSize){
+			TerminalSocket *tPDB;
 			tPDB = new TerminalSocket(tODEV_LIST,tSize);
 			if (tPDB != nullptr)
 				tPDB->selfName = "TS->Socket" + Str_IntToString(GetnodeID(tPDB).load());

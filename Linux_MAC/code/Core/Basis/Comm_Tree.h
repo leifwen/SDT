@@ -157,15 +157,19 @@ class RTREE_NODE : public BASIC_CFLAG{
 		static	RTREE_NODE*	RemoveNodesInRChain		(RTREE_NODE *tFirstNode,RTREE_NODE *tEndNode = nullptr,G_LOCK_VAILD blLock = G_LOCK_ON);
 		static	void		RemoveFromFather		(RTREE_NODE *tTreeNode);
 		inline	RTREE_NODE*	RemoveSelf				(void){return(RemoveNodesInRChain(this,nullptr));};
-	protected:
-		static	void		CreateTrash				(RTREE_NODE *tTrashOwner);
+	private:
+		virtual	RTREE_NODE*	CreateNode				(void){return(new RTREE_NODE);};
 		static	void		DestroyTrash			(RTREE_NODE *tTrashOwner);
 	public:
+		static	RTREE_NODE*	GetNewNode				(RTREE_NODE *tTreeNode);
+		static	void		CreateTrash				(RTREE_NODE *tTrashOwner);
 		static	void		CleanTrash				(RTREE_NODE *tTrashOwner);
 		static	RTREE_NODE*	MoveNodesToTrash		(RTREE_NODE *tFirstNode,RTREE_NODE *tEndNode,RTREE_NODE *tTrashOwner);
 		static	RTREE_NODE*	MoveNodeToTrash			(RTREE_NODE *tTreeNode,RTREE_NODE *tTrashOwner);
 		static	void		MoveTreeToTrash			(RTREE_NODE *tTreeNode,RTREE_NODE *tTrashOwner);
-		inline	void		DestroyAll(void)		{ Spin_InUse_set(); MoveTreeToTrash(cgLChild, this); CleanTrash(this); Spin_InUse_clr(); };
+		static	void		DestroyTree				(RTREE_NODE *tTreeNode);
+		static	void		DestroySubTree			(RTREE_NODE *tTreeNode);
+		inline	void		DestroyAll	(void)		{ Spin_InUse_set(); MoveTreeToTrash(cgLChild, this); CleanTrash(this); Spin_InUse_clr(); };
 	public:
 		virtual	void	Enable			(void)		{SetSFlag(RFLAG_CREATE(0));};
 		virtual	void	Disable			(void)		{ClrSFlag(RFLAG_CREATE(0));};

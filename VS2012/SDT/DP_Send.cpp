@@ -348,7 +348,7 @@ void CSendPaneView::OnSend(void){
 	std::wstring	wstrCommand;
 	CString			cstrText;
 
-	COMMAND_NODE::Init(&m_CommandNode);
+	m_CommandNode.Init();
 
 	m_cEdit.GetWindowText(cstrText);
 	wstrCommand = cstrText;

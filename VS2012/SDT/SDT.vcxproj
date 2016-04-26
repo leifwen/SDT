@@ -172,6 +172,7 @@
     <ClInclude Include="..\..\Linux_MAC\code\UIConsole\BIC\BIC_CMUX.h" />
     <ClInclude Include="..\..\Linux_MAC\code\UIConsole\BIC\BIC_COM.h" />
     <ClInclude Include="..\..\Linux_MAC\code\UIConsole\BIC\BIC_Connect.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\UIConsole\BIC\BIC_Dict.h" />
     <ClInclude Include="..\..\Linux_MAC\code\UIConsole\BIC\BIC_Other.h" />
     <ClInclude Include="..\..\Linux_MAC\code\UIConsole\BIC\BIC_Script.h" />
     <ClInclude Include="..\..\Linux_MAC\code\UIConsole\BIC\BIC_Socket.h" />
@@ -246,6 +247,7 @@
     <ClCompile Include="..\..\Linux_MAC\code\UIConsole\BIC\BIC_CMUX.cpp" />
     <ClCompile Include="..\..\Linux_MAC\code\UIConsole\BIC\BIC_COM.cpp" />
     <ClCompile Include="..\..\Linux_MAC\code\UIConsole\BIC\BIC_Connect.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\UIConsole\BIC\BIC_Dict.cpp" />
     <ClCompile Include="..\..\Linux_MAC\code\UIConsole\BIC\BIC_Other.cpp" />
     <ClCompile Include="..\..\Linux_MAC\code\UIConsole\BIC\BIC_Script.cpp" />
     <ClCompile Include="..\..\Linux_MAC\code\UIConsole\BIC\BIC_Socket.cpp" />

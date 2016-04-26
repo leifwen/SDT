@@ -145,7 +145,7 @@ int32 BIC_SENDA::Command(BICPAR *tBICPAR, const std::string &par,std::string *re
 		return(Help(tBICPAR));
 	if (tBICPAR->sdtApp->m_Device.CheckblConnect() != 0){
 		
-		COMMAND_NODE::Init(&commandNode);
+		commandNode.Init();
 		
 		strPar2 = Str_Trim(par);
 		strPar1 = Str_ReadSubItem(&strPar2," ");
@@ -309,12 +309,15 @@ int32 BIC_SCM_LOAD::Help(BICPAR *tBICPAR, int32 blDetail)const{
 int32 BIC_SCM_LOAD::Command(BICPAR *tBICPAR, const std::string &par,std::string *ret)const{
 	uint32	readType;
 	std::string		fileN;
-	
+	std::string	strPar;
+	strPar = par;
+	strPar = Str_SplitSubItem(&strPar, ' ');
+
 	*ret = "";
 	readType = READINITYPE_NONE | (READINITYPE_AddSingleCommand | READINITYPE_CoverSingleCommand);
 	fileN = "Default.ini";
 	if (par.length() > 0)
-		fileN = par;
+		fileN = strPar;
 	
 	if (CFS_CheckFile(fileN) > 0){
 		tBICPAR->sdtApp->m_ParRecord.ReadScriptFromIniFile(fileN,readType);
@@ -338,6 +341,9 @@ int32 BIC_SCM_SAVE::Help(BICPAR *tBICPAR, int32 blDetail)const{
 //------------------------------------------------------------------------------------------//
 int32 BIC_SCM_SAVE::Command(BICPAR *tBICPAR, const std::string &par,std::string *ret)const{
 	uint32	readType;
+	std::string	strPar;
+	strPar = par;
+	strPar = Str_SplitSubItem(&strPar, ' ');
 	
 	*ret = "";
 	readType = READINITYPE_NONE | READINITYPE_AddGroupCommand;
@@ -345,8 +351,8 @@ int32 BIC_SCM_SAVE::Command(BICPAR *tBICPAR, const std::string &par,std::string 
 	readType |= (READINITYPE_AddDeviceList);
 	
 	if (par.length() > 0){
-		tBICPAR->sdtApp->m_ParRecord.WriteScriptToIniFile(par,readType);
-		PrintDoRet(tBICPAR,"Save to <" + par + "> successful");
+		tBICPAR->sdtApp->m_ParRecord.WriteScriptToIniFile(strPar,readType);
+		PrintDoRet(tBICPAR,"Save to <" + strPar + "> successful");
 	}
 	else{
 		PrintDoRet(tBICPAR,"Save fail");
@@ -771,13 +777,16 @@ int32 BIC_GCM_LOAD::Help(BICPAR *tBICPAR, int32 blDetail)const{
 int32 BIC_GCM_LOAD::Command(BICPAR *tBICPAR, const std::string &par,std::string *ret)const{
 	uint32	readType;
 	std::string		fileN;
-	
+	std::string	strPar;
+	strPar = par;
+	strPar = Str_SplitSubItem(&strPar, ' ');
+
 	*ret = "";
 	readType = READINITYPE_NONE | READINITYPE_AddGroupCommand | READINITYPE_CoverGroupCommand;
 	
 	fileN = "Default.ini";
 	if (par.length() > 0)
-		fileN = par;
+		fileN = strPar;
 	if (CFS_CheckFile(fileN) > 0){
 		tBICPAR->sdtApp->m_ParRecord.ReadScriptFromIniFile(fileN,readType);
 		tBICPAR->sdtApp->m_GCList.SetblUpdate();
@@ -2196,7 +2205,7 @@ int32 BIC_GCM_GROUP_SEND::Command(BICPAR *tBICPAR, const std::string &par,std::s
 	
 	*ret = "";
 	node = nullptr;
-	COMMAND_NODE::Init(&command);
+	command.Init();
 	
 	if (par.length() > 0){
 		tBICPAR->sdtApp->m_GCList.Spin_InUse_set();

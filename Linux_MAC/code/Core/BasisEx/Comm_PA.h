@@ -42,8 +42,8 @@ class Field_Node : public RTREE_NODE{
 		uint32			maskBit;	//only available in FN_ADDR,FN_CTRL,FN_LENGTH
 		uint32			moveBit;
 	public:
-		inline	static 	FIFO_UINT8*	GetcgDefFifo	(const Field_Node *mySelf){return(mySelf->cgDefFifo);};
-		inline	static 	void		SetEndianType	(Field_Node *mySelf,G_Endian_VAILD tEV = G_LITTLE_ENDIAN){mySelf->cgEndianType = tEV;};
+		inline	FIFO_UINT8*	GetcgDefFifo	(void)const {return(cgDefFifo);};
+		inline	void		SetEndianType	(G_Endian_VAILD tEV = G_LITTLE_ENDIAN){cgEndianType = tEV;};
 	private:
 		int32			CheckFixValue	(const FIFO_UINT8 &fifobuf)const;
 		uint32			CalcCLength		(const FIFO_UINT8 &fifobuf)const;
@@ -128,10 +128,10 @@ class FNode_LC :public Field_Node{
 			return(*this);
 		};
 	public:
-		inline	static 	void			SetEndianType	(FNode_LC *mySelf,G_Endian_VAILD tEV = G_LITTLE_ENDIAN){
-			Field_Node::SetEndianType(mySelf,tEV);
-			Field_Node::SetEndianType(&mySelf->fnlc_len,tEV);
-			Field_Node::SetEndianType(&mySelf->fnlc_content,tEV);
+		inline			void			SetEndianType	(G_Endian_VAILD tEV = G_LITTLE_ENDIAN){
+			Field_Node::SetEndianType(tEV);
+			fnlc_len.SetEndianType(tEV);
+			fnlc_content.SetEndianType(tEV);
 		};
 		inline			int32			AddSubNode		(Field_Node *tTreeNode)			{return(fnlc_content.AddNode(tTreeNode));};
 		inline	const	FNode_LC&		SetContent		(const FIFO_UINT8 &fifoIn,uint32 num,uint32 offset = 0)	{

@@ -18,8 +18,8 @@ RTREE_NODE::RTREE_NODE(void) : BASIC_CFLAG(){
 	cgID_NextNode ++;
 	nodeID = cgID_NextNode.load();
 	
-	cgID_NextDRNode = ATOMIC_VAR_INIT(0);
-	dRNodeID = ATOMIC_VAR_INIT(0);
+	cgID_NextDRNode = 0;
+	dRNodeID = 0;
 	
 	cgTrash = nullptr;
 	
@@ -833,19 +833,43 @@ void RTREE_NODE::MoveNodesAfterInRChain(RTREE_NODE *tFirstNode,RTREE_NODE *tEndN
 	}while(blret == 0);
 }
 //------------------------------------------------------------------------------------------//
-void DestroySubTree(RTREE_NODE *tTreeNode){
+void RTREE_NODE::DestroyTree(RTREE_NODE *tTreeNode){
 	
 	if (tTreeNode == nullptr)
 		return;
 
-	DestroySubTree(RTREE_NODE::BreakRChild(tTreeNode));
-	DestroySubTree(RTREE_NODE::BreakLChild(tTreeNode));
+	DestroyTree(RTREE_NODE::BreakRChild(tTreeNode));
+	DestroyTree(RTREE_NODE::BreakLChild(tTreeNode));
 	
 	try{
 		delete tTreeNode;
 	}
 	catch(...){}
 	tTreeNode = nullptr;
+}
+//------------------------------------------------------------------------------------------//
+void RTREE_NODE::DestroySubTree(RTREE_NODE *tTreeNode){
+	
+	if (tTreeNode == nullptr)
+		return;
+	
+	DestroyTree(RTREE_NODE::BreakRChild(tTreeNode));
+	DestroyTree(RTREE_NODE::BreakLChild(tTreeNode));
+}
+//------------------------------------------------------------------------------------------//
+RTREE_NODE *RTREE_NODE::GetNewNode(RTREE_NODE *tTrashOwner){
+	RTREE_NODE *nNode,*cNode;
+	if (tTrashOwner == nullptr)
+		return(nullptr);
+	if (tTrashOwner->cgTrash == nullptr)
+		return(tTrashOwner->CreateNode());
+	nNode = GetLastChild(tTrashOwner->cgTrash);
+	if (nNode == nullptr)
+		return(tTrashOwner->CreateNode());
+	RemoveNodesInRChain(nNode);
+	cNode = BreakLChild(nNode);
+	InsertLChild(tTrashOwner->cgTrash,cNode);
+	return(nNode);
 }
 //------------------------------------------------------------------------------------------//
 void RTREE_NODE::CreateTrash(RTREE_NODE *tTrashOwner){
@@ -860,13 +884,13 @@ void RTREE_NODE::CleanTrash(RTREE_NODE *tTrashOwner){
 	if (tTrashOwner == nullptr)
 		return;
 	deltree = BreakLChild(tTrashOwner->cgTrash);
-	DestroySubTree(deltree);
+	DestroyTree(deltree);
 }
 //------------------------------------------------------------------------------------------//
 void RTREE_NODE::DestroyTrash(RTREE_NODE *tTrashOwner){
 	if (tTrashOwner == nullptr)
 		return;
-	DestroySubTree(tTrashOwner->cgTrash);
+	DestroyTree(tTrashOwner->cgTrash);
 	tTrashOwner->cgTrash = nullptr;
 }
 //------------------------------------------------------------------------------------------//
@@ -876,7 +900,12 @@ RTREE_NODE *RTREE_NODE::MoveNodeToTrash(RTREE_NODE *tTreeNode,RTREE_NODE *tTrash
 		return(nullptr);
 	
 	ret = RemoveNodesInRChain(tTreeNode);
-	InsertLChild(tTrashOwner->cgTrash,tTreeNode);
+	if (tTrashOwner == nullptr){
+		DestroyTree(tTreeNode);
+	}
+	else{
+		InsertLChild(tTrashOwner->cgTrash,tTreeNode);
+	}
 	return(ret);
 }
 //------------------------------------------------------------------------------------------//
@@ -886,16 +915,25 @@ RTREE_NODE *RTREE_NODE::MoveNodesToTrash(RTREE_NODE *tFirstNode,RTREE_NODE *tEnd
 		return(nullptr);
 	
 	ret = RemoveNodesInRChain(tFirstNode,tEndNode);
-	InsertLChild(tTrashOwner->cgTrash,tFirstNode);
+	if (tTrashOwner == nullptr){
+		DestroyTree(tFirstNode);
+	}
+	else{
+		InsertLChild(tTrashOwner->cgTrash,tFirstNode);
+	}
 	return(ret);
 }
 //------------------------------------------------------------------------------------------//
 void RTREE_NODE::MoveTreeToTrash(RTREE_NODE *tTreeNode,RTREE_NODE *tTrashOwner){
 	if (tTreeNode == nullptr)
 		return;
-	
 	RemoveFromFather(tTreeNode);
-	InsertLChild(tTrashOwner->cgTrash,tTreeNode);
+	if (tTrashOwner == nullptr){
+		DestroyTree(tTreeNode);
+	}
+	else{
+		InsertLChild(tTrashOwner->cgTrash,tTreeNode);
+	}
 }
 //------------------------------------------------------------------------------------------//
 RTREE_NODE *FindByNodeID_lock(RTREE_NODE *tTreeNode,uint32 tNodeID){

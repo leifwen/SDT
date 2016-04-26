@@ -15,14 +15,14 @@
 #include "Comm_Convert.h"
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
-void SC_NODE::Init(SC_NODE *node,G_LOCK_VAILD blLock){
-	node->Spin_InUse_set(blLock);
-	node->blEnableSendCR = 1;
-	node->StrCommand = "";
-	node->Spin_InUse_clr(blLock);
+void SC_NODE::Init(G_LOCK_VAILD blLock){
+	Spin_InUse_set(blLock);
+	blEnableSendCR = 1;
+	StrCommand = "";
+	Spin_InUse_clr(blLock);
 }
 //------------------------------------------------------------------------------------------//
-std::string SC_NODE::CreateNodeStrV0_4(SC_NODE *node){
+std::string SC_NODE::CreateNodeStrV0_4(void){
 	//V0.4
 	//SingleCommand
 	//		[scNode]
@@ -31,33 +31,33 @@ std::string SC_NODE::CreateNodeStrV0_4(SC_NODE *node){
 	//		[scNode_end]
 	std::string		strResult;
 	
-	node->Spin_InUse_set();
+	Spin_InUse_set();
 		strResult  =  "  [scNode]\n";
-		if (node->blEnableSendCR == 0)
+		if (blEnableSendCR == 0)
 			strResult += ("    blEnableSendCR = 0\n");
-		strResult += ("    strCommand = " + node->StrCommand + "\n");
+		strResult += ("    strCommand = " + StrCommand + "\n");
 		strResult +=  "  [scNode_end]\n";
-	node->Spin_InUse_clr();
+	Spin_InUse_clr();
 	return(strResult);
 }
 //------------------------------------------------------------------------------------------//
-std::string SC_NODE::CreateNodeStrV0_2(SC_NODE *node){
+std::string SC_NODE::CreateNodeStrV0_2(void){
 	//V0.2
 	//SingleCommand
 	//{(EnableCR,command)(EnableCR,command)}
 	std::string		strResult;
 	
-	node->Spin_InUse_set();
+	Spin_InUse_set();
 		strResult = '(';
-		strResult += Str_ASCIIToHEX(Str_IntToString(node->blEnableSendCR),G_ESCAPE_OFF);
+		strResult += Str_ASCIIToHEX(Str_IntToString(blEnableSendCR),G_ESCAPE_OFF);
 		strResult += ",";
-		strResult += Str_ASCIIToHEX(node->StrCommand,G_ESCAPE_OFF);
+		strResult += Str_ASCIIToHEX(StrCommand,G_ESCAPE_OFF);
 		strResult += ')';
-	node->Spin_InUse_clr();
+	Spin_InUse_clr();
 	return(strResult);
 }
 //------------------------------------------------------------------------------------------//
-void SC_NODE::SetNodeV0_4(SC_NODE *node,std::string *strInput){
+void SC_NODE::SetNodeV0_4(std::string *strInput){
 	//V0.4
 	//SingleCommand
 	//		[scNode]
@@ -65,8 +65,8 @@ void SC_NODE::SetNodeV0_4(SC_NODE *node,std::string *strInput){
 	//			strCommand =
 	//		[scNode_end]
 	std::string		strLine,strItem;
-	node->Spin_InUse_set();
-		Init(node,G_LOCK_OFF);
+	Spin_InUse_set();
+		Init(G_LOCK_OFF);
 		while(strInput->length() > 0){
 			strLine = Str_Trim(Str_ReadSubItem(strInput,"\n"));
 			if (Str_LowerCase(strLine) == "[scnode_end]")
@@ -75,24 +75,24 @@ void SC_NODE::SetNodeV0_4(SC_NODE *node,std::string *strInput){
 			Str_TrimSelf(strLine);
 			
 			if (strItem == "blenablesendcr"){
-				node->blEnableSendCR = atoi(strLine.c_str());
+				blEnableSendCR = atoi(strLine.c_str());
 			}
 			else if (strItem == "strcommand"){
-				node->StrCommand = strLine;
+				StrCommand = strLine;
 			}
 		}
-	node->Spin_InUse_clr();
+	Spin_InUse_clr();
 }
 //------------------------------------------------------------------------------------------//
-void SC_NODE::SetNodeV0_2(SC_NODE *node,std::string *strInput){
+void SC_NODE::SetNodeV0_2(std::string *strInput){
 	//V0.2
 	//SingleCommand
 	//{(EnableCR,command)(EnableCR,command)}
-	node->Spin_InUse_set();
-		Init(node,G_LOCK_OFF);
-		node->blEnableSendCR = atoi(Str_HEXToASCII(Str_ReadSubItem(strInput,",")).c_str());
-		node->StrCommand = Str_HEXToASCII(*strInput);
-	node->Spin_InUse_clr();
+	Spin_InUse_set();
+		Init(G_LOCK_OFF);
+		blEnableSendCR = atoi(Str_HEXToASCII(Str_ReadSubItem(strInput,",")).c_str());
+		StrCommand = Str_HEXToASCII(*strInput);
+	Spin_InUse_clr();
 }
 //------------------------------------------------------------------------------------------//
 void SC_NODE::Copy(SC_NODE *node2,SC_NODE *node1){
@@ -120,7 +120,7 @@ std::string SC_LIST::CreateSCListStrV0_4(void){
 	
 	strResult = "[singleCommand]\n";
 	Spin_InUse_set();
-	RTREE_LChildRChain_Traversal_LINE(SC_NODE,this,strResult += SC_NODE::CreateNodeStrV0_4(operateNode_t));
+	RTREE_LChildRChain_Traversal_LINE(SC_NODE,this,strResult += operateNode_t->CreateNodeStrV0_4());
 	Spin_InUse_clr();
 	strResult += "[singleCommand_end]\n";
 	return(strResult);
@@ -134,7 +134,7 @@ std::string SC_LIST::CreateSCListStrV0_2(void){
 	
 	strResult = '{';
 	Spin_InUse_set();
-	RTREE_LChildRChain_Traversal_LINE(SC_NODE,this,strResult += SC_NODE::CreateNodeStrV0_4(operateNode_t));
+	RTREE_LChildRChain_Traversal_LINE(SC_NODE,this,strResult += operateNode_t->CreateNodeStrV0_4());
 	Spin_InUse_clr();
 
 	strResult += '}';
@@ -160,7 +160,7 @@ void SC_LIST::SetSCListV0_4(std::string *strInput){
 		if (strLine == "[scnode]"){
 			node = new SC_NODE;
 			if (node != nullptr){
-				SC_NODE::SetNodeV0_4(node,strInput);
+				node->SetNodeV0_4(strInput);
 				AddNode(node);
 			}
 		}
@@ -179,7 +179,7 @@ void SC_LIST::SetSCListV0_2(std::string *strInput){
 		strResult = Str_ReadSubItem(strInput,"|");
 		node = new SC_NODE;
 		if (node != nullptr){
-			SC_NODE::SetNodeV0_2(node,&strResult);
+			node->SetNodeV0_2(&strResult);
 			AddNode(node);
 		}
 	}

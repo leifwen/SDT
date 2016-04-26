@@ -16,7 +16,7 @@
 //------------------------------------------------------------------------------------------//
 class COMMAND_NODE : public RTREE_NODE{
 	public:
-				 COMMAND_NODE(void) : RTREE_NODE(){Init(this);};
+				 COMMAND_NODE(void) : RTREE_NODE(){Init();};
 		virtual ~COMMAND_NODE(void){;};
 	private:
 	public://need record
@@ -39,16 +39,16 @@ class COMMAND_NODE : public RTREE_NODE{
 		int32			blFirstSynchronous;
 		SYS_DateTime	timeST0;		//
 	public:
-		static void 		Init(COMMAND_NODE *node,G_LOCK_VAILD blLock = G_LOCK_ON);
-		static std::string	CreateNodeStrV0_2(COMMAND_NODE *node);
-		static std::string	CreateNodeStrV0_3(COMMAND_NODE *node){return(CreateNodeStrV0_2(node));};
-		static std::string	CreateNodeStrV0_4(COMMAND_NODE *node);
-		static std::string	CreateNodeStrV0_5(COMMAND_NODE *node);
-		static void			SetNodeV0_2(COMMAND_NODE *node,std::string *strInput);
-		static void			SetNodeV0_3(COMMAND_NODE *node,std::string *strInput);
-		static void			SetNodeV0_4(COMMAND_NODE *node,std::string *strInput);
-		static void			SetNodeV0_5(COMMAND_NODE *node,std::string *strInput);
-		static void			CopyCOMMAND_NODE(const COMMAND_NODE *node2,COMMAND_NODE *node1);//copy 2 to 1
+		void 		Init(G_LOCK_VAILD blLock = G_LOCK_ON);
+		std::string	CreateNodeStrV0_2(void);
+		std::string	CreateNodeStrV0_3(void){return(CreateNodeStrV0_2());};
+		std::string	CreateNodeStrV0_4(void);
+		std::string	CreateNodeStrV0_5(void);
+		void		SetNodeV0_2(std::string *strInput);
+		void		SetNodeV0_3(std::string *strInput);
+		void		SetNodeV0_4(std::string *strInput);
+		void		SetNodeV0_5(std::string *strInput);
+		static void	CopyCOMMAND_NODE(const COMMAND_NODE *node2,COMMAND_NODE *node1);//copy 2 to 1
 };
 //------------------------------------------------------------------------------------------//
 class COMMAND_GROUP : public RTREE_NODE{
@@ -62,17 +62,17 @@ class COMMAND_GROUP : public RTREE_NODE{
 		int32			blEnableAutoRun;//enable
     	int32			autoRunTimes;	//cycle
 
-		static std::string	CreateGroupStrV0_2(COMMAND_GROUP *group);
-		static std::string	CreateGroupStrV0_3(COMMAND_GROUP *group){return(CreateGroupStrV0_2(group));};
-		static std::string	CreateGroupStrV0_4(COMMAND_GROUP *group);
-		static std::string	CreateGroupStrV0_5(COMMAND_GROUP *group);
-		static void			SetGroupV0_2(COMMAND_GROUP *group,std::string *strInput);
-		static void			SetGroupV0_3(COMMAND_GROUP *group,std::string *strInput);
-		static void			SetGroupV0_4(COMMAND_GROUP *group,std::string *strInput);
-		static void			SetGroupV0_5(COMMAND_GROUP *group,std::string *strInput);
+		std::string	CreateGroupStrV0_2(void);
+		std::string	CreateGroupStrV0_3(void){return(CreateGroupStrV0_2());};
+		std::string	CreateGroupStrV0_4(void);
+		std::string	CreateGroupStrV0_5(void);
+		void			SetGroupV0_2(std::string *strInput);
+		void			SetGroupV0_3(std::string *strInput);
+		void			SetGroupV0_4(std::string *strInput);
+		void			SetGroupV0_5(std::string *strInput);
 	public:
-		static void			ClearResult(COMMAND_GROUP *group);
-		static void			CopyCOMMAND_GROUP(const COMMAND_GROUP *group2,COMMAND_GROUP *group1,int32 blClear = 1);//copy 2 to 1
+		void			ClearResult(void);
+		static void		CopyCOMMAND_GROUP(const COMMAND_GROUP *group2,COMMAND_GROUP *group1,int32 blClear = 1);//copy 2 to 1
 };
 //------------------------------------------------------------------------------------------//
 class GC_LIST : public RTREE_NODE{

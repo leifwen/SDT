@@ -2,7 +2,7 @@
  * Copyright (c) 2012-2014
  * All rights reserved.
  *
- * File Name: SBIC_Expression.cpp
+ * File Name: SBIC_RunExternal.cpp
  * File ID	:
  * Remark	:
  * Writer	: Leif Wen
@@ -312,7 +312,7 @@ int32 SBIC_RunExternal::Command(SBICPAR *tBICPAR,const std::string &par,std::str
 					childPID = NewRENode->GetChildStatus(&status);
 					strPrintData = tBICPAR->cgSBIC_RE_LIST->PrintBuffer(NewRENode,buffer,sizeof(buffer));
 					tBICPAR->cgRecvbuf += Str_ASCIIToHEX(strPrintData, G_ESCAPE_OFF);
-					if (cgSubC_Expression.Expression(tBICPAR,tBICPAR->cgRecvbuf,strContinue) != 0)
+					if (cgSubC_Expression.Expression(tBICPAR,strContinue) != 0)
 						*ret = 'T';
 					if (childPID == NewRENode->GetChildPID() || childPID == -1){
 						if (strContinue.length() == 0)

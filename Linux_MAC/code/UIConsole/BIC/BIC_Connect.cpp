@@ -56,7 +56,39 @@ int32 BIC_DISPLAY::Command(BICPAR *tBICPAR,const std::string &par,std::string *r
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 int32 BIC_CONNECT::Help(BICPAR *tBICPAR,int32 blDetail)const{
-	PrintHelpItem(tBICPAR,cgCommand,"Open COM, TCP, UDP, TCP server, UDP server.");
+	std::string		strC;
+	int32			blAdd;
+	blAdd = 0;
+	strC = "Open";
+#ifdef SWVERSION_COM
+	strC += " COM";
+	blAdd = 1;
+#endif
+#ifdef SWVERSION_TCPClient
+	if (blAdd == 1)
+		strC += ",";
+	strC += " TCP";
+	blAdd = 1;
+#endif
+#ifdef SWVERSION_UDPCLient
+	if (blAdd == 1)
+		strC += ",";
+	strC += " UDP";
+	blAdd = 1;
+#endif
+#ifdef SWVERSION_TCPServer
+	if (blAdd == 1)
+		strC += ",";
+	strC += " TCP server";
+	blAdd = 1;
+#endif
+#ifdef SWVERSION_UDPServer
+	if (blAdd == 1)
+		strC += ",";
+	strC += " UDP server";
+#endif
+	strC += ".";
+	PrintHelpItem(tBICPAR,cgCommand,strC);
 	if (blDetail == 0)
 		return(cgReturnCode);
 	PrintHelpItem(tBICPAR,"","Goto online mode after connected.");
@@ -177,7 +209,39 @@ int32 BIC_CONNECT::Command(BICPAR *tBICPAR,const std::string &par,std::string *r
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 int32 BIC_DISCONNECT::Help(BICPAR *tBICPAR,int32 blDetail)const{
-	PrintHelpItem(tBICPAR,cgCommand,"Close COM, TCP, UDP, TCP server, UDP server.");
+	std::string		strC;
+	int32			blAdd;
+	blAdd = 0;
+	strC = "Close";
+#ifdef SWVERSION_COM
+	strC += " COM";
+	blAdd = 1;
+#endif
+#ifdef SWVERSION_TCPClient
+	if (blAdd == 1)
+		strC += ",";
+	strC += " TCP";
+	blAdd = 1;
+#endif
+#ifdef SWVERSION_UDPCLient
+	if (blAdd == 1)
+		strC += ",";
+	strC += " UDP";
+	blAdd = 1;
+#endif
+#ifdef SWVERSION_TCPServer
+	if (blAdd == 1)
+		strC += ",";
+	strC += " TCP server";
+	blAdd = 1;
+#endif
+#ifdef SWVERSION_UDPServer
+	if (blAdd == 1)
+		strC += ",";
+	strC += " UDP server";
+#endif
+	strC += ".";
+	PrintHelpItem(tBICPAR,cgCommand,strC);
 	return(cgReturnCode);
 }//------------------------------------------------------------------------------------------//
 int32 BIC_DISCONNECT::Command(BICPAR *tBICPAR,const std::string &par,std::string *ret)const{
@@ -335,7 +399,39 @@ int32 BIC_REC::Command(BICPAR *tBICPAR,const std::string &par,std::string *ret)c
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 int32 BIC_DEV::Help(BICPAR *tBICPAR,int32 blDetail)const{
-	PrintHelpItem(tBICPAR,cgCommand,"List COM, TCP, UDP, TCP server, UDP server parameter.");
+	std::string		strC;
+	int32			blAdd;
+	blAdd = 0;
+	strC = "List";
+#ifdef SWVERSION_COM
+	strC += " COM";
+	blAdd = 1;
+#endif
+#ifdef SWVERSION_TCPClient
+	if (blAdd == 1)
+		strC += ",";
+	strC += " TCP";
+	blAdd = 1;
+#endif
+#ifdef SWVERSION_UDPCLient
+	if (blAdd == 1)
+		strC += ",";
+	strC += " UDP";
+	blAdd = 1;
+#endif
+#ifdef SWVERSION_TCPServer
+	if (blAdd == 1)
+		strC += ",";
+	strC += " TCP server";
+	blAdd = 1;
+#endif
+#ifdef SWVERSION_UDPServer
+	if (blAdd == 1)
+		strC += ",";
+	strC += " UDP server";
+#endif
+	strC += " parameter.";
+	PrintHelpItem(tBICPAR,cgCommand,strC);
 	return(cgReturnCode);
 }
 //------------------------------------------------------------------------------------------//
@@ -345,38 +441,42 @@ int32 BIC_DEV::Command(BICPAR *tBICPAR,const std::string &par,std::string *ret)c
 		return(Help(tBICPAR));
 	
 	PrintStrN(tBICPAR,DEV_LINE_START,RICH_LIN_clDefault);
-	
+#ifdef SWVERSION_COM
 	PrintStr(tBICPAR,"COM",RICH_LIN_clLightBlue);
 	PrintStr(tBICPAR,":",RICH_LIN_clDefault);
 	PrintStr(tBICPAR,tBICPAR->sdtApp->m_Device.cEDevFlag.com,RICH_LIN_clBrown);
 	PrintStr(tBICPAR,"@",RICH_LIN_clDefault);
 	PrintStr(tBICPAR,Str_IntToString(tBICPAR->sdtApp->m_Device.cEDevFlag.baudrate),RICH_LIN_clBrown);
 	PrintStr(tBICPAR,"\n",RICH_LIN_clDefault);
-	
+#endif
+#ifdef SWVERSION_TCPClient
 	PrintStr(tBICPAR,"TCP",RICH_LIN_clLightBlue);
 	PrintStr(tBICPAR,":",RICH_LIN_clDefault);
 	PrintStr(tBICPAR,tBICPAR->sdtApp->m_Device.cEDevFlag.tcpIP,RICH_LIN_clBrown);
 	PrintStr(tBICPAR,"@",RICH_LIN_clDefault);
 	PrintStr(tBICPAR,Str_IntToString(tBICPAR->sdtApp->m_Device.cEDevFlag.tcpPort),RICH_LIN_clBrown);
 	PrintStr(tBICPAR,"\n",RICH_LIN_clDefault);
-	
+#endif
+#ifdef SWVERSION_UDPCLient
 	PrintStr(tBICPAR,"UDP",RICH_LIN_clLightBlue);
 	PrintStr(tBICPAR,":",RICH_LIN_clDefault);
 	PrintStr(tBICPAR,tBICPAR->sdtApp->m_Device.cEDevFlag.udpIP,RICH_LIN_clBrown);
 	PrintStr(tBICPAR,"@",RICH_LIN_clDefault);
 	PrintStr(tBICPAR,Str_IntToString(tBICPAR->sdtApp->m_Device.cEDevFlag.udpPort),RICH_LIN_clBrown);
 	PrintStr(tBICPAR,"\n",RICH_LIN_clDefault);
-	
+#endif
+#ifdef SWVERSION_TCPServer
 	PrintStr(tBICPAR,"TCP Server",RICH_LIN_clLightBlue);
 	PrintStr(tBICPAR,"@",RICH_LIN_clDefault);
 	PrintStr(tBICPAR,Str_IntToString(tBICPAR->sdtApp->m_Device.cEDevFlag.tcpsPort),RICH_LIN_clBrown);
 	PrintStr(tBICPAR,"\n",RICH_LIN_clDefault);
-	
+#endif
+#ifdef SWVERSION_UDPServer
 	PrintStr(tBICPAR,"UDP Server",RICH_LIN_clLightBlue);
 	PrintStr(tBICPAR,"@",RICH_LIN_clDefault);
 	PrintStr(tBICPAR,Str_IntToString(tBICPAR->sdtApp->m_Device.cEDevFlag.udpsPort),RICH_LIN_clBrown);
 	PrintStr(tBICPAR,"\n",RICH_LIN_clDefault);
-	
+#endif
 	PrintStrN(tBICPAR,DEV_LINE_START,RICH_LIN_clDefault);
 	return(cgReturnCode);
 }

@@ -57,7 +57,9 @@ class CCMUXCOMCtrl : public CView{
 		CMyCStatic	m_StaticRx;
 		IPCOMLIST	m_ValidAuxComList;
 		BOOL		m_blConnect;
+#ifdef	SWVERSION_CMUX
 		CMUXCOM		*m_CMUXCOM;
+#endif
 		int			CreateEdit(void);
 		virtual void OnDraw(CDC* pDC);  // overridden to draw this view
 		virtual void PostNcDestroy(void){;};
