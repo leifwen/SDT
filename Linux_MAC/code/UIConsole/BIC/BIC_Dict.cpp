@@ -518,25 +518,25 @@ uint64 HTML_NODE::DelTagsBlankContent(const std::string &tagName){
 	if ((cgTagsType == HTML_Tags) || (cgTagsType == HTML_None)){
 		if (IsTagSingle() > 0)
 			return 0;
-		if ((tagName == "*")|| (cgTagsName == tagName)){
-			do{
-				operateNode = (HTML_NODE*)GetFirstChild(this);
-				blContent = 0;
-				blTag = 0;
-				delCount = 0;
-				while(operateNode != nullptr){
-					nextNode = (HTML_NODE*)RTREE_NODE::GetcgRChild(operateNode);
-					if (operateNode->cgTagsType == HTML_Content){
-						blContent = 1;
-					}
-					else if (operateNode->cgTagsType == HTML_Tags){
-						blTag = 1;
-						delCount += operateNode->DelTagsBlankContent(tagName);
-					}
-					operateNode = nextNode;
-				};
-				count += delCount;
-			}while(delCount > 0);
+		do{
+			operateNode = (HTML_NODE*)GetFirstChild(this);
+			blContent = 0;
+			blTag = 0;
+			delCount = 0;
+			while(operateNode != nullptr){
+				nextNode = (HTML_NODE*)RTREE_NODE::GetcgRChild(operateNode);
+				if (operateNode->cgTagsType == HTML_Content){
+					blContent = 1;
+				}
+				else if (operateNode->cgTagsType == HTML_Tags){
+					blTag = 1;
+					delCount += operateNode->DelTagsBlankContent(tagName);
+				}
+				operateNode = nextNode;
+			};
+			count += delCount;
+		}while(delCount > 0);
+		if ((tagName == "*") || (cgTagsName == tagName)){
 			if ((blContent == 0) && (blTag == 0)){
 				++ count;
 				DelTagExcludeConetent();
