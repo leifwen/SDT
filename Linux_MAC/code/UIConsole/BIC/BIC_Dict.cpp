@@ -63,10 +63,12 @@ const std::string &ComposeTagForLog(const HTML_NODE &tHtmlNode,std::string *strR
 int32 HTML_NODE::ResolveContent(FIFO_UINT8 *fifoIn){
 	uint8	charData;
 	std::string	strTag;
+	int32	blSpace;
 
 	cgTagsName = "";
-	cgTagsValue = "";
+	cgTagsValue = " ";
 	cgTagsType = HTML_Content;
+	blSpace = 0;
 	charData = 0;
 	while(!fifoIn->IsEmpty()){
 		fifoIn->Get(&charData, 1);
@@ -77,6 +79,15 @@ int32 HTML_NODE::ResolveContent(FIFO_UINT8 *fifoIn){
 			fifoIn->Update(&charData, 1,0);
 			cgTagsValue = Str_Trim(cgTagsValue);
 			return HTML_R_OK;
+		}
+		if (blSpace == 0){
+			if (charData == ' ')
+				blSpace = 1;
+		}
+		else{
+			if (charData == ' ')
+				continue;
+			blSpace = 0;
 		}
 		cgTagsValue += charData;
 	}
