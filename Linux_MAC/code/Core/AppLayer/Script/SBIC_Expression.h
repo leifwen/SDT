@@ -84,4 +84,37 @@ class SBIC_GOTO : public SBIC_Node{
 		SBIC_Expression	cgSubC_Expression;
 };
 //------------------------------------------------------------------------------------------//
+class SBIC_STOP : public SBIC_Node{
+	public:
+		enum{RFLAG_C = 0, RFLAG_S = SBIC_Node::RFLAG_S + SBIC_Node::RFLAG_C};
+	public:
+		SBIC_STOP(void) : SBIC_Node() {
+			cgCommand = "stop,=";
+			cgReturnCode = SBI_RETCODE_STOP;
+		};
+		virtual ~SBIC_STOP(void){;};
+	public:
+		virtual	int32	Command	(SBICPAR *tBICPAR,const std::string &par,std::string *ret)const;
+		virtual	int32	Help	(SBICPAR *tBICPAR,int32 blDetail = 1)const;
+	private:
+		SBIC_Expression	cgSubC_Expression;
+};
+//------------------------------------------------------------------------------------------//
+class SBIC_BREAK : public SBIC_Node{
+	public:
+		enum{RFLAG_C = 0, RFLAG_S = SBIC_Node::RFLAG_S + SBIC_Node::RFLAG_C};
+	public:
+		SBIC_BREAK(void) : SBIC_Node() {
+			cgCommand = "break,=";
+			cgReturnCode = SBI_RETCODE_BREAK;
+		};
+		virtual ~SBIC_BREAK(void){;};
+	public:
+		virtual	int32	Command	(SBICPAR *tBICPAR,const std::string &par,std::string *ret)const;
+		virtual	int32	Help	(SBICPAR *tBICPAR,int32 blDetail = 1)const;
+	private:
+		SBIC_Expression	cgSubC_Expression;
+};
+
+//------------------------------------------------------------------------------------------//
 #endif

@@ -718,7 +718,7 @@ void DEVICE::SendCommand(const std::string &inputCommand,int32 blHEX,int32 bl0x0
 	int32			ByteNum;
 	
 	if (CheckblConnect() != 0){
-		SBIC_CreateHexCommand(nullptr,inputCommand,blHEX,bl0x0D,blEscape,&strCommand,&strPrintData);
+		cgSBIC_PRINT.CreateHexCommand(nullptr,inputCommand,blHEX,bl0x0D,blEscape,&strCommand,&strPrintData);
 		ByteNum = WriteInHEX(strCommand);
 		PrintSendCommand(strPrintData, ByteNum, COLSTRING::COL_EP_YES);
 	}
@@ -837,7 +837,7 @@ void DEVICE::SendCommandOnly(const std::string &inputCommand,int32 blHEX,int32 b
 	std::string		strCommand,strPrintData;
 	
 	if (CheckblConnect() != 0){
-		SBIC_CreateHexCommand(nullptr,inputCommand,blHEX,bl0x0D,blEscape,&strCommand,&strPrintData);
+		cgSBIC_PRINT.CreateHexCommand(nullptr,inputCommand,blHEX,bl0x0D,blEscape,&strCommand,&strPrintData);
 		WriteInHEX(strCommand);
 	}
 }

@@ -300,7 +300,7 @@ int32 BIC_TERMINALSERVER::Command(BICPAR *tBICPAR, const std::string &par, std::
 	if (port == 0)
 		port = 16384;
 	
-	if (tBICPAR->sdtApp->m_TS.Run(port) != 0){
+	if (tBICPAR->sdtApp->m_TS.Run(port,tBICPAR->sdtApp) != 0){
 		PrintDoRet(tBICPAR, "Terminal server is started at Port " + Str_IntToString(port));
 		return(cgReturnCode);
 	}
@@ -527,7 +527,7 @@ int32 BIC_RST_ON::Command(BICPAR *tBICPAR, const std::string &par, std::string *
 		return(cgReturnCode);
 	}
 	
-	if (tBICPAR->sdtApp->m_RST.Run(port) > 0){
+	if (tBICPAR->sdtApp->m_RST.Run(port,tBICPAR->sdtApp) > 0){
 		PrintDoRet(tBICPAR, "RST server is started at Port " + Str_IntToString(port));
 	}
 	else{

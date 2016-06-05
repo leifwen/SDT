@@ -79,6 +79,9 @@ class Script : public SBIC_Node{
 		SBIC_Wait				cgSubC_Wait;
 		SBIC_Lable				cgSubC_Lable;
 		SBIC_GOTO				cgSubC_GOTO;
+		SBIC_STOP				cgSubC_STOP;
+		SBIC_BREAK				cgSubC_BREAK;
+		SBIC_Print				cgSubC_PRINT;
 		#ifdef CommonDefH_Unix
 			SBIC_RE_LIST			cgSBIC_RE_LIST;
 			SBIC_RunExternal		cgSubC_RunExternal;

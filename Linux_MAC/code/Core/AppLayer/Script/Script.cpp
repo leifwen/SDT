@@ -282,7 +282,13 @@ int32 Script::ExecuteGroup(COMMAND_GROUP *tGroup,const int32 &runTotalTimes,int3
 				frameTimeout = 200;
 			SYS_Delay_SetTS(&timeS,frameTimeout);
 			exitType = ExecuteCommand(operateNode_t,frameTimeout);
-			if (exitType == 3){//stop
+			if (operateNode_t != cgSBICPAR.cgCommand)
+				nextNode_t = cgSBICPAR.cgCommand;//used for goto cmd
+			if (exitType == 6){//stop
+				SYS_DelayMS(50,&cgSBICPAR.blExit);
+				break;
+			}
+			if (exitType == 3){//break
 				SYS_DelayMS(50,&cgSBICPAR.blExit);
 				break;
 			}
@@ -308,7 +314,7 @@ int32 Script::ExecuteGroup(COMMAND_GROUP *tGroup,const int32 &runTotalTimes,int3
 				}
 			}
 		}
-		if (exitType == 3)//stop
+		if (exitType == 6)//stop
 			return 1;
 	}while(((blRun != 0) || (cycleTimes < runTimes)) && (IsTerminated() == 0));
 	return 1;
@@ -323,11 +329,13 @@ int32 Script::ExecuteCommand(COMMAND_NODE *tCommand,int32 frameTimeout){
 	//return(0)--->no execute due to blEnableSend == 0.
 	//return(1)--->execute BIC,no need to wait.
 	//return(2)--->meet continue condition.
-	//return(3)--->meet stop condition.
+	//return(3)--->meet break condition.
 	//return(4)--->meet resend condition.
 	//return(5)--->cycle-- to 0
+	//return(6)--->meet stop condition.
 	
 	cgSBICPAR.cgCommand = tCommand;
+	cgSBICPAR.blCMDRet = 1;
 	
 	if (tCommand->blEnableSend != 0){
 		maxCycle = 1;//set cycle times.
@@ -338,8 +346,8 @@ int32 Script::ExecuteCommand(COMMAND_NODE *tCommand,int32 frameTimeout){
 		while(((i++ < maxCycle) || (maxCycle == 0)) && (IsTerminated() == 0)){
 			eRetCode = ExecuteLC(&cgSBICPAR,strOCommand,&strPrintData);
 			if (eRetCode != SBI_RETCODE_NO)
-				return 1;
-			SBIC_CreateHexCommand(&cgSBICPAR,strOCommand,tCommand->blEnableHEX,tCommand->blEnableSendCR,G_ESCAPE_ON,&strHexCommand,&strPrintData);
+				return(cgSBICPAR.blCMDRet);
+			cgSubC_PRINT.CreateHexCommand(&cgSBICPAR,strOCommand,tCommand->blEnableHEX,tCommand->blEnableSendCR,G_ESCAPE_ON,&strHexCommand,&strPrintData);
 			
 			cgBuffer.Clean();
 			ByteNum = cgDevice->WriteInHEX(strHexCommand);

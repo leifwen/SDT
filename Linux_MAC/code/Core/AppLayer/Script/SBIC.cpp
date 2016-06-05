@@ -15,29 +15,42 @@
 #include "stdafx.h"
 #include "SBIC.h"
 #include "Comm_Convert.h"
+#include "Device.h"
 //------------------------------------------------------------------------------------------//
-SBIC_Node	gSBIC_subCommandList;
-SBIC_SQ		gSBIC_subC_SQ;
-SBIC_HEX	gSBIC_subC_HEX;
-SBIC_Time	gSBIC_subC_Time;
-SBIC_STRING	gSBIC_subC_STRING;
-SBIC_Build	gSBIC_subC_Build;
+int32 SBIC_Print::Help(SBICPAR *tBICPAR,int32 blDetail)const{
+	PrintB(tBICPAR,".CMD = Print=<Expression> -->Print log.");
+	PrintB(tBICPAR,"  Command = <'Print=<Expression>>[//COMMENT]");
+	PrintP(tBICPAR,"  Notes:1.Expression Operators is +.");
+	PrintP(tBICPAR,"        2.Can use \"\" set string. Use \\\", \\+ to escape \", +.");
+	PrintP(tBICPAR,"        3.Support \\0xhh, \\0Xhh, \\a, \\b, \\f, \\n, \\r, \\t, \\v, \\\\, \\', \\\", \\0, \\/, \\*, \\?.");
+	PrintP(tBICPAR,"        4.support sub command :'','hex,'ret,'time,'string.");
+	PrintP(tBICPAR,"     eg:");
+	PrintP(tBICPAR,"       Command = 'Print = Happy + New + Year //Print HappyNewYear.");
+	
+	const_cast<SBIC_Print *>(this)->HelpLC(tBICPAR,blDetail);	return(cgReturnCode);
+}
 //------------------------------------------------------------------------------------------//
-int32 SBIC_CreateHexCommand(
-							SBICPAR *cSBICPAR,const std::string &inputCommand,
+int32 SBIC_Print::Command(SBICPAR *tBICPAR,const std::string &par,std::string *ret)const{
+	std::string 	strTempData,retHexCommand,retPrintData;
+	
+	*ret = "";
+	CreateHexCommand(tBICPAR,par,0,0,G_ESCAPE_ON,&retHexCommand,&retPrintData);
+	if ((tBICPAR != nullptr) && (tBICPAR->cgDevice != nullptr)
+		&& (tBICPAR->cgDevice->cEDevFlag.blEnablePrintSBICinfo != 0)
+		&& (tBICPAR->cgDevice->cEDevFlag.blCommandExplain != 0)){
+		PrintExecute(tBICPAR,retPrintData);
+	}
+	return(cgReturnCode);
+}
+//------------------------------------------------------------------------------------------//
+int32 SBIC_Print::CreateHexCommand(SBICPAR *cSBICPAR,const std::string &inputCommand,
 							int32 blHEX,int32 bl0x0D,G_ESCAPE_VAILD blEscape,
-							std::string *retHexCommand,std::string *retPrintData){
+							std::string *retHexCommand,std::string *retPrintData)const{
 	int32		eRetCode;
 	std::string	strHexCommand,strPrintData,strOCommand;
 	
-	gSBIC_subCommandList.AddNode(&gSBIC_subC_SQ);
-	gSBIC_subCommandList.AddNode(&gSBIC_subC_Time);
-	gSBIC_subCommandList.AddNode(&gSBIC_subC_HEX);
-	gSBIC_subCommandList.AddNode(&gSBIC_subC_STRING);
-	gSBIC_subCommandList.AddNode(&gSBIC_subC_Build);
-	
 	strOCommand = SBIC_Node::DelComment(inputCommand);
-	eRetCode = gSBIC_subCommandList.ExecuteLC(cSBICPAR,strOCommand,&strPrintData);
+	eRetCode = ExecuteLC(cSBICPAR,strOCommand,&strPrintData);
 	switch (eRetCode){
 		case SBI_RETCODE_HEX:
 			strHexCommand = strPrintData;

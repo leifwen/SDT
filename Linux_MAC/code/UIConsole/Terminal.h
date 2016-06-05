@@ -27,23 +27,28 @@ class TerminalSocket : public APISocket{
 		virtual	int32	ExThreadFun		(void);
 		virtual void	ThreadsStart	(void);
 		virtual	void	OnCloseDev		(void);
+	public:
+				void	InitBICPAR		(SDTAPP *sdtApp);
 };
 //------------------------------------------------------------------------------------------//
 class TerminalServer : public APISocketServer{
 	public:
 		enum{RFLAG_C = 0, RFLAG_S = APISocketServer::RFLAG_S + APISocketServer::RFLAG_C};
-				 TerminalServer(int32 tSize) : APISocketServer(nullptr,tSize){selfName = "TS";};
+				 TerminalServer(int32 tSize) : APISocketServer(nullptr,tSize){selfName = "TS";cgSDTApp = nullptr;};
 		virtual ~TerminalServer(void){;};
 	private:
+		SDTAPP	*cgSDTApp;
 		virtual APISocket	*CreateNewSocket_TCP(const ODEV_LIST *tODEV_LIST,uint32 tSize){
 			TerminalSocket *tPDB;
 			tPDB = new TerminalSocket(tODEV_LIST,tSize);
-			if (tPDB != nullptr)
+			if (tPDB != nullptr){
+				tPDB->InitBICPAR(cgSDTApp);
 				tPDB->selfName = "TS->Socket" + Str_IntToString(GetnodeID(tPDB).load());
+			}
 			return(tPDB);
 		};
 	public:
-		int32	Run		(int32 port){return(APISocketServer::OpenD(port,COMMU_DBUF::CSType_TCP,0));};
+		int32	Run		(int32 port,SDTAPP *sdtApp){cgSDTApp = sdtApp;return(APISocketServer::OpenD(port,COMMU_DBUF::CSType_TCP,0));};
 };
 //------------------------------------------------------------------------------------------//
 #ifdef USE_OPENSSL
@@ -63,6 +68,8 @@ class RSTSocket : public ControlSocket{
 		virtual	void	OnCloseDev		(void);
 		virtual	int32	MessageProcessing(FNode_MESG *RecMesg,int32 blReady);
 	public:
+				void	InitBICPAR(SDTAPP *sdtApp);
+	public:
 				int32	SendRequestSetupTerminal(void);
 				int32	SendRequestCloseTerminal(void);
 				int32	CheckRemoteTerminalStatus(void);
@@ -71,17 +78,20 @@ class RSTSocket : public ControlSocket{
 class RSTServer : public RemoteSSLServer{
 	public:
 		enum{RFLAG_C = 0, RFLAG_S = RemoteSSLServer::RFLAG_S + RemoteSSLServer::RFLAG_C};
-				 RSTServer(int32 tSize) : RemoteSSLServer(nullptr,tSize){selfName = "RST";};
+				 RSTServer(int32 tSize) : RemoteSSLServer(nullptr,tSize){selfName = "RST";cgSDTApp = nullptr;};
 		virtual ~RSTServer(void){;};
 	private:
+		SDTAPP	*cgSDTApp;
 		virtual APISocket	*CreateNewSocket_TCP(const ODEV_LIST *tODEV_LIST,uint32 tSize){
 			RSTSocket *tPDB = new RSTSocket(tODEV_LIST,tSize);
-			if (tPDB != nullptr)
+			if (tPDB != nullptr){
+				tPDB->InitBICPAR(cgSDTApp);
 				tPDB->SetSelfName("RSTS->Socket" + Str_IntToString(GetnodeID(tPDB).load()));
+			}
 			return(tPDB);
 		};
 	public:
-		int32	Run		(int32 port){return(RemoteSSLServer::Run(port,COMMU_DBUF::CSType_TCP));};
+		int32	Run		(int32 port,SDTAPP *sdtApp){cgSDTApp = sdtApp;return(RemoteSSLServer::Run(port,COMMU_DBUF::CSType_TCP));};
 };
 //------------------------------------------------------------------------------------------//
 #endif

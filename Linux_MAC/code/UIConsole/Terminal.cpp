@@ -21,8 +21,8 @@ void TerminalSocket::OnCloseDev(void){
 	APISocket::OnCloseDev();
 }
 //------------------------------------------------------------------------------------------//
-int32 TerminalSocket::ExThreadFun(void){
-	cgBICPAR.sdtApp = &GSDTApp;
+void TerminalSocket::InitBICPAR(SDTAPP *sdtApp){
+	cgBICPAR.sdtApp = sdtApp;
 	cgBICPAR.oDevNode = GetcgSelfODdev();
 	cgBICPAR.charSBUF = &cgRxBuffer;
 	cgBICPAR.validComList = &cgBICPAR.sdtApp->m_IPComList;
@@ -33,7 +33,9 @@ int32 TerminalSocket::ExThreadFun(void){
 	cgBICPAR.blUseSecondLH = 0;
 	cgBICPAR.blDisplayAuto = 1;
 	cgBICPAR.gDID = 0;
-	
+}
+//------------------------------------------------------------------------------------------//
+int32 TerminalSocket::ExThreadFun(void){
 	cgBICPAR.sdtApp->m_oDevOutputListPool.AddNode(GetcgSelfODdev());
 	SetblcgRxBufferUsed();
 	while(exThread.IsTerminated() == 0){
@@ -89,21 +91,23 @@ void RSTSocket::OnCloseDev(void){
 	ControlSocket::OnCloseDev();
 }
 //------------------------------------------------------------------------------------------//
+void RSTSocket::InitBICPAR(SDTAPP *sdtApp){
+	cgBICPAR.sdtApp = sdtApp;
+	cgBICPAR.oDevNode = GetcgSelfODdev();
+	cgBICPAR.charSBUF = &cgDataCHSBUF;
+	cgBICPAR.validComList = &cgBICPAR.sdtApp->m_IPComList;
+	cgBICPAR.retCommand = "";
+	cgBICPAR.blExit = 0;
+	cgBICPAR.blInOnlineMode = 0;
+	cgBICPAR.blInPressKeyMode = 0;
+	cgBICPAR.blUseSecondLH = 0;
+	cgBICPAR.blDisplayAuto = 1;
+	cgBICPAR.gDID = 0;
+}
+//------------------------------------------------------------------------------------------//
 int32 RSTSocket::CommandThreadFun(void){
 	int32 	blRet;
 	if (CheckHandshake() > 0){
-		cgBICPAR.sdtApp = &GSDTApp;
-		cgBICPAR.oDevNode = GetcgSelfODdev();
-		cgBICPAR.charSBUF = &cgDataCHSBUF;
-		cgBICPAR.validComList = &cgBICPAR.sdtApp->m_IPComList;
-		cgBICPAR.retCommand = "";
-		cgBICPAR.blExit = 0;
-		cgBICPAR.blInOnlineMode = 0;
-		cgBICPAR.blInPressKeyMode = 0;
-		cgBICPAR.blUseSecondLH = 0;
-		cgBICPAR.blDisplayAuto = 1;
-		cgBICPAR.gDID = 0;
-		
 		cgBICPAR.sdtApp->m_oDevOutputListPool.AddNode(GetcgSelfODdev());
 		SetTSSLFLAG(blThreadRunY);
 		SetTSSLFLAG(blThreadRun);

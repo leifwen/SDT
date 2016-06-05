@@ -672,8 +672,6 @@
 		03560EA71BD35BE7008740E4 /* BIC */ = {
 			isa = PBXGroup;
 			children = (
-				03A3BA941CC45BD8006594D3 /* BIC_Dict.h */,
-				03A3BA931CC45BD8006594D3 /* BIC_Dict.cpp */,
 				03560EBC1BD35BE7008740E4 /* BuildInCommand.h */,
 				03560EBB1BD35BE7008740E4 /* BuildInCommand.cpp */,
 				03560EA81BD35BE7008740E4 /* BIC.h */,
@@ -695,6 +693,8 @@
 				03560EB51BD35BE7008740E4 /* BIC_Other.cpp */,
 				03560EAE1BD35BE7008740E4 /* BIC_Calc.h */,
 				03560EAD1BD35BE7008740E4 /* BIC_Calc.cpp */,
+				03A3BA941CC45BD8006594D3 /* BIC_Dict.h */,
+				03A3BA931CC45BD8006594D3 /* BIC_Dict.cpp */,
 			);
 			path = BIC;
 			sourceTree = "<group>";

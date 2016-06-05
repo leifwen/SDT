@@ -85,6 +85,11 @@ class SDTAPP{
 			RSTSocket		m_RSTCilent;
 		#endif
 	public:
+		#ifdef SWVERSION_DICT
+			DICTWORD_NODE	m_Dict;
+			COCAWORD_NODE	m_COCA;
+		#endif
+	public:
 		CON_ReadInLine	m_ReadInline;
 		BICPAR			m_ConsoleBICPAR;
 		BuildInCommand	m_BIC_Console;

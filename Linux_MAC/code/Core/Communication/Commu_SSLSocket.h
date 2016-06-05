@@ -33,6 +33,11 @@ class CSSL_FN_T0 :public Field_Node{
 		double			cgPackageDlyMS;
 		inline	void	Lock(void)	{Spin_InUse_set();cgPSBUF->Spin_InUse_set();};
 		inline	void	Unlock(void){cgPSBUF->Spin_InUse_clr();Spin_InUse_clr();};
+	private:
+		virtual int32	ChecksumResult	(const FIFO_UINT8 &fifobuf){
+			std::string	retStrOriginal;
+			return(fn_AESCC.CheckContent(&retStrOriginal, cgKey, &fifobuf));
+		};
 	public:
 				void	SetPackageDlyMS(double dlyMS);
 				double	GetPackageDlyMS(void);

@@ -18,6 +18,7 @@
 #include "Comm_Tree.h"
 #include "ODEV_Include.h"
 #include "Commu_Include.h"
+#include "SBIC.h"
 //------------------------------------------------------------------------------------------//
 class ExpandDevFlag{
 	public:
@@ -200,6 +201,7 @@ class DEVICE : public RTREE_NODE{
 		uint32	WriteInASCII	(const std::string &strContent,G_ESCAPE_VAILD blEscape,G_LOCK_VAILD blLock = G_LOCK_ON)
 									{DEVICE_T_RC(WriteInASCII(strContent,blEscape),SWriteInASCII(strContent,blEscape));};
 	public:
+		SBIC_Print	cgSBIC_PRINT;
 		void	SendCommand		(const std::string &inputCommand,int32 blHEX,int32 bl0x0D,G_ESCAPE_VAILD blEscape);
 		void	SendCommandOnly	(const std::string &inputCommand,int32 blHEX,int32 bl0x0D,G_ESCAPE_VAILD blEscape);
 		void	PrintSendCommand(const std::string &strPrintData,uint32 num,COLSTRING::COLEnforcePrint blEP = COLSTRING::COL_EP_NO);

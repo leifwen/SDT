@@ -14,6 +14,7 @@
 #include "BIC_Dict.h"
 #include "Comm_Convert.h"
 #include "Comm_File.h"
+#include "AppLayer.h"
 //------------------------------------------------------------------------------------------//
 
 enum{
@@ -649,9 +650,7 @@ uint64 HTML_NODE::DelTagsIncludeConetent(const std::string &tagName,const std::s
 
 
 
-//------------------------------------------------------------------------------------------//
-DICTWORD_NODE	g_Dict;
-COCAWORD_NODE	g_COCA;
+
 //------------------------------------------------------------------------------------------//
 void DICTWORD_NODE::Init(void){
 	cgOWord = "";
@@ -1131,7 +1130,8 @@ int32 COCAWORD_NODE::WriteToFile(const std::string &fileName){
 
 
 
-
+//------------------------------------------------------------------------------------------//
+#ifdef SWVERSION_DICT
 //------------------------------------------------------------------------------------------//
 int32 BIC_DICT_DO::Help(BICPAR *tBICPAR,int32 blDetail)const{
 	PrintHelpItem(tBICPAR,cgCommand,"Handle Html");
@@ -1177,7 +1177,7 @@ int32 BIC_DICT_DO::Command(BICPAR *tBICPAR, const std::string &par,std::string *
 	par5 = Str_SplitSubItem(&par6,' ');par6 = Str_LTrim(par6);
 	par6 = Str_SplitSubItem(&par6,' ');
 
-	dict = &g_Dict;
+	dict = &tBICPAR->sdtApp->m_Dict;
 	if (strPar == "-d"){
 		PrintStrN(tBICPAR, "Delete items: " + Str_UInt64ToString(dict->DelAttribute(par1,par2,par3)), RICH_LIN_clCyan);
 	}
@@ -1231,8 +1231,8 @@ int32 BIC_DICT_READ::Command(BICPAR *tBICPAR, const std::string &par,std::string
 	strPar = Str_SplitSubItem(&par1,' ');par1 = Str_LTrim(par1);
 	par1 = Str_SplitSubItem(&par1,' ');
 	
-	dict = &g_Dict;
-	coca = &g_COCA;
+	dict = &tBICPAR->sdtApp->m_Dict;
+	coca = &tBICPAR->sdtApp->m_COCA;
 	if (CFS_CheckFile(par1) > 0){
 		if ((strPar == "d") || (strPar == "dict")){
 			PrintStrN(tBICPAR, "Read dict file to Dict...", RICH_LIN_clBlue);
@@ -1296,7 +1296,7 @@ int32 BIC_DICT_SAVE::Command(BICPAR *tBICPAR, const std::string &par,std::string
 	strPar = Str_SplitSubItem(&par1,' ');par1 = Str_LTrim(par1);
 	par1 = Str_SplitSubItem(&par1,' ');
 	
-	dict = &g_Dict;
+	dict = &tBICPAR->sdtApp->m_Dict;
 	if (strPar.length() > 0){
 		if (strPar == "d"){
 			PrintStrN(tBICPAR, "Save to file:" + par1, RICH_LIN_clCyan);
@@ -1333,8 +1333,8 @@ int32 BIC_DICT_FIND::Command(BICPAR *tBICPAR, const std::string &par,std::string
 	strPar = Str_SplitSubItem(&par1,' ');par1 = Str_LTrim(par1);
 	par1 = Str_SplitSubItem(&par1,' ');
 	
-	dict = &g_Dict;
-	coca = &g_COCA;
+	dict = &tBICPAR->sdtApp->m_Dict;
+	coca = &tBICPAR->sdtApp->m_COCA;
 	if (strPar.length() > 0){
 		if (strPar == "coca"){
 			PrintStrN(tBICPAR, "Find in COCA...", RICH_LIN_clBlue);
@@ -1384,8 +1384,8 @@ int32 BIC_DICT_UPDATE::Command(BICPAR *tBICPAR, const std::string &par,std::stri
 	strPar = Str_SplitSubItem(&par1,' ');par1 = Str_LTrim(par1);
 	par1 = Str_SplitSubItem(&par1,' ');
 	
-	dict = &g_Dict;
-	coca = &g_COCA;
+	dict = &tBICPAR->sdtApp->m_Dict;
+	coca = &tBICPAR->sdtApp->m_COCA;
 	if (strPar.length() > 0){
 		if (strPar == "d9"){
 			PrintStrN(tBICPAR, "Update coca data...", RICH_LIN_clBlue);
@@ -1418,4 +1418,4 @@ int32 BIC_DICT_UPDATE::Command(BICPAR *tBICPAR, const std::string &par,std::stri
 	return(cgReturnCode);
 }
 //------------------------------------------------------------------------------------------//
-
+#endif
