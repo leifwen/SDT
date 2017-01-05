@@ -197,8 +197,8 @@ int32 SBIC_Delay::Command(SBICPAR *tBICPAR,const std::string &par,std::string *r
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 int32 SBIC_DTR::Help(SBICPAR *tBICPAR,int32 blDetail)const{
-	PrintB(tBICPAR,".CMD = DTR=<H/L>[,<PAR>] -->Set DTR output high/low and delay PAR time, then goto send next \"Command\".");
-	PrintB(tBICPAR,"  Command = <'DTR=<H/L>[,<PAR>]>[//COMMENT]");
+	PrintB(tBICPAR,".CMD = DTR=<H|L>[,<PAR>] -->Set DTR output high/low and delay PAR time, then goto send next \"Command\".");
+	PrintB(tBICPAR,"  Command = <'DTR=<H|L>[,<PAR>]>[//COMMENT]");
 	PrintP(tBICPAR,"   eg:");
 	PrintP(tBICPAR,"     Command = 'DTR=H,1.2    //Set DTR output high, delay 1.2s");
 	PrintP(tBICPAR,"     Command = 'DTR=L,1.2s   //Set DTR output low, delay 1.2s");
@@ -243,8 +243,8 @@ int32 SBIC_DTR::Command(SBICPAR *tBICPAR,const std::string &par,std::string *ret
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 int32 SBIC_RTS::Help(SBICPAR *tBICPAR,int32 blDetail)const{
-	PrintB(tBICPAR,".CMD = RTS=<H/L>[,<PAR>] -->Set RTS output high/low and delay PAR time, then goto send next \"Command\".");
-	PrintB(tBICPAR,"  Command = <'RTS=<H/L>[,<PAR>]>[//COMMENT]");
+	PrintB(tBICPAR,".CMD = RTS=<H|L>[,<PAR>] -->Set RTS output high/low and delay PAR time, then goto send next \"Command\".");
+	PrintB(tBICPAR,"  Command = <'RTS=<H|L>[,<PAR>]>[//COMMENT]");
 	PrintP(tBICPAR,"   eg:");
 	PrintP(tBICPAR,"     Command = 'RTS=H,1.2    //Set RTS output high, delay 1.2s");
 	PrintP(tBICPAR,"     Command = 'RTS=L,1.2s   //Set RTS output low, delay 1.2s");
@@ -502,8 +502,8 @@ int32 SBIC_CloseUDPSocket::Command(SBICPAR *tBICPAR, const std::string &par, std
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 int32 SBIC_SetRecvDataMode::Help(SBICPAR *tBICPAR,int32 blDetail)const{
-	PrintB(tBICPAR,".CMD = SetRecvDataMode=<HEX/ASCII> -->Change receive data print mode, HEE or ASCII.");
-	PrintB(tBICPAR,"  Command = <'SetRecvDataMode=<PAR>>[//COMMENT]");
+	PrintB(tBICPAR,".CMD = SetRecvDataMode=<HEX|ASCII> -->Change receive data print mode, HEE or ASCII.");
+	PrintB(tBICPAR,"  Command = <'SetRecvDataMode=<HEX|ASCII>>[//COMMENT]");
 	PrintP(tBICPAR,"   eg:");
 	PrintP(tBICPAR,"     Command = 'SetRecvDataMode=HEX    //change to HEX mode");
 	PrintP(tBICPAR,"     Command = 'SetRecvDataMode=ASCII  //change to ASCII mode");
@@ -526,8 +526,8 @@ int32 SBIC_SetRecvDataMode::Command(SBICPAR *tBICPAR,const std::string &par,std:
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 int32 SBIC_SetRecMsgReport::Help(SBICPAR *tBICPAR,int32 blDetail)const{
-	PrintB(tBICPAR,".CMD = SetRecMsgReport=<Enable/Disable> -->Enable/Disable receive report.");
-	PrintB(tBICPAR,"  Command = <'SetRecMsgReport=<Enable/Disable>>[//COMMENT]");
+	PrintB(tBICPAR,".CMD = SetRecMsgReport=<Enable|Disable> -->Enable/Disable receive report.");
+	PrintB(tBICPAR,"  Command = <'SetRecMsgReport=<Enable|Disable>>[//COMMENT]");
 	PrintP(tBICPAR,"   eg:");
 	PrintP(tBICPAR,"     Command = 'SetRecMsgReport=Enable    //enable report");
 	PrintP(tBICPAR,"     Command = 'SetRecMsgReport=Disable   //disable report");

@@ -1407,7 +1407,6 @@ void CCY_Encode_File_BASE64(const std::string &outFN,const std::string &inFN,CCT
 		resultStr = "";
 		CCY_BASE64_DataToStr(resultStr,dataOut,sizeof(dataOut),data,packageLength,ctx,EncodeB64,blEnNL);
 		fileStreamOut << resultStr;
-		fileStreamOut.flush();
 	}while(!fileStreamIn.eof());
 	fileStreamIn.close();
 	CCY_EnB64_Final(&ctx, dataOut, &dataNum,blEnNL);
@@ -1439,7 +1438,6 @@ void CCY_Decode_File_BASE64(const std::string &outFN,const std::string &inFN,CCT
 		resultStr = "";
 		CCY_BASE64_DataToStr(resultStr,dataOut,sizeof(dataOut),data,packageLength,ctx,DecodeB64,blEnNL);
 		fileStreamOut << resultStr;
-		fileStreamOut.flush();
 	}while(!fileStreamIn.eof());
 	fileStreamIn.close();
 	CCY_DeB64_Final(&ctx, dataOut, &dataNum,blEnNL);
@@ -1448,6 +1446,64 @@ void CCY_Decode_File_BASE64(const std::string &outFN,const std::string &inFN,CCT
 	fileStreamOut.flush();
 	fileStreamOut.close();
 	return;
+}
+//------------------------------------------------------------------------------------------//
+const std::string& CCY_Encode_FileToStr_BASE64(std::string *retStr,const std::string &inFN,CCT_BASE64_NL blEnNL){
+	CCY_BASE64_CTX	ctx;
+	uint64			packageLength,dataNum;
+	uint8			data[1024 * 8];
+	uint8			dataOut[1024 * 8];
+	std::fstream	fileStreamIn;
+	std::string		resultStr;
+	
+	*retStr = "";
+	if (CFS_CheckFile(inFN) == 0)
+		return(*retStr);
+	
+	fileStreamIn.open(inFN.c_str(),std::ios::in|std::ios::binary);
+	CCY_B64_CTXInit(&ctx);
+	do{
+		packageLength = sizeof(data);
+		fileStreamIn.read((char*)data,packageLength);
+		packageLength = fileStreamIn.gcount();
+		resultStr = "";
+		CCY_BASE64_DataToStr(resultStr,dataOut,sizeof(dataOut),data,packageLength,ctx,EncodeB64,blEnNL);
+		*retStr += resultStr;
+	}while(!fileStreamIn.eof());
+	fileStreamIn.close();
+	CCY_EnB64_Final(&ctx, dataOut, &dataNum,blEnNL);
+	resultStr = Str_CharToASCIIStr(dataOut, dataNum, G_ESCAPE_OFF);
+	*retStr += resultStr;
+	return(*retStr);
+}
+//------------------------------------------------------------------------------------------//
+const std::string& CCY_Decode_FileToStr_BASE64(std::string *retStr,const std::string &inFN,CCT_BASE64_NL blEnNL){
+	CCY_BASE64_CTX	ctx;
+	uint64			packageLength,dataNum;
+	uint8			data[1024 * 8];
+	uint8			dataOut[1024 * 8];
+	std::fstream	fileStreamIn;
+	std::string		resultStr;
+	
+	*retStr = "";
+	if (CFS_CheckFile(inFN) == 0)
+		return(*retStr);
+	
+	fileStreamIn.open(inFN.c_str(),std::ios::in|std::ios::binary);
+	CCY_B64_CTXInit(&ctx);
+	do{
+		packageLength = sizeof(data);
+		fileStreamIn.read((char*)data,packageLength);
+		packageLength = fileStreamIn.gcount();
+		resultStr = "";
+		CCY_BASE64_DataToStr(resultStr,dataOut,sizeof(dataOut),data,packageLength,ctx,DecodeB64,blEnNL);
+		*retStr +=  resultStr;
+	}while(!fileStreamIn.eof());
+	fileStreamIn.close();
+	CCY_DeB64_Final(&ctx, dataOut, &dataNum,blEnNL);
+	resultStr = Str_CharToASCIIStr(dataOut, dataNum, G_ESCAPE_OFF);
+	*retStr += resultStr;
+	return(*retStr);
 }
 //------------------------------------------------------------------------------------------//
 
@@ -2139,7 +2195,7 @@ inline void CCY_DeB64_Calc(CCY_BASE64_CTX *ctx,uint8 *&retBuffer,uint64 *retNum,
 		++ *retNum;
 	}
 	else if (x3 == '='){
-		x |= d3[x2];
+		x |= d2[x2];
 		*retBuffer++ = (uint8)x;
 		*retBuffer++ = (uint8)(x >> 8);
 		*retNum += 2;

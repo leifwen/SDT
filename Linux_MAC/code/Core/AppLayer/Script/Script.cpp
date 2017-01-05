@@ -41,14 +41,17 @@ Script::Script(void) : SBIC_Node(){
 	AddNode(&cgSubC_CloseUDPSocket);
 	AddNode(&cgSubC_SetRecvDataMode);
 	AddNode(&cgSubC_SetRecMsgReport);
+	AddNode(&cgSubC_PRINT);
 	AddNode(&cgSubC_Synchronous);
 	AddNode(&cgSubC_Lable);
 	AddNode(&cgSubC_GOTO);
-	AddNode(&cgSubC_Search);
+	AddNode(&cgSubC_STOP);
+	AddNode(&cgSubC_BREAK);
 #ifdef CommonDefH_Unix
 	AddNode(&cgSubC_RunExternal);
 	AddNode(&cgSubC_StopExternal);
 #endif
+	AddNode(&cgSubC_Search);
 	StopRun();
 	Init();
 #endif
@@ -567,10 +570,10 @@ void Script::Help(ODEV_NODE *tODevNode){
 	PrintP(&tSBICPAR,"----------------------------------------------------------------------");
 	PrintM(&tSBICPAR,"CMD List:(CMD Ignore case)");
 	
-	SBIC_Build		tSBIC_Build;
+	SBIC_Combine	tSBIC_Combine;
 	SBIC_Conditon	tSBIC_Conditon;
 	HelpLC(&tSBICPAR,1);
-	tSBIC_Build.Help(&tSBICPAR,1);
+	tSBIC_Combine.Help(&tSBICPAR,1);
 	tSBIC_Conditon.Help(&tSBICPAR,1);
 	
 	PrintP(&tSBICPAR,"----------------------------------------------------------------------");

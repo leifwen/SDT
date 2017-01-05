@@ -73,7 +73,7 @@ int32 BIC_CALC_MD5::Command(BICPAR *tBICPAR, const std::string &par,std::string 
 	strPar = par;
 	strPar = Str_SplitSubItem(&strPar, ' ');
 	if (par.length() > 0){
-		if (CFS_CheckFile(par) > 0){
+		if (CFS_CheckFile(strPar) > 0){
 			PrintStrN(tBICPAR, "FileName: ", RICH_LIN_clBlue);
 			PrintStr(tBICPAR, par, RICH_LIN_clCyan);
 			PrintStrN(tBICPAR, "FileSize: ", RICH_LIN_clBlue);
@@ -106,7 +106,7 @@ int32 BIC_CALC_SHA1::Command(BICPAR *tBICPAR, const std::string &par,std::string
 	strPar = par;
 	strPar = Str_SplitSubItem(&strPar, ' ');
 	if (par.length() > 0){
-		if (CFS_CheckFile(par) > 0){
+		if (CFS_CheckFile(strPar) > 0){
 			PrintStrN(tBICPAR, "FileName: ", RICH_LIN_clBlue);
 			PrintStr(tBICPAR, par, RICH_LIN_clCyan);
 			PrintStrN(tBICPAR, "FileSize: ", RICH_LIN_clBlue);
@@ -139,7 +139,7 @@ int32 BIC_CALC_SHA224::Command(BICPAR *tBICPAR, const std::string &par,std::stri
 	strPar = par;
 	strPar = Str_SplitSubItem(&strPar, ' ');
 	if (par.length() > 0){
-		if (CFS_CheckFile(par) > 0){
+		if (CFS_CheckFile(strPar) > 0){
 			PrintStrN(tBICPAR, "FileName: ", RICH_LIN_clBlue);
 			PrintStr(tBICPAR, par, RICH_LIN_clCyan);
 			PrintStrN(tBICPAR, "FileSize: ", RICH_LIN_clBlue);
@@ -172,7 +172,7 @@ int32 BIC_CALC_SHA256::Command(BICPAR *tBICPAR, const std::string &par,std::stri
 	strPar = par;
 	strPar = Str_SplitSubItem(&strPar, ' ');
 	if (par.length() > 0){
-		if (CFS_CheckFile(par) > 0){
+		if (CFS_CheckFile(strPar) > 0){
 			PrintStrN(tBICPAR, "FileName: ", RICH_LIN_clBlue);
 			PrintStr(tBICPAR, par, RICH_LIN_clCyan);
 			PrintStrN(tBICPAR, "FileSize: ", RICH_LIN_clBlue);
@@ -205,7 +205,7 @@ int32 BIC_CALC_SHA384::Command(BICPAR *tBICPAR, const std::string &par,std::stri
 	strPar = par;
 	strPar = Str_SplitSubItem(&strPar, ' ');
 	if (par.length() > 0){
-		if (CFS_CheckFile(par) > 0){
+		if (CFS_CheckFile(strPar) > 0){
 			PrintStrN(tBICPAR, "FileName: ", RICH_LIN_clBlue);
 			PrintStr(tBICPAR, par, RICH_LIN_clCyan);
 			PrintStrN(tBICPAR, "FileSize: ", RICH_LIN_clBlue);
@@ -237,8 +237,8 @@ int32 BIC_CALC_SHA512::Command(BICPAR *tBICPAR, const std::string &par,std::stri
 	std::string	strPar;
 	strPar = par;
 	strPar = Str_SplitSubItem(&strPar, ' ');
-		if (par.length() > 0){
-		if (CFS_CheckFile(par) > 0){
+    if (par.length() > 0){
+		if (CFS_CheckFile(strPar) > 0){
 			PrintStrN(tBICPAR, "FileName: ", RICH_LIN_clBlue);
 			PrintStr(tBICPAR, par, RICH_LIN_clCyan);
 			PrintStrN(tBICPAR, "FileSize: ", RICH_LIN_clBlue);
@@ -272,12 +272,12 @@ int32 BIC_CALC_BASE64::Help(BICPAR *tBICPAR,int32 blDetail)const{
 //------------------------------------------------------------------------------------------//
 int32 BIC_CALC_BASE64::Command(BICPAR *tBICPAR, const std::string &par,std::string *ret)const{
 	std::string		par1,par2,par3,parR,strRet;
-	std::string	strPar;
-	parR = par;
-	strPar = Str_SplitSubItem(&parR, ' ');
+	par3 = par;
+    par1 = Str_ReadSubItem(&par3, " ");
 	if ((par1 == "+") || (par1 == "-")){
-		if (parR.length() > 0){
-			par3 = parR;
+        par3 = Str_LTrim(par3);
+		if (par3.length() > 0){
+            parR = par3;
 			par2 = Str_Trim(Str_SplitSubItem(&par3, ' '));
 			par3 = Str_Trim(par3);
 			par3 = Str_SplitSubItem(&par3, ' ');
@@ -291,12 +291,12 @@ int32 BIC_CALC_BASE64::Command(BICPAR *tBICPAR, const std::string &par,std::stri
 					if (par1 == "+"){
 						PrintStrN(tBICPAR, "Base64 Encode: ", RICH_LIN_clBlue);
 						PrintStrN(tBICPAR, par3, RICH_LIN_clCyan);
-						CCY_Encode_File_BASE64(par3, par2,CCT_NL_YES);
+						CCY_Encode_File_BASE64(par3, par2);
 					}
 					else{
 						PrintStrN(tBICPAR, "Base64 Decode: ", RICH_LIN_clBlue);
 						PrintStrN(tBICPAR, par3, RICH_LIN_clCyan);
-						CCY_Decode_File_BASE64(par3, par2,CCT_NL_YES);
+						CCY_Decode_File_BASE64(par3, par2);
 					}
 				}
 				else{

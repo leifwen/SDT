@@ -16,7 +16,6 @@
 		03560EC31BD35BE7008740E4 /* CommandSList.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 035607D01BD35BD4008740E4 /* CommandSList.cpp */; };
 		03560EC41BD35BE7008740E4 /* Device.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 035607D21BD35BD4008740E4 /* Device.cpp */; };
 		03560EC51BD35BE7008740E4 /* ParRecord.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 035607D41BD35BD4008740E4 /* ParRecord.cpp */; };
-		03560EC61BD35BE7008740E4 /* SBIC.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 035607D71BD35BD4008740E4 /* SBIC.cpp */; };
 		03560EC71BD35BE7008740E4 /* SBIC_B.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 035607D91BD35BD4008740E4 /* SBIC_B.cpp */; };
 		03560EC81BD35BE7008740E4 /* SBIC_Build.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 035607DB1BD35BD4008740E4 /* SBIC_Build.cpp */; };
 		03560EC91BD35BE7008740E4 /* SBIC_Condition.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 035607DD1BD35BD4008740E4 /* SBIC_Condition.cpp */; };
@@ -100,7 +99,6 @@
 		035607D31BD35BD4008740E4 /* Device.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Device.h; sourceTree = "<group>"; };
 		035607D41BD35BD4008740E4 /* ParRecord.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ParRecord.cpp; sourceTree = "<group>"; };
 		035607D51BD35BD4008740E4 /* ParRecord.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ParRecord.h; sourceTree = "<group>"; };
-		035607D71BD35BD4008740E4 /* SBIC.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SBIC.cpp; sourceTree = "<group>"; };
 		035607D81BD35BD4008740E4 /* SBIC.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SBIC.h; sourceTree = "<group>"; };
 		035607D91BD35BD4008740E4 /* SBIC_B.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SBIC_B.cpp; sourceTree = "<group>"; };
 		035607DA1BD35BD4008740E4 /* SBIC_B.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SBIC_B.h; sourceTree = "<group>"; };
@@ -394,7 +392,6 @@
 				035607E61BD35BD4008740E4 /* Script.h */,
 				035607E51BD35BD4008740E4 /* Script.cpp */,
 				035607D81BD35BD4008740E4 /* SBIC.h */,
-				035607D71BD35BD4008740E4 /* SBIC.cpp */,
 				035607DA1BD35BD4008740E4 /* SBIC_B.h */,
 				035607D91BD35BD4008740E4 /* SBIC_B.cpp */,
 				035607DC1BD35BD4008740E4 /* SBIC_Build.h */,
@@ -725,7 +722,7 @@
 		035600821BD35AF9008740E4 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0700;
+				LastUpgradeCheck = 0820;
 				ORGANIZATIONNAME = "leif wen";
 				TargetAttributes = {
 					035600891BD35AF9008740E4 = {
@@ -762,7 +759,6 @@
 				03560EDA1BD35BE7008740E4 /* Commu_Com.cpp in Sources */,
 				03A3BA951CC45BD8006594D3 /* BIC_Dict.cpp in Sources */,
 				03560EF81BD35BE7008740E4 /* BIC_Socket.cpp in Sources */,
-				03560EC61BD35BE7008740E4 /* SBIC.cpp in Sources */,
 				03560EF91BD35BE7008740E4 /* BuildInCommand.cpp in Sources */,
 				03560EE21BD35BE7008740E4 /* ColorRecord.cpp in Sources */,
 				03560EC11BD35BE7008740E4 /* ComEnum.cpp in Sources */,
@@ -831,8 +827,10 @@
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
@@ -854,6 +852,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = ../Linux_MAC/code/Openssl/1.0.2d/MAC64/include/;
+				LIBRARY_SEARCH_PATHS = ../Linux_MAC/code/Openssl/1.0.2d/MAC64/lib/;
 				MACOSX_DEPLOYMENT_TARGET = 10.10;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -874,8 +873,10 @@
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
@@ -891,6 +892,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = ../Linux_MAC/code/Openssl/1.0.2d/MAC64/include/;
+				LIBRARY_SEARCH_PATHS = ../Linux_MAC/code/Openssl/1.0.2d/MAC64/lib/;
 				MACOSX_DEPLOYMENT_TARGET = 10.10;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = macosx;

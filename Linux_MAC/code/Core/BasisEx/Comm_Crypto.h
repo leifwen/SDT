@@ -133,8 +133,10 @@ const FIFO_UINT8&	CCY_Encode_BASE64(FIFO_UINT8 *retfifo,const uint8 *data,uint32
 const FIFO_UINT8&	CCY_Decode_BASE64(FIFO_UINT8 *retfifo,const uint8 *data,uint32 length,CCT_BASE64_NL blEnNL = CCT_NL_YES);
 const FIFO_UINT8&	CCY_Encode_BASE64(FIFO_UINT8 *retfifo,const FIFO_UINT8 &fifo,uint32 length,uint32 offset,CCT_BASE64_NL blEnNL = CCT_NL_YES);
 const FIFO_UINT8&	CCY_Decode_BASE64(FIFO_UINT8 *retfifo,const FIFO_UINT8 &fifo,uint32 length,uint32 offset,CCT_BASE64_NL blEnNL = CCT_NL_YES);
-void CCY_Encode_File_BASE64(const std::string &outFN,const std::string &inFN,CCT_BASE64_NL blEnNL);
-void CCY_Decode_File_BASE64(const std::string &outFN,const std::string &inFN,CCT_BASE64_NL blEnNL);
+void CCY_Encode_File_BASE64(const std::string &outFN,const std::string &inFN,CCT_BASE64_NL blEnNL = CCT_NL_YES);
+void CCY_Decode_File_BASE64(const std::string &outFN,const std::string &inFN,CCT_BASE64_NL blEnNL = CCT_NL_YES);
+const std::string& CCY_Encode_FileToStr_BASE64(std::string *retStr,const std::string &inFN,CCT_BASE64_NL blEnNL = CCT_NL_YES);
+const std::string& CCY_Decode_FileToStr_BASE64(std::string *retStr,const std::string &inFN,CCT_BASE64_NL blEnNL = CCT_NL_YES);
 inline	const	std::string&	CCY_Encode_BASE64(std::string *retStr,const std::string &strData,CCT_BASE64_NL blEnNL = CCT_NL_YES){
 	return(CCY_Encode_BASE64(retStr,(uint8*)strData.c_str(),strData.length(),blEnNL));
 };
@@ -498,7 +500,7 @@ class CCY_FR_Signature :public Field_Node{
 	};
 	
 	inline	const std::string&	Encode(std::string *retStrWhole,const uint8 *data,uint32 num,RSA *rsa_puk){
-		CCY_FR_Signature::Encode(retStrWhole,data,num,rsa_puk);
+		CCY_FR_Signature::Encode(data,num,rsa_puk);
 		return(ReadAllContent(retStrWhole));
 	};
 	inline	const std::string&	Encode(std::string *retStrWhole,const std::string &strInput,RSA *rsa_puk){

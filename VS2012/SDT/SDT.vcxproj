@@ -206,7 +206,6 @@
     <ClCompile Include="..\..\Linux_MAC\code\Core\AppLayer\CommandSList.cpp" />
     <ClCompile Include="..\..\Linux_MAC\code\Core\AppLayer\Device.cpp" />
     <ClCompile Include="..\..\Linux_MAC\code\Core\AppLayer\ParRecord.cpp" />
-    <ClCompile Include="..\..\Linux_MAC\code\Core\AppLayer\Script\SBIC.cpp" />
     <ClCompile Include="..\..\Linux_MAC\code\Core\AppLayer\Script\SBIC_B.cpp" />
     <ClCompile Include="..\..\Linux_MAC\code\Core\AppLayer\Script\SBIC_Build.cpp" />
     <ClCompile Include="..\..\Linux_MAC\code\Core\AppLayer\Script\SBIC_Condition.cpp" />

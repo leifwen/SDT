@@ -301,8 +301,8 @@ int32 SBIC_STOP::Help(SBICPAR *tBICPAR,int32 blDetail)const{
 	PrintB(tBICPAR,"  Command = <'Stop=<Expression>>[//COMMENT]");
 	PrintP(tBICPAR,"  Notes:Expression is the same as Condition Expression.");
 	PrintP(tBICPAR,"   eg:");
-	PrintP(tBICPAR,"     Command = 'Stop=001,Leif Wen  //if receive data contains Leif Wen, then stop");
-	PrintP(tBICPAR,"     Command = 'Stop=001,'cts==h   //if CTS is high, then stop");
+	PrintP(tBICPAR,"     Command = Leif Wen  //if receive data contains Leif Wen, then stop");
+	PrintP(tBICPAR,"     Command = 'cts==h   //if CTS is high, then stop");
 	return(cgReturnCode);
 }
 //------------------------------------------------------------------------------------------//
@@ -327,8 +327,8 @@ int32 SBIC_BREAK::Help(SBICPAR *tBICPAR,int32 blDetail)const{
 	PrintB(tBICPAR,"  Command = <'Break=<Expression>>[//COMMENT]");
 	PrintP(tBICPAR,"  Notes:Expression is the same as Condition Expression.");
 	PrintP(tBICPAR,"   eg:");
-	PrintP(tBICPAR,"     Command = 'Break=001,Leif Wen  //if receive data contains Leif Wen, then break");
-	PrintP(tBICPAR,"     Command = 'Break=001,'cts==h   //if CTS is high, then break");
+	PrintP(tBICPAR,"     Command = 'Break=Leif Wen  //if receive data contains Leif Wen, then break");
+	PrintP(tBICPAR,"     Command = 'Break='cts==h   //if CTS is high, then break");
 	return(cgReturnCode);
 }
 //------------------------------------------------------------------------------------------//

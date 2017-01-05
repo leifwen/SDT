@@ -472,9 +472,6 @@
     <ClCompile Include="..\..\Linux_MAC\code\Core\AppLayer\Script\Script.cpp">
       <Filter>_Core\AppLayer\SBIC</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Linux_MAC\code\Core\AppLayer\Script\SBIC.cpp">
-      <Filter>_Core\AppLayer\SBIC</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Linux_MAC\code\Core\AppLayer\Script\SBIC_Expression.cpp">
       <Filter>_Core\AppLayer\SBIC</Filter>
     </ClCompile>

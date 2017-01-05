@@ -84,8 +84,8 @@ class SBIC_RECEIVE : public SBIC_Node{
 		virtual	int32	Command	(SBICPAR *tBICPAR,const std::string &par,std::string *ret)const;
 		virtual	int32	Help	(SBICPAR *tBICPAR,int32 blDetail = 1)const;
 	private:
-		SBIC_Build		cgSubC_Build;
-		SBIC_Search		cgSubC_Search;
+		SBIC_Combine		cgSubC_Combine;
+		SBIC_Search			cgSubC_Search;
 };
 //------------------------------------------------------------------------------------------//
 class SBIC_TIMEOUT : public SBIC_Node{

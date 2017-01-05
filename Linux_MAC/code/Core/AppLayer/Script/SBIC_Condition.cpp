@@ -15,8 +15,8 @@
 #include "Device.h"
 //------------------------------------------------------------------------------------------//
 int32 SBIC_CTS::Help(SBICPAR *tBICPAR,int32 blDetail)const{
-	PrintB(tBICPAR,".CMD = CTS==<H/L> -->check CTS status.Used as sub-command in Condition Expression.");
-	PrintB(tBICPAR,"  Command = <'CTS==<H/L>>");
+	PrintB(tBICPAR,".CMD = CTS==<H|L> -->check CTS status.Used as sub-command in Condition Expression.");
+	PrintB(tBICPAR,"  Command = <'CTS==<H|L>>");
 	PrintP(tBICPAR,"   eg:");
 	PrintP(tBICPAR,"     Condition Expression = 'CTS==H      //if CTS is high, the Condition Expression is true");
 	return(cgReturnCode);
@@ -41,8 +41,8 @@ int32 SBIC_CTS::Command(SBICPAR *tBICPAR,const std::string &par,std::string *ret
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 int32 SBIC_DSR::Help(SBICPAR *tBICPAR,int32 blDetail)const{
-	PrintB(tBICPAR,".CMD = DSR==<H/L> -->check DSR status.Used as sub-command in Condition Expression.");
-	PrintB(tBICPAR,"  Command = <'DSR==<H/L>>");
+	PrintB(tBICPAR,".CMD = DSR==<H|L> -->check DSR status.Used as sub-command in Condition Expression.");
+	PrintB(tBICPAR,"  Command = <'DSR==<H|L>>");
 	PrintP(tBICPAR,"   eg:");
 	PrintP(tBICPAR,"     Condition Expression = 'DST==H      //if DSR is high, the Condition Expression is true");
 	return(cgReturnCode);
@@ -67,8 +67,8 @@ int32 SBIC_DSR::Command(SBICPAR *tBICPAR,const std::string &par,std::string *ret
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 int32 SBIC_RING::Help(SBICPAR *tBICPAR,int32 blDetail)const{
-	PrintB(tBICPAR,".CMD = RING==<H/L> -->check RING status.Used as sub-command in Condition Expression.");
-	PrintB(tBICPAR,"  Command = <'RING==<H/L>>");
+	PrintB(tBICPAR,".CMD = RING==<H|L> -->check RING status.Used as sub-command in Condition Expression.");
+	PrintB(tBICPAR,"  Command = <'RING==<H|L>>");
 	PrintP(tBICPAR,"   eg:");
 	PrintP(tBICPAR,"     Condition Expression = 'RING==H      //if RING is high, the Condition Expression is true");
 	return(cgReturnCode);
@@ -93,8 +93,8 @@ int32 SBIC_RING::Command(SBICPAR *tBICPAR,const std::string &par,std::string *re
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 int32 SBIC_DCD::Help(SBICPAR *tBICPAR,int32 blDetail)const{
-	PrintB(tBICPAR,".CMD = DCD==<H/L> -->check DCD status.Used as sub-command in Condition Expression.");
-	PrintB(tBICPAR,"  Command = <'DCD==<H/L>>");
+	PrintB(tBICPAR,".CMD = DCD==<H|L> -->check DCD status.Used as sub-command in Condition Expression.");
+	PrintB(tBICPAR,"  Command = <'DCD==<H|L>>");
 	PrintP(tBICPAR,"   eg:");
 	PrintP(tBICPAR,"     Condition Expression = 'DCD==H      //if DCD is high, the Condition Expression is true");
 	return(cgReturnCode);
@@ -125,7 +125,7 @@ int32 SBIC_RECEIVE::Help(SBICPAR *tBICPAR,int32 blDetail)const{
 	PrintP(tBICPAR,"        2.Expression Operators is +.");
 	PrintP(tBICPAR,"        3.Can use \"\" set string. Use \\\", \\+ to escape \", +.");
 	PrintP(tBICPAR,"        4.Support \\0xhh, \\0Xhh, \\a, \\b, \\f, \\n, \\r, \\t, \\v, \\\\, \\', \\\", \\0, \\/, \\*, \\?.");
-	PrintP(tBICPAR,"        5.support sub command :'','hex,'ret,'time,'string.");
+	PrintP(tBICPAR,"        5.support sub command :same as 'combine.");
 	PrintP(tBICPAR,"   eg:");
 	PrintP(tBICPAR,"     Condition Expression = 'receive== OK   //if receive buffer contain OK, the Condition Expression is true");
 	PrintP(tBICPAR,"     Condition Expression = 'receive== O+K  //if receive buffer contain OK, the Condition Expression is true");
@@ -135,15 +135,15 @@ int32 SBIC_RECEIVE::Help(SBICPAR *tBICPAR,int32 blDetail)const{
 int32 SBIC_RECEIVE::Command(SBICPAR *tBICPAR,const std::string &par,std::string *ret)const{
 	std::string		strSR,strSub;
 	std::string::size_type	retD;
-	SBIC_Build		*subCommand_Build;
+	SBIC_Combine	*subCommand_Combine;
 	SBIC_Search		*subCommand_Search;
 	
-	subCommand_Build = const_cast<SBIC_Build *>(&cgSubC_Build);
+	subCommand_Combine = const_cast<SBIC_Combine *>(&cgSubC_Combine);
 	subCommand_Search = const_cast<SBIC_Search *>(&cgSubC_Search);
 	
 	*ret = 'F';
 	if (tBICPAR != nullptr){
-		subCommand_Build->Build(tBICPAR,par,&strSub);
+		subCommand_Combine->Create(tBICPAR,par,&strSub);
 		if (subCommand_Search->Search(tBICPAR->cgRecvbuf,strSub,&strSR) != 0){
 			*ret = 'T';
 		}
@@ -240,8 +240,8 @@ int32 SBIC_RX_E::Command(SBICPAR *tBICPAR,const std::string &par,std::string *re
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 int32 SBIC_LCS::Help(SBICPAR *tBICPAR,int32 blDetail)const{
-	PrintB(tBICPAR,".CMD = lcs==<T/F> -->check last command execution status.Used as sub-command in Condition Expression.");
-	PrintB(tBICPAR,"  Command = <'lcs==<T/F>>");
+	PrintB(tBICPAR,".CMD = lcs==<T|F> -->check last command execution status.Used as sub-command in Condition Expression.");
+	PrintB(tBICPAR,"  Command = <'lcs==<T|F>>");
 	PrintP(tBICPAR,"  Notes:1.T is true,F is false.");
 	PrintP(tBICPAR,"        2.support command,'Search, 'ChangeCom, 'OpenTCPSocket, 'CloseTCPSocket 'OpenUDPSocket, 'CloseUDPSocket.");
 	PrintP(tBICPAR,"   eg:");

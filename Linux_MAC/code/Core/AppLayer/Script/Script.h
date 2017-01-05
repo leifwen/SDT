@@ -64,6 +64,7 @@ class Script : public SBIC_Node{
 		SBIC_Expression			cgSubC_Expression;
 
 		SBIC_Delay				cgSubC_Delay;
+		SBIC_Wait				cgSubC_Wait;
 		SBIC_DTR				cgSubC_DTR;
 		SBIC_RTS				cgSubC_RTS;
 		SBIC_ChangeCom			cgSubC_ChangeCom;
@@ -76,7 +77,6 @@ class Script : public SBIC_Node{
 		SBIC_SetRecMsgReport	cgSubC_SetRecMsgReport;
 		SBIC_Search				cgSubC_Search;
 		SBIC_Synchronous		cgSubC_Synchronous;
-		SBIC_Wait				cgSubC_Wait;
 		SBIC_Lable				cgSubC_Lable;
 		SBIC_GOTO				cgSubC_GOTO;
 		SBIC_STOP				cgSubC_STOP;
