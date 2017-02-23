@@ -30,9 +30,10 @@ class TFileSend : public RTREE_NODE{
 		SYS_ThreadEx<TFileSend>		exThread;
 		void	SetInRun		(void){SetSFlag(RFLAG_CREATE(0));};
 		void	ClrInRun		(void){ClrSFlag(RFLAG_CREATE(0));};
-		int32	CheckblInRun	(void){return(CheckSFlag(RFLAG_CREATE(0)));};
+		int32	CheckblInRun	(void)const{return(CheckSFlag(RFLAG_CREATE(0)));};
 		int32	SendFile		(void);
 	public:
+		int32 	IsStop				(void)const{return((CheckblInRun()) == 0);};
 		void	StopSend(void);
 		int32	Execute(const DEVICE *tDevice,const std::string &tfileName);
 };

@@ -122,7 +122,7 @@ int32 SBIC_RET::Command(SBICPAR *tBICPAR,const std::string &par,std::string *ret
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 int32 SBIC_STRING::Help(SBICPAR *tBICPAR,int32 blDetail)const{
-	PrintB(tBICPAR,".CMD = string(len) -->Create string, len > 0 and len < 64 * 512.");
+	PrintB(tBICPAR,".CMD = string(<len>) -->Create string, len > 0 and len < 64 * 512.");
 	PrintB(tBICPAR,"  Command = <'string(len)>");
 	PrintP(tBICPAR,"     eg:");
 	PrintP(tBICPAR,"       Command = 'string(10) //Send: 001>?@ABCD\\r");
@@ -379,6 +379,7 @@ int32 SBIC_CALC_BASE64::Command(SBICPAR *tBICPAR,const std::string &par,std::str
 				else{
 					CCY_Decode_FileToStr_BASE64(ret, par2);
 				}
+				return(SBI_RETCODE_CALC_BASE64_FILE);
 			}
 			else{
 				tSBIC_Print.CreateHexCommand(tBICPAR, parR, 0, 0, G_ESCAPE_ON, &retHexCommand,&retPrintData);
@@ -394,7 +395,26 @@ int32 SBIC_CALC_BASE64::Command(SBICPAR *tBICPAR,const std::string &par,std::str
 	return(cgReturnCode);
 }
 //------------------------------------------------------------------------------------------//
-
+int32 SBIC_SENDFILE::Help(SBICPAR *tBICPAR,int32 blDetail)const{
+	PrintB(tBICPAR,".CMD = SendFile(<FileName>) -->Send file.");
+	PrintB(tBICPAR,"  Command = <'SendFile(<FileName>)>[//COMMENT]");
+	PrintP(tBICPAR,"   eg:");
+	PrintP(tBICPAR,"     Command = 'SendFile(./test.txt)        //Send file ./test.txt");
+	return(cgReturnCode);
+}
+//------------------------------------------------------------------------------------------//
+int32 SBIC_SENDFILE::Command(SBICPAR *tBICPAR,const std::string &par,std::string *ret)const{
+	std::string	strPar;
+	*ret = "";
+	strPar = par;
+	strPar = Str_SplitSubItem(&strPar, ' ');
+	if (par.length() > 0){
+		if (CFS_CheckFile(strPar) > 0)
+			CFS_ReadFile(ret,strPar);
+	}
+	return(cgReturnCode);
+}
+//------------------------------------------------------------------------------------------//
 
 
 
@@ -430,7 +450,7 @@ int32 SBIC_Combine::Help(SBICPAR *tBICPAR,int32 blDetail)const{
 	PrintP(tBICPAR,"  Notes:1.Expression Operators is +.");
 	PrintP(tBICPAR,"        2.Can use \"\" set string. Use \\\", \\+ to escape \", +.");
 	PrintP(tBICPAR,"        3.Support \\0xhh, \\0Xhh, \\a, \\b, \\f, \\n, \\r, \\t, \\v, \\\\, \\', \\\", \\0, \\/, \\*, \\?.");
-	PrintP(tBICPAR,"        4.support sub command :'','hex,'ret,'time,'string.");
+	PrintP(tBICPAR,"        4.support sub command :'','hex,'ret,'time,'string,'MD5,'SHA1,'SHA224,'SHA256,'SHA384,'SHA512,'BASE64.");
 	PrintP(tBICPAR,"     eg:");
 	PrintP(tBICPAR,"       Command = 'Combine = Happy + New + Year //new \"Command\" is HappyNewYear.");
 	PrintP(tBICPAR,"     If last CMD is Search, and");
@@ -443,35 +463,10 @@ int32 SBIC_Combine::Help(SBICPAR *tBICPAR,int32 blDetail)const{
 }
 //------------------------------------------------------------------------------------------//
 int32 SBIC_Combine::Command(SBICPAR *tBICPAR,const std::string &par,std::string *ret)const{
-	std::string 	strTempData;
-	
-	*ret = "";
-	Create(tBICPAR,par,ret);
-	if ((tBICPAR != nullptr) && (tBICPAR->cgDevice != nullptr) && (tBICPAR->cgDevice->cEDevFlag.blEnablePrintSBICinfo != 0) && (tBICPAR->cgDevice->cEDevFlag.blCommandExplain != 0)){
-		strTempData = SYS_MakeTimeNow();
-		strTempData += " Execute: ";
-		strTempData += "Combine:: ";
-		strTempData += par;
-		strTempData += "\r\n";
-		if (tBICPAR->cgDevice->cgODevList.cgOutput != nullptr){
-			tBICPAR->cgDevice->cgODevList.cgOutput->Spin_InUse_set();
-			tBICPAR->cgDevice->cgODevList.cgOutput->WriteDividingLine(RICH_CF_clMaroon);
-			tBICPAR->cgDevice->cgODevList.cgOutput->WriteStrN(strTempData,RICH_CF_clMaroon);
-			strTempData = "This new command will be send:\r\n";
-			strTempData += *ret;
-			strTempData += "\r\n";
-			tBICPAR->cgDevice->cgODevList.cgOutput->WriteStr(strTempData,RICH_CF_clPurple);
-			tBICPAR->cgDevice->cgODevList.cgOutput->Spin_InUse_clr();
-		}
-	}
-	return(cgReturnCode);
-}
-//------------------------------------------------------------------------------------------//
-int32 SBIC_Combine::Create(SBICPAR *tBICPAR,const std::string &strInput,std::string *retStr)const{
 	std::string		finalResult,strOInput,strRet,strSub;
 	int32			retCode;
-
-	FormatString(strInput,&strOInput);
+	
+	FormatString(par,&strOInput);
 	finalResult = "";
 	while(strOInput.length() > 0){
 		strSub = SplitLetter(&strOInput);
@@ -488,7 +483,7 @@ int32 SBIC_Combine::Create(SBICPAR *tBICPAR,const std::string &strInput,std::str
 			finalResult += strSub;
 		}
 	}
-	*retStr = finalResult;
+	*ret = finalResult;
 	return(cgReturnCode);
 }
 //------------------------------------------------------------------------------------------//
@@ -607,6 +602,15 @@ int32 SBIC_Print::CreateHexCommand(SBICPAR *cSBICPAR,const std::string &inputCom
 			if (bl0x0D != 0){
 				strHexCommand += "0D";
 				strPrintData += "\\r";
+			}
+			break;
+		case SBI_RETCODE_CALC_BASE64_FILE:
+		case SBI_RETCODE_SENDFILE:
+			strHexCommand = Str_ASCIIToHEX(strPrintData,G_ESCAPE_OFF);
+			strPrintData = strOCommand;
+			if (bl0x0D != 0){
+				strHexCommand += "0D";
+				strPrintData += " +\\r";
 			}
 			break;
 		default:{

@@ -79,6 +79,17 @@ class BIC_SENDA : public BIC_Node{
 		virtual	int32	Help	(BICPAR *tBICPAR,int32 blDetail = 1)const;
 };
 //------------------------------------------------------------------------------------------//
+class BIC_SENDFILE : public BIC_Node{
+	public:
+		enum{RFLAG_C = 0, RFLAG_S = BIC_Node::RFLAG_S + BIC_Node::RFLAG_C};
+	public:
+		BIC_SENDFILE(void) : BIC_Node() {cgCommand = "sendfile";cgReturnCode = BI_RETCODE_SENDFILE;};
+		virtual ~BIC_SENDFILE(void){;};
+	public:
+		virtual	int32	Command	(BICPAR *tBICPAR,const std::string &par,std::string *ret)const;
+		virtual	int32	Help	(BICPAR *tBICPAR,int32 blDetail = 1)const;
+};
+//------------------------------------------------------------------------------------------//
 class BIC_SCRIPT : public BIC_Node{
 	public:
 		enum{ RFLAG_C = 0, RFLAG_S = BIC_Node::RFLAG_S + BIC_Node::RFLAG_C };

@@ -143,7 +143,7 @@ int32 SBIC_RECEIVE::Command(SBICPAR *tBICPAR,const std::string &par,std::string 
 	
 	*ret = 'F';
 	if (tBICPAR != nullptr){
-		subCommand_Combine->Create(tBICPAR,par,&strSub);
+		subCommand_Combine->Command(tBICPAR,par,&strSub);
 		if (subCommand_Search->Search(tBICPAR->cgRecvbuf,strSub,&strSR) != 0){
 			*ret = 'T';
 		}

@@ -57,6 +57,7 @@
 	#define		SWVERSION_APPID			"LeifWen.SDT.MFC.V0.4.0"
 	#define		SWVERSION_NAME			"Script Debugging Tools(VC2013 MFC Version)"
 	#define		SWVERSION				"SDT(VC2013 MFC Version) V0.4.2, Written by Leif Wen"
+	#define		SWVERSION_TOOLS
 #endif
 #define	DEV_LINE_START			"****************************************\n"
 #define	DIVIDING_LINE			"----------------------------------------------------------------------"

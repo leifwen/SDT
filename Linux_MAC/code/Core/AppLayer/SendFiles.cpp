@@ -21,6 +21,7 @@ TFileSend::TFileSend(void):RTREE_NODE(){
 	exThread.ThreadInit(this,&TFileSend::SendFile);
 	cDevice = nullptr;
 	cfileName = "";
+	StopSend();
 }
 //------------------------------------------------------------------------------------------//
 TFileSend::~TFileSend(void){

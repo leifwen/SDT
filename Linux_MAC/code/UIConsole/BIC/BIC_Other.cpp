@@ -316,7 +316,7 @@ int32 BIC_PATCHSDT::Help(BICPAR *tBICPAR,int32 blDetail)const{
 	PrintHelpItem(tBICPAR,cgCommand,"Add Patch Code to SDT");
 	if (blDetail == 0)
 		return(cgReturnCode);
-	PrintHelpItem(tBICPAR,"     <file>"		,"SDT file name.");
+	PrintHelpItem(tBICPAR,"     <filename>"		,"SDT file name.");
 	return(cgReturnCode);
 }
 //------------------------------------------------------------------------------------------//
@@ -326,8 +326,9 @@ int32 BIC_PATCHSDT::Command(BICPAR *tBICPAR,const std::string &par,std::string *
 	Reg_SDT_PatchCode	SDTPC;
 	
 	*ret = "";
-	strPar = Str_Trim(par);
-	if (par.length() > 0)
+	strPar = par;
+	strPar = Str_SplitSubItem(&strPar, ' ');
+	if (CFS_CheckFile(strPar) > 0)
 		SDTPC.PatchToSDT(strPar,&strPrint);
 	
 	PrintStrN(tBICPAR,strPrint,RICH_CF_clPurple);
@@ -339,12 +340,12 @@ int32 BIC_APPROVE::Help(BICPAR *tBICPAR,int32 blDetail)const{
 	if (blDetail == 0)
 		return(cgReturnCode);
 	PrintHelpItem(tBICPAR,"     <hours>"	,"720H = 1M,8760H = 1Y,867240H = 99Y");
-	PrintHelpItem(tBICPAR,"     <file>"		,"PreRegistration.key");
+	PrintHelpItem(tBICPAR,"     <filename>"		,"PreRegistration.key");
 	return(cgReturnCode);
 }
 //------------------------------------------------------------------------------------------//
 int32 BIC_APPROVE::Command(BICPAR *tBICPAR,const std::string &par,std::string *ret)const{
-	std::string		strPar1,strPar2;
+	std::string		strPar,strPar1,strPar2;
 	std::string		strReg,strContent;
 	Linense_Signature	tLS;
 
@@ -352,14 +353,16 @@ int32 BIC_APPROVE::Command(BICPAR *tBICPAR,const std::string &par,std::string *r
 	strPar1 = Str_Trim(Str_ReadSubItem(&strPar2, " "));
 	strPar2 = Str_Trim(strPar2);
 	strReg = "";
+	strPar = strPar2;
+	strPar = Str_SplitSubItem(&strPar, ' ');
 	
-	CFS_ReadFile(&strReg, strPar2);
+	CFS_ReadFile(&strReg, strPar);
 
 	if (tLS.Encode(&strContent, strReg, atoi(strPar1.c_str()) * 60 * 60) > 0){
-		Str_ReadSubItemR(&strPar2, "/");
-		strPar2 += "/License.key";
-		CFS_WriteFile(strPar2, strContent);
-		PrintDoRet(tBICPAR,"Create " + strPar2 + "successful");
+		Str_ReadSubItemR(&strPar, "/");
+		strPar += "/License.key";
+		CFS_WriteFile(strPar, strContent);
+		PrintDoRet(tBICPAR,"Create " + strPar + "successful");
 	}
 	else{
 		PrintDoRet(tBICPAR,"Fail");

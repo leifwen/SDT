@@ -95,6 +95,7 @@ int32 BIC_STOP::Command(BICPAR *tBICPAR, const std::string &par,std::string *ret
 	if (par.length() == 0){
 		tBICPAR->oDevNode->Enable();
 		tBICPAR->sdtApp->m_Script.StopRun();
+		tBICPAR->sdtApp->m_FileSend.StopSend();
 		PrintDoRet(tBICPAR,"Script is stopped!");
 		PressAnyKey(tBICPAR);
 		return(cgReturnCode);
@@ -186,6 +187,48 @@ int32 BIC_SENDA::Command(BICPAR *tBICPAR, const std::string &par,std::string *re
 	else{
 		PrintDoRet(tBICPAR,"Fail execute due to no connected");
 	}
+	return(cgReturnCode);
+}
+//------------------------------------------------------------------------------------------//
+int32 BIC_SENDFILE::Help(BICPAR *tBICPAR,int32 blDetail)const{
+	PrintHelpItem(tBICPAR,cgCommand,"Send file if connected.");
+	if (blDetail == 0)
+		return(cgReturnCode);
+	PrintHelpItem(tBICPAR,"     <filename>"		,"File Name.");
+	return(cgReturnCode);
+}//------------------------------------------------------------------------------------------//
+int32 BIC_SENDFILE::Command(BICPAR *tBICPAR, const std::string &par,std::string *ret)const{
+	int32	retCode;
+	std::string	strPar;
+	strPar = par;
+	strPar = Str_SplitSubItem(&strPar, ' ');
+	
+	*ret = "";
+	
+	if (CFS_CheckFile(strPar) > 0){
+		tBICPAR->oDevNode->Enable();
+		retCode = tBICPAR->sdtApp->m_FileSend.Execute(&tBICPAR->sdtApp->m_Device,strPar);
+		if (retCode == 0){
+			PrintDoRet(tBICPAR,"File is sending!");
+			return(cgReturnCode);
+		}
+		
+		while(tBICPAR->blExit == 0){
+			uint8	chkey;
+			SYS_SleepMS(10);
+			tBICPAR->blInPressKeyMode = 1;
+			chkey = BI_ReadChar(tBICPAR,0);
+			if (chkey == 27){
+				break;
+			}
+			else if (chkey == '\r'){
+				tBICPAR->oDevNode->Enable();
+			}
+			if (tBICPAR->sdtApp->m_FileSend.IsStop() != 0)
+				break;
+		}
+	}
+	tBICPAR->blInPressKeyMode = 0;
 	return(cgReturnCode);
 }
 //------------------------------------------------------------------------------------------//

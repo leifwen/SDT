@@ -25,6 +25,7 @@ enum{
 	SBI_RETCODE_TIME,
 	SBI_RETCODE_RET,
 	SBI_RETCODE_STRING,
+	SBI_RETCODE_SENDFILE,
 	SBI_RETCODE_COMBINE,
 	SBI_RETCODE_PRINT,
 	
@@ -70,6 +71,7 @@ enum{
 	SBI_RETCODE_CALC_SHA384,
 	SBI_RETCODE_CALC_SHA512,
 	SBI_RETCODE_CALC_BASE64,
+	SBI_RETCODE_CALC_BASE64_FILE,
 };
 //------------------------------------------------------------------------------------------//
 class DEVICE;

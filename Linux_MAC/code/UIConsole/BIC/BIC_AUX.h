@@ -120,21 +120,21 @@ class BIC_AUX : public BIC_Node_S{
 		};
 	private:
 	    void	Init(void){
+			AddNode(&cgSub_open);
+			AddNode(&cgSub_close);
+			AddNode(&cgSub_rec);
 	        AddNode(&cgSub_com);
 	        AddNode(&cgSub_br);
             AddNode(&cgSub_ms);
-            AddNode(&cgSub_open);
-	        AddNode(&cgSub_close);
-            AddNode(&cgSub_rec);
             AddNode(&cgSub_dtr);
             AddNode(&cgSub_rts);
 	    }
+		BIC_AUX_OPEN	cgSub_open;
+		BIC_AUX_CLOSE	cgSub_close;
+		BIC_AUX_REC		cgSub_rec;
 	    BIC_AUX_COM		cgSub_com;
 	    BIC_AUX_BR		cgSub_br;
     	BIC_AUX_MS		cgSub_ms;
-	    BIC_AUX_OPEN	cgSub_open;
-	    BIC_AUX_CLOSE	cgSub_close;
-	    BIC_AUX_REC		cgSub_rec;
 	    BIC_AUX_DTR		cgSub_dtr;
 	    BIC_AUX_RTS		cgSub_rts;
 };

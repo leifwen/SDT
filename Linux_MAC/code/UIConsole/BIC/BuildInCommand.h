@@ -28,29 +28,20 @@ class BuildInCommand : public BIC_Node{
 			AddNode(&cgC_EXE_BASH);
 			AddNode(&cgC_EXE_SH);
 		#endif
-		
-			AddNode(&cgC_DISPLAY);
+			
 			AddNode(&cgC_NEWRECORD);
+			AddNode(&cgC_DISPLAY);
 			
 			AddNode(&cgC_MAIN);
 			
 		#ifdef SWVERSION_AUXCOM
 			AddNode(&cgC_AUX);
 		#endif
-		
-			AddNode(&cgC_CONNECT);
-			AddNode(&cgC_DISCONNECT);
-			AddNode(&cgC_CR);
 			
 		#ifdef SWVERSION_SCRIPT
+			AddNode(&cgC_SCRIPT);
 			AddNode(&cgC_SCM);
 			AddNode(&cgC_GCM);
-			AddNode(&cgC_Script);
-			AddNode(&cgC_STOP);
-			AddNode(&cgC_RUN);
-		
-			AddNode(&cgC_SEND);
-			AddNode(&cgC_SENDA);
 		#endif
 		
 		#ifdef SWVERSION_CMUX
@@ -69,12 +60,10 @@ class BuildInCommand : public BIC_Node{
 			
 		#ifdef USE_OPENSSL
 			AddNode(&cgC_RST);
-			AddNode(&cgC_CREGREPORT);
 		#ifdef CommonDefH_MAC
-			AddNode(&cgC_PATCHSDT);
-			AddNode(&cgC_APPROVE);
-			AddNode(&cgC_LSERVER);
+			AddNode(&cgC_MSDT);
 		#endif
+			AddNode(&cgC_CREGREPORT);
 		#endif
 		#ifdef SWVERSION_DICT
 			AddNode(&cgC_DICT);
@@ -93,8 +82,8 @@ class BuildInCommand : public BIC_Node{
 		BIC_EXE_SH		cgC_EXE_SH;
 	#endif
 	
-		BIC_DISPLAY		cgC_DISPLAY;
 		BIC_NEWRECORD	cgC_NEWRECORD;
+		BIC_DISPLAY		cgC_DISPLAY;
 	
 		BIC_MAIN		cgC_MAIN;
 	
@@ -102,19 +91,10 @@ class BuildInCommand : public BIC_Node{
 		BIC_AUX			cgC_AUX;
 	#endif
 	
-		BIC_CONNECT		cgC_CONNECT;
-		BIC_DISCONNECT	cgC_DISCONNECT;
-		BIC_CR			cgC_CR;
-	
 	#ifdef SWVERSION_SCRIPT
+		BIC_SCRIPT		cgC_SCRIPT;
 		BIC_SCM			cgC_SCM;
 		BIC_GCM			cgC_GCM;
-		BIC_SCRIPT		cgC_Script;
-		BIC_STOP		cgC_STOP;
-		BIC_RUN			cgC_RUN;
-	
-		BIC_SEND		cgC_SEND;
-		BIC_SENDA		cgC_SENDA;
 	#endif
 	
 	#ifdef SWVERSION_COM
@@ -134,12 +114,10 @@ class BuildInCommand : public BIC_Node{
 	
 	#ifdef USE_OPENSSL
 		BIC_RST			cgC_RST;
-		BIC_CREGREPORT	cgC_CREGREPORT;
 	#ifdef CommonDefH_MAC
-		BIC_PATCHSDT	cgC_PATCHSDT;
-		BIC_APPROVE		cgC_APPROVE;
-		BIC_LSERVER		cgC_LSERVER;
+		BIC_MSDT		cgC_MSDT;
 	#endif
+		BIC_CREGREPORT	cgC_CREGREPORT;
 	#endif
 	#ifdef SWVERSION_DICT
 		BIC_DICT		cgC_DICT;

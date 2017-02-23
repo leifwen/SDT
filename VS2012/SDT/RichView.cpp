@@ -109,7 +109,7 @@ void CMyRichView::OnDropFiles(HDROP hDropInfo){
 	TCHAR			szFileName[MAX_PATH];
 	CString			cFileName;
 	std::wstring	wstrFileName;
-	std::string		strFileName,strExtName;
+	std::string		strFileName,strExtName,strT;
 
 	nFileCount = DragQueryFile(hDropInfo, 0xFFFFFFFF, NULL, MAX_PATH);
 	//((CMDIChildWndEx*)GSDTApp.m_Device.cDevOutList->cODevRichMemo->cgRichEdit->GetParentFrame())->MDIActivate();
@@ -125,7 +125,8 @@ void CMyRichView::OnDropFiles(HDROP hDropInfo){
 		if (CFS_CheckFile(strFileName) != 0){
 			if (PrintDirList(strFileName) == FALSE){
 				if (::GetKeyState(VK_MENU) & 0x8000){
-					GSDTApp.m_ReadInline.Paste((uint8*)strFileName.c_str(), strFileName.length());
+					strT = Str_Replace(strFileName, " ", "\\ ");
+					GSDTApp.m_ReadInline.Paste((uint8*)strT.c_str(), strT.length());
 				}
 				else{
 					pos = strFileName.find_last_of('.');

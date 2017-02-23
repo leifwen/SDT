@@ -301,20 +301,15 @@ int32 SBIC_STOP::Help(SBICPAR *tBICPAR,int32 blDetail)const{
 	PrintB(tBICPAR,"  Command = <'Stop=<Expression>>[//COMMENT]");
 	PrintP(tBICPAR,"  Notes:Expression is the same as Condition Expression.");
 	PrintP(tBICPAR,"   eg:");
-	PrintP(tBICPAR,"     Command = Leif Wen  //if receive data contains Leif Wen, then stop");
-	PrintP(tBICPAR,"     Command = 'cts==h   //if CTS is high, then stop");
+	PrintP(tBICPAR,"     Command = 'Stop=Leif Wen  //if receive data contains Leif Wen, then stop");
+	PrintP(tBICPAR,"     Command = 'Stop='cts==h   //if CTS is high, then stop");
 	return(cgReturnCode);
 }
 //------------------------------------------------------------------------------------------//
 int32 SBIC_STOP::Command(SBICPAR *tBICPAR,const std::string &par,std::string *ret)const{
-	std::string		strPar1,strPar2;
-	
 	if ((tBICPAR != nullptr) && (tBICPAR->cgDevice != nullptr) &&(tBICPAR->cgCommand != nullptr)){
-		strPar2 = par;
-		strPar1 = Str_Trim(Str_ReadSubItem(&strPar2,","));
-		Str_TrimSelf(strPar2);
-		if (strPar2.length() == 0 || cgSubC_Expression.Expression(tBICPAR,strPar2) != 0){
-			PrintExecute(tBICPAR,"Expression matched, stop.");
+		if (par.length() == 0 || cgSubC_Expression.Expression(tBICPAR,par) != 0){
+			PrintExecute(tBICPAR,"Expression matched, stop");
 			tBICPAR->blCMDRet = 6;
 		}
 	}
@@ -333,14 +328,9 @@ int32 SBIC_BREAK::Help(SBICPAR *tBICPAR,int32 blDetail)const{
 }
 //------------------------------------------------------------------------------------------//
 int32 SBIC_BREAK::Command(SBICPAR *tBICPAR,const std::string &par,std::string *ret)const{
-	std::string		strPar1,strPar2;
-	
 	if ((tBICPAR != nullptr) && (tBICPAR->cgDevice != nullptr) &&(tBICPAR->cgCommand != nullptr)){
-		strPar2 = par;
-		strPar1 = Str_Trim(Str_ReadSubItem(&strPar2,","));
-		Str_TrimSelf(strPar2);
-		if (strPar2.length() == 0 || cgSubC_Expression.Expression(tBICPAR,strPar2) != 0){
-			PrintExecute(tBICPAR,"Expression matched, break.");
+		if (par.length() == 0 || cgSubC_Expression.Expression(tBICPAR,par) != 0){
+			PrintExecute(tBICPAR,"Expression matched, break");
 			tBICPAR->blCMDRet = 3;
 		}
 	}

@@ -33,7 +33,7 @@ class SBIC_HEX : public SBIC_Node{
 		enum{RFLAG_C = 0, RFLAG_S = SBIC_Node::RFLAG_S + SBIC_Node::RFLAG_C};
 	public:
 		SBIC_HEX(void) : SBIC_Node() {
-			cgCommand = "hex,:";
+			cgCommand = "hex,:/hex,(,)";
 			cgReturnCode = SBI_RETCODE_HEX;
 		};
 		virtual ~SBIC_HEX(void){;};
@@ -47,7 +47,7 @@ class SBIC_Time : public SBIC_Node{
 		enum{RFLAG_C = 0, RFLAG_S = SBIC_Node::RFLAG_S + SBIC_Node::RFLAG_C};
 	public:
 		SBIC_Time(void) : SBIC_Node() {
-			cgCommand = "time,(,)/now,(,)";
+			cgCommand = "time,(,)/time,=/now,(,)/now,=";
 			cgReturnCode = SBI_RETCODE_TIME;
 		};
 		virtual ~SBIC_Time(void){;};
@@ -90,7 +90,7 @@ class SBIC_CALC_MD5 : public SBIC_Node{
 		enum{RFLAG_C = 0, RFLAG_S = SBIC_Node::RFLAG_S + SBIC_Node::RFLAG_C};
 	public:
 		SBIC_CALC_MD5(void) : SBIC_Node() {
-			cgCommand = "MD5,(,)";
+			cgCommand = "MD5,(,)/MD5,=";
 			cgReturnCode = SBI_RETCODE_CALC_MD5;
 		};
 		virtual ~SBIC_CALC_MD5(void){;};
@@ -104,7 +104,7 @@ class SBIC_CALC_SHA1 : public SBIC_Node{
 		enum{RFLAG_C = 0, RFLAG_S = SBIC_Node::RFLAG_S + SBIC_Node::RFLAG_C};
 	public:
 		SBIC_CALC_SHA1(void) : SBIC_Node() {
-			cgCommand = "SHA1,(,)";
+			cgCommand = "SHA1,(,)/SHA1,=";
 			cgReturnCode = SBI_RETCODE_CALC_SHA1;
 		};
 		virtual ~SBIC_CALC_SHA1(void){;};
@@ -118,7 +118,7 @@ class SBIC_CALC_SHA224 : public SBIC_Node{
 		enum{RFLAG_C = 0, RFLAG_S = SBIC_Node::RFLAG_S + SBIC_Node::RFLAG_C};
 	public:
 		SBIC_CALC_SHA224(void) : SBIC_Node() {
-			cgCommand = "SHA224,(,)";
+			cgCommand = "SHA224,(,)/SHA224,=";
 			cgReturnCode = SBI_RETCODE_CALC_SHA224;
 		};
 		virtual ~SBIC_CALC_SHA224(void){;};
@@ -132,7 +132,7 @@ class SBIC_CALC_SHA256 : public SBIC_Node{
 		enum{RFLAG_C = 0, RFLAG_S = SBIC_Node::RFLAG_S + SBIC_Node::RFLAG_C};
 	public:
 		SBIC_CALC_SHA256(void) : SBIC_Node() {
-			cgCommand = "SHA256,(,)";
+			cgCommand = "SHA256,(,)/SHA256,=";
 			cgReturnCode = SBI_RETCODE_CALC_SHA256;
 		};
 		virtual ~SBIC_CALC_SHA256(void){;};
@@ -146,7 +146,7 @@ class SBIC_CALC_SHA384 : public SBIC_Node{
 		enum{RFLAG_C = 0, RFLAG_S = SBIC_Node::RFLAG_S + SBIC_Node::RFLAG_C};
 	public:
 		SBIC_CALC_SHA384(void) : SBIC_Node() {
-			cgCommand = "SHA384,(,)";
+			cgCommand = "SHA384,(,)/SHA384,=";
 			cgReturnCode = SBI_RETCODE_CALC_SHA384;
 		};
 		virtual ~SBIC_CALC_SHA384(void){;};
@@ -160,7 +160,7 @@ class SBIC_CALC_SHA512 : public SBIC_Node{
 		enum{RFLAG_C = 0, RFLAG_S = SBIC_Node::RFLAG_S + SBIC_Node::RFLAG_C};
 	public:
 		SBIC_CALC_SHA512(void) : SBIC_Node() {
-			cgCommand = "SHA512,(,)";
+			cgCommand = "SHA512,(,)/SHA512,=";
 			cgReturnCode = SBI_RETCODE_CALC_SHA512;
 		};
 		virtual ~SBIC_CALC_SHA512(void){;};
@@ -175,7 +175,7 @@ class SBIC_CALC_BASE64 : public SBIC_Node{
 		enum{RFLAG_C = 0, RFLAG_S = SBIC_Node::RFLAG_S + SBIC_Node::RFLAG_C};
 	public:
 		SBIC_CALC_BASE64(void) : SBIC_Node() {
-			cgCommand = "BASE64,(,)";
+			cgCommand = "BASE64,(,)/BASE64,=";
 			cgReturnCode = SBI_RETCODE_CALC_BASE64;
 		};
 		virtual ~SBIC_CALC_BASE64(void){;};
@@ -184,6 +184,21 @@ class SBIC_CALC_BASE64 : public SBIC_Node{
 		virtual	int32	Help	(SBICPAR *tBICPAR,int32 blDetail = 1)const;
 };
 //------------------------------------------------------------------------------------------//
+class SBIC_SENDFILE : public SBIC_Node{
+	public:
+		enum{RFLAG_C = 0, RFLAG_S = SBIC_Node::RFLAG_S + SBIC_Node::RFLAG_C};
+	public:
+		SBIC_SENDFILE(void) : SBIC_Node() {
+			cgCommand = "SendFile,(,)/SendFile,=";
+			cgReturnCode = SBI_RETCODE_SENDFILE;
+		};
+		virtual ~SBIC_SENDFILE(void){;};
+	public:
+		virtual	int32	Command	(SBICPAR *tBICPAR,const std::string &par,std::string *ret)const;
+		virtual	int32	Help	(SBICPAR *tBICPAR,int32 blDetail = 1)const;
+};
+//------------------------------------------------------------------------------------------//
+
 
 
 
@@ -227,6 +242,7 @@ class SBIC_Combine : public SBIC_Node{
 				AddNode(&cgSubC_CALC_SHA512);
 			#endif
 			AddNode(&cgSubC_CALC_BASE64);
+			AddNode(&cgSubC_SendFile);
 		};
 		virtual ~SBIC_Combine(void){;};
 	public:
@@ -248,10 +264,9 @@ class SBIC_Combine : public SBIC_Node{
 			SBIC_CALC_SHA512	cgSubC_CALC_SHA512;
 		#endif
 		SBIC_CALC_BASE64	cgSubC_CALC_BASE64;
+		SBIC_SENDFILE		cgSubC_SendFile;
 		static	void		FormatString(const std::string &strInput,std::string *returnStr);
 		static	std::string	SplitLetter	(std::string *strInput);
-	public:
-		int32		Create		(SBICPAR *tBICPAR,const std::string &strInput,std::string *retStr)const;
 };
 //------------------------------------------------------------------------------------------//
 class SBIC_Print : public SBIC_Combine{

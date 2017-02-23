@@ -94,6 +94,30 @@ class BIC_LSERVER : public BIC_Node{
 		virtual	int32	Help	(BICPAR *tBICPAR,int32 blDetail = 1)const;
 };
 //------------------------------------------------------------------------------------------//
+class BIC_MSDT : public BIC_Node_S{
+	public:
+		enum{RFLAG_C = 0, RFLAG_S = BIC_Node_S::RFLAG_S + BIC_Node_S::RFLAG_C};
+	public:
+		BIC_MSDT(void) : BIC_Node_S() {cgCommand = "msdt";cgTitle = cgCommand;cgReturnCode = BI_RETCODE_MSDT;Init();};
+		virtual ~BIC_MSDT(void){;};
+	public:
+		virtual	int32	Help	(BICPAR *tBICPAR,int32 blDetail = 1)const{
+			PrintHelpItem(tBICPAR, cgCommand, "->SDT manage.");
+			if (blDetail == 0)
+				return(cgReturnCode);
+			return(cgReturnCode);
+		};
+	private:
+		void	Init(void){
+			AddNode(&cgC_PATCHSDT);
+			AddNode(&cgC_APPROVE);
+			AddNode(&cgC_LSERVER);
+		}
+		BIC_PATCHSDT	cgC_PATCHSDT;
+		BIC_APPROVE		cgC_APPROVE;
+		BIC_LSERVER		cgC_LSERVER;
+};
+//------------------------------------------------------------------------------------------//
 class BIC_CREGREPORT : public BIC_Node{
 	public:
 		enum{RFLAG_C = 0, RFLAG_S = BIC_Node::RFLAG_S + BIC_Node::RFLAG_C};
@@ -169,7 +193,7 @@ class BIC_RST : public BIC_Node_S{
 	virtual ~BIC_RST(void){;};
 	public:
 		virtual	int32	Help	(BICPAR *tBICPAR,int32 blDetail = 1)const{
-			PrintHelpItem(tBICPAR, cgCommand, "->Remote SSL server.");
+			PrintHelpItem(tBICPAR, cgCommand, "->Remote SSL terminal server.");
 			if (blDetail == 0)
 				return(cgReturnCode);
 			return(cgReturnCode);

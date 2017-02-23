@@ -31,6 +31,7 @@
 #include "BIC_B.h"
 #include "BIC_COM.h"
 #include "BIC_Socket.h"
+#include "BIC_Script.h"
 //------------------------------------------------------------------------------------------//
 class BIC_CONNECT : public BIC_Node{
 	public:
@@ -126,7 +127,12 @@ class BIC_MAIN : public BIC_Node_S{
 		};
 	private:
 	    void	Init(void){
-            	AddNode(&cgC_DEV);
+			
+				AddNode(&cgC_CONNECT);
+				AddNode(&cgC_DISCONNECT);
+				AddNode(&cgC_CR);
+			
+				AddNode(&cgC_DEV);
 	            AddNode(&cgC_ECHO);
 	            AddNode(&cgC_REC);
 
@@ -158,7 +164,19 @@ class BIC_MAIN : public BIC_Node_S{
         	    AddNode(&cgSub_ss);
         	    AddNode(&cgSub_ssd);
 			#endif
+			#ifdef SWVERSION_SCRIPT
+				AddNode(&cgC_STOP);
+				AddNode(&cgC_RUN);
+			
+				AddNode(&cgC_SEND);
+				AddNode(&cgC_SENDA);
+				AddNode(&cgC_SENDFILE);
+			#endif
 	    }
+		BIC_CONNECT		cgC_CONNECT;
+		BIC_DISCONNECT	cgC_DISCONNECT;
+		BIC_CR			cgC_CR;
+	
 	    BIC_ECHO		cgC_ECHO;
 	    BIC_REC			cgC_REC;
 	    BIC_DEV			cgC_DEV;
@@ -189,6 +207,14 @@ class BIC_MAIN : public BIC_Node_S{
 	    BIC_SI			cgSub_si;
 	    BIC_SS			cgSub_ss;
 	    BIC_SSD			cgSub_ssd;
+	#endif
+	#ifdef SWVERSION_SCRIPT
+		BIC_STOP		cgC_STOP;
+		BIC_RUN			cgC_RUN;
+	
+		BIC_SEND		cgC_SEND;
+		BIC_SENDA		cgC_SENDA;
+		BIC_SENDFILE	cgC_SENDFILE;
 	#endif
 };
 //------------------------------------------------------------------------------------------//
