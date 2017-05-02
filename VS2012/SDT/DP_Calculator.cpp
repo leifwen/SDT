@@ -380,12 +380,12 @@ void CCaclPaneView::OnOsp(void){
 void CCaclPaneView::OnCacl(void){
 	CString			cResult;
 	std::wstring	wstrText;
-	std::string		strResult,strOutput;;
-	ODEV_NODE		*record;
+	std::string		strResult, strOutput;
+	ODEV_STDOUT		*cstdout;
 
-	((CMainFrame*)AfxGetMainWnd())->AuxCFrmCreate();
-	((CMainFrame*)AfxGetMainWnd())->m_oDevNodeAux.Clean();
-	record = &((CMainFrame*)AfxGetMainWnd())->m_oDevNodeAux;
+
+	cstdout = &((CMainFrame*)AfxGetMainWnd())->AuxCFrmCreate()->cstdout;
+	cstdout->Clean();
 
 	m_cEdit.GetWindowText(cResult);
 	wstrText = cResult;
@@ -394,12 +394,12 @@ void CCaclPaneView::OnCacl(void){
 	if (m_RadioXor.GetCheck()){
 		if (m_CheckBoxHex.GetCheck())
 			strResult = Str_HEXToASCII(strResult);
-		record->WriteToStr("XOR checksum = ",RICH_CF_clMaroon);
-		record->WriteToStr(CaclNMEAChecksum(strResult),RICH_CF_clBlue);
+		cstdout->Write(COL_clMaroon, "XOR checksum = ");
+		cstdout->Write(COL_clBlue,CaclNMEAChecksum(strResult));
 	}
 	else if (m_RadioOSP.GetCheck()){
-		record->WriteToStr("SiRf Checksum = ",RICH_CF_clMaroon);
-		record->WriteToStr(CaclSiRfChecksum(strResult),RICH_CF_clBlue);
+		cstdout->Write(COL_clMaroon,"SiRf Checksum = ");
+		cstdout->Write(COL_clBlue, CaclSiRfChecksum(strResult));
 	}
 	else if (m_RadioA2H.GetCheck()){
 		if (m_CheckBoxHex.GetCheck()){
@@ -408,40 +408,39 @@ void CCaclPaneView::OnCacl(void){
 		else{
 			strResult = Str_ASCIIToHEXs(strResult,(m_CheckBoxEscape.GetCheck() == 0)?G_ESCAPE_OFF:G_ESCAPE_ON);
 		}
-		record->WriteToStr("Transform To HEX:\r\n",RICH_CF_clMaroon);
-		record->WriteToStr(strResult,RICH_CF_clBlue);
+		cstdout->Write(COL_clMaroon, "Transform To HEX:\r\n");
+		cstdout->Write(COL_clBlue, strResult);
 	}
 	else if (m_RadioH2A.GetCheck()){
-		record->WriteToStr("Transform To ASCII:\r\n",RICH_CF_clMaroon);
-		record->WriteToStr(Str_HEXToASCII(strResult),RICH_CF_clBlue);
+		cstdout->Write(COL_clMaroon, "Transform To ASCII:\r\n");
+		cstdout->Write(COL_clBlue,Str_HEXToASCII(strResult));
 	}
 	else if (m_RadioLength.GetCheck()){
 		if (m_CheckBoxHex.GetCheck()){
-			strResult = Str_IntToString(CaclHEXLength(strResult));
+			strResult = Str_ToString(CaclHEXLength(strResult));
 		}
 		else{
-			strResult = Str_IntToString(CaclASCIILength(strResult));
+			strResult = Str_ToString(CaclASCIILength(strResult));
 		}
-		record->WriteToStr("Input Character Length = ",RICH_CF_clMaroon);
-		record->WriteToStr(strResult,RICH_CF_clBlue);
+		cstdout->Write(COL_clMaroon, "Input Character Length = ");
+		cstdout->Write(COL_clBlue,strResult);
 	}
 
-	record->WriteDividingLine(RICH_CF_clMaroon);
-	record->WriteToStr("Input Character: \r\n",RICH_CF_clMaroon);
-	record->WriteToStr(Str_UnicodeToANSI(wstrText),RICH_CF_clPurple);
+	cstdout->WriteNL(COL_DivLine, DIVIDING_LINE);
+	cstdout->Write(COL_clMaroon,"Input Character: \r\n");
+	cstdout->Write(COL_clPurple,Str_UnicodeToANSI(wstrText));
 	
-	((CMainFrame*)AfxGetMainWnd())->m_oDevNodeAux.Print();
-	((CMainFrame*)AfxGetMainWnd())->m_oDevNodeAux.cgRichEdit->GetRichEditCtrl().SetSel(0,0);
+	cstdout->ToHome();
 }
 //------------------------------------------------------------------------------------------//
 std::string CCaclPaneView::CaclNMEAChecksum(const std::string &strInput){
 	uint8		result,temp;
 	uint32		length;
-	FIFO_UINT8 	class_FIFO;
+	FIFO8 		class_FIFO;
 
 	length = strInput.length();
 	class_FIFO.Init(length);
-	class_FIFO.PutInASCII(strInput,G_ESCAPE_OFF);
+	class_FIFO.Put(strInput,G_ESCAPE_OFF);
 	class_FIFO.Get(&result,1);
 	while(class_FIFO.Get(&temp,1) != 0)
 		result ^= temp;
@@ -451,7 +450,7 @@ std::string CCaclPaneView::CaclNMEAChecksum(const std::string &strInput){
 std::string CCaclPaneView::CaclSiRfChecksum(const std::string &strInput){
 	uint32		result;
 	uint32		length;
-	FIFO_UINT8 	class_FIFO;
+	FIFO8 		class_FIFO;
 	uint8		retChar[2],temp;
 
 	length = strInput.length();
@@ -469,7 +468,7 @@ std::string CCaclPaneView::CaclSiRfChecksum(const std::string &strInput){
 //------------------------------------------------------------------------------------------//
 uint32 CCaclPaneView::CaclHEXLength(const std::string &strInput){
 	uint32		length;
-	FIFO_UINT8 	class_FIFO;
+	FIFO8		class_FIFO;
 
 	length = strInput.length();
 	class_FIFO.Init(length);
@@ -479,11 +478,11 @@ uint32 CCaclPaneView::CaclHEXLength(const std::string &strInput){
 //------------------------------------------------------------------------------------------//
 uint32 CCaclPaneView::CaclASCIILength(const std::string &strInput){
 	uint32		length;
-	FIFO_UINT8 	class_FIFO;
+	FIFO8 		class_FIFO;
 
 	length = strInput.length();
 	class_FIFO.Init(length);
-	class_FIFO.PutInASCII(strInput,(m_CheckBoxEscape.GetCheck() == 0)?G_ESCAPE_OFF:G_ESCAPE_ON);
+	class_FIFO.Put(strInput,(m_CheckBoxEscape.GetCheck() == 0)?G_ESCAPE_OFF:G_ESCAPE_ON);
 	return(class_FIFO.Used());
 }
 //------------------------------------------------------------------------------------------//

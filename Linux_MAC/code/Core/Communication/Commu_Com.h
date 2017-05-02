@@ -12,59 +12,67 @@
  				use int32 to replace bool
  				use int32 to replace uint32
 */
-#ifndef Commu_ComH
-#define Commu_ComH
 //------------------------------------------------------------------------------------------//
 #include "Commu_DBuf.h"
+#ifdef COMMU_DBUFH
+#ifndef Commu_ComH
+#define Commu_ComH
+#ifdef Commu_ComH
 //------------------------------------------------------------------------------------------//
-class APICOM : public COMMU_DBUF{
+class ACOM : public COMMU_DBUF{
+	public:
 	#ifdef CommonDefH_Unix
 		typedef	int32	HANDLE;
 	#endif
 	public:
-		enum{RFLAG_C = 0, RFLAG_S = COMMU_DBUF::RFLAG_S + COMMU_DBUF::RFLAG_C};
+		enum	{RFLAG_C = 2, RFLAG_S = COMMU_DBUF::RFLAG_S + COMMU_DBUF::RFLAG_C};
+	private:
+		enum	{blDTR = RFLAG_CREATE(0),blRTS = RFLAG_CREATE(1),};
 	public:
-				 APICOM(const ODEV_LIST *tODEV_LIST,uint32 tSize) : COMMU_DBUF(tODEV_LIST,tSize){Init();selfName = "APICOM";};
-		virtual ~APICOM(void){CloseD();};
+				 ACOM(uint32 tSize,const ODEV_SYSTEM *logSys = nullptr) : COMMU_DBUF(tSize,logSys){Init();SetSelfName("ACOM");};
+		virtual ~ACOM(void){CloseD();modemStatusThread.RemoveSelf();};
 	private:
 		void			Init(void);
-		virtual	int32	ReadFromDevice	(uint32 *retNum,uint8 *buffer,uint32 length);
-		virtual	int32	SendToDevice	(uint32 *retNum,const uint8 *buffer,uint32 length);
-		virtual	int32	ExThreadFun		(void);
-				void	UpdateMainComModemStatus	(void);
 	protected:
-		virtual	int32	OpenDev			(const std::string &tCDBufName,int32 tCDBufPar,CSType tCSType);
-		virtual	void	CloseDev		(void);
-				int32	SetBaudrate_Do	(int32 comBaudRate);
-	public:
-				int32	OpenV			(const std::string &tCDBufName,int32 tCDBufPar,CSType tCSType,int32 blEnEcho);
-	protected:
-		virtual	int32	OpenVDev		(const std::string &tCDBufName,int32 tCDBufPar,CSType tCSType);
-		virtual	void	CloseVDev		(void);
-	protected:
-		HANDLE			Handle;
-		std::string		vPortName;
+		virtual	int32	OpenDev				(const STDSTR &tCDBufName,int32 tCDBufPar,CSType tCSType,int32 blEnEcho);
+		virtual	void	CloseDev			(void);
 	private:
-		std::string		CTS;
-		std::string		DSR;
-		std::string		RING;
-		std::string		DCD;
-		int32			DTR;
-		int32			RTS;
+		virtual	int32	ReadFromDevice		(uint32 *retNum,uint8 *buffer,uint32 length);
+		virtual	int32	SendToDevice		(uint32 *retNum,const uint8 *buffer,uint32 length);
+	private:
+		virtual void	DoPrintOnOpenSuccess(void);
+		virtual void	DoPrintOnClose		(void);
+	protected:
+		SYS_Thread<ACOM>	modemStatusThread;
+		int32				ModemStatusThreadFun(void *p);
+	protected:
+		HANDLE		osHandle;
+		STDSTR		vPortName;
+	private:
+		STDSTR		modemStatus;
 	public:
-		void			SetDSRFlow			(int32 blEnable);
-		void			SetCTSFlow			(int32 blEnable);
-		std::string		GetCTSStatus		(void);
-		std::string		GetDSRStatus		(void);
-		std::string		GetRINGStatus		(void);
-		std::string		GetDCDStatus		(void);
-		int32			GetDTRStatus		(void){return(DTR);};
-		int32			GetRTSStatus		(void){return(RTS);};
-		void			SetDTRToHigh		(void);
-		void			SetDTRToLow			(void);
-		void			SetRTSToHigh		(void);
-		void			SetRTSToLow			(void);
-		int32			SetBaudrate			(int32 comBaudRate);
+		STDSTR		GetFullModemStatus(void);
+		STDSTR		GetModemStatus	(void);
+		STDSTR		GetCTSStatus	(void);
+		STDSTR		GetDSRStatus	(void);
+		STDSTR		GetRINGStatus	(void);
+		STDSTR		GetDCDStatus	(void);
+		int32		GetDTRStatus	(void){return(CheckSFlag(blDTR) != 0);};
+		int32		GetRTSStatus	(void){return(CheckSFlag(blRTS) != 0);};
+	public:
+		void		SetDTRToHigh	(void);
+		void		SetDTRToLow		(void);
+		void		SetRTSToHigh	(void);
+		void		SetRTSToLow		(void);
+		void		SetDTR			(int32 blHigh);
+		void		SetRTS			(int32 blHigh);
+		void		SetDSRFlow		(int32 blEnable);
+		void		SetCTSFlow		(int32 blEnable);
+	public:
+		int32		SetBaudrate		(int32 comBaudRate);
 };
 //------------------------------------------------------------------------------------------//
 #endif
+#endif
+#endif
+

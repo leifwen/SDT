@@ -14,11 +14,16 @@
 #include "Comm_PA.h"
 //------------------------------------------------------------------------------------------//
 #ifndef CommonDefH_EnableSMC
-	#define		SMC_EncryptI(No);
-	#define		SMC_EncryptS(No);
-	#define		SMC_EncryptE(No);
+	#ifndef SMC_NOH
+		#define SMC_NOH
+		#define	SMC_EncryptI(No);
+		#define	SMC_EncryptS(No);
+		#define	SMC_EncryptE(No);
+	#endif
 #else
-//------------------------------------------------------------------------------------------//
+#ifdef USE_OPENSSL
+#ifndef SMC_YESH
+#define SMC_YESH
 #ifdef CommonDefH_VC
 #define	SMC_Conn(x,y)	x##y
 #define SMCEncrypt_Begin \
@@ -77,37 +82,38 @@
 	{ __asm _emit 0x90 } \
 	SMC_Conn(smcblock,No).Resume();\
 	SMC_Conn(SMC_quit,No):;
-#endif
-#endif
-//------------------------------------------------------------------------------------------//
-#ifdef USE_OPENSSL
-//------------------------------------------------------------------------------------------//
-int32	SMC_SourceCodeAnalysis	(std::string *retStr,const std::string &sFN);
-int32	SMC_CreateCYCodeStream	(std::string *retStr,const std::string &sFN_SDT,std::string strAnalysisFIFO);
-int32	SMC_SourceCodeReplace	(const std::string &sFN_SDT,std::string strAnalysisFIFO);
-
-void	SMC_EncryptCYCodeBlock	(uint8 *data,uint32 num);
-int32	SMC_DecryptCYCodeBlock	(std::string *retStr,const FIFO_UINT8 &cyCodeStream,uint32 codeNo);
-//------------------------------------------------------------------------------------------//
-#ifdef CommonDefH_VC
 //------------------------------------------------------------------------------------------//
 class SMC_BLOCK{
 	public:
 				 SMC_BLOCK(void){blInit = 0;cgMemOffset = nullptr;cgCodeSize = 0;cgOldMemCode = "";};
 		virtual ~SMC_BLOCK(void){;};
 	private:
-		int32			blInit;
-		uint8			*cgMemOffset;
-		uint32			cgCodeSize;
-		std::string		cgOldMemCode;
+		int32		blInit;
+		uint8		*cgMemOffset;
+		uint32		cgCodeSize;
+		STDSTR		cgOldMemCode;
 	public:
-		int32			Init(uint8 *cOffset,uint32 cCodeSize);
-		int32			Decrypt(void);
-		int32			Resume(void);
+		int32		Init(uint8 *cOffset,uint32 cCodeSize);
+		int32		Decrypt(void);
+		int32		Resume(void);
 };
 //------------------------------------------------------------------------------------------//
-#endif
-#endif
-extern FIFO_UINT8	g_SMCCyCodeStream;
+#endif//CommonDefH_VC
 //------------------------------------------------------------------------------------------//
+int32	SMC_DecryptCYCodeBlock	(STDSTR *retStr,const FIFO8 &cyCodeStream,uint32 codeNo);
+//------------------------------------------------------------------------------------------//
+extern FIFO8	g_SMCCyCodeStream;
+//------------------------------------------------------------------------------------------//
+#endif//SMCYESH
+#endif//CommonDefH_EnableSMC
+#endif//USE_OPENSSL
+//------------------------------------------------------------------------------------------//
+#ifdef USE_OPENSSL
+int32	SMC_SourceCodeAnalysis	(STDSTR *retStr,const STDSTR &sFN);
+void	SMC_EncryptCYCodeBlock	(uint8 *data,uint32 num);
+int32	SMC_CreateCYCodeStream	(STDSTR *retStr,const STDSTR &sFN_SDT,STDSTR strAnalysisFIFO);
+int32	SMC_SourceCodeReplace	(const STDSTR &sFN_SDT,STDSTR strAnalysisFIFO);
 #endif
+//------------------------------------------------------------------------------------------//
+#endif//SMCH
+

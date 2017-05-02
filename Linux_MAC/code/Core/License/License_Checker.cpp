@@ -19,14 +19,14 @@
 #include "SystemInfo.h"
 #include <math.h>
 //------------------------------------------------------------------------------------------//
-#ifdef USE_OPENSSL
+#ifdef License_CheckerH
 //------------------------------------------------------------------------------------------//
-int32 GetCYCodeStreamFormFile(FIFO_UINT8 *retfifo,const std::string &sFN_CYCode){
+int32 GetCYCodeStreamFormFile(FIFO8 *retFifo,const STDSTR &sFN_CYCode){
 	if (CFS_CheckFile(sFN_CYCode) < 1)
 		return 0;
 	
-	CFS_ReadFile(retfifo, sFN_CYCode);
-	retfifo->Out((uint32)sFN_CYCode.length());
+	CFS_ReadFile(retFifo, sFN_CYCode);
+	retFifo->Out((uint32)sFN_CYCode.length());
 	return 1;
 }
 //------------------------------------------------------------------------------------------//
@@ -34,11 +34,11 @@ int32 GetRSA_S(RSA **rsa_s){
 	return(CCY_RSA_RD_PrivateKey_PEM(rsa_s, CHK_RSA_S_FN));
 }
 //------------------------------------------------------------------------------------------//
-int32 Reg_SDT_PatchCode::PatchToSDT(const std::string &sFN_SDT,std::string *strStatus){
-	RSA				*rsa_s,*rsa_sdt;
-	int32			retCode;
-	std::string		strContent,strCYCode,strFN_CYCode,strStatusT;
-	SYS_DateTime 	patchTime;
+int32 Reg_SDT_PatchCode::PatchToSDT(const STDSTR &sFN_SDT,STDSTR *strStatus){
+	RSA		*rsa_s,*rsa_sdt;
+	int32	retCode;
+	STDSTR	strContent,strCYCode,strFN_CYCode,strStatusT;
+	TIME 	patchTime;
 	CCY_FR_Signature	fnSignature;
 
 	do{
@@ -46,60 +46,60 @@ int32 Reg_SDT_PatchCode::PatchToSDT(const std::string &sFN_SDT,std::string *strS
 		do{
 			retCode = 0;
 			if (CCY_RSA_CreateKey(rsa_sdt, 2048) < 1){
-				strStatusT = "Create SDT RSA key fail.\r\n";
+				strStatusT = "Create SDT RSA key fail.\n";
 				break;
 			}
-			strStatusT = "Create SDT RSA key successful.\r\n";
+			strStatusT = "Create SDT RSA key successful.\n";
 			rsa_s = RSA_new();
 			do{
 				retCode = -1;
 				if (GetRSA_S(&rsa_s) < 1){
-					strStatusT += "Read server RSA public key fail.\r\n";
+					strStatusT += "Read server RSA public key fail.\n";
 					break;
 				}
-				strStatusT += "Read server RSA public key successful.\r\n";
+				strStatusT += "Read server RSA public key successful.\n";
 				
 				retCode = -2;
 				if (CFS_CheckFile(sFN_SDT) < 1){
-					strStatusT += "Get SDT file fail.\r\n";
+					strStatusT += "Get SDT file fail.\n";
 					break;
 				}
-				strStatusT += "Get SDT file successful.\r\n";
+				strStatusT += "Get SDT file successful.\n";
 				retCode = -3;
 				if (SMC_SourceCodeAnalysis(&strContent,sFN_SDT) < 1){
-					strStatusT += "SDT source code analysis fail.\r\n";
+					strStatusT += "SDT source code analysis fail.\n";
 					break;
 				}
-				strStatusT += "SDT source code analysis successful.\r\n";
+				strStatusT += "SDT source code analysis successful.\n";
 				retCode = -4;
 				if (SMC_CreateCYCodeStream(&strCYCode,sFN_SDT,strContent) < 1){
-					strStatusT += "Create CYCode stream fail.\r\n";
+					strStatusT += "Create CYCode stream fail.\n";
 					break;
 				}
-				strStatusT += "Create CYCode stream successful.\r\n";
+				strStatusT += "Create CYCode stream successful.\n";
 				retCode = -5;
 				if (SMC_SourceCodeReplace(sFN_SDT,strContent) < 1){
-					strStatusT += "Source code replace fail.\r\n";
+					strStatusT += "Source code replace fail.\n";
 					break;
 				}
-				strStatusT += "Source code replace successful.\r\n";
+				strStatusT += "Source code replace successful.\n";
 				patchTime.Now();
 				
-				GetcgDefFifo()->Empty();
-				HoldOffset();
-				fnSignature.Init(1024 * 32,CCT_AES256,CCT_AES_CBC,CCT_SHA512,G_BIG_ENDIAN);
-				fn_SDT_SHA1		= CCY_Encrypt_RSAPublicKey	(&strContent, CCY_DigestFile_SHA1(sFN_SDT), rsa_sdt);
-				fn_PatchTime	= CCY_Encrypt_RSAPublicKey	(&strContent, Str_DecToHex((uint64)patchTime.GetSec()), rsa_sdt);
-				fn_CYCode		= fnSignature.Encode		(&strContent, strCYCode, rsa_s);
-				fn_RSA_SDTPrk	= CCY_Encode_RSAPrivateKey	(&strContent, rsa_sdt);
-				fn_RSA_sPuk		= CCY_Encode_RSAPublicKey	(&strContent, rsa_s);
-				fn_Length.SetFIFOByte(GetcgDefFifo()->Used() + 4);
-				UpdateLength();
+				GetDefFifo()->Empty();
+				_Start();
+				fnSignature.Init(1024 * 32,CCT_AES256,CCT_AES_CBC,CCT_SHA512,G_ENDIAN_BIG);
+				pn_SDT_SHA1		= CCY_Encrypt_RSAPublicKey	(&strContent, CCY_DigestFile_SHA1(sFN_SDT), rsa_sdt);
+				pn_PatchTime	= CCY_Encrypt_RSAPublicKey	(&strContent, Str_DecToHex((uint64)patchTime.GetSec()), rsa_sdt);
+				pn_CYCode		= fnSignature.Encode		(&strContent, strCYCode, rsa_s);
+				pn_RSA_SDTPrk	= CCY_Encode_RSAPrivateKey	(&strContent, rsa_sdt);
+				pn_RSA_sPuk		= CCY_Encode_RSAPublicKey	(&strContent, rsa_s);
+				pn_Length.SetFIFOByte(GetDefFifo()->Used() + 4);
+				_Endl();
 				
 				CFS_AddToFile(sFN_SDT,ReadAllContent(&strContent));
 				strStatusT += "Patch to SDT ";
-				strStatusT += Str_IntToString(fnlength);
-				strStatusT += " bytes,successful.\r\n";
+				strStatusT += Str_ToString(fnlength);
+				strStatusT += " bytes,successful.\n";
 				retCode = (int32)strContent.length();
 			}while(0);
 			RSA_free(rsa_s);
@@ -132,72 +132,72 @@ int32 Reg_SDT_PatchCode::GetPatchCode(void){
 	fileStream.seekp(-4,std::ios::end);
 	fileStream.read((char*)buffer,4);
 	
-	offset = Str_CharToUint32(buffer,G_LITTLE_ENDIAN);
+	offset = Str_CharToUint32(buffer,G_ENDIAN_LITTLE);
 	
 	fileStream.seekp(0 - offset,std::ios::end);
 
-	GetcgDefFifo()->Empty();
+	GetDefFifo()->Empty();
 	do{
 		fileStream.read((char*)buffer, sizeof(buffer));
 		num = fileStream.gcount();
-		GetcgDefFifo()->Init(GetcgDefFifo()->Used() + sizeof(buffer));
-		GetcgDefFifo()->Put(buffer, (uint32)num);
+		GetDefFifo()->Init(GetDefFifo()->Used() + sizeof(buffer));
+		GetDefFifo()->Put(buffer, (uint32)num);
 	}while(!fileStream.eof());
 	fileStream.close();
-	return(AnalysisFrame(*GetcgDefFifo()));
+	return(AnalysisFrame());
 }
 //------------------------------------------------------------------------------------------//
-const std::string &CHK_GetSDT_Hash(std::string *sHash){
+const STDSTR &CHK_GetSDT_Hash(STDSTR *sHash){
 	Reg_SDT_PatchCode	tRSPC;
-	std::string		strData;
-	RSA				*rsa_sdtsprk;
+	STDSTR				strData;
+	RSA					*rsa_sdtsprk;
 	rsa_sdtsprk = RSA_new();
 	
 	if (tRSPC.GetPatchCode() != 0){
-		if (CCY_Decode_RSAPrivateKey(&rsa_sdtsprk, tRSPC.fn_RSA_SDTPrk.ReadContent(&strData)) != 0)
-			CCY_Decrypt_RSAPrivateKey(sHash,tRSPC.fn_SDT_SHA1.ReadContent(&strData),rsa_sdtsprk);
+		if (CCY_Decode_RSAPrivateKey(&rsa_sdtsprk, tRSPC.pn_RSA_SDTPrk.ReadContent(&strData)) != 0)
+			CCY_Decrypt_RSAPrivateKey(sHash,tRSPC.pn_SDT_SHA1.ReadContent(&strData),rsa_sdtsprk);
 	}
 	RSA_free(rsa_sdtsprk);
 	return(*sHash);
 }
 //------------------------------------------------------------------------------------------//
-const SYS_DateTime &CHK_GetSDT_Time(SYS_DateTime *patchTime){
+const TIME &CHK_GetSDT_Time(TIME *patchTime){
 	Reg_SDT_PatchCode	tRSPC;
-	std::string		strData,strContent;
-	RSA				*rsa_sdtsprk;
+	STDSTR				strData,strContent;
+	RSA					*rsa_sdtsprk;
 	rsa_sdtsprk = RSA_new();
 	patchTime->Clear();
 	if (tRSPC.GetPatchCode() != 0){
-		if (CCY_Decode_RSAPrivateKey(&rsa_sdtsprk, tRSPC.fn_RSA_SDTPrk.ReadContent(&strData)) != 0)
-			*patchTime = (double)Str_HexToDec((CCY_Decrypt_RSAPrivateKey(&strContent,tRSPC.fn_PatchTime.ReadContent(&strData),rsa_sdtsprk)));
+		if (CCY_Decode_RSAPrivateKey(&rsa_sdtsprk, tRSPC.pn_RSA_SDTPrk.ReadContent(&strData)) != 0)
+			*patchTime = (double)Str_HexToDec((CCY_Decrypt_RSAPrivateKey(&strContent,tRSPC.pn_PatchTime.ReadContent(&strData),rsa_sdtsprk)));
 	}
 	RSA_free(rsa_sdtsprk);
 	return(*patchTime);
 }
 //------------------------------------------------------------------------------------------//
-const std::string &CHK_Get_CYCode(std::string *strCYCode){
+const STDSTR &CHK_Get_CYCode(STDSTR *strCYCode){
 	Reg_SDT_PatchCode	tRSPC;
 	*strCYCode = "";
 	if (tRSPC.GetPatchCode() > 0)
-		tRSPC.fn_CYCode.ReadContent(strCYCode);
+		tRSPC.pn_CYCode.ReadContent(strCYCode);
 	return(*strCYCode);
 }
 //------------------------------------------------------------------------------------------//
 int32 CHK_GetRSA_SDTPrk(RSA **rsa_sdtsprk){
 	Reg_SDT_PatchCode	tRSPC;
-	std::string			strData;
+	STDSTR				strData;
 	
 	if (tRSPC.GetPatchCode() > 0)
-		return(CCY_Decode_RSAPrivateKey(rsa_sdtsprk, tRSPC.fn_RSA_SDTPrk.ReadContent(&strData)));
+		return(CCY_Decode_RSAPrivateKey(rsa_sdtsprk, tRSPC.pn_RSA_SDTPrk.ReadContent(&strData)));
 	return 0;
 }
 //------------------------------------------------------------------------------------------//
 int32 CHK_GetRSA_SPuk(RSA **rsa_spuk){
 	Reg_SDT_PatchCode	tRSPC;
-	std::string		strData;
+	STDSTR			strData;
 	
 	if (tRSPC.GetPatchCode() > 0)
-		return(CCY_Decode_RSAPublicKey(rsa_spuk, tRSPC.fn_RSA_sPuk.ReadContent(&strData)));
+		return(CCY_Decode_RSAPublicKey(rsa_spuk, tRSPC.pn_RSA_sPuk.ReadContent(&strData)));
 	return 0;
 }
 //------------------------------------------------------------------------------------------//
@@ -213,8 +213,8 @@ int32 CHK_GetRSA_SPuk(RSA **rsa_spuk){
 
 
 //------------------------------------------------------------------------------------------//
-const std::string &MakeMulitKey(std::string *retMulitKey){
-	std::string	strCPUHD,strMAC,strKey;
+const STDSTR &MakeMulitKey(STDSTR *retMulitKey){
+	STDSTR	strCPUHD,strMAC,strKey;
 
 	CHK_GetSDT_Hash(&strCPUHD);
 	SystemInfo_GetCPUID(&strCPUHD);
@@ -234,10 +234,10 @@ const std::string &MakeMulitKey(std::string *retMulitKey){
 	return(*retMulitKey);
 }
 //------------------------------------------------------------------------------------------//
-int32 Reg_Signature::Encode(std::string *retStrWhole,std::string *retStrStatus){
-	std::string	strContent,retStatusT;
-	int32 		retCode;
-	RSA 		*rsa_sdtPrk,*rsa_sPuk;
+int32 Reg_Signature::Encode(STDSTR *retStrWhole,STDSTR *retStrStatus){
+	STDSTR	strContent,retStatusT;
+	int32 	retCode;
+	RSA 	*rsa_sdtPrk,*rsa_sPuk;
 	
 	rsa_sPuk = RSA_new();
 	rsa_sdtPrk = RSA_new();
@@ -245,12 +245,12 @@ int32 Reg_Signature::Encode(std::string *retStrWhole,std::string *retStrStatus){
 	do{
 		retCode = 0;
 		if (CHK_GetRSA_SPuk(&rsa_sPuk) < 1){
-			retStatusT = "Read server public RSA key fail.\r\n";
+			retStatusT = "read server public RSA key fail";
 			break;
 		}
 		retCode = -1;
 		if (CHK_GetRSA_SDTPrk(&rsa_sdtPrk) < 1){
-			retStatusT = "Read SDT privte RSA key fail.\r\n";
+			retStatusT = "read SDT privte RSA key fail";
 			break;
 		}
 		retCode = 1;
@@ -263,24 +263,24 @@ int32 Reg_Signature::Encode(std::string *retStrWhole,std::string *retStrStatus){
 	return(retCode);
 }
 //------------------------------------------------------------------------------------------//
-int32 Reg_Signature::Decode(RSA **rsa_sdtpuk,std::string *retStrCYCode,std::string *retStrMKEY,const std::string &strInput,RSA *rsa_sPrk){
-	std::string	strContent;
+int32 Reg_Signature::Decode(RSA **rsa_sdtpuk,STDSTR *retStrCYCode,STDSTR *retStrMKEY,const STDSTR &strIn,RSA *rsa_sPrk){
+	STDSTR	strContent;
 
 	*retStrCYCode = "";
 	*retStrMKEY = "";
 	
-	if (CCY_FR_Signature::Decode(&strContent, strInput, rsa_sPrk) < 1)
+	if (CCY_FR_Signature::Decode(&strContent, strIn, rsa_sPrk) < 1)
 		return 0;
 	regContent.TryGetFrame(strContent);
-	if (CCY_Decode_RSAPublicKey(rsa_sdtpuk, regContent.fn_sdtPuKey.ReadContent(&strContent)) < 1)
+	if (CCY_Decode_RSAPublicKey(rsa_sdtpuk, regContent.pn_sdtPuKey.ReadContent(&strContent)) < 1)
 		return -1;
-	regContent.fn_CYCode.ReadContent(retStrCYCode);
-	regContent.fn_MKEY.ReadContent(retStrMKEY);
+	regContent.pn_CYCode.ReadContent(retStrCYCode);
+	regContent.pn_MKEY.ReadContent(retStrMKEY);
 	return 1;
 }
 //------------------------------------------------------------------------------------------//
-int32 Reg_Signature::Decode(RSA **rsa_sdtpuk,std::string *retStrCYCode,std::string *retStrMKEY,const FIFO_UINT8 *fifoInput,RSA *rsa_sPrk){
-	std::string	strContent;
+int32 Reg_Signature::Decode(RSA **rsa_sdtpuk,STDSTR *retStrCYCode,STDSTR *retStrMKEY,const FIFO8 *fifoInput,RSA *rsa_sPrk){
+	STDSTR	strContent;
 	
 	*retStrCYCode = "";
 	*retStrMKEY = "";
@@ -288,10 +288,10 @@ int32 Reg_Signature::Decode(RSA **rsa_sdtpuk,std::string *retStrCYCode,std::stri
 	if (CCY_FR_Signature::Decode(&strContent, *fifoInput, rsa_sPrk) < 1)
 		return 0;
 	regContent.TryGetFrame(strContent);
-	if (CCY_Decode_RSAPublicKey(rsa_sdtpuk, regContent.fn_sdtPuKey.ReadContent(&strContent)) < 1)
+	if (CCY_Decode_RSAPublicKey(rsa_sdtpuk, regContent.pn_sdtPuKey.ReadContent(&strContent)) < 1)
 		return -1;
-	regContent.fn_CYCode.ReadContent(retStrCYCode);
-	regContent.fn_MKEY.ReadContent(retStrMKEY);
+	regContent.pn_CYCode.ReadContent(retStrCYCode);
+	regContent.pn_MKEY.ReadContent(retStrMKEY);
 	return 1;
 }
 //------------------------------------------------------------------------------------------//
@@ -305,14 +305,14 @@ int32 Reg_Signature::Decode(RSA **rsa_sdtpuk,std::string *retStrCYCode,std::stri
 
 
 //------------------------------------------------------------------------------------------//
-int32 Linense_Content::Encode(std::string *retStrWhole,RSA **rsa_sdtpuk,const std::string &strRegSignature,uint64 approveSeconds,RSA *rsa_sPrk){
-	int32 			retCode;
-	SYS_DateTime	regTime;
-	std::string		strContent,strCYCode,strMKEY;
+int32 Linense_Content::Encode(STDSTR *retStrWhole,RSA **rsa_sdtpuk,const STDSTR &strRegSignature,uint64 approveSeconds,RSA *rsa_sPrk){
+	int32 	retCode;
+	TIME	regTime;
+	STDSTR	strContent,strCYCode,strMKEY;
 	Reg_Signature	cRegSignature;
 	CCY_FNLC_AES	cyBlock;
 	CCY_FN_AES_MK	cyBlock_MK;
-	FIFO_UINT8		fifo_CYCodeStream;
+	FIFO8			fifo_CYCodeStream;
 	uint32			cyCodeStreamOffset;
 	CCY_FR_Signature	fnSignature;
 	
@@ -322,40 +322,41 @@ int32 Linense_Content::Encode(std::string *retStrWhole,RSA **rsa_sdtpuk,const st
 
 	fifo_CYCodeStream.Init(1024 * 32);
 	
-	fnSignature.Init(1024 * 32,CCT_AES256,CCT_AES_CBC,CCT_SHA512,G_BIG_ENDIAN);
+	fnSignature.Init(1024 * 32,CCT_AES256,CCT_AES_CBC,CCT_SHA512,G_ENDIAN_BIG);
 	if (fnSignature.Decode(&strContent, strCYCode, rsa_sPrk) < 1)
 		return -2;
 
-	fifo_CYCodeStream.PutInASCII(strContent, G_ESCAPE_OFF);
+	fifo_CYCodeStream.Put(strContent, G_ESCAPE_OFF);
 	
 	cyBlock.Init(&fifo_CYCodeStream);
 	
-	cyBlock_MK.Init(GetcgDefFifo(),CCT_AES256,CCT_AES_CBC,CCT_SHA256);
+	cyBlock_MK.Init(GetDefFifo(),CCT_AES256,CCT_AES_CBC,CCT_SHA256);
 	regTime.Now();
-	GetcgDefFifo()->Empty();
-	HoldOffset();
-	fn_regTime.SetContent(Str_DecToHex((uint64)regTime.GetSec()), strMKEY);
-	fn_approveTime.SetContent(Str_DecToHex(approveSeconds), strMKEY);
+	GetDefFifo()->Empty();
+	_Start();
+	pn_regTime.SetContent(Str_DecToHex((uint64)regTime.GetSec()), strMKEY);
+	pn_approveTime.SetContent(Str_DecToHex(approveSeconds), strMKEY);
 	
-	fn_CYCode.HoldOffset();
+	pn_CYCode._Start();
 	cyCodeStreamOffset = 0;
 	do{
-		cyCodeStreamOffset += cyBlock.AnalysisFrame(fifo_CYCodeStream,cyCodeStreamOffset);
+		cyBlock.AnalysisFrame(&fifo_CYCodeStream,cyCodeStreamOffset);
+		cyCodeStreamOffset += cyBlock.GetLength();
 		cyBlock_MK.SetContent(cyBlock.ReadContent(&strContent, CCY_AESKey32Bye("SMCEncrypt"),&fifo_CYCodeStream), strMKEY);
 	}while(cyCodeStreamOffset < fifo_CYCodeStream.Used());
-	fn_CYCode.UpdateLength();
+	pn_CYCode._Endl();
 
-	UpdateLength();
+	_Endl();
 	ReadAllContent(retStrWhole);
 	
 	retCode = 1;
 	return(retCode);
 }
 //------------------------------------------------------------------------------------------//
-int32 Linense_Signature::Encode(std::string *retStrWhole,const std::string &strRegSignature,uint64 approveSeconds){
-	int32 		retCode;
-	std::string	strContent;
-	RSA 		*rsa_sdtPuk,*rsa_sPrk;
+int32 Linense_Signature::Encode(STDSTR *retStrWhole,const STDSTR &strRegSignature,uint64 approveSeconds){
+	int32 	retCode;
+	STDSTR	strContent;
+	RSA 	*rsa_sdtPuk,*rsa_sPrk;
 
 	rsa_sPrk = RSA_new();
 	rsa_sdtPuk = RSA_new();
@@ -374,10 +375,10 @@ int32 Linense_Signature::Encode(std::string *retStrWhole,const std::string &strR
 	return(retCode);
 }
 //------------------------------------------------------------------------------------------//
-int32 Linense_Signature::Decode(const std::string &strInput){
-	int32 		retCode;
-	std::string	strContent;
-	RSA 		*rsa_sdtPrk;
+int32 Linense_Signature::Decode(const STDSTR &strIn){
+	int32 	retCode;
+	STDSTR	strContent;
+	RSA 	*rsa_sdtPrk;
 	
 	rsa_sdtPrk = RSA_new();
 	
@@ -387,7 +388,7 @@ int32 Linense_Signature::Decode(const std::string &strInput){
 			break;
 		
 		retCode = -1;
-		if (CCY_FR_Signature::Decode(&strContent, strInput, rsa_sdtPrk) < 1)
+		if (CCY_FR_Signature::Decode(&strContent, strIn, rsa_sdtPrk) < 1)
 			break;
 		retCode = linenseContent.TryGetFrame(strContent);
 	}while(0);
@@ -395,10 +396,10 @@ int32 Linense_Signature::Decode(const std::string &strInput){
 	return(retCode);
 }
 //------------------------------------------------------------------------------------------//
-int32 Linense_Signature::Decode(const FIFO_UINT8 *fifoInput){
-	int32 		retCode;
-	std::string	strContent;
-	RSA 		*rsa_sdtPrk;
+int32 Linense_Signature::Decode(const FIFO8 *fifoInput){
+	int32 	retCode;
+	STDSTR	strContent;
+	RSA 	*rsa_sdtPrk;
 	
 	rsa_sdtPrk = RSA_new();
 	
@@ -421,7 +422,14 @@ int32 Linense_Signature::Decode(const FIFO_UINT8 *fifoInput){
 
 
 
-std::string		g_StrTable[5];
+
+
+
+
+
+//------------------------------------------------------------------------------------------//
+#ifdef CommonDefH_EnableSMC
+STDSTR			g_StrTable[5];
 uint8			g_OverTime;
 Linense_Content	g_LinenseC;
 //------------------------------------------------------------------------------------------//
@@ -447,8 +455,8 @@ void CHK_CheckerInitClear(void){
 	g_LinenseC.FillZero();
 }
 //------------------------------------------------------------------------------------------//
-std::string CHK_GetLinenseFN(void){
-	std::string		name,strData;
+STDSTR CHK_GetLinenseFN(void){
+	STDSTR		name,strData;
 	
 	strData = g_StrTable[1];
 	strData += g_StrTable[2];
@@ -459,7 +467,7 @@ std::string CHK_GetLinenseFN(void){
 }
 //------------------------------------------------------------------------------------------//
 void CHK_ReadLinenseFile(void){
-	std::string	sFN;
+	STDSTR	sFN;
 	Linense_Signature tLS;
 	
 	CFS_ReadFile(&tLS.cgFIFO_Result, CHK_GetLinenseFN());
@@ -469,31 +477,31 @@ void CHK_ReadLinenseFile(void){
 	g_LinenseC.cgFIFO_Result.Empty();
 	g_LinenseC.cgFIFO_Result.Init(tLS.linenseContent.cgFIFO_Result.Used());
 	g_LinenseC.cgFIFO_Result.Put(tLS.linenseContent.cgFIFO_Result,-1);
-	g_LinenseC.AnalysisFrame(g_LinenseC.cgFIFO_Result);
-	g_LinenseC.fn_CYCode.ReadContent(&g_SMCCyCodeStream);
+	g_LinenseC.AnalysisFrame(&g_LinenseC.cgFIFO_Result);
+	g_LinenseC.pn_CYCode.ReadContent(&g_SMCCyCodeStream);
 }
 //------------------------------------------------------------------------------------------//
-void CHK_GetRATime(SYS_DateTime *cRTime,SYS_DateTime *cATime){
-	SYS_DateTime SDTTime;
-	std::string	strTime,sKey;
+void CHK_GetRATime(TIME *cRTime,TIME *cATime){
+	TIME	SDTTime;
+	STDSTR	strTime,sKey;
 	
 	CHK_GetSDT_Time(cRTime);
 	SYS_EncodeTimeABS(cATime,0, 3, 0, 0);
 	
 	if (CFS_CheckFile(CHK_GetLinenseFN()) > 0){
-		if (g_LinenseC.fn_regTime.ReadContent(&strTime, MakeMulitKey(&sKey)) > 0)
+		if (g_LinenseC.pn_regTime.ReadContent(&strTime, MakeMulitKey(&sKey)) > 0)
 			*cRTime = (double)Str_HexToDec(strTime);
-		if (g_LinenseC.fn_approveTime.ReadContent(&strTime, MakeMulitKey(&sKey)) > 0)
+		if (g_LinenseC.pn_approveTime.ReadContent(&strTime, MakeMulitKey(&sKey)) > 0)
 			*cATime = (double)Str_HexToDec(strTime);
 	}
 }
 //------------------------------------------------------------------------------------------//
-void CHK_GetCurrentTime(SYS_DateTime *cCTime){
+void CHK_GetCurrentTime(TIME *cCTime){
 	cCTime->Now();
 }
 //------------------------------------------------------------------------------------------//
 int32 CHK_CheckATime(void){
-	SYS_DateTime chk_cTime,chk_regTime,chk_aTime;
+	TIME chk_cTime,chk_regTime,chk_aTime;
 	
 	CHK_GetRATime(&chk_regTime,&chk_aTime);
 	CHK_GetCurrentTime(&chk_cTime);
@@ -514,7 +522,7 @@ int32 CHK_CheckATime(void){
 }
 //------------------------------------------------------------------------------------------//
 int32 CHK_CheckBTime(void){
-	SYS_DateTime chk_cTime,chk_regTime,chk_aTime;
+	TIME chk_cTime,chk_regTime,chk_aTime;
 	
 	CHK_GetRATime(&chk_regTime,&chk_aTime);
 	CHK_GetCurrentTime(&chk_cTime);
@@ -534,19 +542,23 @@ int32 CHK_CheckBTime(void){
 	return 1;
 }
 //------------------------------------------------------------------------------------------//
-int32 REG_CreateREGFILE(std::string *retStatus){
+int32 REG_CreateREGFILE(STDSTR *retStatus){
 	Reg_Signature	regS;
-	std::string		strReg,retStatusT;
+	STDSTR			strReg,retStatusT;
 	int32			ret;
 
 	ret = regS.Encode(&strReg,&retStatusT);
 	if (ret > 0){
 		CFS_WriteFile("PreRegistration.key", strReg);
-		retStatusT = "Create \"PreRegistration.key\" successful.\r\n";
+		retStatusT = "create \"PreRegistration.key\" successful";
+	}
+	else{
+		retStatusT = "create \"PreRegistration.key\" fail";
 	}
 	if (retStatus != nullptr)
 		*retStatus = retStatusT;
 	return(ret);
 }
 //------------------------------------------------------------------------------------------//
+#endif
 #endif

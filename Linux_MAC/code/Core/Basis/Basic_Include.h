@@ -21,5 +21,6 @@
 #include "SYS_Thread.h"
 #include "SYS_Time.h"
 #include "Comm_Convert.h"
+#include "Comm_Log.h"
 //------------------------------------------------------------------------------------------//
 #endif

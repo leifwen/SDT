@@ -21,52 +21,53 @@
 #include "Comm_FIFO.h"
 #include <fstream>
 //------------------------------------------------------------------------------------------//
-int32	CFS_CheckFile		(const std::string &fName);
-uint64	CFS_CheckFileSize	(const std::string &fName);
-uint64	CFS_ReadFile		(std::string *retContent,const std::string &fName,uint64 fsLength = -1,uint64 fsOffset = 0);
-uint64	CFS_ReadFile		(FIFO_UINT8 *retFifo,const std::string &fName,uint64 fsLength = -1,uint64 fsOffset = 0);
-void	CFS_WriteFile		(const std::string &fName,const std::string &strContent);
-void	CFS_AddToFile		(const std::string &fName,const std::string &strContent);
-void	CFS_WriteFile		(const std::string &fName,const std::string &strContent,uint64 fsOffset);
+int32	CFS_CheckFile		(const STDSTR &fName);
+uint64	CFS_CheckFileSize	(const STDSTR &fName);
+uint64	CFS_ReadFile		(STDSTR *retStr,const STDSTR &fName,uint64 fsLength = -1,uint64 fsOffset = 0,G_APPEND blAppend = G_APPEND_OFF);
+#ifdef Comm_FIFOH
+uint64	CFS_ReadFile		(FIFO8 *retFifo,const STDSTR &fName,uint64 fsLength = -1,uint64 fsOffset = 0);
+#endif
+void	CFS_WriteFile		(const STDSTR &fName,const STDSTR &strContent);
+void	CFS_AddToFile		(const STDSTR &fName,const STDSTR &strContent);
+void	CFS_WriteFile		(const STDSTR &fName,const STDSTR &strContent,uint64 fsOffset);
 //------------------------------------------------------------------------------------------//
 
 
 
 
-
+#ifdef EN
 //------------------------------------------------------------------------------------------//
-class FILE_NODE : public RTREE_NODE{
-	public:
-		enum{RFLAG_C = 0, RFLAG_S = RTREE_NODE::RFLAG_S + RTREE_NODE::RFLAG_C};
+class FILE_NODE : public TREE_NODE{
 		enum{FPS = 1024 * 1024 * 16};
 		enum FT{FT_NONE = 0,FT_DIR = 1,FT_FILE = 2};
 		enum RECURSION{R_NO = 0,R_YES};
 	public:
-				 FILE_NODE(void) : RTREE_NODE(){;};
+				 FILE_NODE(void) : TREE_NODE(){;};
 		virtual ~FILE_NODE(void){;};
 	public:
 		uint32			cgRemoteNodeID;
-		std::string		cgStrPath;
-		std::string		cgStrName;
+		STDSTR		cgStrPath;
+		STDSTR		cgStrName;
 		FT				cgType;
 		uint64			cgSize;
 		uint64			cgLastModifyTime;
 		uint64			cgAttrib;
 	public:
-		std::string		cgStrNodeHash;
+		STDSTR		cgStrNodeHash;
 		uint64			cgFilePackageSize;
-		std::string		cgStrFilePackageHash;
+		STDSTR		cgStrFilePackageHash;
 	public:
 		FILE_NODE &operator=(const FILE_NODE &tNode);
 	public:
 		static void			Clear				(FILE_NODE *tNode);
-		static FT			FillBasicInfoToNode	(FILE_NODE *tNode,const std::string &tFullName);
+		static FT			FillBasicInfoToNode	(FILE_NODE *tNode,const STDSTR &tFullName);
 		static int32		FillFileHashToNode	(FILE_NODE *tNode);
 		static int32		FillDirHashToNode	(FILE_NODE *tNode);
-		static std::string	CreateNodeToStr		(FILE_NODE *tNode){return(CreateNodeToStrV0_1(tNode));};
-		static std::string	CreateNodeToStrV0_1	(FILE_NODE *tNode);
-		static void			SetStrToNode		(FILE_NODE *tNode,const std::string &strInput){SetStrToNodeV0_1(tNode,strInput);};
-		static void			SetStrToNodeV0_1	(FILE_NODE *tNode,const std::string &strInput);
+		static STDSTR	CreateNodeToStr		(FILE_NODE *tNode){return(CreateNodeToStrV0_1(tNode));};
+		static STDSTR	CreateNodeToStrV0_1	(FILE_NODE *tNode);
+		static void			SetStrToNode		(FILE_NODE *tNode,const STDSTR &strIn){SetStrToNodeV0_1(tNode,strIn);};
+		static void			SetStrToNodeV0_1	(FILE_NODE *tNode,const STDSTR &strIn);
 };
+#endif
 //------------------------------------------------------------------------------------------//
 #endif

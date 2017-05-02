@@ -12,10 +12,11 @@
 //------------------------------------------------------------------------------------------//
 #include "stdafx.h"
 #include "Comm_PA.h"
+#ifdef Comm_PAH
 //------------------------------------------------------------------------------------------//
-Field_Node::Field_Node(void) : RTREE_NODE() {
+PROTOCOL_NODE::PROTOCOL_NODE(void) : TREE_NODE() {
 	cgType = FNT_UNINIT;
-	cgEndianType = G_LITTLE_ENDIAN;
+	cgEndianType = G_ENDIAN_LITTLE;
 	cgObyteNum = 0;
 	
 	cgDefFifo = nullptr;
@@ -32,19 +33,19 @@ Field_Node::Field_Node(void) : RTREE_NODE() {
 	moveBit = 0;
 };
 //------------------------------------------------------------------------------------------//
-void Field_Node::Init(FNT_Type fType,const FIFO_UINT8 *tfifo,uint32 fbyteNum,G_Endian_VAILD tEV){
+void PROTOCOL_NODE::Init(FNT_Type fType,const FIFO8 *defFifo,uint32 fObyteNum,G_ENDIAN fEndianType){
 	cgType = fType;
-	cgObyteNum = fbyteNum;
-	cgEndianType = tEV;
-	cgDefFifo = (FIFO_UINT8*)tfifo;
+	cgObyteNum = fObyteNum;
+	cgEndianType = fEndianType;
+	cgDefFifo = (FIFO8*)defFifo;
 }
 //------------------------------------------------------------------------------------------//
-void Field_Node::SetFixValue(const std::string &str){
+void PROTOCOL_NODE::SetFixValue(const STDSTR &str){
 	fixValue = str;
 	cgObyteNum = (uint32)fixValue.length();
 }
 //------------------------------------------------------------------------------------------//
-int32 Field_Node::CheckFixValue(const FIFO_UINT8 &fifobuf)const{
+int32 PROTOCOL_NODE::CheckFixValue(const FIFO8 &fifo)const{
 	uint8	charP1,charP2;
 	uint32	tOffset,fLength;
 	
@@ -52,7 +53,7 @@ int32 Field_Node::CheckFixValue(const FIFO_UINT8 &fifobuf)const{
 	fLength = fnlength;
 	charP1 = 0;
 	while(fLength-- > 0){
-		fifobuf.Read(&charP1, 1, --tOffset);
+		fifo.Read(&charP1, 1, --tOffset);
 		charP2 = fixValue[fLength];
 		if (charP1 != charP2)
 			return 0;
@@ -60,7 +61,7 @@ int32 Field_Node::CheckFixValue(const FIFO_UINT8 &fifobuf)const{
 	return 1;
 }
 //------------------------------------------------------------------------------------------//
-void Field_Node::SetMaskBit(uint32 mask){
+void PROTOCOL_NODE::SetMaskBit(uint32 mask){
 	uint32	tMask,i;
 	
 	maskBit = mask;
@@ -75,20 +76,20 @@ void Field_Node::SetMaskBit(uint32 mask){
 	}while(++ i < 32);
 }
 //------------------------------------------------------------------------------------------//
-uint32 Field_Node::GetOriginalValue(const FIFO_UINT8 *fifobuf)const{
+uint32 PROTOCOL_NODE::GetOriginalValue(const FIFO8 *fifo)const{
 	uint32 ret,i;
 	uint8 tData;
 	
-	if (fifobuf == nullptr)
-		fifobuf = cgDefFifo;
+	if (fifo == nullptr)
+		fifo = cgDefFifo;
 
 	tData = 0;
 	ret = 0;
-	if (cgEndianType == G_LITTLE_ENDIAN){
+	if (cgEndianType == G_ENDIAN_LITTLE){
 		i = fnlength;
 		while(i-- > 0){
 			ret <<= 8;
-			fifobuf->Read(&tData, 1, fnOffset + i);
+			fifo->Read(&tData, 1, fnOffset + i);
 			ret |= tData;
 		};
 	}
@@ -96,70 +97,71 @@ uint32 Field_Node::GetOriginalValue(const FIFO_UINT8 *fifobuf)const{
 		i = 0;
 		do{
 			ret <<= 8;
-			fifobuf->Read(&tData, 1, fnOffset + i);
+			fifo->Read(&tData, 1, fnOffset + i);
 			ret |= tData;
 		}while(++i < fnlength);
 	}
 	return(ret);
 }
 //------------------------------------------------------------------------------------------//
-uint32 Field_Node::GetValueAMask(const FIFO_UINT8 *fifobuf)const{
-	if (fifobuf == nullptr)
-		fifobuf = cgDefFifo;
-	return(GetOriginalValue(fifobuf) & maskBit);
+uint32 PROTOCOL_NODE::GetValueAMask(const FIFO8 *fifo)const{
+	if (fifo == nullptr)
+		fifo = cgDefFifo;
+	return(GetOriginalValue(fifo) & maskBit);
 };
 //------------------------------------------------------------------------------------------//
-uint32 Field_Node::GetValueCalc(const FIFO_UINT8 *fifobuf)const{
-	if (fifobuf == nullptr)
-		fifobuf = cgDefFifo;
-	return((GetOriginalValue(fifobuf) & maskBit) >> moveBit);
+uint32 PROTOCOL_NODE::GetValueCalc(const FIFO8 *fifo)const{
+	if (fifo == nullptr)
+		fifo = cgDefFifo;
+	return((GetOriginalValue(fifo) & maskBit) >> moveBit);
 };
 //------------------------------------------------------------------------------------------//
-const std::string &Field_Node::ReadAllContent(std::string *retStr,const FIFO_UINT8 *fifobuf)const{
-	if (fifobuf == nullptr)
-		fifobuf = cgDefFifo;
+const STDSTR &PROTOCOL_NODE::ReadAllContentInHEXs(STDSTR *retStr,const FIFO8 *fifo)const{
+	if (fifo == nullptr)
+		fifo = cgDefFifo;
 	*retStr = "";
-	fifobuf->ReadInASCII(retStr,fnlength,fnOffset);
+	fifo->ReadInHEX_S(retStr,fnlength,fnOffset);
 	return(*retStr);
 };
 //------------------------------------------------------------------------------------------//
-const FIFO_UINT8 &Field_Node::ReadAllContent(FIFO_UINT8 *retfifo,const FIFO_UINT8 *fifobuf)const{
-	if (fifobuf == nullptr)
-		fifobuf = cgDefFifo;
+const STDSTR &PROTOCOL_NODE::ReadAllContent(STDSTR *retStr,const FIFO8 *fifo)const{
+	if (fifo == nullptr)
+		fifo = cgDefFifo;
+	*retStr = "";
+	fifo->Read(retStr,fnlength,fnOffset);
+	return(*retStr);
+};
+//------------------------------------------------------------------------------------------//
+const FIFO8 &PROTOCOL_NODE::ReadAllContent(FIFO8 *retFifo,const FIFO8 *fifo)const{
+	if (fifo == nullptr)
+		fifo = cgDefFifo;
 
-	if (retfifo != fifobuf)
-		retfifo->Put(*fifobuf,fnlength,fnOffset);
-	return(*retfifo);
+	if (retFifo != fifo)
+		retFifo->Put(*fifo,fnlength,fnOffset);
+	return(*retFifo);
 };
 //------------------------------------------------------------------------------------------//
-const PUB_SBUF &Field_Node::ReadAllContent(PUB_SBUF *retPSBUF,const FIFO_UINT8 *fifobuf)const{
-	if (fifobuf == nullptr)
-		fifobuf = cgDefFifo;
-	retPSBUF->Put(*fifobuf,fnlength,fnOffset);
-	return(*retPSBUF);
+const PROTOCOL_NODE &PROTOCOL_NODE::ReadAllContent(PROTOCOL_NODE *retPN,const FIFO8 *fifo)const{
+	if (fifo == nullptr)
+		fifo = cgDefFifo;
+	retPN->Spin_InUse_set();
+	retPN->cgDefFifo->Put(*fifo,fnlength,fnOffset);
+	retPN->Spin_InUse_clr();
+	return(*retPN);
 };
 //------------------------------------------------------------------------------------------//
-const Field_Node &Field_Node::ReadAllContent(Field_Node *retFN,const FIFO_UINT8 *fifobuf)const{
-	if (fifobuf == nullptr)
-		fifobuf = cgDefFifo;
-	retFN->Spin_InUse_set();
-	retFN->cgDefFifo->Put(*fifobuf,fnlength,fnOffset);
-	retFN->Spin_InUse_clr();
-	return(*retFN);
-};
-//------------------------------------------------------------------------------------------//
-void Field_Node::SetFIFO(void){
-	fnOffset = cgDefFifo->Used();
+void PROTOCOL_NODE::SetFIFO(void){
+	fnOffset = cgDefFifo->GetPreInNum();
 	fnlength = 0;
 	if (cgType == FNT_MASK)
 		FillMaskField();
 };
 //------------------------------------------------------------------------------------------//
-void Field_Node::SetFIFO_4Byte(uint32 tInput){
+void PROTOCOL_NODE::SetFIFO_4Byte(uint32 tInput){
 	uint8 	tData;
-	fnOffset = cgDefFifo->Used();
+	fnOffset = cgDefFifo->GetPreInNum();
 	fnlength = 4;
-	if (cgEndianType == G_LITTLE_ENDIAN){
+	if (cgEndianType == G_ENDIAN_LITTLE){
 		tData = (uint8)(tInput);
 		cgDefFifo->Put(&tData, 1);
 		tData = (uint8)(tInput >> 8);
@@ -183,11 +185,11 @@ void Field_Node::SetFIFO_4Byte(uint32 tInput){
 		FillMaskField();
 };
 //------------------------------------------------------------------------------------------//
-void Field_Node::SetFIFO_3Byte(uint32 tInput){
+void PROTOCOL_NODE::SetFIFO_3Byte(uint32 tInput){
 	uint8 	tData;
-	fnOffset = cgDefFifo->Used();
+	fnOffset = cgDefFifo->GetPreInNum();
 	fnlength = 3;
-	if (cgEndianType == G_LITTLE_ENDIAN){
+	if (cgEndianType == G_ENDIAN_LITTLE){
 		tData = (uint8)(tInput);
 		cgDefFifo->Put(&tData, 1);
 		tData = (uint8)(tInput >> 8);
@@ -207,11 +209,11 @@ void Field_Node::SetFIFO_3Byte(uint32 tInput){
 		FillMaskField();
 };
 //------------------------------------------------------------------------------------------//
-void Field_Node::SetFIFO_2Byte(uint32 tInput){
+void PROTOCOL_NODE::SetFIFO_2Byte(uint32 tInput){
 	uint8 	tData;
-	fnOffset = cgDefFifo->Used();
+	fnOffset = cgDefFifo->GetPreInNum();
 	fnlength = 2;
-	if (cgEndianType == G_LITTLE_ENDIAN){
+	if (cgEndianType == G_ENDIAN_LITTLE){
 		tData = (uint8)(tInput);
 		cgDefFifo->Put(&tData, 1);
 		tData = (uint8)(tInput >> 8);
@@ -227,9 +229,9 @@ void Field_Node::SetFIFO_2Byte(uint32 tInput){
 		FillMaskField();
 };
 //------------------------------------------------------------------------------------------//
-void Field_Node::SetFIFO_1Byte(uint32 tInput){
+void PROTOCOL_NODE::SetFIFO_1Byte(uint32 tInput){
 	uint8 	tData;
-	fnOffset = cgDefFifo->Used();
+	fnOffset = cgDefFifo->GetPreInNum();
 	fnlength = 1;
 	tData = (uint8)(tInput);
 	cgDefFifo->Put(&tData, 1);
@@ -237,7 +239,7 @@ void Field_Node::SetFIFO_1Byte(uint32 tInput){
 		FillMaskField();
 };
 //------------------------------------------------------------------------------------------//
-void Field_Node::SetFIFOByte(uint64 tInput){
+void PROTOCOL_NODE::SetFIFOByte(uint64 tInput){
 	switch(cgObyteNum){
 		case 1:
 			SetFIFO_1Byte((uint32)tInput);break;
@@ -251,81 +253,81 @@ void Field_Node::SetFIFOByte(uint64 tInput){
 	}
 };
 //------------------------------------------------------------------------------------------//
-void Field_Node::UpdateFIFO_4Byte(uint32 tInput){
+void PROTOCOL_NODE::UpdateFIFO_4Byte(uint32 tInput){
 	uint8 	tData;
-	if (cgEndianType == G_LITTLE_ENDIAN){
+	if (cgEndianType == G_ENDIAN_LITTLE){
 		tData = (uint8)(tInput);
-		cgDefFifo->Update(&tData, 1,fnOffset);
+		cgDefFifo->UpdateOffsetByIn(&tData, 1,fnOffset);
 		tData = (uint8)(tInput >> 8);
-		cgDefFifo->Update(&tData, 1,fnOffset + 1);
+		cgDefFifo->UpdateOffsetByIn(&tData, 1,fnOffset + 1);
 		tData = (uint8)(tInput >> 16);
-		cgDefFifo->Update(&tData, 1,fnOffset + 2);
+		cgDefFifo->UpdateOffsetByIn(&tData, 1,fnOffset + 2);
 		tData = (uint8)(tInput >> 24);
-		cgDefFifo->Update(&tData, 1,fnOffset + 3);
+		cgDefFifo->UpdateOffsetByIn(&tData, 1,fnOffset + 3);
 	}
 	else{
 		tData = (uint8)(tInput >> 24);
-		cgDefFifo->Update(&tData, 1,fnOffset);
+		cgDefFifo->UpdateOffsetByIn(&tData, 1,fnOffset);
 		tData = (uint8)(tInput >> 16);
-		cgDefFifo->Update(&tData, 1,fnOffset + 1);
+		cgDefFifo->UpdateOffsetByIn(&tData, 1,fnOffset + 1);
 		tData = (uint8)(tInput >> 8);
-		cgDefFifo->Update(&tData, 1,fnOffset + 2);
+		cgDefFifo->UpdateOffsetByIn(&tData, 1,fnOffset + 2);
 		tData = (uint8)(tInput);
-		cgDefFifo->Update(&tData, 1,fnOffset + 3);
+		cgDefFifo->UpdateOffsetByIn(&tData, 1,fnOffset + 3);
 	}
 	if (cgType == FNT_MASK)
 		FillMaskField();
 };
 //------------------------------------------------------------------------------------------//
-void Field_Node::UpdateFIFO_3Byte(uint32 tInput){
+void PROTOCOL_NODE::UpdateFIFO_3Byte(uint32 tInput){
 	uint8 	tData;
-	if (cgEndianType == G_LITTLE_ENDIAN){
+	if (cgEndianType == G_ENDIAN_LITTLE){
 		tData = (uint8)(tInput);
-		cgDefFifo->Update(&tData, 1,fnOffset);
+		cgDefFifo->UpdateOffsetByIn(&tData, 1,fnOffset);
 		tData = (uint8)(tInput >> 8);
-		cgDefFifo->Update(&tData, 1,fnOffset + 1);
+		cgDefFifo->UpdateOffsetByIn(&tData, 1,fnOffset + 1);
 		tData = (uint8)(tInput >> 16);
-		cgDefFifo->Update(&tData, 1,fnOffset + 2);
+		cgDefFifo->UpdateOffsetByIn(&tData, 1,fnOffset + 2);
 	}
 	else{
 		tData = (uint8)(tInput >> 16);
-		cgDefFifo->Update(&tData, 1,fnOffset);
+		cgDefFifo->UpdateOffsetByIn(&tData, 1,fnOffset);
 		tData = (uint8)(tInput >> 8);
-		cgDefFifo->Update(&tData, 1,fnOffset + 1);
+		cgDefFifo->UpdateOffsetByIn(&tData, 1,fnOffset + 1);
 		tData = (uint8)(tInput);
-		cgDefFifo->Update(&tData, 1,fnOffset + 2);
+		cgDefFifo->UpdateOffsetByIn(&tData, 1,fnOffset + 2);
 	}
 	if (cgType == FNT_MASK)
 		FillMaskField();
 };
 //------------------------------------------------------------------------------------------//
-void Field_Node::UpdateFIFO_2Byte(uint32 tInput){
+void PROTOCOL_NODE::UpdateFIFO_2Byte(uint32 tInput){
 	uint8 	tData;
-	if (cgEndianType == G_LITTLE_ENDIAN){
+	if (cgEndianType == G_ENDIAN_LITTLE){
 		tData = (uint8)(tInput);
-		cgDefFifo->Update(&tData, 1,fnOffset);
+		cgDefFifo->UpdateOffsetByIn(&tData, 1,fnOffset);
 		tData = (uint8)(tInput >> 8);
-		cgDefFifo->Update(&tData, 1,fnOffset + 1);
+		cgDefFifo->UpdateOffsetByIn(&tData, 1,fnOffset + 1);
 	}
 	else{
 		tData = (uint8)(tInput >> 8);
-		cgDefFifo->Update(&tData, 1,fnOffset);
+		cgDefFifo->UpdateOffsetByIn(&tData, 1,fnOffset);
 		tData = (uint8)(tInput);
-		cgDefFifo->Update(&tData, 1,fnOffset + 1);
+		cgDefFifo->UpdateOffsetByIn(&tData, 1,fnOffset + 1);
 	}
 	if (cgType == FNT_MASK)
 		FillMaskField();
 };
 //------------------------------------------------------------------------------------------//
-void Field_Node::UpdateFIFO_1Byte(uint32 tInput){
+void PROTOCOL_NODE::UpdateFIFO_1Byte(uint32 tInput){
 	uint8 	tData;
 	tData = (uint8)(tInput);
-	cgDefFifo->Update(&tData, 1,fnOffset);
+	cgDefFifo->UpdateOffsetByIn(&tData, 1,fnOffset);
 	if (cgType == FNT_MASK)
 		FillMaskField();
 };
 //------------------------------------------------------------------------------------------//
-void Field_Node::UpdateFIFOByte(uint64 tInput){
+void PROTOCOL_NODE::UpdateFIFOByte(uint64 tInput){
 	switch(cgObyteNum){
 		case 1:
 			UpdateFIFO_1Byte((uint32)tInput);break;
@@ -339,59 +341,61 @@ void Field_Node::UpdateFIFOByte(uint64 tInput){
 	}
 };
 //------------------------------------------------------------------------------------------//
-void Field_Node::SetFIFOFixValue(void){
-	fnOffset = cgDefFifo->Used();
+void PROTOCOL_NODE::SetFIFOFixValue(void){
+	fnOffset = cgDefFifo->GetPreInNum();
 	fnlength = cgDefFifo->Put((uint8*)fixValue.c_str(), (uint32)fixValue.length());
 	if (cgType == FNT_MASK)
 		FillMaskField();
 };
 //------------------------------------------------------------------------------------------//
-void Field_Node::SetFIFO(const uint8 *tInput,uint32 num){
-	fnOffset = cgDefFifo->Used();
-	fnlength = cgDefFifo->Put(tInput, num);
+void PROTOCOL_NODE::SetFIFO(const uint8 *data,uint32 num){
+	fnOffset = cgDefFifo->GetPreInNum();
+	fnlength = cgDefFifo->Put(data, num);
 	if (cgType == FNT_MASK)
 		FillMaskField();
 };
 //------------------------------------------------------------------------------------------//
-void Field_Node::SetFIFO(const FIFO_UINT8 &fifoIn,uint32 num,uint32 offset){
-	fnOffset = cgDefFifo->Used();
+void PROTOCOL_NODE::SetFIFO(std::stringstream &streamIn){
+	fnOffset = cgDefFifo->GetPreInNum();
+	fnlength = cgDefFifo->Put(streamIn);
+	if (cgType == FNT_MASK)
+		FillMaskField();
+};
+//------------------------------------------------------------------------------------------//
+void PROTOCOL_NODE::SetFIFO(const FIFO8 &fifoIn,uint32 num,uint32 offset){
+	fnOffset = cgDefFifo->GetPreInNum();
 	fnlength = cgDefFifo->Put(fifoIn,num,offset);
 	if (cgType == FNT_MASK)
 		FillMaskField();
 };
 //------------------------------------------------------------------------------------------//
-void Field_Node::SetFIFO(const Field_Node &fnIn){
-	fnOffset = cgDefFifo->Used();
-	fnlength = cgDefFifo->Put(*fnIn.GetcgDefFifo(),fnIn.GetLength(),fnIn.GetOffset());
+void PROTOCOL_NODE::SetFIFO(const PROTOCOL_NODE &fnIn){
+	fnOffset = cgDefFifo->GetPreInNum();
+	fnlength = cgDefFifo->Put(*fnIn.GetDefFifo(),fnIn.GetLength(),fnIn.GetOffset());
 	if (cgType == FNT_MASK)
 		FillMaskField();
 };
 //------------------------------------------------------------------------------------------//
-void Field_Node::FillMaskField(void){
-	Field_Node	*fieldNode;
-
+void PROTOCOL_NODE::FillMaskField(void){
 	if (cgType != FNT_MASK)
 		return;
 	
-	fieldNode = (Field_Node*)GetFirstChild_nolock(this);
-
-	while(fieldNode != nullptr){
-		fieldNode->cgObyteNum = cgObyteNum;
-		fieldNode->cgEndianType = cgEndianType;
-		fieldNode->fnOffset = fnOffset;
-		fieldNode->fnlength = fnlength;
-		fieldNode = (Field_Node*)GetNextBrother_nolock(fieldNode);
-	}
+	TREE_LChildRChain_Traversal_LINE_nolock(PROTOCOL_NODE,this,
+		operateNode_t->cgObyteNum = cgObyteNum;
+		operateNode_t->cgEndianType = cgEndianType;
+		operateNode_t->fnOffset = fnOffset;
+		operateNode_t->fnlength = fnlength;
+	);
 }
 //------------------------------------------------------------------------------------------//
-uint32 Field_Node::CalcCLength(const FIFO_UINT8 &fifobuf)const{
-	Field_Node	*fieldNode,*tNode;
+uint32 PROTOCOL_NODE::CalcCLength(const FIFO8 &fifo)const{
+	PROTOCOL_NODE	*fieldNode,*tNode;
 	uint32		vaildAreaLength;
 	
 	if (cgType != FNT_LENGTH)
 		return 0;
 	if (vaildAreaH == nullptr)
-		return(GetValueCalc(&fifobuf));
+		return(GetValueCalc(&fifo));
 	
 	tNode = vaildAreaT;
 	if (tNode == nullptr)
@@ -401,16 +405,16 @@ uint32 Field_Node::CalcCLength(const FIFO_UINT8 &fifobuf)const{
 	vaildAreaLength = fieldNode->fnlength;
 	while((fieldNode != nullptr) && (fieldNode != tNode)){
 		vaildAreaLength += fieldNode->fnlength;
-		fieldNode = (Field_Node*)GetNextBrother_nolock(fieldNode);
+		fieldNode = (PROTOCOL_NODE*)GetcgNext(fieldNode);
 	};
 
-	return(GetValueCalc(&fifobuf) - vaildAreaLength);
+	return(GetValueCalc(&fifo) - vaildAreaLength);
 }
 //------------------------------------------------------------------------------------------//
-uint32 Field_Node::Out(FIFO_UINT8 *fifobuf){
-	if (fifobuf == nullptr)
-		fifobuf = cgDefFifo;
-	return(fifobuf->Out(fnlength + fnOffset));
+uint32 PROTOCOL_NODE::Out(FIFO8 *fifo){
+	if (fifo == nullptr)
+		fifo = cgDefFifo;
+	return(fifo->Out(fnlength + fnOffset));
 };
 //------------------------------------------------------------------------------------------//
 enum{
@@ -421,127 +425,71 @@ enum{
 	RET_NoFirstChild = -3,
 };
 //------------------------------------------------------------------------------------------//
-uint32 Field_Node::TryGetFrameAgain_if_NoEnoughDataInFIFO(FIFO_UINT8 *fifoIn){
-	int32	retTry;
-	uint32	fifoInOffset;
+int32 PROTOCOL_NODE::TryGetFrame(const STDSTR &strIn){
+	cgDefFifo->Out(fnOffset + fnlength);
+	cgDefFifo->Put(strIn, G_ESCAPE_OFF);
+	return(AnalysisFrame(cgDefFifo));
+}
+//------------------------------------------------------------------------------------------//
+int32 PROTOCOL_NODE::AnalysisFrame(const FIFO8 *fifo,uint32 fifoOffset){
+	int32 retTry;
+	if (fifo == nullptr)
+		fifo = cgDefFifo;
+	retTry = AnalysisFrameR0(*fifo,fifoOffset);
+	if (retTry == RET_OK)
+		return(RET_OK);
+	fnOffset = 0;
+	fnlength = 0;
+	return(retTry);
+}
+//------------------------------------------------------------------------------------------//
+int32 PROTOCOL_NODE::TryGetFrame(FIFO8 *fifo){
+	if (fifo == nullptr)
+		fifo = cgDefFifo;
 	
-	fifoInOffset = 0;
-	do{
-		retTry = AnalysisFrameR0(*fifoIn,fifoInOffset);
-		if (retTry == RET_OK){
-			cgDefFifo->Empty();
-			cgDefFifo->Put(*fifoIn,fnlength,fnOffset);
-			fifoIn->Out(fnOffset + fnlength);
-			AnalysisFrameR0(*cgDefFifo);
-			return(fnlength);
+	while(fnOffset < fifo->Used()){
+		fnOffset = 0;
+		fnlength = 0;
+		switch(AnalysisFrameR1(*fifo)){
+			case RET_OK: return RET_OK;
+			case RET_AbandonFirstData:fifo->Out(1);break;
+			case RET_NoEnoughDataInFIFO:
+				if (fifo->IsFull()){
+					fifo->Out(1);
+					break;
+				}
+				return RET_NoEnoughDataInFIFO;
+			default:return 0;
 		}
-		else if ((retTry == RET_AbandonFirstData) || (retTry == RET_NoEnoughDataInFIFO)){
-			++ fifoInOffset;
-		}
-		else{
-			break;
-		}
-	}while(fifoInOffset < fifoIn->Used());
-	fnOffset = 0;
-	fnlength = 0;
+	}
 	return 0;
 }
 //------------------------------------------------------------------------------------------//
-uint32 Field_Node::TryGetFrameAgain_if_NoEnoughDataInFIFO(void){
-	cgDefFifo->Out(fnOffset + fnlength);
-	return(AnalysisFrameTryAgain(*cgDefFifo));
-}
-//------------------------------------------------------------------------------------------//
-uint32 Field_Node::TryGetFrameAgain_if_NoEnoughDataInFIFO(const FIFO_UINT8 &fifoIn){
-	cgDefFifo->Out(fnOffset + fnlength);
-	cgDefFifo->Put(fifoIn, -1);
-	return(AnalysisFrameTryAgain(*cgDefFifo));
-}
-//------------------------------------------------------------------------------------------//
-uint32 Field_Node::TryGetFrameAgain_if_NoEnoughDataInFIFO(const uint8 *data,uint32 num){
-	cgDefFifo->Out(fnOffset + fnlength);
-	cgDefFifo->Put(data, num);
-	return(AnalysisFrameTryAgain(*cgDefFifo));
-}
-//------------------------------------------------------------------------------------------//
-uint32 Field_Node::TryGetFrame(const FIFO_UINT8 &fifoIn){
-	cgDefFifo->Out(fnOffset + fnlength);
-	cgDefFifo->Put(fifoIn,-1);
-	return(AnalysisFrame(*cgDefFifo));
-}
-//------------------------------------------------------------------------------------------//
-int32 Field_Node::TryGetFrame(const uint8 *data,uint32 num){
-	cgDefFifo->Out(fnOffset + fnlength);
-	cgDefFifo->Put(data, num);
-	return(AnalysisFrame(*cgDefFifo));
-}
-//------------------------------------------------------------------------------------------//
-int32 Field_Node::TryGetFrame(const std::string &strInput){
-	cgDefFifo->Out(fnOffset + fnlength);
-	cgDefFifo->PutInASCII(strInput, G_ESCAPE_OFF);
-	return(AnalysisFrame(*cgDefFifo));
-}
-//------------------------------------------------------------------------------------------//
-uint32 Field_Node::TryGetFrame(void){
-	cgDefFifo->Out(fnOffset + fnlength);
-	return(AnalysisFrame(*cgDefFifo));
-}
-//------------------------------------------------------------------------------------------//
-uint32 Field_Node::AnalysisFrameTryAgain(const FIFO_UINT8 &fifoIn){
-	int32	retTry;
-	uint32	fifoInOffset;
-	
-	fifoInOffset = 0;
-	do{
-		retTry = AnalysisFrameR0(fifoIn,fifoInOffset);
-		if (retTry == RET_OK){
-			return(fnlength);
-		}
-		else if ((retTry == RET_AbandonFirstData) || (retTry == RET_NoEnoughDataInFIFO)){
-			++ fifoInOffset;
-		}
-		else{
-			break;
-		}
-	}while(fifoInOffset < fifoIn.Used());
-	fnOffset = 0;
-	fnlength = 0;
-	return 0;
-}
-//------------------------------------------------------------------------------------------//
-uint32 Field_Node::AnalysisFrame(const FIFO_UINT8 &fifoIn,uint32 fifoInOffset){
-	if (AnalysisFrameR0(fifoIn,fifoInOffset) == RET_OK)
-		return(fnlength);
-	fnOffset = 0;
-	fnlength = 0;
-	return 0;
-}
-//------------------------------------------------------------------------------------------//
-int32 Field_Node::AnalysisFrameR0(const FIFO_UINT8 &fifoIn,uint32 fifoInOffset){
+int32 PROTOCOL_NODE::AnalysisFrameR0(const FIFO8 &fifo,uint32 fifoOffset){
 	int32 retTry;
 	
-	fnOffset = fifoInOffset;
+	fnOffset = fifoOffset;
 	fnlength = 0;
-	while(fnOffset < fifoIn.Used()){
-		retTry = AnalysisFrameR1(fifoIn);
+	while(fnOffset < fifo.Used()){
+		retTry = AnalysisFrameR1(fifo);
 		if (retTry != RET_AbandonFirstData)
 			return(retTry);
-		if (fifoInOffset > 0)//only analysis once,
+		if (fifoOffset > 0)//only analysis once,
 			return RET_AbandonFirstData;
 		++ fnOffset;//abandon first byte data.
 	}
 	return RET_NoEnoughDataInFIFO;
 }
 //------------------------------------------------------------------------------------------//
-int32 Field_Node::AnalysisFrameR1(const FIFO_UINT8 &fifoIn){
-	Field_Node	*fieldNode;
+int32 PROTOCOL_NODE::AnalysisFrameR1(const FIFO8 &fifoIn){
+	PROTOCOL_NODE	*fieldNode;
 	uint32		getNum;
 	int32		retTry;
 
 	if (cgType != FNT_MESSAGE)
 		return RET_NotMessage;
 	
-	fieldNode = (Field_Node*)GetFirstChild_nolock(this); //read Head;
+	fieldNode = (PROTOCOL_NODE*)GetcgDown(this); //read Head;
 	if (fieldNode == nullptr)
 		return RET_NoFirstChild;
 	
@@ -613,7 +561,7 @@ int32 Field_Node::AnalysisFrameR1(const FIFO_UINT8 &fifoIn){
 				return(retTry);
 		}
 		getNum += fieldNode->fnlength;
-		fieldNode = (Field_Node*)GetNextBrother_nolock(fieldNode);//read next node;
+		fieldNode = (PROTOCOL_NODE*)GetcgNext(fieldNode);//read next node;
 	}while(fieldNode != nullptr);
 	if (ChecksumResult(fifoIn) > 0){
 		fnlength = getNum;
@@ -623,3 +571,4 @@ int32 Field_Node::AnalysisFrameR1(const FIFO_UINT8 &fifoIn){
 }
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
+#endif

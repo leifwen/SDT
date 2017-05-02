@@ -24,7 +24,6 @@
 IMPLEMENT_DYNCREATE(CChildFrame, CMDIChildWndEx)
 //------------------------------------------------------------------------------------------//
 CChildFrame::CChildFrame(void){
-	oDevNode = NULL;
 	m_bCanClose = FALSE;
 }
 //------------------------------------------------------------------------------------------//
@@ -33,17 +32,19 @@ BEGIN_MESSAGE_MAP(CChildFrame, CMDIChildWndEx)
 END_MESSAGE_MAP()
 //------------------------------------------------------------------------------------------//
 CChildFrame::~CChildFrame(void){
+	m_VG3D.UnregisterFromCache();
+	cstdout.RemoveSelf();
 }
 //------------------------------------------------------------------------------------------//
 void CChildFrame::OnClose(void){
 	if (m_bCanClose == TRUE){
-		if (oDevNode != NULL)
-			oDevNode->UnInit();
+		m_VG3D.UnregisterFromCache();
+		cstdout.RemoveSelf();
 		CMDIChildWndEx::OnClose();
 	}
 	else if(theApp.m_bCanClose == TRUE){
-		if (oDevNode != NULL)
-			oDevNode->UnInit();
+		m_VG3D.UnregisterFromCache();
+		cstdout.RemoveSelf();
 		CMDIChildWndEx::OnClose();
 	}
 }

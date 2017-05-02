@@ -12,9 +12,9 @@
 #define ODEV_IncludeH
 //------------------------------------------------------------------------------------------//
 #include "ColorRecord.h"
-#include "ODEV_Node.h"
+#include "OUTPUT.h"
+#include "ODEV_STDOUT.h"
 #include "ODEV_FILE.h"
-#include "ODEV_SDOUT.h"
-#include "ODEV_LIST.h"
+#include "ODEV_System.h"
 //------------------------------------------------------------------------------------------//
 #endif

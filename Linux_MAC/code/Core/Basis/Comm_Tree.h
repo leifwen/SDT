@@ -1,4 +1,4 @@
-/*
+	/*
  * Copyright (c) 2012-2014 
  * All rights reserved.
  *
@@ -9,205 +9,361 @@
  * Date		: 2014.01.04
  * @2015.10.01 : rewrite
 */
-#ifndef Comm_TreeH
-#define Comm_TreeH
+
 //------------------------------------------------------------------------------------------//
 #include "BasicDef.h"
 #include "BasicClass.h"
+#ifndef Comm_TreeH
+#define Comm_TreeH
+#ifdef Comm_TreeH
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
-#define	RTREE_RChain_Traversal_LINE_nolock(NODE_TYPE,NODE_Start,NODE_LINE)\
+#define CreateOperatorSet(x) \
+struct _##x {uint32 value;};\
+static inline _##x Set##x(uint32 value){return{value};};
+
+#define CreateOperatorClr(x) \
+struct _c##x {uint32 value;};\
+static inline _c##x Clr##x(uint32 value){return{value};};
+
+
+#define CreateOperatorDSet(x,y) \
+struct _##x {uint32 value;};\
+static inline _##x Set##x(uint32 value = y){return{value};};
+
+#define CreateOperatorFun(x) \
+	template <typename T>static inline T& x(T& _tn){_tn._##x();return(_tn);};
+//------------------------------------------------------------------------------------------//
+#define	TREE_RChain_Traversal_LINE_nolock(NODE_TYPE,NODE_Start,NODE_LINE)\
 	NODE_TYPE *operateNode_t,*nextNode_t;\
-	operateNode_t = (NODE_TYPE*)NODE_Start;\
+	operateNode_t = static_cast<NODE_TYPE*>(NODE_Start);\
 	while(operateNode_t != nullptr){\
-		nextNode_t = (NODE_TYPE*)RTREE_NODE::GetcgRChild(operateNode_t);\
+		nextNode_t = static_cast<NODE_TYPE*>(TREE_NODE::GetcgNext(operateNode_t));\
 		NODE_LINE;\
 		operateNode_t = nextNode_t;\
 	};\
 //------------------------------------------------------------------------------------------//
-#define	RTREE_LChildRChain_Traversal_LINE_nolock(NODE_TYPE,NODE_Father,NODE_LINE)\
-	RTREE_RChain_Traversal_LINE_nolock(NODE_TYPE,RTREE_NODE::GetcgLChild(NODE_Father),NODE_LINE)
+#define	TREE_LChildRChain_Traversal_LINE_nolock(NODE_TYPE,NODE_Father,NODE_LINE)\
+	TREE_RChain_Traversal_LINE_nolock(NODE_TYPE,TREE_NODE::GetcgDown(NODE_Father),NODE_LINE)
 //------------------------------------------------------------------------------------------//
-#define	RTREE_RChain_Traversal_LINE(NODE_TYPE,NODE_Start,NODE_LINE)\
-	NODE_TYPE *rootNode_t,*operateNode_t,*nextNode_t;\
-	if (NODE_Start != nullptr){\
-	RESTART_RTREE_RChain_Traversal_LINE:;\
-		NODE_Start->Spin_Link_Lock();\
-		rootNode_t = (NODE_TYPE*)NODE_Start;\
-		if (RTREE_NODE::GetcgblVirtualHead(NODE_Start) == 0){\
-			rootNode_t = (NODE_TYPE*)RTREE_NODE::GetcgVirtualRoot(NODE_Start);\
-			if (rootNode_t->Spin_Link_Try() == 0){\
-				NODE_Start->Spin_Link_Lock();\
-				goto RESTART_RTREE_RChain_Traversal_LINE;\
-			}\
-		}\
-		operateNode_t = (NODE_TYPE*)NODE_Start;\
-		while(operateNode_t != nullptr){\
-			if (operateNode_t != NODE_Start)\
-				operateNode_t->Spin_Link_Lock();\
-			nextNode_t = (NODE_TYPE*)RTREE_NODE::GetcgRChild(operateNode_t);\
-			if (operateNode_t != rootNode_t)\
-				operateNode_t->Spin_Link_Unlock();\
-			NODE_LINE;\
-			operateNode_t = nextNode_t;\
-		}\
-		rootNode_t->Spin_Link_Unlock();\
-	};
+#define	TREE_RChain_Traversal_LINE(NODE_TYPE,NODE_Start,NODE_LINE)\
+	NODE_TYPE *operateNode_t,*nextNode_t;\
+	TREE_NODE::Spin_Father_set(NODE_Start);\
+	operateNode_t = static_cast<NODE_TYPE*>(NODE_Start);\
+	while(operateNode_t != nullptr){\
+		nextNode_t = static_cast<NODE_TYPE*>(TREE_NODE::GetcgNext(operateNode_t));\
+		NODE_LINE;\
+		operateNode_t = nextNode_t;\
+	};\
+	TREE_NODE::Spin_Father_clr(NODE_Start);
 //------------------------------------------------------------------------------------------//
-#define	RTREE_LChildRChain_Traversal_LINE(NODE_TYPE,NODE_Father,NODE_LINE)\
-	NODE_Father->Spin_Link_Lock();\
-	RTREE_RChain_Traversal_LINE(NODE_TYPE,RTREE_NODE::GetcgLChild(NODE_Father),NODE_LINE);\
-	NODE_Father->Spin_Link_Unlock();\
+#define	TREE_LChildRChain_Traversal_LINE(NODE_TYPE,NODE_Father,NODE_LINE)\
+	NODE_Father->Spin_Child_set();\
+	TREE_RChain_Traversal_LINE_nolock(NODE_TYPE,TREE_NODE::GetcgDown(NODE_Father),NODE_LINE);\
+	NODE_Father->Spin_Child_clr();\
 //------------------------------------------------------------------------------------------//
-#define	RTREE_RChain_Find(NODE_TYPE,NODE_Start,Node_Ret,NODE_IF)\
+#define	TREE_RChain_Find_nolock(NODE_TYPE,NODE_Start,Node_Ret,NODE_IF)\
 	Node_Ret = nullptr;\
-	RTREE_RChain_Traversal_LINE(NODE_TYPE,NODE_Start,if (NODE_IF){Node_Ret = operateNode_t;break;});
+	TREE_RChain_Traversal_LINE_nolock(NODE_TYPE,NODE_Start,if (NODE_IF){Node_Ret = operateNode_t;break;});
 //------------------------------------------------------------------------------------------//
-#define	RTREE_LChildRChain_Find(NODE_TYPE,NODE_Father,Node_Ret,NODE_IF)\
-	NODE_Father->Spin_Link_Lock();\
-	RTREE_RChain_Find(NODE_TYPE,RTREE_NODE::GetcgLChild(NODE_Father),Node_Ret,NODE_IF);\
-	NODE_Father->Spin_Link_Unlock();
+#define	TREE_RChain_Find(NODE_TYPE,NODE_Start,Node_Ret,NODE_IF)\
+	Node_Ret = nullptr;\
+	TREE_RChain_Traversal_LINE(NODE_TYPE,NODE_Start,if (NODE_IF){Node_Ret = operateNode_t;break;});
 //------------------------------------------------------------------------------------------//
-#define	RTREE_LChildRChain_Excute_S_R(NODE_TYPE,NODE_Father,Node_Ret,NODE_FUN)\
-	NODE_TYPE	*tSelect_t;\
-	tSelect_t = (NODE_TYPE*)GetSelectedInLChildRChain(NODE_Father);\
-	if (tSelect_t != nullptr)\
-		Node_Ret = tSelect_t->NODE_FUN;
+#define	TREE_LChildRChain_Find(NODE_TYPE,NODE_Father,Node_Ret,NODE_IF)\
+	NODE_Father->Spin_Child_set();\
+	TREE_RChain_Find_nolock(NODE_TYPE,TREE_NODE::GetcgDown(NODE_Father),Node_Ret,NODE_IF);\
+	NODE_Father->Spin_Child_clr();
 //------------------------------------------------------------------------------------------//
-#define	RTREE_LChildRChain_Excute_S(NODE_TYPE,NODE_Father,NODE_FUN)\
-	NODE_TYPE	*tSelect_t;\
-	tSelect_t = (NODE_TYPE*)GetSelectedInLChildRChain(NODE_Father);\
-	if (tSelect_t != nullptr)\
-		tSelect_t->NODE_FUN;
+#define	TREE_LChildRChain_T(NODE_TYPE,NODE_FUN) TREE_LChildRChain_Traversal_LINE(NODE_TYPE,this,operateNode_t->NODE_FUN)
 //------------------------------------------------------------------------------------------//
+namespace {
+	CreateOperatorFun(Start)
+	CreateOperatorFun(Endl)
+};
 //------------------------------------------------------------------------------------------//
-#define	RTREE_LChildRChain_T(NODE_TYPE,NODE_FUN) RTREE_LChildRChain_Traversal_LINE(NODE_TYPE,this,operateNode_t->NODE_FUN)
-//------------------------------------------------------------------------------------------//
-#define	RTREE_LChildRChain_E_S_R(NODE_TYPE,NODE_FUN,RET_Type)\
-	RET_Type	ret_RET_Type_t;\
-	ret_RET_Type_t = 0;\
-	RTREE_LChildRChain_Excute_S_R(NODE_TYPE,this,ret_RET_Type_t,NODE_FUN);\
-	return(ret_RET_Type_t);
-//------------------------------------------------------------------------------------------//
-#define	RTREE_LChildRChain_E_S(NODE_TYPE,NODE_FUN) RTREE_LChildRChain_Excute_S(NODE_TYPE,this,NODE_FUN);
-//------------------------------------------------------------------------------------------//
-class RTREE_NODE : public BASIC_CFLAG{
+class TREE_NODE_FRAME : public BASIC_CFLAG{
+	protected:
+		typedef TREE_NODE_FRAME TNF;
 	public:
-		enum{RFLAG_C = 3, RFLAG_S = BASIC_CFLAG::RFLAG_S + BASIC_CFLAG::RFLAG_C};
-		enum CNType	{CN_None = 0,CN_1,CN_0};
-				 RTREE_NODE(void);
-		virtual	~RTREE_NODE(void){ Spin_InUse_set();DestroyTrash(this); Spin_InUse_clr();};
-	public:
-		std::string	selfName;
+				 TREE_NODE_FRAME(void);
+		virtual	~TREE_NODE_FRAME(void){;};
 	private:
-		static	std::atomic_uint	cgID_NextNode;	//the ID of next the same class in system.
+		static	std::atomic_uint	cgID_NextNode;
 				std::atomic_uint	nodeID;			//no changed,be setted when create.
 				std::atomic_uint	cgID_NextDRNode;
 				std::atomic_uint	dRNodeID;		//Right dynamic ID
 	public:
-		inline	static 	const std::atomic_uint&	GetnodeID	(const RTREE_NODE *mySelf){return(mySelf->nodeID);};
-		inline	static 	const std::atomic_uint&	GetdRNodeID	(const RTREE_NODE *mySelf){return(mySelf->dRNodeID);};
+		inline	static  uint32	GetNodeID	(const TNF *mySelf){return((mySelf != nullptr)?mySelf->nodeID.load():0);};
+		inline	static 	uint32	GetdRNodeID	(const TNF *mySelf){return((mySelf != nullptr)?mySelf->dRNodeID.load():0);};
+	private:
+		TNF		*cgHead;
+		TNF		*cgTail;
+		TNF		*cgPrior;
+		TNF		*cgNext;
+		TNF		*cgUp;
+		TNF		*cgDown;
+	public:
+		inline	static 	TNF*	GetcgHead	(const TNF *mySelf){return((mySelf != nullptr)?mySelf->cgHead:nullptr);};
+		inline	static 	TNF*	GetcgTail	(const TNF *mySelf){return((mySelf != nullptr)?mySelf->cgTail:nullptr);};
+		inline	static 	TNF*	GetcgPrior	(const TNF *mySelf){return((mySelf != nullptr)?mySelf->cgPrior:nullptr);};
+		inline	static 	TNF*	GetcgNext	(const TNF *mySelf){return((mySelf != nullptr)?mySelf->cgNext:nullptr);};
+		inline	static 	TNF*	GetcgUp		(const TNF *mySelf){return((mySelf != nullptr)?mySelf->cgUp:nullptr);};
+		inline	static 	TNF*	GetcgDown	(const TNF *mySelf){return((mySelf != nullptr)?mySelf->cgDown:nullptr);};
+	private:
+		SYS_Lock		cgChildLock;
+	public:
+		inline	void	Spin_Child_set	(G_LOCK blVaild = G_LOCK_ON){cgChildLock.Lock(blVaild);};
+		inline	void	Spin_Child_clr	(G_LOCK blVaild = G_LOCK_ON){cgChildLock.Unlock(blVaild);};
+		inline	int32	Spin_Child_try	(G_LOCK blVaild = G_LOCK_ON){return(cgChildLock.TryLock(blVaild));};
+	
+		static	void	Spin_Child_set	(TNF *tTreeNode,G_LOCK blVaild = G_LOCK_ON);
+		static	void	Spin_Child_clr	(TNF *tTreeNode,G_LOCK blVaild = G_LOCK_ON);
+		static	int32	Spin_Child_try	(TNF *tTreeNode,G_LOCK blVaild = G_LOCK_ON);
+	
+		static	void	Spin_Father_set	(TNF *tTreeNode,G_LOCK blVaild = G_LOCK_ON);
+		static	void	Spin_Father_clr	(TNF *tTreeNode,G_LOCK blVaild = G_LOCK_ON);
+		static	int32	Spin_Father_try	(TNF *tTreeNode,G_LOCK blVaild = G_LOCK_ON);
+	private:
+		static	void	UpdateInstert_nolock(TNF *tInsertNode,TREE_NODE_FRAME *rChainHead,int32 blUpdatedRNodeID);
+		static	void	UpdateHead_nolock	(TNF *tHeadNode,int32 blUpdatedRNodeID);
+	public:
+		static	TNF*	InsertAfter_nolock	(TNF *tOpNode,TNF *tInsertNode,int32 blUpdatedRNodeID = 1);
+		static	TNF*	InsertBefore_nolock	(TNF *tOpNode,TNF *tInsertNode,int32 blUpdatedRNodeID = 1);
+		static	TNF*	AddSubNode_nolock	(TNF *tFatherNode,TNF *tInsertNode);
+		static	TNF*	Remove_nolock		(TNF *tFirstNode,TNF *tEndNode = nullptr,int32 blUpdatedRNodeID = 1);
+		static	void	MoveUp_nolock		(TNF *tFirstNode,TNF *tEndNode = nullptr);
+		static	void	MoveDown_nolock		(TNF *tFirstNode,TNF *tEndNode = nullptr);
+		static	void	MoveAfter_nolock	(TNF *tFirstNode,TNF *tEndNode = nullptr,TNF *tAfterNode = nullptr);
+		static	TNF*	BreakChild_nolock	(TNF *tFatherNode);
+		static	TNF*	BreakNext_nolock	(TNF *tTreeNode);
+	
+		static	TNF*	InsertAfter			(TNF *tOpNode,TNF *tInsertNode,int32 blUpdatedRNodeID = 1);
+		static	TNF*	InsertBefore		(TNF *tOpNode,TNF *tInsertNode,int32 blUpdatedRNodeID = 1);
+		static	TNF*	AddSubNode			(TNF *tFatherNode,TNF *tInsertNode);
+		static	TNF*	Remove				(TNF *tFirstNode,TNF *tEndNode = nullptr,int32 blUpdatedRNodeID = 1);
+		static	void	MoveUp				(TNF *tFirstNode,TNF *tEndNode = nullptr);
+		static	void	MoveDown			(TNF *tFirstNode,TNF *tEndNode = nullptr);
+		static	void	MoveAfter			(TNF *tFirstNode,TNF *tEndNode = nullptr,TNF *tAfterNode = nullptr);
+		static	TNF*	BreakChild			(TNF *tFatherNode);
+		static	TNF*	BreakNext			(TNF *tTreeNode);
+	public:
+		inline			TNF&	Add			(TNF &tTreeNode){return(*AddNode(&tTreeNode));};
+		inline	virtual	TNF*	AddNode		(TNF *tTreeNode){return(AddSubNode(this,tTreeNode));};
+		inline	virtual	void	RemoveSelf	(void)			{Remove(this,nullptr);};
+	public:
+		inline	virtual void _Start(void){;};
+		inline	virtual void _Endl (void){;};
+	public:
+		inline TNF& operator < (TNF& tTreeNode)		{return(Add(tTreeNode));};
+		inline TNF& operator << (TNF&(*fun)(TNF&))	{return((*fun)(*this));};
+};
+//------------------------------------------------------------------------------------------//
+class TREE_NODE_FRAME_POOL : public TREE_NODE_FRAME{
+	protected:
+		typedef TREE_NODE_FRAME_POOL TNFP;
+	public:
+				 TREE_NODE_FRAME_POOL(void);
+		virtual	~TREE_NODE_FRAME_POOL(void){Spin_InUse_set();DestroyTrash(this); Spin_InUse_clr();};
+	public:
+		STDSTR	selfName;
+	public:
+		inline	virtual void	SetSelfName			(const STDSTR &strName){selfName = strName;};
+				virtual TNFP*	SetSubNodeSelfName	(TNFP *node);
+	private:
+		TNFP	*cgTrash;
+	private:
+		static	void	DestroyTrash		(TNFP *tTrashOwner);
+	public:
+		static	TNFP*	GetcgTrash			(TNFP *tTrashOwner){return(tTrashOwner->cgTrash);};
+		static	void	CreateTrash			(TNFP *tTrashOwner);
+		static	void	CleanTrash			(TNFP *tTrashOwner);
+		static	void	MoveNodesToTrash	(TNF *tFirstNode,TNF *tEndNode,TNFP *tTrashOwner);
+		static	void	MoveNodeToTrash		(TNF *tTreeNode,TNFP *tTrashOwner);
+		static	void	DestroyTree			(TNF *tTreeNode);
+		static	void	DestroySubTree		(TNF *tTreeNode);
+				void	CleanChild			(TNFP *tTrashOwner);
+		inline	void	DestroyAll			(void){CleanChild(this);CleanTrash(this);};
+
+		static	TNF*	GetNewNode			(TNFP *tTrashOwner);
+		inline	virtual	TNF*	CreateNode	(void){return(SetSubNodeSelfName(new TNFP));};
+		inline	virtual	void	MoveToTrash	(TNF *tFirstNode,TNF *tEndNode = nullptr){MoveNodesToTrash(tFirstNode,tEndNode,this);};
+};
+//------------------------------------------------------------------------------------------//
+struct TRASH{;};
+//------------------------------------------------------------------------------------------//
+class TREE_NODE : public TREE_NODE_FRAME_POOL{
+	public:
+		enum		{RFLAG_C = 3, RFLAG_S = TREE_NODE_FRAME_POOL::RFLAG_S + TREE_NODE_FRAME_POOL::RFLAG_C};
+		enum CNType	{CN_None = 0,CN_M,CN_S};
+	private:
+		enum{tn_blEnable = RFLAG_CREATE(0),tn_blSelected = RFLAG_CREATE(1),tn_blUpdate = RFLAG_CREATE(2),};
+	public:
+				 TREE_NODE(void) : TREE_NODE_FRAME_POOL(){Init();};
+				 TREE_NODE(const TRASH *X) : TREE_NODE_FRAME_POOL(){Init();CreateTrash(this);};
+		virtual	~TREE_NODE(void){;};
+	public:
+		inline	virtual	TREE_NODE*	AddNode		(TNF *tTreeNode){return(static_cast<TREE_NODE*>(AddSubNode(this,tTreeNode)));};
+	private:
+		void Init(void);
+	private:
+		CNType			cgCNType;
+		TREE_NODE		*cgCoupleNode;
+	public:
+		inline	static 	CNType		GetCNType		(const TREE_NODE *mySelf){return((mySelf != nullptr)?mySelf->cgCNType:CN_None);};
+		inline	static 	TREE_NODE*	GetCoupleNode	(const TREE_NODE *mySelf){return((mySelf != nullptr)?mySelf->cgCoupleNode:nullptr);};
+		void		LinkCoupleNode					(TREE_NODE *slaveNode);
+		void		LinkCoupleNode_nolock			(TREE_NODE *slaveNode);
+		TREE_NODE*	UnlinkCoupleNode				(void);
+	public:
+		inline	virtual	void	Enable			(void)		{SetSFlag(tn_blEnable);};
+		inline	virtual	void	Disable			(void)		{ClrSFlag(tn_blEnable);};
+		inline			int32	CheckEnable		(void)const	{return(CheckSFlag(tn_blEnable));};
+		
+		inline	virtual	void	SetblSelected	(void)		{SetSFlag(tn_blSelected);};
+		inline	virtual	void	ClrblSelected	(void)		{ClrSFlag(tn_blSelected);};
+		inline			int32	CheckSelected	(void)const	{return(CheckSFlag(tn_blSelected));};
+		
+		inline	virtual	void	SetblUpdate		(void)		{SetSFlag(tn_blUpdate);};
+		inline	virtual	void	ClrblUpdate		(void)		{ClrSFlag(tn_blUpdate);};
+		inline			int32	CheckUpdate		(void)const	{return(CheckSFlag(tn_blUpdate));};
+	
+		static	TREE_NODE*	FindInLChildRChainByDRNodeID		(TREE_NODE *tTreeNode,uint32 tDRNodeID);
+};
+//------------------------------------------------------------------------------------------//
+
+/*
+//------------------------------------------------------------------------------------------//
+class TREE_NODE : public BASIC_CFLAG{
+	public:
+		enum		{RFLAG_C = 3, RFLAG_S = BASIC_CFLAG::RFLAG_S + BASIC_CFLAG::RFLAG_C};
+		enum CNType	{CN_None = 0,CN_M,CN_S};
+				 TREE_NODE(void);
+		virtual	~TREE_NODE(void){Spin_InUse_set();DestroyTrash(this); Spin_InUse_clr();};
+	public:
+						STDSTR		selfName;
+		inline	virtual void		SetSelfName(const STDSTR &strName){selfName = strName;};
+				virtual TREE_NODE*	SetSubNodeSelfName(TREE_NODE *node);
+	private:
+		static	std::atomic_uint	cgID_NextNode;
+				std::atomic_uint	nodeID;			//no changed,be setted when create.
+				std::atomic_uint	cgID_NextDRNode;
+				std::atomic_uint	dRNodeID;		//Right dynamic ID
+	public:
+		inline	static  uint32	GetNodeID	(const TREE_NODE *mySelf){return((mySelf != nullptr)?mySelf->nodeID.load():0);};
+		inline	static 	uint32	GetdRNodeID	(const TREE_NODE *mySelf){return((mySelf != nullptr)?mySelf->dRNodeID.load():0);};
 	private:
 		SYS_Lock		cgInLinking;
 		SYS_Lock		cgInDoing;
 	public:
-		inline	void	Spin_Link_Lock	(G_LOCK_VAILD blVaild = G_LOCK_ON){cgInLinking.Lock(blVaild);};
-		inline	void	Spin_Link_Unlock(G_LOCK_VAILD blVaild = G_LOCK_ON){cgInLinking.Unlock(blVaild);};
-		inline	int32	Spin_Link_Try	(G_LOCK_VAILD blVaild = G_LOCK_ON){return(cgInLinking.TryLock(blVaild));};
+		inline	void	Spin_Link_set	(G_LOCK blVaild = G_LOCK_ON){cgInLinking.Lock(blVaild);};
+		inline	void	Spin_Link_clr	(G_LOCK blVaild = G_LOCK_ON){cgInLinking.Unlock(blVaild);};
+		inline	int32	Spin_Link_try	(G_LOCK blVaild = G_LOCK_ON){return(cgInLinking.TryLock(blVaild));};
 
-		inline	void	InDoing_set		(G_LOCK_VAILD blVaild = G_LOCK_ON){cgInDoing.Lock(blVaild);};
-		inline	void	InDoing_clr		(G_LOCK_VAILD blVaild = G_LOCK_ON){cgInDoing.Unlock(blVaild);};
-		inline	int32	InDoing_try		(G_LOCK_VAILD blVaild = G_LOCK_ON){return(cgInDoing.TryLock(blVaild));};
+		inline	void	InDoing_set		(G_LOCK blVaild = G_LOCK_ON){cgInDoing.Lock(blVaild);};
+		inline	void	InDoing_clr		(G_LOCK blVaild = G_LOCK_ON){cgInDoing.Unlock(blVaild);};
+		inline	int32	InDoing_try		(G_LOCK blVaild = G_LOCK_ON){return(cgInDoing.TryLock(blVaild));};
 	private:
-		RTREE_NODE		*cgTrash;
+		TREE_NODE		*cgTrash;
 		int32			cgblVirtualHead;
-		RTREE_NODE		*cgVirtualRoot;
-		RTREE_NODE		*cgFather;
-		RTREE_NODE		*cgLChild;
-		RTREE_NODE		*cgRChild;
+		TREE_NODE		*cgVirtualRoot;	//point first node in right chain,if cgblVirtualHead = 0
+		TREE_NODE		*cgFather;		//or means PriorBrother or Father depend on Father.cgLChild or Father.cgRChild used
+		TREE_NODE		*cgLChild;		//or means Child
+		TREE_NODE		*cgRChild;		//or means NextBrother
 	protected:
-		inline	static 	RTREE_NODE*	GetcgTrash			(const RTREE_NODE *mySelf){return(mySelf->cgTrash);};
+		inline	static 	TREE_NODE*	GetTrash			(const TREE_NODE *mySelf){return((mySelf != nullptr)?mySelf->cgTrash:nullptr);};
 	public:
-		inline	static 	int32		GetcgblVirtualHead	(const RTREE_NODE *mySelf){return(mySelf->cgblVirtualHead);};
-		inline	static 	RTREE_NODE*	GetcgVirtualRoot	(const RTREE_NODE *mySelf){return(mySelf->cgVirtualRoot);};
-		inline	static 	RTREE_NODE*	GetcgFather			(const RTREE_NODE *mySelf){return(mySelf->cgFather);};
-		inline	static 	RTREE_NODE*	GetcgLChild			(const RTREE_NODE *mySelf){return(mySelf->cgLChild);};
-		inline	static 	RTREE_NODE*	GetcgRChild			(const RTREE_NODE *mySelf){return(mySelf->cgRChild);};
+		inline	static 	int32		GetcgblVirtualHead	(const TREE_NODE *mySelf){return((mySelf != nullptr)?mySelf->cgblVirtualHead:0);};
+		inline	static 	TREE_NODE*	GetcgVirtualRoot	(const TREE_NODE *mySelf){return((mySelf != nullptr)?mySelf->cgVirtualRoot:nullptr);};
+		inline	static 	TREE_NODE*	GetcgFather			(const TREE_NODE *mySelf){return((mySelf != nullptr)?mySelf->cgFather:nullptr);};
+		inline	static 	TREE_NODE*	GetcgLChild			(const TREE_NODE *mySelf){return((mySelf != nullptr)?mySelf->cgLChild:nullptr);};
+		inline	static 	TREE_NODE*	GetcgRChild			(const TREE_NODE *mySelf){return((mySelf != nullptr)?mySelf->cgRChild:nullptr);};
+
+	private:
+		static	void		UpdateSubInstertTree_nolock	(TREE_NODE *tInsertNode,TREE_NODE *tVirtualRoot);
+		static	void		UpdateSubRChain_nolock		(TREE_NODE *tSubRootNode);
+	public:
+		static	int32		InsertRChild			(TREE_NODE *tFatherNode,TREE_NODE *tInsertNode);
+		static	int32		InsertLChild			(TREE_NODE *tFatherNode,TREE_NODE *tInsertNode,G_LOCK blLock = G_LOCK_ON);
+		static	TREE_NODE*	BreakRChild				(TREE_NODE *tFatherNode);
+		static	TREE_NODE*	BreakLChild				(TREE_NODE *tFatherNode);
+		static	TREE_NODE*	FindInTreeByNodeID		(TREE_NODE *tTreeNode, uint32 tNodeID);
+	
+		static	void 		MoveNodesUpInRChain		(TREE_NODE *tFirstNode,TREE_NODE *tEndNode = nullptr);
+		static	void 		MoveNodesDownInRChain	(TREE_NODE *tFirstNode,TREE_NODE *tEndNode = nullptr);
+		static	void 		MoveNodesAfterInRChain	(TREE_NODE *tFirstNode,TREE_NODE *tEndNode = nullptr,TREE_NODE *tAfterNode = nullptr);
+		static	TREE_NODE*	RemoveNodesInRChain		(TREE_NODE *tFirstNode,TREE_NODE *tEndNode = nullptr,G_LOCK blLock = G_LOCK_ON);
+		static	void		RemoveFromFather		(TREE_NODE *tTreeNode);
+	private:
+		static	void		DestroyTrash			(TREE_NODE *tTrashOwner);
+	public:
+		static	TREE_NODE*	GetNewNode				(TREE_NODE *tTreeNode);
+		static	void		CreateTrash				(TREE_NODE *tTrashOwner);
+		static	void		CleanTrash				(TREE_NODE *tTrashOwner);
+		static	TREE_NODE*	MoveNodesToTrash		(TREE_NODE *tFirstNode,TREE_NODE *tEndNode,TREE_NODE *tTrashOwner);
+		static	TREE_NODE*	MoveNodeToTrash			(TREE_NODE *tTreeNode,TREE_NODE *tTrashOwner);
+		static	void		MoveTreeToTrash			(TREE_NODE *tTreeNode,TREE_NODE *tTrashOwner);
+		static	void		DestroyTree				(TREE_NODE *tTreeNode);
+		static	void		DestroySubTree			(TREE_NODE *tTreeNode);
+		inline	void		DestroyAll				(void){ Spin_InUse_set(); MoveTreeToTrash(BreakLChild(this), this); CleanTrash(this); Spin_InUse_clr(); };
+	public:
+		inline	virtual	void	Enable			(void)		{SetSFlag(RFLAG_CREATE(0));};
+		inline	virtual	void	Disable			(void)		{ClrSFlag(RFLAG_CREATE(0));};
+		inline			int32	CheckEnable		(void)const	{return(CheckSFlag(RFLAG_CREATE(0)));};
+	
+		inline	virtual	void	SetblSelected	(void)		{SetSFlag(RFLAG_CREATE(1));};
+		inline	virtual	void	ClrblSelected	(void)		{ClrSFlag(RFLAG_CREATE(1));};
+		inline			int32	CheckSelected	(void)const	{return(CheckSFlag(RFLAG_CREATE(1)));};
+	
+		inline	virtual	void	SetblUpdate		(void)		{SetSFlag(RFLAG_CREATE(2));};
+		inline	virtual	void	ClrblUpdate		(void)		{ClrSFlag(RFLAG_CREATE(2));};
+		inline			int32	CheckUpdate		(void)const	{return(CheckSFlag(RFLAG_CREATE(2)));};
+	
+		inline	virtual	void	LSetblSelected	(void)		{TREE_LChildRChain_T(TREE_NODE,SetblSelected());};
+		inline	virtual	void	LClrblSelected	(void)		{TREE_LChildRChain_T(TREE_NODE,ClrblSelected());};
+	public://used as linklist
+		static	TREE_NODE*	GetFather				(TREE_NODE *tTreeNode);
+		static	TREE_NODE*	GetFirstChild			(TREE_NODE *tTreeNode);
+		static	TREE_NODE*	GetLastChild			(TREE_NODE *tTreeNode);
+		static	TREE_NODE*	GetFirstBrother			(TREE_NODE *tTreeNode);
+		static	TREE_NODE*	GetLastBrother			(TREE_NODE *tTreeNode);
+		static	TREE_NODE*	GetNextBrother			(TREE_NODE *tTreeNode);
+		static	TREE_NODE*	GetPriorBrother			(TREE_NODE *tTreeNode);
+	
+		static	TREE_NODE*	GetFather_nolock		(TREE_NODE *tTreeNode);
+		static	TREE_NODE*	GetFirstChild_nolock	(TREE_NODE *tTreeNode){return(GetcgLChild(tTreeNode));};
+		static	TREE_NODE*	GetLastChild_nolock		(TREE_NODE *tTreeNode);
+		static	TREE_NODE*	GetFirstBrother_nolock	(TREE_NODE *tTreeNode);
+		static	TREE_NODE*	GetLastBrother_nolock	(TREE_NODE *tTreeNode);
+		static	TREE_NODE*	GetNextBrother_nolock	(TREE_NODE *tTreeNode){return(GetcgRChild(tTreeNode));};
+		static	TREE_NODE*	GetPriorBrother_nolock	(TREE_NODE *tTreeNode);
+
+		static	TREE_NODE*	FindInLChildRChainByDRNodeID		(TREE_NODE *tTreeNode,uint32 tDRNodeID);
+		static	TREE_NODE*	FindInLChildRChainByDRNodeID_nolock	(TREE_NODE *tTreeNode,uint32 tDRNodeID);
+		static	TREE_NODE*	GetSelectedInLChildRChain			(TREE_NODE *tTreeNode);
+		static	TREE_NODE*	GetSelectedInLChildRChain_nolock	(TREE_NODE *tTreeNode);
 	private:
 		CNType			cgCNType;
-		RTREE_NODE		*cgCoupleNode;
+		TREE_NODE		*cgCoupleNode;
 	public:
-		inline	static 	CNType		GetcgCNType			(const RTREE_NODE *mySelf){return(mySelf->cgCNType);};
-		inline	static 	RTREE_NODE*	GetcgCoupleNode		(const RTREE_NODE *mySelf){return(mySelf->cgCoupleNode);};
-						void		LinkCoupleNode		(RTREE_NODE *slaveNode,G_LOCK_VAILD blLock = G_LOCK_ON);
-						void		UnlinkCoupleNode	(G_LOCK_VAILD blLock = G_LOCK_ON);
-	private:
-		static	void		UpdateSubInstertTree_nolock	(RTREE_NODE *tInsertNode,RTREE_NODE *tVirtualRoot);
-		static	void		UpdateSubRChain_nolock		(RTREE_NODE *tSubRootNode);
+		inline	static 	CNType		GetCNType			(const TREE_NODE *mySelf){return((mySelf != nullptr)?mySelf->cgCNType:CN_None);};
+		inline	static 	TREE_NODE*	GetCoupleNode		(const TREE_NODE *mySelf){return((mySelf != nullptr)?mySelf->cgCoupleNode:nullptr);};
+						void		LinkCoupleNode		(TREE_NODE *slaveNode);
+						void		LinkCoupleNode_nolock(TREE_NODE *slaveNode);
+						TREE_NODE*	UnlinkCoupleNode	(void);
 	public:
-		static	int32		InsertRChild			(RTREE_NODE *tFatherNode,RTREE_NODE *tInsertNode);
-		static	int32		InsertLChild			(RTREE_NODE *tFatherNode,RTREE_NODE *tInsertNode,G_LOCK_VAILD blLock = G_LOCK_ON);
-		static	RTREE_NODE*	BreakRChild				(RTREE_NODE *tFatherNode);
-		static	RTREE_NODE*	BreakLChild				(RTREE_NODE *tFatherNode);
-		static	RTREE_NODE*	FindInTreeByNodeID		(RTREE_NODE *tTreeNode, uint32 tNodeID);
-	
-		static	void 		MoveNodesUpInRChain		(RTREE_NODE *tFirstNode,RTREE_NODE *tEndNode = nullptr);
-		static	void 		MoveNodesDownInRChain	(RTREE_NODE *tFirstNode,RTREE_NODE *tEndNode = nullptr);
-		static	void 		MoveNodesAfterInRChain	(RTREE_NODE *tFirstNode,RTREE_NODE *tEndNode = nullptr,RTREE_NODE *tAfterNode = nullptr);
-		static	RTREE_NODE*	RemoveNodesInRChain		(RTREE_NODE *tFirstNode,RTREE_NODE *tEndNode = nullptr,G_LOCK_VAILD blLock = G_LOCK_ON);
-		static	void		RemoveFromFather		(RTREE_NODE *tTreeNode);
-		inline	RTREE_NODE*	RemoveSelf				(void){return(RemoveNodesInRChain(this,nullptr));};
-	private:
-		virtual	RTREE_NODE*	CreateNode				(void){return(new RTREE_NODE);};
-		static	void		DestroyTrash			(RTREE_NODE *tTrashOwner);
+		inline			TREE_NODE&	Add			(TREE_NODE &tTreeNode)	{AddNode(&tTreeNode);return(*this);};
+		inline	virtual	int32		AddNode		(TREE_NODE *tTreeNode)	{return(InsertLChild(this,tTreeNode));};
+		inline	virtual	TREE_NODE*	RemoveSelf	(void)					{return(RemoveNodesInRChain(this,nullptr));};
+		inline	virtual	TREE_NODE*	CreateNode	(void)					{return(SetSubNodeSelfName(new TREE_NODE));};
 	public:
-		static	RTREE_NODE*	GetNewNode				(RTREE_NODE *tTreeNode);
-		static	void		CreateTrash				(RTREE_NODE *tTrashOwner);
-		static	void		CleanTrash				(RTREE_NODE *tTrashOwner);
-		static	RTREE_NODE*	MoveNodesToTrash		(RTREE_NODE *tFirstNode,RTREE_NODE *tEndNode,RTREE_NODE *tTrashOwner);
-		static	RTREE_NODE*	MoveNodeToTrash			(RTREE_NODE *tTreeNode,RTREE_NODE *tTrashOwner);
-		static	void		MoveTreeToTrash			(RTREE_NODE *tTreeNode,RTREE_NODE *tTrashOwner);
-		static	void		DestroyTree				(RTREE_NODE *tTreeNode);
-		static	void		DestroySubTree			(RTREE_NODE *tTreeNode);
-		inline	void		DestroyAll	(void)		{ Spin_InUse_set(); MoveTreeToTrash(cgLChild, this); CleanTrash(this); Spin_InUse_clr(); };
-	public:
-		virtual	void	Enable			(void)		{SetSFlag(RFLAG_CREATE(0));};
-		virtual	void	Disable			(void)		{ClrSFlag(RFLAG_CREATE(0));};
-		inline	int32	CheckblEnabled	(void)const	{return(CheckSFlag(RFLAG_CREATE(0)));};
-	
-		inline	void	SetblSelected	(void)		{SetSFlag(RFLAG_CREATE(1));};
-		inline	void	ClrblSelected	(void)		{ClrSFlag(RFLAG_CREATE(1));};
-		inline	int32	CheckblSelected	(void)const	{return(CheckSFlag(RFLAG_CREATE(1)));};
-	
-		inline	void	SetblUpdate		(void)		{SetSFlag(RFLAG_CREATE(2));};
-		inline	void	ClrblUpdate		(void)		{ClrSFlag(RFLAG_CREATE(2));};
-		inline	int32	CheckblUpdate	(void)const	{return(CheckSFlag(RFLAG_CREATE(2)));};
-	public://used as linklist
-		static	RTREE_NODE*	GetFather				(RTREE_NODE *tTreeNode);
-		static	RTREE_NODE*	GetFirstChild			(RTREE_NODE *tTreeNode);
-		static	RTREE_NODE*	GetLastChild			(RTREE_NODE *tTreeNode);
-		static	RTREE_NODE*	GetFirstBrother			(RTREE_NODE *tTreeNode);
-		static	RTREE_NODE*	GetLastBrother			(RTREE_NODE *tTreeNode);
-		static	RTREE_NODE*	GetNextBrother			(RTREE_NODE *tTreeNode);
-		static	RTREE_NODE*	GetPriorBrother			(RTREE_NODE *tTreeNode);
-	
-		static	RTREE_NODE*	GetFather_nolock		(RTREE_NODE *tTreeNode);
-		static	RTREE_NODE*	GetFirstChild_nolock	(RTREE_NODE *tTreeNode);
-		static	RTREE_NODE*	GetLastChild_nolock		(RTREE_NODE *tTreeNode);
-		static	RTREE_NODE*	GetFirstBrother_nolock	(RTREE_NODE *tTreeNode);
-		static	RTREE_NODE*	GetLastBrother_nolock	(RTREE_NODE *tTreeNode);
-		static	RTREE_NODE*	GetNextBrother_nolock	(RTREE_NODE *tTreeNode);
-		static	RTREE_NODE*	GetPriorBrother_nolock	(RTREE_NODE *tTreeNode);
-
-		static	RTREE_NODE*	FindInLChildRChainByDRNodeID		(RTREE_NODE *tTreeNode,uint32 tDRNodeID);
-		static	RTREE_NODE*	FindInLChildRChainByDRNodeID_nolock	(RTREE_NODE *tTreeNode,uint32 tDRNodeID);
-		static	RTREE_NODE*	GetSelectedInLChildRChain			(RTREE_NODE *tTreeNode);
-		static	RTREE_NODE*	GetSelectedInLChildRChain_nolock	(RTREE_NODE *tTreeNode);
-	public:
-		virtual	int32	AddNode			(RTREE_NODE *tTreeNode){return(InsertLChild(this,tTreeNode));};
-		virtual	void	LSetblSelected	(void){RTREE_LChildRChain_T(RTREE_NODE,SetblSelected());};
-		virtual	void	LClrblSelected	(void){RTREE_LChildRChain_T(RTREE_NODE,ClrblSelected());};
+		inline TREE_NODE& operator < (TREE_NODE& tTreeNode)			{return(Add(tTreeNode));};
+		inline TREE_NODE& operator << (TREE_NODE&(*fun)(TREE_NODE&)){return((*fun)(*this));};
+		inline	virtual void _Start(void){;};
+		inline	virtual void _Endl (void){;};
 };
+ */
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
+#endif
 #endif

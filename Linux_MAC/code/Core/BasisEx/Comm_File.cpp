@@ -25,7 +25,7 @@
 #include <sys/stat.h>
 #endif
 //------------------------------------------------------------------------------------------//
-int32 CFS_CheckFile(const std::string &fName){
+int32 CFS_CheckFile(const STDSTR &fName){
 #ifdef CommonDefH_Unix
 	if (access(fName.c_str(),0) == -1)
 		return 0;
@@ -37,7 +37,7 @@ int32 CFS_CheckFile(const std::string &fName){
 	return 1;
 }
 //------------------------------------------------------------------------------------------//
-uint64 CFS_CheckFileSize(const std::string &fName){
+uint64 CFS_CheckFileSize(const STDSTR &fName){
 #ifdef CommonDefH_Unix
 	struct stat		nodeInfo;
 	
@@ -61,7 +61,7 @@ uint64 CFS_CheckFileSize(const std::string &fName){
 #endif
 }
 //------------------------------------------------------------------------------------------//
-uint64 CFS_ReadFile(std::string *retContent,const std::string &fName,uint64 fsLength,uint64 fsOffset){
+uint64 CFS_ReadFile(STDSTR *retStr,const STDSTR &fName,uint64 fsLength,uint64 fsOffset,G_APPEND blAppend){
 	//read all data in ASCII format to result,
 	uint8			buffer[1024 * 8];
 	std::fstream	fileStream;
@@ -69,8 +69,8 @@ uint64 CFS_ReadFile(std::string *retContent,const std::string &fName,uint64 fsLe
 	
 	if (CFS_CheckFile(fName) < 1)
 		return 0;
-	
-	*retContent = "";
+	if (blAppend == G_APPEND_OFF)
+		*retStr = "";
 	returnCount = 0;
 	fileStream.open(fName.c_str(),std::ios::in|std::ios::binary);
 	if (fsOffset > 0)
@@ -81,14 +81,15 @@ uint64 CFS_ReadFile(std::string *retContent,const std::string &fName,uint64 fsLe
 		num = fileStream.gcount();
 		returnCount += num;
 		fsLength -= num;
-		*retContent += Str_CharToASCIIStr(buffer,num,G_ESCAPE_OFF);
+		*retStr += Str_CharToASCIIStr(buffer,num,G_ESCAPE_OFF);
 	}while((!fileStream.eof()) && (fsLength > 0));
 	fileStream.close();
 	
 	return(returnCount);
 }
+#ifdef Comm_FIFOH
 //------------------------------------------------------------------------------------------//
-uint64 CFS_ReadFile(FIFO_UINT8 *retFifo,const std::string &fName,uint64 fsLength,uint64 fsOffset){
+uint64 CFS_ReadFile(FIFO8 *retFifo,const STDSTR &fName,uint64 fsLength,uint64 fsOffset){
 	//read all data in ASCII format to result,
 	uint8			buffer[1024 * 8];
 	std::fstream	fileStream;
@@ -114,8 +115,9 @@ uint64 CFS_ReadFile(FIFO_UINT8 *retFifo,const std::string &fName,uint64 fsLength
 	
 	return(returnCount);
 }
+#endif
 //------------------------------------------------------------------------------------------//
-void CFS_AddToFile(const std::string &fName,const std::string &strContent){
+void CFS_AddToFile(const STDSTR &fName,const STDSTR &strContent){
 	std::fstream 	fileStream;
 
 	fileStream.open(fName.c_str(),std::ios::out|std::ios::app|std::ios::binary);
@@ -124,7 +126,7 @@ void CFS_AddToFile(const std::string &fName,const std::string &strContent){
 	fileStream.close();
 }
 //------------------------------------------------------------------------------------------//
-void CFS_WriteFile(const std::string &fName,const std::string &strContent){
+void CFS_WriteFile(const STDSTR &fName,const STDSTR &strContent){
 	std::fstream 	fileStream;
 	
 	fileStream.open(fName.c_str(),std::ios::out|std::ios::trunc|std::ios::binary);
@@ -133,7 +135,7 @@ void CFS_WriteFile(const std::string &fName,const std::string &strContent){
 	fileStream.close();
 }
 //------------------------------------------------------------------------------------------//
-void CFS_WriteFile(const std::string &fName,const std::string &strContent,uint64 fsOffset){
+void CFS_WriteFile(const STDSTR &fName,const STDSTR &strContent,uint64 fsOffset){
 	std::fstream 	fileStream;
 	
 	fileStream.open(fName.c_str(),std::ios::in|std::ios::out|std::ios::binary);
@@ -229,7 +231,7 @@ void CFS_WriteFile(const std::string &fName,const std::string &strContent,uint64
 
 
 
-
+#ifdef EN
 //------------------------------------------------------------------------------------------//
 FILE_NODE &FILE_NODE::operator =(const FILE_NODE &tNode){
 	cgRemoteNodeID = tNode.cgRemoteNodeID;
@@ -264,7 +266,7 @@ void FILE_NODE::Clear(FILE_NODE *tNode){
 	tNode->cgStrFilePackageHash = "";
 }
 //------------------------------------------------------------------------------------------//
-FILE_NODE::FT FILE_NODE::FillBasicInfoToNode(FILE_NODE *tNode,const std::string &tFullName){
+FILE_NODE::FT FILE_NODE::FillBasicInfoToNode(FILE_NODE *tNode,const STDSTR &tFullName){
 	if (tNode == nullptr)
 		return(FT_NONE);
 #ifdef CommonDefH_Unix
@@ -297,7 +299,7 @@ FILE_NODE::FT FILE_NODE::FillBasicInfoToNode(FILE_NODE *tNode,const std::string 
 }
 //------------------------------------------------------------------------------------------//
 int32 FILE_NODE::FillFileHashToNode(FILE_NODE *tNode){
-	std::string		fileName;
+	STDSTR		fileName;
 	std::fstream	fileStream;
 	uint32			num,count;
 	uint8			buf[1024 * 8];
@@ -348,7 +350,7 @@ int32 FILE_NODE::FillDirHashToNode(FILE_NODE *tNode){
 	struct dirent	*structNode;
 	DIR				*dir;
 #endif
-	std::string		strFullName,strResult;
+	STDSTR		strFullName,strResult;
 	FILE_NODE		subFileNode;
 	//MD5_CTX			md5ctx;
 	uint8			m_rawHash[16];
@@ -390,8 +392,8 @@ int32 FILE_NODE::FillDirHashToNode(FILE_NODE *tNode){
 	return(1);
 }
 //------------------------------------------------------------------------------------------//
-std::string FILE_NODE::CreateNodeToStrV0_1(FILE_NODE *tNode){
-	std::string		strResult;
+STDSTR FILE_NODE::CreateNodeToStrV0_1(FILE_NODE *tNode){
+	STDSTR		strResult;
 
 	if (tNode == nullptr)
 		return("");
@@ -409,14 +411,14 @@ std::string FILE_NODE::CreateNodeToStrV0_1(FILE_NODE *tNode){
 	return (strResult);
 }
 //------------------------------------------------------------------------------------------//
-void FILE_NODE::SetStrToNodeV0_1(FILE_NODE *tNode,const std::string &strInput){
-	std::string		strResult;
+void FILE_NODE::SetStrToNodeV0_1(FILE_NODE *tNode,const STDSTR &strIn){
+	STDSTR		strResult;
 	
 	if (tNode == nullptr)
 		return;
 	
 	Clear(tNode);
-	tNode->cgStrFilePackageHash = strInput;
+	tNode->cgStrFilePackageHash = strIn;
 	tNode->cgRemoteNodeID = (uint32)Str_HexToDec(Str_ReadSubItem(&tNode->cgStrFilePackageHash,"\r"));
 	tNode->cgStrPath = Str_ReadSubItem(&tNode->cgStrFilePackageHash,"\r");
 	tNode->cgStrName = Str_ReadSubItem(&tNode->cgStrFilePackageHash,"\r");
@@ -430,7 +432,7 @@ void FILE_NODE::SetStrToNodeV0_1(FILE_NODE *tNode,const std::string &strInput){
 	Str_ReadSubItemR(&tNode->cgStrFilePackageHash,"\r");
 }
 //------------------------------------------------------------------------------------------//
-
+#endif
 
 
 

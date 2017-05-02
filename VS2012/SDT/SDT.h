@@ -38,6 +38,6 @@ class CSDTApp : public CWinAppEx{
 		DECLARE_MESSAGE_MAP()
 };
 //------------------------------------------------------------------------------------------//
-#define WM_ON_PRINTOUT		(WM_USER + 100)
+#define WM_ON_BICCLEAN		(WM_USER + 100)
 extern CSDTApp theApp;
 //------------------------------------------------------------------------------------------//

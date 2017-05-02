@@ -47,7 +47,6 @@ CSDTApp::CSDTApp(void){
 	// format for string is CompanyName.ProductName.SubProduct.VersionInformation
 	SetAppID(_T(SWVERSION_APPID));
 	m_bCanClose = FALSE;
-	GSDTApp.Init();
 }
 //------------------------------------------------------------------------------------------//
 BOOL CSDTApp::InitInstance(void){
@@ -123,7 +122,6 @@ int CSDTApp::ExitInstance(void){
 	AfxOleTerm(FALSE);
 	CleanState();
 	theApp.WriteInt(_T("ApplicationLook"), theApp.m_nAppLook);
-	GSDTApp.Exit();
 	CoUninitialize();
 	return CWinAppEx::ExitInstance();
 }

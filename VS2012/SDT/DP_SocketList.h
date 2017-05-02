@@ -31,12 +31,12 @@ class CSocketListCtrl : public CMyCListCtrl{
 		void			OnItemchangedListFifoGroup(NMHDR* pNMHDR, LRESULT* pResult);
 	protected:
 		CFont			m_Font;
-		APISocketServer	*m_Server;
+		ASOCKETSERVER	*m_Server;
 	public:
-		void	LoadData		(APISocketServer *server);
+		void	LoadData		(ASOCKETSERVER *server);
 		int		GetSelectedNode	(void){return(m_SelectItem);};
 		void	Disconnect		(int disItem);
-		void	CreateScoketView(APISocket *apiSocket);
+		void	CreateScoketView(ASOCKET *aSocket);
 	protected:
 		afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
 		afx_msg void OnLButtonDown(UINT nFlags, CPoint point);

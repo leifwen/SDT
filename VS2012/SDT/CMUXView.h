@@ -34,7 +34,7 @@ class CCMUXCOMCtrl : public CView{
 		CString		m_Title;
 		int32		m_ComNumber;
 		void		AdjustLayout(void);
-		void		RefreshCOM(void);
+		void		RefreshCOM	(void);
 		#ifdef _DEBUG
 			virtual void AssertValid(void) const;
 			virtual void Dump(CDumpContext& dc) const;
@@ -60,19 +60,19 @@ class CCMUXCOMCtrl : public CView{
 #ifdef	SWVERSION_CMUX
 		CMUXCOM		*m_CMUXCOM;
 #endif
-		int			CreateEdit(void);
-		virtual void OnDraw(CDC* pDC);  // overridden to draw this view
-		virtual void PostNcDestroy(void){;};
-		void		InitBR(void);
+		int			CreateEdit		(void);
+		virtual void OnDraw			(CDC* pDC);  // overridden to draw this view
+		virtual void PostNcDestroy	(void){;};
+		void		InitBR			(void);
 		void		InitComboBox_COM(void);
 		void		SetSelectComboBox_COM(void);
 		void		CreateComboBox_COMList(void);
 		
 	protected:
-		afx_msg int		OnMouseActivate(CWnd* pDesktopWnd, UINT nHitTest, UINT message){return 0;};
-		afx_msg int		OnCreate(LPCREATESTRUCT lpCreateStruct);
-		afx_msg void	OnContextMenu(CWnd* pWnd, CPoint point);
-		afx_msg void	OnSize(UINT nType, int cx, int cy);
+		afx_msg int		OnMouseActivate	(CWnd* pDesktopWnd, UINT nHitTest, UINT message){return 0;};
+		afx_msg int		OnCreate		(LPCREATESTRUCT lpCreateStruct);
+		afx_msg void	OnContextMenu	(CWnd* pWnd, CPoint point);
+		afx_msg void	OnSize			(UINT nType, int cx, int cy);
 		afx_msg void	OnCOMBO_COM		(void);
 		afx_msg void	OnOpen			(void);
 		afx_msg void	OnDTR			(void);

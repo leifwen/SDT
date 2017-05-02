@@ -12,202 +12,322 @@
  				use int32 to replace bool
  				use int32 to replace uint32
 */
-#ifndef DeviceH
-#define DeviceH
 //------------------------------------------------------------------------------------------//
 #include "Comm_Tree.h"
 #include "ODEV_Include.h"
 #include "Commu_Include.h"
 #include "SBIC.h"
 //------------------------------------------------------------------------------------------//
-class ExpandDevFlag{
+#if defined COMMU_DBUFH && defined OUTPUTH
+#ifndef DeviceH
+#define DeviceH
+#ifdef DeviceH
+//------------------------------------------------------------------------------------------//
+class DEVICE;
+class ExpandDeviceAttr{
 	public:
-		ExpandDevFlag(void){
-			blCommandExplain = 0;
-			blScriptAT = 1;
-			blEnablePrintSBICinfo = 1;
-			blEnableEcho = 0;
-
-			com = "/dev/ttyUSB0";
-			baudrate = 115200;
-            comType = 0;
-			tcpIP = "leifwen.com";
-			tcpPort = 9527;
-			udpIP = "127.0.0.1";
-			udpPort = 8192;
-			tcpsPort = 9527;
-			udpsPort = 8192;
+		~ExpandDeviceAttr(void){;};
+		ExpandDeviceAttr(void){
+			SetOpenPar(aCOM	,"/dev/ttyUSB0"	,115200	,CSType_COM ,0);
+			SetOpenPar(aTCP	,"leifwen.com"	,9527	,CSType_TCP ,0);
+			SetOpenPar(aUDP	,"127.0.0.1"	,8192	,CSType_UDP ,0);
+			SetOpenPar(aTCPS,""				,9527	,CSType_TCPS,0);
+			SetOpenPar(aUDPS,""				,8192	,CSType_UDPS,0);
+			csType = CSType_None;
+			
+			device = nullptr;
+			envcfg = nullptr;
 		};
-		~ExpandDevFlag(void){;};
 	public:
-		int32		blCommandExplain;
-		int32		blScriptAT;
-		int32		blEnablePrintSBICinfo;
-		int32		blEnableEcho;
-
-		std::string	com;
-		int32		baudrate;
-	    int32	    comType;
-		std::string	tcpIP;
-		int32		tcpPort;
-		std::string	udpIP;
-		int32		udpPort;
-		int32		tcpsPort;
-		int32		udpsPort;
+		OPEN_PAR	aCOM;
+		OPEN_PAR	aTCP;
+		OPEN_PAR	aUDP;
+		OPEN_PAR	aTCPS;
+		OPEN_PAR	aUDPS;
+		CSType		csType;
+	public:
+		DEVICE					*device;
+		uint64					*envcfg;
+		inline	int32			IsConnected		(void)const;
+		inline	const CSType	&DevType		(void)const;
+		inline	ACOM 			*ACom			(void)const;
+		inline	ASOCKET			*ASocket		(void)const;
+		inline	ASOCKETSERVER	*AServer		(void)const;
+		inline	int32			IsCom			(void)const;
+		inline	int32			IsSocket		(void)const;
+		inline	int32			IsServer		(void)const;
+		inline	int32			IsComOpened		(void)const;
+		inline	int32			IsSocketOpened	(void)const;
+		inline	int32			IsServerOpened	(void)const;
+		inline	int32			IsTCPOpened		(void)const;
+		inline	int32			IsUCPOpened		(void)const;
+		inline	int32			IsTCPSOpened	(void)const;
+		inline	int32			IsUDPSOpened	(void)const;
+	
+		inline	ODEV_VG3D		&GetVG3D		(void);
 };
 //------------------------------------------------------------------------------------------//
-#define	DEVICE_T_RC(DB_TYPE,SER_FUN)\
-{\
-	uint32 ret;\
-	if (CheckblConnect() == 0)\
-		return 0;\
-	ret = 0;\
-	Spin_InUse_set(blLock);\
-	switch (cgDevType){\
-		case DEVID_APICOM:\
-		case DEVID_TCPClient:\
-		case DEVID_UDPClient:\
-			if (cgCurrentDB != nullptr)\
-				ret = cgCurrentDB->DB_TYPE;\
-				break;\
-		case DEVID_TCPServer:\
-		case DEVID_UDPServer:\
-			if (cgAPISocketServer != nullptr)\
-				ret = cgAPISocketServer->SER_FUN;\
-				break;\
-		case DEVID_NONE:\
-			break;\
-	}\
-	Spin_InUse_clr(blLock);\
-	return(ret);\
+class DEVICE_FRAME : public COMMU_DBUF_FRAME_FW{
+	public:
+				 DEVICE_FRAME(void) : COMMU_DBUF_FRAME_FW(){;};
+				 DEVICE_FRAME(uint32 tSize,const ODEV_SYSTEM *logSys = nullptr) : COMMU_DBUF_FRAME_FW(){COMMU_DBUF_FRAME_FW::Init(tSize,logSys);SetSelfName("DEVICE_FRAME");};
+		virtual ~DEVICE_FRAME(void){;};
+	public:
+		inline			uint32	SRead		(FIFO8 *fifoOut,uint32 num){
+			uint32 ret;
+			Spin_InUse_set();
+			ret = GetSelDB()->GetSelDB()->Read(fifoOut,num);
+			Spin_InUse_clr();
+			return(ret);
+		};
+		inline			uint32	SRead		(uint8 *dataOut,uint32 num){
+			uint32 ret;
+			Spin_InUse_set();
+			ret = GetSelDB()->GetSelDB()->Read(dataOut,num);
+			Spin_InUse_clr();
+			return(ret);
+		};
+		inline	const	STDSTR&	SRead		(STDSTR *retStr,G_ESCAPE blEscape){
+			Spin_InUse_set();
+			GetSelDB()->GetSelDB()->Read(retStr,blEscape);
+			Spin_InUse_clr();
+			return(*retStr);
+		};
+		inline	const	STDSTR&	SReadInHEX	(STDSTR *retStr,G_SPACE blSpace){
+			Spin_InUse_set();
+			GetSelDB()->GetSelDB()->ReadInHEX(retStr,blSpace);
+			Spin_InUse_clr();
+			return(*retStr);
+		};
+	public:
+		inline	uint32	SSend		(const PROTOCOL_NODE &pnIn){
+			uint32 ret;
+			Spin_InUse_set();
+			ret = GetSelDB()->GetSelDB()->Send(pnIn);
+			Spin_InUse_clr();
+			return(ret);
+		};
+		inline	uint32	SSend		(const FIFO8 &fifoIn,uint32 num,uint32 offset){
+			uint32 ret;
+			Spin_InUse_set();
+			ret = GetSelDB()->GetSelDB()->Send(fifoIn,num,offset);
+			Spin_InUse_clr();
+			return(ret);
+		};
+		inline	uint32	SSend		(const uint8 *data,uint32 num){
+			uint32 ret;
+			Spin_InUse_set();
+			ret = GetSelDB()->GetSelDB()->Send(data,num);
+			Spin_InUse_clr();
+			return(ret);
+		};
+		inline	uint32	SSend		(const uint8 data){
+			uint32 ret;
+			Spin_InUse_set();
+			ret = GetSelDB()->GetSelDB()->Send(data);
+			Spin_InUse_clr();
+			return(ret);
+		};
+		inline	uint32	SSend		(const STDSTR &strIn,G_ESCAPE blEscape){
+			uint32 ret;
+			Spin_InUse_set();
+			ret = GetSelDB()->GetSelDB()->Send(strIn,blEscape);
+			Spin_InUse_clr();
+			return(ret);
+		};
+		inline	uint32	SSendInHEX	(const STDSTR &strIn){
+			uint32 ret;
+			Spin_InUse_set();
+			ret = GetSelDB()->GetSelDB()->SendInHEX(strIn);
+			Spin_InUse_clr();
+			return(ret);
+		};
+	public:
+		inline void		SClean		(void){
+			Spin_InUse_set();
+			GetSelDB()->GetSelDB()->Clean();
+			Spin_InUse_clr();
+		};
+		inline uint32	SRxSUFMaxSize(void){
+			uint32 num;
+			Spin_InUse_set();
+			num = GetSelDB()->GetSelDB()->RxSUFMaxSize();
+			Spin_InUse_clr();
+			return(num);
+		};
+		inline uint32	STxSUFMaxSize(void){
+			uint32 num;
+			Spin_InUse_set();
+			num = GetSelDB()->GetSelDB()->TxSUFMaxSize();
+			Spin_InUse_clr();
+			return(num);
+		};
+		inline	uint32	SUnreadBytes(void){
+			uint32 num;
+			Spin_InUse_set();
+			num = GetSelDB()->GetSelDB()->UnreadBytes();
+			Spin_InUse_clr();
+			return(num);
+		};
+		inline	uint32	SUnsentBytes(void){
+			uint32 num;
+			Spin_InUse_set();
+			num = GetSelDB()->GetSelDB()->UnsentBytes();
+			Spin_InUse_clr();
+			return(num);
+		};
+		inline uint64	SFwBytes(void){
+			uint64 num;
+			Spin_InUse_set();
+			num = GetSelDB()->GetSelDB()->FwBytes();
+			Spin_InUse_clr();
+			return(num);
+		};
+		inline uint64	SRxBytes(void){
+			uint64 num;
+			Spin_InUse_set();
+			num = GetSelDB()->GetSelDB()->RxBytes();
+			Spin_InUse_clr();
+			return(num);
+		};
+		inline uint64	STxBytes(void){
+			uint64 num;
+			Spin_InUse_set();
+			num = GetSelDB()->GetSelDB()->TxBytes();
+			Spin_InUse_clr();
+			return(num);
+		};
 };
 //------------------------------------------------------------------------------------------//
-#define	DEVICE_T_R(DB_TYPE,SER_FUN,V_TYPE)\
-{\
-	V_TYPE ret;\
-	ret = 0;\
-	Spin_InUse_set(blLock);\
-	switch (cgDevType){\
-		case DEVID_APICOM:\
-		case DEVID_TCPClient:\
-		case DEVID_UDPClient:\
-			if (cgCurrentDB != nullptr)\
-				ret = cgCurrentDB->DB_TYPE;\
-				break;\
-		case DEVID_TCPServer:\
-		case DEVID_UDPServer:\
-			if (cgAPISocketServer != nullptr)\
-				ret = cgAPISocketServer->SER_FUN;\
-				break;\
-		case DEVID_NONE:\
-			break;\
-	}\
-	Spin_InUse_clr(blLock);\
-	return(ret);\
-};
-//------------------------------------------------------------------------------------------//
-#define	DEVICE_T(DB_TYPE,SER_FUN)\
-{\
-	Spin_InUse_set(blLock);\
-		switch (cgDevType){\
-			case DEVID_APICOM:\
-			case DEVID_TCPClient:\
-			case DEVID_UDPClient:\
-				if (cgCurrentDB != nullptr)\
-					cgCurrentDB->DB_TYPE;\
-					break;\
-			case DEVID_TCPServer:\
-			case DEVID_UDPServer:\
-				if (cgAPISocketServer != nullptr)\
-					cgAPISocketServer->SER_FUN;\
-					break;\
-			case DEVID_NONE:\
-				break;\
-		}\
-	Spin_InUse_clr(blLock);\
-}
-//------------------------------------------------------------------------------------------//
-class DEVICE : public RTREE_NODE{
+class DEVICE : public DEVICE_FRAME{
 	public:
-		enum			{RFLAG_C = 1, RFLAG_S = RTREE_NODE::RFLAG_S + RTREE_NODE::RFLAG_C};
-		enum DEVID_TYPE	{DEVID_NONE = 0,DEVID_APICOM,DEVID_TCPClient,DEVID_UDPClient,DEVID_TCPServer,DEVID_UDPServer};
-		enum OPEN_TYPE	{OP_NONE = 0,OP_COM,OP_TCPClient,OP_UDPClient,OP_TCPServer,OP_UDPServer};
+		enum	{RFLAG_C = 1, RFLAG_S = DEVICE_FRAME::RFLAG_S + DEVICE_FRAME::RFLAG_C};
 	public:
-				 DEVICE(void) : RTREE_NODE(){CreateTrash(this);Init();};
-		virtual ~DEVICE(void){Close(0);DestroyAll();};
+				 DEVICE(void) : DEVICE_FRAME(){Init();};
+				 DEVICE(uint32 tSize,const ODEV_CACHE *cache = nullptr) : DEVICE_FRAME(){Init();Init(tSize,cache);DisableLog();};
+		virtual ~DEVICE(void){CloseD();DestroyAll();};
 	public:
-		void	Init			(const ODEV_LIST_POOL *outList,uint32 tSize);
-		int32	Open			(OPEN_TYPE tOPEN_TYPE,const std::string &devName,int32 baudrate,int32 blEnEcho);
-		void	Close			(int32 blPrint);
-    
-		int32	CheckblConnect	(void){return(CheckSFlag(RFLAG_CREATE(0)));}
-		void	UpdataUIRecord	(void);
-#ifdef CommonDefH_VC
-		void	UpdataUIRecordSDOUT(void);
-#endif
-		std::string	MakeFrmTitle(void);
+		void	Init	(uint32 tSize,const ODEV_CACHE *cache = nullptr){
+			cgLogSystem.cache = (ODEV_CACHE*)cache;
+			COMMU_DBUF_FRAME_FW::Init(0,&cgLogSystem);
+			cgBufMaxSize = tSize;
+			CreateTrash(this);
+		};
+	private:
+		void	Init(void){
+			cgBufMaxSize = 0;
+			cgCom = nullptr;
+			cgSocket = nullptr;
+			cgServer = nullptr;
+			cgEDA.device = this;
+			cgEDA.envcfg = &cgLogSystem.envcfg;
+			SetSelfName("Device");
+		};
+	private:
+				virtual	int32	OpenDev					(const STDSTR &tCDBufName,int32 tCDBufPar,CSType tCSType,int32 blEnEcho);
+				virtual	void	CloseDev				(void);
+		inline	virtual	void	ChildClose				(COMMU_DBUF_FRAME *commu)	{SelfClose();};
+		inline	virtual	void	ChildCloseAll			(void){;};
+		inline	virtual	void	DoPrintOnOpenSuccess	(void){;};
+		inline	virtual	void	DoPrintOnOpenFail		(void){;};
+		inline	virtual	void	DoPrintOnClose			(void){;};
+	public:
+				virtual	void	EnableEcho				(void);
+				virtual	void	DisableEcho				(void);
+	public:
+		int32	Open_Com		(const STDSTR &tCDBufName,int32 tCDBufPar,CSType tCSType,int32 blEnEcho);
+		int32	Open_Socket		(const STDSTR &tCDBufName,int32 tCDBufPar,CSType tCSType,int32 blEnEcho);
+		int32	Open_Server		(const STDSTR &tCDBufName,int32 tCDBufPar,CSType tCSType,int32 blEnEcho);
+		void	Close_Com		(void);
+		void	Close_Socket	(void);
+		void	Close_Server	(void);
 	protected:
-		uint32	cgBufMaxSize;
-    
-    	void	Init(void);
-		void	SetblConnect	(void){SetSFlag(RFLAG_CREATE(0));};
-		void	ClrblConnect	(void){ClrSFlag(RFLAG_CREATE(0));};
+		ACOM					*cgCom;
+		ASOCKET					*cgSocket;
+		ASOCKETSERVER			*cgServer;
+	private:
+		const	ACOM			*CreateCOM		(void);
+		const	ASOCKET			*CreateSocket	(void);
+		const	ASOCKETSERVER	*CreateServer	(void);
+	public:
+		inline	ACOM 			*ACom			(void)const{return(cgCom);};
+		inline	ASOCKET			*ASocket		(void)const{return(cgSocket);};
+		inline	ASOCKETSERVER	*AServer		(void)const{return(cgServer);};
 	protected:
-		int32	APIEComOpen			(const std::string &devName,int32 baudrate,int32 blEnEcho);
-		void	APIEComClose		(int32 blPrint);
-		int32	APISocketOpen		(const std::string &devName,int32 baudrate,COMMU_DBUF::CSType tStype,int32 blEnEcho);
-		void	APISocketClose		(int32 blPrint);
-		int32	SocketServerOpen	(int32 baudrate,COMMU_DBUF::CSType tStype,int32 blEnEcho);
-		void	SocketServerClose	(int32 blPrint);
-	protected:
-		void	LinkDB_nolock		(void);
+		ODEV_SYSTEM		cgLogSystem;
 	public:
-		PUB_SBUF_LIST	rxBufferList;
-    
-		ExpandDevFlag	cEDevFlag;
-    	ODEV_LIST		cgODevList;
-
-    	DEVID_TYPE		cgDevType;
-		COMMU_DBUF		*cgCurrentDB;
-	protected:
-		APICOM 			*CreateNewCOM			(const ODEV_LIST *tODEV_LIST,uint32 tSize);
-		APISocket		*CreateNewSocket		(const ODEV_LIST *tODEV_LIST,uint32 tSize);
-		APISocketServer	*CreateNewSocketServer	(const ODEV_LIST *tODEV_LIST,uint32 tSize);
+		ExpandDeviceAttr	cgEDA;
+		STDSTR	MakeFrmTitle(void);
 	public:
-		APICOM			*cgAPIECom;
-		APISocket		*cgAPISocket;
-		APISocketServer	*cgAPISocketServer;
+		OUTPUT_NODE	*GetSelStdout	(void)	{return(static_cast<COMMU_DBUF_FRAME_LOG*>(GetSelDB()->GetSelDB())->GetVG3D());};
 	public:
-		uint32	BufferRxMaxSize	(G_LOCK_VAILD blLock = G_LOCK_ON){DEVICE_T_R(BufferRxMaxSize(),SBufferRxMaxSize(),uint32);};
-		uint32	BufferTxMaxSize	(G_LOCK_VAILD blLock = G_LOCK_ON){DEVICE_T_R(BufferTxMaxSize(),SBufferTxMaxSize(),uint32);};
-		uint32	UnreadBytes		(G_LOCK_VAILD blLock = G_LOCK_ON){DEVICE_T_R(UnreadBytes(),SUnreadBytes(),uint32);};
-		uint32	UnsentBytes		(G_LOCK_VAILD blLock = G_LOCK_ON){DEVICE_T_R(UnsentBytes(),SUnsentBytes(),uint32);};
-		uint64	FwBytes			(G_LOCK_VAILD blLock = G_LOCK_ON){DEVICE_T_R(FwBytes(),SFwBytes(),uint64);};
-		uint64	RxBytes			(G_LOCK_VAILD blLock = G_LOCK_ON){DEVICE_T_R(RxBytes(),SRxBytes(),uint64);};
-		uint64	TxBytes			(G_LOCK_VAILD blLock = G_LOCK_ON){DEVICE_T_R(TxBytes(),STxBytes(),uint64);};
-		void	EnableEcho		(G_LOCK_VAILD blLock = G_LOCK_ON){DEVICE_T(EnableEcho(),SEnableEcho());};
-		void	DisableEcho		(G_LOCK_VAILD blLock = G_LOCK_ON){DEVICE_T(DisableEcho(),SDisableEcho());};
-		void	Clean			(G_LOCK_VAILD blLock = G_LOCK_ON);
-		uint32	Read			(uint8 *buffer,uint32 num,G_LOCK_VAILD blLock = G_LOCK_ON)
-									{DEVICE_T_RC(Read(buffer,num),SRead(buffer,num));};
-		uint32	Write			(const uint8 *newData,uint32 num,G_LOCK_VAILD blLock = G_LOCK_ON)
-									{DEVICE_T_RC(Write(newData,num),SWrite(newData,num));};
-		uint32	ReadInHEX		(std::string *strRec,G_SPACE_VAILD blSpace,G_LOCK_VAILD blLock = G_LOCK_ON)
-									{DEVICE_T_RC(ReadInHEX(strRec,blSpace),SReadInHEX(strRec,blSpace));};
-		uint32	WriteInHEX		(const std::string &strContent,G_LOCK_VAILD blLock = G_LOCK_ON)
-									{DEVICE_T_RC(WriteInHEX(strContent),SWriteInHEX(strContent));};
-		uint32	ReadInASCII		(std::string *strRec,G_ESCAPE_VAILD blEscape,G_LOCK_VAILD blLock = G_LOCK_ON)
-									{DEVICE_T_RC(ReadInASCII(strRec,blEscape),SReadInASCII(strRec,blEscape));};
-		uint32	WriteInASCII	(const std::string &strContent,G_ESCAPE_VAILD blEscape,G_LOCK_VAILD blLock = G_LOCK_ON)
-									{DEVICE_T_RC(WriteInASCII(strContent,blEscape),SWriteInASCII(strContent,blEscape));};
-	public:
+	#ifdef SBIC_BuildH
 		SBIC_Print	cgSBIC_PRINT;
-		void	SendCommand		(const std::string &inputCommand,int32 blHEX,int32 bl0x0D,G_ESCAPE_VAILD blEscape);
-		void	SendCommandOnly	(const std::string &inputCommand,int32 blHEX,int32 bl0x0D,G_ESCAPE_VAILD blEscape);
-		void	PrintSendCommand(const std::string &strPrintData,uint32 num,COLSTRING::COLEnforcePrint blEP = COLSTRING::COL_EP_NO);
-		void	PrintSendStr	(const std::string &strPrintData, const std::string &rColor, COLSTRING::COLEnforcePrint blEP = COLSTRING::COL_EP_NO);
-		int32	CheckResult		(PUB_SBUF *cBuffer,const std::string &cCheckResult,int32 cTimeout);
+	#endif
+	#ifdef SBIC_ExpressionH
+		SBIC_Expression cgSBIC_Exp;
+	#endif
+		uint32	SendCommand			(const STDSTR &cmd,CMD_TAIL tail,G_ESCAPE blEscape);
+		uint32	SendCommandWithPrint(const STDSTR &cmd,CMD_TAIL tail,G_ESCAPE blEscape);
+		int32	SendCommand			(const STDSTR &cmd,CMD_TAIL tail,G_ESCAPE blEscape,const STDSTR &strCheck,SBUFFER *cSBUF,uint32 waitMS,uint32 delyMS);
+		int32	SendCommandWithPrint(const STDSTR &cmd,CMD_TAIL tail,G_ESCAPE blEscape,const STDSTR &strCheck,SBUFFER *cSBUF,uint32 waitMS,uint32 delyMS);
+		uint32	SendHexCommand		(const STDSTR &hexcmd);
+		uint32	SendHexCommandWithPrint(const STDSTR &hexcmd);
+		int32	SendHexCommand		(const STDSTR &hexcmd,const STDSTR &strCheck,SBUFFER *cSBUF,uint32 waitMS,uint32 delyMS);
+		void	PrintSendCommand	(const STDSTR &strPrintData,uint32 num);
+		void	PrintSendCommand	(const STDSTR &strTitle1,const STDSTR &strTitle2,const STDSTR &strPrintData);
+		void	PrintSendStrWOG1	(const STDSTR &strPrintData);
 };
 //------------------------------------------------------------------------------------------//
+class DEVICE_EXE_FRAME : public TREE_NODE{
+		typedef  SYS_Thread<DEVICE_EXE_FRAME>	ThreadType;
+	public:
+		enum{RFLAG_C = 1, RFLAG_S = TREE_NODE::RFLAG_S + TREE_NODE::RFLAG_C};
+		enum{blIsTerminated = RFLAG_CREATE(0),};
+		enum{BUF_MAX_SIZE = 1024 * 8};
+	public:
+				 DEVICE_EXE_FRAME(void);
+		virtual ~DEVICE_EXE_FRAME(void){Stop();};
+	protected:
+		OUTPUT_NODE	*GetDevOut		(void){return(cgDevice->GetSelStdout());};
+		void		DeviceLock		(void){cgDevice->Spin_Child_set();};
+		void		DeviceUnlock	(void){cgDevice->Spin_Child_clr();};
+	protected:
+		ThreadType	executeThread;
+		SBUFFER		cgSBUF;
+		DEVICE		*cgDevice;
+	protected:
+				int32	CheckExecute		(const DEVICE *tDevice);
+				int32	ExecuteThreadFun	(void *p);
+		virtual	int32	Execute				(const DEVICE *tDevice,SYS_AThread *threadP);
+		virtual	void	Init				(const DEVICE *tDevice);
+		virtual	void	SetblIsTerminated	(void)		{SetSFlag(blIsTerminated);};
+		virtual	void	ClrblIsTerminated	(void)		{ClrSFlag(blIsTerminated);};
+				int32	IsTerminated		(void)const	{return(CheckSFlag(blIsTerminated));};
+	public:
+		virtual	void	Stop				(void);
+				int32 	IsStop				(void)const	{return((CheckEnable()) == 0);};
+				int32	CheckServiceTo		(const DEVICE *tDevice){return(tDevice == cgDevice);};
+};
 //------------------------------------------------------------------------------------------//
+inline	int32			ExpandDeviceAttr::IsConnected	(void)const{return(device->IsConnected());};
+inline	const CSType	&ExpandDeviceAttr::DevType		(void)const{return(device->GetCSType());};
+inline	ACOM 			*ExpandDeviceAttr::ACom			(void)const{return(device->ACom());};
+inline	ASOCKET			*ExpandDeviceAttr::ASocket		(void)const{return(device->ASocket());};
+inline	ASOCKETSERVER	*ExpandDeviceAttr::AServer		(void)const{return(device->AServer());};
+inline	int32			ExpandDeviceAttr::IsCom			(void)const{return((device->GetCSType() == CSType_COM) || (device->GetCSType() == CSType_COMV));};
+inline	int32			ExpandDeviceAttr::IsSocket		(void)const{return((device->GetCSType() == CSType_TCP) || (device->GetCSType() == CSType_UDP));};
+inline	int32			ExpandDeviceAttr::IsServer		(void)const{return((device->GetCSType() == CSType_TCPS) || (device->GetCSType() == CSType_UDPS));};
+inline	int32			ExpandDeviceAttr::IsComOpened	(void)const{return((device->IsConnected() != 0) && ((device->GetCSType() == CSType_COM) || (device->GetCSType() == CSType_COMV)));};
+inline	int32			ExpandDeviceAttr::IsSocketOpened(void)const{return((device->IsConnected() != 0) && ((device->GetCSType() == CSType_TCP) || (device->GetCSType() == CSType_UDP)));};
+inline	int32			ExpandDeviceAttr::IsServerOpened(void)const{return((device->IsConnected() != 0) && ((device->GetCSType() == CSType_TCPS) || (device->GetCSType() == CSType_UDPS)));};
+inline	int32			ExpandDeviceAttr::IsTCPOpened	(void)const{return((device->IsConnected() != 0) && (device->GetCSType() == CSType_TCP));};
+inline	int32			ExpandDeviceAttr::IsUCPOpened	(void)const{return((device->IsConnected() != 0) && (device->GetCSType() == CSType_UDP));};
+inline	int32			ExpandDeviceAttr::IsTCPSOpened	(void)const{return((device->IsConnected() != 0) && (device->GetCSType() == CSType_TCPS));};
+inline	int32			ExpandDeviceAttr::IsUDPSOpened	(void)const{return((device->IsConnected() != 0) && (device->GetCSType() == CSType_UDPS));};
+inline	ODEV_VG3D&		ExpandDeviceAttr::GetVG3D		(void){return(*static_cast<COMMU_DBUF_FRAME_LOG*>(device->GetSelDB())->GetVG3D());};
+//------------------------------------------------------------------------------------------//
+//------------------------------------------------------------------------------------------//
+#endif
+#endif
 #endif

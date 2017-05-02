@@ -64,8 +64,10 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_WINDOWS;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>false</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\Linux_MAC\code\Core;$(SolutionDir)..\Linux_MAC\code\Core\AppLayer;$(SolutionDir)..\Linux_MAC\code\Core\AppLayer\Script;$(SolutionDir)..\Linux_MAC\code\Core\Basis;$(SolutionDir)..\Linux_MAC\code\Core\BasisEx;$(SolutionDir)..\Linux_MAC\code\Core\Output;$(SolutionDir)..\Linux_MAC\code\Core\Communication;$(SolutionDir)..\Linux_MAC\code\Core\Linecse;$(SolutionDir)..\Linux_MAC\code\Core\Win7;$(SolutionDir)..\Linux_MAC\code\Core\Win7\MBIM;$(SolutionDir)..\Linux_MAC\code\UIConsole;$(SolutionDir)..\Linux_MAC\code\UIConsole\BIC;$(SolutionDir).\SDT;$(SolutionDir).\SDTReg</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\Linux_MAC\code\Core;$(SolutionDir)..\Linux_MAC\code\Core\AppLayer;$(SolutionDir)..\Linux_MAC\code\Core\AppLayer\PAR;$(SolutionDir)..\Linux_MAC\code\Core\AppLayer\SBIC;$(SolutionDir)..\Linux_MAC\code\Core\Basis;$(SolutionDir)..\Linux_MAC\code\Core\BasisEx;$(SolutionDir)..\Linux_MAC\code\Core\Output;$(SolutionDir)..\Linux_MAC\code\Core\Communication;$(SolutionDir)..\Linux_MAC\code\Core\Communication\Linux;$(SolutionDir)..\Linux_MAC\code\Core\Communication\Win7;$(SolutionDir)..\Linux_MAC\code\Core\Communication\Win7\MBIM;$(SolutionDir)..\Linux_MAC\code\Core\License;$(SolutionDir)..\Linux_MAC\code\UIConsole;$(SolutionDir)..\Linux_MAC\code\UIConsole\BIC;$(SolutionDir).\SDT;$(SolutionDir).\SDTReg</AdditionalIncludeDirectories>
       <ExceptionHandling>Async</ExceptionHandling>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <BrowseInformation>true</BrowseInformation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -82,6 +84,9 @@
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
+    <Bscmake>
+      <PreserveSbr>true</PreserveSbr>
+    </Bscmake>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -92,8 +97,9 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>false</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\Linux_MAC\code\Core;$(SolutionDir)..\Linux_MAC\code\Core\AppLayer;$(SolutionDir)..\Linux_MAC\code\Core\AppLayer\Script;$(SolutionDir)..\Linux_MAC\code\Core\Basis;$(SolutionDir)..\Linux_MAC\code\Core\BasisEx;$(SolutionDir)..\Linux_MAC\code\Core\Output;$(SolutionDir)..\Linux_MAC\code\Core\Communication;$(SolutionDir)..\Linux_MAC\code\Core\License;$(SolutionDir)..\Linux_MAC\code\Core\Win7;$(SolutionDir)..\Linux_MAC\code\Core\Win7\MBIM;$(SolutionDir)..\Linux_MAC\code\UIConsole;$(SolutionDir)..\Linux_MAC\code\UIConsole\BIC;$(SolutionDir).\SDT;$(SolutionDir).\SDTReg</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\Linux_MAC\code\Core;$(SolutionDir)..\Linux_MAC\code\Core\AppLayer;$(SolutionDir)..\Linux_MAC\code\Core\AppLayer\PAR;$(SolutionDir)..\Linux_MAC\code\Core\AppLayer\SBIC;$(SolutionDir)..\Linux_MAC\code\Core\Basis;$(SolutionDir)..\Linux_MAC\code\Core\BasisEx;$(SolutionDir)..\Linux_MAC\code\Core\Output;$(SolutionDir)..\Linux_MAC\code\Core\Communication;$(SolutionDir)..\Linux_MAC\code\Core\Communication\Linux;$(SolutionDir)..\Linux_MAC\code\Core\Communication\Win7;$(SolutionDir)..\Linux_MAC\code\Core\Communication\Win7\MBIM;$(SolutionDir)..\Linux_MAC\code\Core\License;$(SolutionDir)..\Linux_MAC\code\UIConsole;$(SolutionDir)..\Linux_MAC\code\UIConsole\BIC;$(SolutionDir).\SDT;$(SolutionDir).\SDTReg</AdditionalIncludeDirectories>
       <ExceptionHandling>Async</ExceptionHandling>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -118,21 +124,24 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Linux_MAC\code\Core\AppLayer.h" />
-    <ClInclude Include="..\..\Linux_MAC\code\Core\AppLayer\ComEnum.h" />
-    <ClInclude Include="..\..\Linux_MAC\code\Core\AppLayer\CommandGList.h" />
-    <ClInclude Include="..\..\Linux_MAC\code\Core\AppLayer\CommandSList.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\Core\AppLayer\CMUX.h" />
     <ClInclude Include="..\..\Linux_MAC\code\Core\AppLayer\Device.h" />
-    <ClInclude Include="..\..\Linux_MAC\code\Core\AppLayer\ParRecord.h" />
-    <ClInclude Include="..\..\Linux_MAC\code\Core\AppLayer\Script\SBIC.h" />
-    <ClInclude Include="..\..\Linux_MAC\code\Core\AppLayer\Script\SBIC_B.h" />
-    <ClInclude Include="..\..\Linux_MAC\code\Core\AppLayer\Script\SBIC_Build.h" />
-    <ClInclude Include="..\..\Linux_MAC\code\Core\AppLayer\Script\SBIC_Condition.h" />
-    <ClInclude Include="..\..\Linux_MAC\code\Core\AppLayer\Script\SBIC_Expression.h" />
-    <ClInclude Include="..\..\Linux_MAC\code\Core\AppLayer\Script\SBIC_RunExternal.h" />
-    <ClInclude Include="..\..\Linux_MAC\code\Core\AppLayer\Script\SBIC_Search.h" />
-    <ClInclude Include="..\..\Linux_MAC\code\Core\AppLayer\Script\Script.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\Core\AppLayer\PAR\ComEnum.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\Core\AppLayer\PAR\CommandGList.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\Core\AppLayer\PAR\CommandSList.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\Core\AppLayer\PAR\ParRecord.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\Core\AppLayer\SBIC\SBIC.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\Core\AppLayer\SBIC\SBIC_B.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\Core\AppLayer\SBIC\SBIC_Build.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\Core\AppLayer\SBIC\SBIC_CMD.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\Core\AppLayer\SBIC\SBIC_Condition.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\Core\AppLayer\SBIC\SBIC_Define.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\Core\AppLayer\SBIC\SBIC_Device.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\Core\AppLayer\SBIC\SBIC_Expression.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\Core\AppLayer\SBIC\SBIC_RunEXE.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\Core\AppLayer\SBIC\SBIC_Search.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\Core\AppLayer\Script.h" />
     <ClInclude Include="..\..\Linux_MAC\code\Core\AppLayer\SendFiles.h" />
-    <ClInclude Include="..\..\Linux_MAC\code\Core\AppLayer\TelitCMUX.h" />
     <ClInclude Include="..\..\Linux_MAC\code\Core\BasisEx\Comm_Buffer.h" />
     <ClInclude Include="..\..\Linux_MAC\code\Core\BasisEx\Comm_Crypto.h" />
     <ClInclude Include="..\..\Linux_MAC\code\Core\BasisEx\Comm_File.h" />
@@ -142,17 +151,20 @@
     <ClInclude Include="..\..\Linux_MAC\code\Core\Basis\Basic_Include.h" />
     <ClInclude Include="..\..\Linux_MAC\code\Core\Basis\Comm_Convert.h" />
     <ClInclude Include="..\..\Linux_MAC\code\Core\Basis\Comm_FIFO.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\Core\Basis\Comm_Log.h" />
     <ClInclude Include="..\..\Linux_MAC\code\Core\Basis\Comm_Tree.h" />
     <ClInclude Include="..\..\Linux_MAC\code\Core\Basis\SYS_Lock.h" />
     <ClInclude Include="..\..\Linux_MAC\code\Core\Basis\SYS_Thread.h" />
     <ClInclude Include="..\..\Linux_MAC\code\Core\Basis\SYS_Time.h" />
     <ClInclude Include="..\..\Linux_MAC\code\Core\Communication\Commu_Com.h" />
     <ClInclude Include="..\..\Linux_MAC\code\Core\Communication\Commu_DBuf.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\Core\Communication\Commu_Include.h" />
     <ClInclude Include="..\..\Linux_MAC\code\Core\Communication\Commu_NTPServer.h" />
     <ClInclude Include="..\..\Linux_MAC\code\Core\Communication\Commu_RMS.h" />
     <ClInclude Include="..\..\Linux_MAC\code\Core\Communication\Commu_Socket.h" />
-    <ClInclude Include="..\..\Linux_MAC\code\Core\Communication\Commu_SocketServer.h" />
-    <ClInclude Include="..\..\Linux_MAC\code\Core\Communication\Commu_SSLSocket.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\Core\Communication\Commu_SSL.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\Core\Communication\Linux\Commu_EXE.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\Core\Communication\Win7\MBIM\MBIM_DeviceService.h" />
     <ClInclude Include="..\..\Linux_MAC\code\Core\Global.h" />
     <ClInclude Include="..\..\Linux_MAC\code\Core\GlobalDef.h" />
     <ClInclude Include="..\..\Linux_MAC\code\Core\License\License_Checker.h" />
@@ -162,21 +174,26 @@
     <ClInclude Include="..\..\Linux_MAC\code\Core\Output\ColorRecord.h" />
     <ClInclude Include="..\..\Linux_MAC\code\Core\Output\ODEV_FILE.h" />
     <ClInclude Include="..\..\Linux_MAC\code\Core\Output\ODEV_Include.h" />
-    <ClInclude Include="..\..\Linux_MAC\code\Core\Output\ODEV_LIST.h" />
-    <ClInclude Include="..\..\Linux_MAC\code\Core\Output\ODEV_Node.h" />
-    <ClInclude Include="..\..\Linux_MAC\code\Core\Output\ODEV_SDOUT.h" />
-    <ClInclude Include="..\..\Linux_MAC\code\Core\Win7\MBIM\MBIM_DeviceService.h" />
-    <ClInclude Include="..\..\Linux_MAC\code\UIConsole\BIC\BIC_AUX.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\Core\Output\ODEV_STDOUT.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\Core\Output\ODEV_System.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\Core\Output\OUTPUT.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\UIConsole\BIC\BIC.h" />
     <ClInclude Include="..\..\Linux_MAC\code\UIConsole\BIC\BIC_B.h" />
     <ClInclude Include="..\..\Linux_MAC\code\UIConsole\BIC\BIC_Calc.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\UIConsole\BIC\BIC_CMD.h" />
     <ClInclude Include="..\..\Linux_MAC\code\UIConsole\BIC\BIC_CMUX.h" />
     <ClInclude Include="..\..\Linux_MAC\code\UIConsole\BIC\BIC_COM.h" />
-    <ClInclude Include="..\..\Linux_MAC\code\UIConsole\BIC\BIC_Connect.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\UIConsole\BIC\BIC_ConCtrl.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\UIConsole\BIC\BIC_Define.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\UIConsole\BIC\BIC_Device.h" />
     <ClInclude Include="..\..\Linux_MAC\code\UIConsole\BIC\BIC_Dict.h" />
-    <ClInclude Include="..\..\Linux_MAC\code\UIConsole\BIC\BIC_Other.h" />
-    <ClInclude Include="..\..\Linux_MAC\code\UIConsole\BIC\BIC_Script.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\UIConsole\BIC\BIC_EXE.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\UIConsole\BIC\BIC_GCM.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\UIConsole\BIC\BIC_MSDT.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\UIConsole\BIC\BIC_SCM.h" />
     <ClInclude Include="..\..\Linux_MAC\code\UIConsole\BIC\BIC_Socket.h" />
-    <ClInclude Include="..\..\Linux_MAC\code\UIConsole\BIC\BuildInCommand.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\UIConsole\BIC\BIC_Terminal.h" />
+    <ClInclude Include="..\..\Linux_MAC\code\UIConsole\BuildInCommand.h" />
     <ClInclude Include="..\..\Linux_MAC\code\UIConsole\Console.h" />
     <ClInclude Include="..\..\Linux_MAC\code\UIConsole\Terminal.h" />
     <ClInclude Include="ChildFrm.h" />
@@ -201,26 +218,29 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Linux_MAC\code\Core\AppLayer.cpp" />
-    <ClCompile Include="..\..\Linux_MAC\code\Core\AppLayer\ComEnum.cpp" />
-    <ClCompile Include="..\..\Linux_MAC\code\Core\AppLayer\CommandGList.cpp" />
-    <ClCompile Include="..\..\Linux_MAC\code\Core\AppLayer\CommandSList.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\Core\AppLayer\CMUX.cpp" />
     <ClCompile Include="..\..\Linux_MAC\code\Core\AppLayer\Device.cpp" />
-    <ClCompile Include="..\..\Linux_MAC\code\Core\AppLayer\ParRecord.cpp" />
-    <ClCompile Include="..\..\Linux_MAC\code\Core\AppLayer\Script\SBIC_B.cpp" />
-    <ClCompile Include="..\..\Linux_MAC\code\Core\AppLayer\Script\SBIC_Build.cpp" />
-    <ClCompile Include="..\..\Linux_MAC\code\Core\AppLayer\Script\SBIC_Condition.cpp" />
-    <ClCompile Include="..\..\Linux_MAC\code\Core\AppLayer\Script\SBIC_Expression.cpp" />
-    <ClCompile Include="..\..\Linux_MAC\code\Core\AppLayer\Script\SBIC_RunExternal.cpp" />
-    <ClCompile Include="..\..\Linux_MAC\code\Core\AppLayer\Script\SBIC_Search.cpp" />
-    <ClCompile Include="..\..\Linux_MAC\code\Core\AppLayer\Script\Script.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\Core\AppLayer\PAR\ComEnum.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\Core\AppLayer\PAR\CommandGList.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\Core\AppLayer\PAR\CommandSList.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\Core\AppLayer\PAR\ParRecord.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\Core\AppLayer\SBIC\SBIC_B.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\Core\AppLayer\SBIC\SBIC_Build.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\Core\AppLayer\SBIC\SBIC_Condition.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\Core\AppLayer\SBIC\SBIC_Define.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\Core\AppLayer\SBIC\SBIC_Device.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\Core\AppLayer\SBIC\SBIC_Expression.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\Core\AppLayer\SBIC\SBIC_RunEXE.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\Core\AppLayer\SBIC\SBIC_Search.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\Core\AppLayer\Script.cpp" />
     <ClCompile Include="..\..\Linux_MAC\code\Core\AppLayer\SendFiles.cpp" />
-    <ClCompile Include="..\..\Linux_MAC\code\Core\AppLayer\TelitCMUX.cpp" />
     <ClCompile Include="..\..\Linux_MAC\code\Core\BasisEx\Comm_Buffer.cpp" />
     <ClCompile Include="..\..\Linux_MAC\code\Core\BasisEx\Comm_Crypto.cpp" />
     <ClCompile Include="..\..\Linux_MAC\code\Core\BasisEx\Comm_File.cpp" />
     <ClCompile Include="..\..\Linux_MAC\code\Core\BasisEx\Comm_PA.cpp" />
     <ClCompile Include="..\..\Linux_MAC\code\Core\Basis\Comm_Convert.cpp" />
     <ClCompile Include="..\..\Linux_MAC\code\Core\Basis\Comm_FIFO.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\Core\Basis\Comm_Log.cpp" />
     <ClCompile Include="..\..\Linux_MAC\code\Core\Basis\Comm_Tree.cpp" />
     <ClCompile Include="..\..\Linux_MAC\code\Core\Basis\SYS_Time.cpp" />
     <ClCompile Include="..\..\Linux_MAC\code\Core\Communication\Commu_Com.cpp" />
@@ -228,29 +248,32 @@
     <ClCompile Include="..\..\Linux_MAC\code\Core\Communication\Commu_NTPServer.cpp" />
     <ClCompile Include="..\..\Linux_MAC\code\Core\Communication\Commu_RMS.cpp" />
     <ClCompile Include="..\..\Linux_MAC\code\Core\Communication\Commu_Socket.cpp" />
-    <ClCompile Include="..\..\Linux_MAC\code\Core\Communication\Commu_SocketServer.cpp" />
-    <ClCompile Include="..\..\Linux_MAC\code\Core\Communication\Commu_SSLSocket.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\Core\Communication\Commu_SSL.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\Core\Communication\Linux\Commu_EXE.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\Core\Communication\Win7\MBIM\MBIM_DeviceService.cpp" />
     <ClCompile Include="..\..\Linux_MAC\code\Core\License\License_Checker.cpp" />
     <ClCompile Include="..\..\Linux_MAC\code\Core\License\License_SSLSocket.cpp" />
     <ClCompile Include="..\..\Linux_MAC\code\Core\License\SMC.cpp" />
     <ClCompile Include="..\..\Linux_MAC\code\Core\License\SystemInfo.cpp" />
-    <ClCompile Include="..\..\Linux_MAC\code\Core\Output\ColorRecord.cpp" />
     <ClCompile Include="..\..\Linux_MAC\code\Core\Output\ODEV_FILE.cpp" />
-    <ClCompile Include="..\..\Linux_MAC\code\Core\Output\ODEV_LIST.cpp" />
-    <ClCompile Include="..\..\Linux_MAC\code\Core\Output\ODEV_Node.cpp" />
-    <ClCompile Include="..\..\Linux_MAC\code\Core\Output\ODEV_SDOUT.cpp" />
-    <ClCompile Include="..\..\Linux_MAC\code\Core\Win7\MBIM\MBIM_DeviceService.cpp" />
-    <ClCompile Include="..\..\Linux_MAC\code\UIConsole\BIC\BIC_AUX.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\Core\Output\ODEV_STDOUT.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\Core\Output\ODEV_System.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\Core\Output\OUTPUT.cpp" />
     <ClCompile Include="..\..\Linux_MAC\code\UIConsole\BIC\BIC_B.cpp" />
     <ClCompile Include="..\..\Linux_MAC\code\UIConsole\BIC\BIC_Calc.cpp" />
     <ClCompile Include="..\..\Linux_MAC\code\UIConsole\BIC\BIC_CMUX.cpp" />
     <ClCompile Include="..\..\Linux_MAC\code\UIConsole\BIC\BIC_COM.cpp" />
-    <ClCompile Include="..\..\Linux_MAC\code\UIConsole\BIC\BIC_Connect.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\UIConsole\BIC\BIC_ConCtrl.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\UIConsole\BIC\BIC_Define.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\UIConsole\BIC\BIC_Device.cpp" />
     <ClCompile Include="..\..\Linux_MAC\code\UIConsole\BIC\BIC_Dict.cpp" />
-    <ClCompile Include="..\..\Linux_MAC\code\UIConsole\BIC\BIC_Other.cpp" />
-    <ClCompile Include="..\..\Linux_MAC\code\UIConsole\BIC\BIC_Script.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\UIConsole\BIC\BIC_EXE.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\UIConsole\BIC\BIC_GCM.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\UIConsole\BIC\BIC_MSDT.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\UIConsole\BIC\BIC_SCM.cpp" />
     <ClCompile Include="..\..\Linux_MAC\code\UIConsole\BIC\BIC_Socket.cpp" />
-    <ClCompile Include="..\..\Linux_MAC\code\UIConsole\BIC\BuildInCommand.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\UIConsole\BIC\BIC_Terminal.cpp" />
+    <ClCompile Include="..\..\Linux_MAC\code\UIConsole\BuildInCommand.cpp" />
     <ClCompile Include="..\..\Linux_MAC\code\UIConsole\Console.cpp" />
     <ClCompile Include="..\..\Linux_MAC\code\UIConsole\Terminal.cpp" />
     <ClCompile Include="ChildFrm.cpp" />

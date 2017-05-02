@@ -11,9 +11,9 @@
 //------------------------------------------------------------------------------------------//
 #include "stdafx.h"
 #include "Console.h"
-#include "Comm_Convert.h"
-#include "ODEV_SDOUT.h"
-#include "BIC.h"
+#include "AppLayer.h"
+#include "Comm_File.h"
+#ifdef ConsoleH
 //------------------------------------------------------------------------------------------//
 void CON_LineEdit::Init(void){
 	cgEditContent = "";
@@ -79,9 +79,10 @@ uint32 CON_LineEdit::Insert(const uint8 *key,uint32 length){
 	return(cgEditCur - 1);
 }
 //------------------------------------------------------------------------------------------//
-void CON_LineEdit::SetData(std::string const &newData,uint32 cur){
+const STDSTR & CON_LineEdit::SetData(const STDSTR &newData){
 	cgEditContent = newData;
-	cgEditCur = cur;
+	cgEditCur = (uint32)newData.length();
+	return(newData);
 }
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
@@ -128,9 +129,9 @@ int32 CON_LineHistory::SetNext(void){
 	return 1;
 }
 //------------------------------------------------------------------------------------------//
-void CON_LineHistory::Add(const std::string &newData){
-	std::string	strTemp;
-	int32		last;
+void CON_LineHistory::Add(const STDSTR &newData){
+	STDSTR	strTemp;
+	int32	last;
 	
 	strTemp = Str_Trim(newData);
 	if (strTemp.length() == 0){
@@ -168,9 +169,9 @@ void CON_LineHistory::Add(const std::string &newData){
 	cgHistoryCur = cgTop;
 }
 //------------------------------------------------------------------------------------------//
-std::string	CON_LineHistory::GetHistory(void){
-	std::string		strRet;
-	int32			cur,i;
+STDSTR	CON_LineHistory::GetHistory(void){
+	STDSTR		strRet;
+	int32		cur,i;
 	
 	cur = cgHead;
 	i = 0;
@@ -181,20 +182,20 @@ std::string	CON_LineHistory::GetHistory(void){
 			if (i < 10)
 				strRet += ' ';
 		}
-		strRet += Str_IntToString(i);
+		strRet += Str_ToString(i);
 		strRet += ".   ";
 		strRet += cgEditHistory[cur];
-		strRet += "\r\n";
+		strRet += "\n";
 		++ cur;
 		cur %= MaxRecord;
 	}
 	return(strRet);
 }
 //------------------------------------------------------------------------------------------//
-std::string	CON_LineHistory::GetSimilar(const std::string &inputStr){
-	std::string		strT,strS,strR;
-	int32			cur;
-	uint32          lenS,lenR,lenH;
+STDSTR	CON_LineHistory::GetSimilar(const STDSTR &inputStr){
+	STDSTR		strT,strS,strR;
+	int32		cur;
+	uint32		lenS,lenR,lenH;
 	
 	cur = cgHead;
 	strS = Str_Trim(inputStr);
@@ -245,10 +246,10 @@ std::string	CON_LineHistory::GetSimilar(const std::string &inputStr){
 	return(strR);
 }
 //------------------------------------------------------------------------------------------//
-std::string	CON_LineHistory::GetSimilarGroup(const std::string &inputStr){
-	std::string		strRet,strT,strS;
-	int32			cur;
-	uint32			lenS,lenH;
+STDSTR	CON_LineHistory::GetSimilarGroup(const STDSTR &inputStr){
+	STDSTR		strRet,strT,strS;
+	int32		cur;
+	uint32		lenS,lenH;
 	
 	cur = cgHead;
 	strRet = "";
@@ -265,7 +266,7 @@ std::string	CON_LineHistory::GetSimilarGroup(const std::string &inputStr){
 			}
 			if (strS == strT){
 				strRet += cgEditHistory[cur];
-				strRet += "\r\n";
+				strRet += "\n";
 			}
 		}
 		++ cur;
@@ -274,40 +275,28 @@ std::string	CON_LineHistory::GetSimilarGroup(const std::string &inputStr){
 	return(strRet);
 }
 //------------------------------------------------------------------------------------------//
-
-
-//------------------------------------------------------------------------------------------//
-CON_ReadInLine::CON_ReadInLine(void){
-	cgCInput.Init();
-	cgMainLH.Init();
-	cgSecondLH.Init();
-	cODevOut = nullptr;
-	
-	cgblDBEscMode = 0;
-	
-	cgNewKey.keyTime.Clear();
-	cgNewKey.message = 0;
-	cgNewKey.lParam = 0;
-	cgNewKey.wParam = 0;
-	
-	cgLastKey.keyTime.Clear();
-	cgLastKey.message = 0;
-	cgLastKey.lParam = 0;
-	cgLastKey.wParam = 0;
-};
 //------------------------------------------------------------------------------------------//
 
 
+
+
+
+
+
+
+
+
+//------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 void CON_ReadInLine::KeyLeft(void){
 	int32	offset;
 	offset = cgCInput.KeyLeft();
-	if (cODevOut != nullptr){
-#ifdef CommonDefH_Unix
-		cODevOut->SetCurLeft(offset);
-#endif
+	if (cgOdevSTDOUT != nullptr){
 #ifdef CommonDefH_VC
-		cODevOut->SetCurFromEnd(cgCInput.GetData().length() - cgCInput.cgEditCur);
+		cgOdevSTDOUT->SetCurFromEnd(cgCInput.GetData().length() - cgCInput.cgEditCur);
+#endif
+#ifdef CommonDefH_Unix
+		cgOdevSTDOUT->SetCurLeft(offset);
 #endif
 	}
 }
@@ -315,12 +304,12 @@ void CON_ReadInLine::KeyLeft(void){
 void CON_ReadInLine::KeyRight(void){
 	int32	offset;
 	offset = cgCInput.KeyRight();
-	if (cODevOut != nullptr){
-#ifdef CommonDefH_Unix
-		cODevOut->SetCurRight(offset);
-#endif
+	if (cgOdevSTDOUT != nullptr){
 #ifdef CommonDefH_VC
-		cODevOut->SetCurFromEnd(cgCInput.GetData().length() - cgCInput.cgEditCur);
+		cgOdevSTDOUT->SetCurFromEnd(cgCInput.GetData().length() - cgCInput.cgEditCur);
+#endif
+#ifdef CommonDefH_Unix
+		cgOdevSTDOUT->SetCurRight(offset);
 #endif
 	}
 }
@@ -328,12 +317,12 @@ void CON_ReadInLine::KeyRight(void){
 void CON_ReadInLine::KeyHome(void){
 	int32	offset;
 	offset = cgCInput.KeyHome();
-	if (cODevOut != nullptr){
-#ifdef CommonDefH_Unix
-		cODevOut->SetCurLeft(offset);
-#endif
+	if (cgOdevSTDOUT != nullptr){
 #ifdef CommonDefH_VC
-		cODevOut->SetCurFromEnd(cgCInput.GetData().length() - cgCInput.cgEditCur);
+		cgOdevSTDOUT->SetCurFromEnd(cgCInput.GetData().length() - cgCInput.cgEditCur);
+#endif
+#ifdef CommonDefH_Unix
+		cgOdevSTDOUT->SetCurLeft(offset);
 #endif
 	}
 }
@@ -341,28 +330,24 @@ void CON_ReadInLine::KeyHome(void){
 void CON_ReadInLine::KeyEnd(void){
 	int32	offset;
 	offset = cgCInput.KeyEnd();
-	if (cODevOut != nullptr){
-#ifdef CommonDefH_Unix
-		cODevOut->SetCurRight(offset);
-#endif
+	if (cgOdevSTDOUT != nullptr){
 #ifdef CommonDefH_VC
-		cODevOut->SetCurFromEnd(cgCInput.GetData().length() - cgCInput.cgEditCur);
+		cgOdevSTDOUT->SetCurFromEnd(cgCInput.GetData().length() - cgCInput.cgEditCur);
+#endif
+#ifdef CommonDefH_Unix
+		cgOdevSTDOUT->SetCurRight(offset);
 #endif
 	}
 }
 //------------------------------------------------------------------------------------------//
 void CON_ReadInLine::KeyBK(void){
 	if (cgCInput.KeyBK() != 0){
-		if (cODevOut != nullptr){
+		if (cgOdevSTDOUT != nullptr){
 #ifdef CommonDefH_VC
-			cODevOut->DelCharFromEnd(cgCInput.GetData().length() - cgCInput.cgEditCur,1);
+			cgOdevSTDOUT->DelCharFromEnd(cgCInput.GetData().length() - cgCInput.cgEditCur + 1,1);
 #endif
 #ifdef CommonDefH_Unix
-			cODevOut->Spin_InUse_set();
-			cODevOut->SetCurLeft(cgCInput.cgEditCur + 1);
-			cODevOut->OutputStr(cgCInput.GetData() + " ",RICH_LIN_clDefault,G_LOCK_OFF);
-			cODevOut->SetCurLeft(cgCInput.GetLength() - cgCInput.cgEditCur + 1);
-			cODevOut->Spin_InUse_clr();
+			cgOdevSTDOUT->BKChar();
 #endif
 		}
 	}
@@ -370,16 +355,12 @@ void CON_ReadInLine::KeyBK(void){
 //------------------------------------------------------------------------------------------//
 void CON_ReadInLine::KeyDel(void){
 	if (cgCInput.KeyDel() != 0){
-		if (cODevOut != nullptr){
+		if (cgOdevSTDOUT != nullptr){
 #ifdef CommonDefH_VC
-			cODevOut->DelCharFromEnd(cgCInput.GetData().length() - cgCInput.cgEditCur,1);
+			cgOdevSTDOUT->DelCharFromEnd(cgCInput.GetData().length() - cgCInput.cgEditCur + 1,1);
 #endif
 #ifdef CommonDefH_Unix
-			cODevOut->Spin_InUse_set();
-			cODevOut->SetCurLeft(cgCInput.cgEditCur);
-			cODevOut->OutputStr(cgCInput.GetData() + " ",RICH_LIN_clDefault,G_LOCK_OFF);
-			cODevOut->SetCurLeft(cgCInput.GetLength() - cgCInput.cgEditCur + 1);
-			cODevOut->Spin_InUse_clr();
+			cgOdevSTDOUT->DelChar();
 #endif
 		}
 	}
@@ -387,25 +368,16 @@ void CON_ReadInLine::KeyDel(void){
 //------------------------------------------------------------------------------------------//
 void CON_ReadInLine::KeyUp(void){
 	if (cgCLH->SetPrior() != 0){
-		if (cODevOut != nullptr){
+		if (cgOdevSTDOUT != nullptr){
 #ifdef CommonDefH_VC
-			cODevOut->Spin_InUse_set();
-			cODevOut->DelCharFromEnd(0,cgCInput.GetData().length());
-			cgCInput.SetData(cgCLH->GetData(),(uint32)cgCLH->GetData().length());
-			cODevOut->OutputStr(cgCInput.GetData(),RICH_CF_clBlack,G_LOCK_OFF);
-			cODevOut->Spin_InUse_clr();
+			uint32 offset;
+			offset = cgCInput.GetData().length();
+			cgOdevSTDOUT->RewriteCharFromEnd(offset,COL_clDefault,cgCInput.SetData(cgCLH->GetData()));
 #endif
 #ifdef CommonDefH_Unix
-			std::string		strTemp;
-			strTemp = "";
-			strTemp.insert(0,cgCInput.GetLength(),' ');
-			cODevOut->Spin_InUse_set();
-			cODevOut->SetCurLeft(cgCInput.cgEditCur);
-			cODevOut->OutputStr(strTemp,RICH_LIN_clDefault,G_LOCK_OFF);
-			cODevOut->SetCurLeft(cgCInput.GetLength());
-			cgCInput.SetData(cgCLH->GetData(),(uint32)cgCLH->GetData().length());
-			cODevOut->OutputStr(cgCInput.GetData(),RICH_LIN_clDefault,G_LOCK_OFF);
-			cODevOut->Spin_InUse_clr();
+			uint32 offset;
+			offset = cgCInput.cgEditCur;
+			cgOdevSTDOUT->RewriteChar(offset,COL_clDefault,cgCInput.SetData(cgCLH->GetData()));
 #endif
 		}
 	}
@@ -413,122 +385,85 @@ void CON_ReadInLine::KeyUp(void){
 //------------------------------------------------------------------------------------------//
 void CON_ReadInLine::KeyDown(void){
 	if (cgCLH->SetNext() != 0){
-		if (cODevOut != nullptr){
+		if (cgOdevSTDOUT != nullptr){
 #ifdef CommonDefH_VC
-			cODevOut->Spin_InUse_set();
-			cODevOut->DelCharFromEnd(0,cgCInput.GetData().length());
-			cgCInput.SetData(cgCLH->GetData(),(uint32)cgCLH->GetData().length());
-			cODevOut->OutputStr(cgCInput.GetData(),RICH_CF_clBlack,G_LOCK_OFF);
-			cODevOut->Spin_InUse_clr();
+			uint32 offset;
+			offset = cgCInput.GetData().length();
+			cgOdevSTDOUT->RewriteCharFromEnd(offset, COL_clDefault, cgCInput.SetData(cgCLH->GetData()));
 #endif
 #ifdef CommonDefH_Unix
-			std::string		strTemp;
-			strTemp = "";
-			strTemp.insert(0,cgCInput.GetLength(),' ');
-			cODevOut->Spin_InUse_set();
-			cODevOut->SetCurLeft(cgCInput.cgEditCur);
-			cODevOut->OutputStr(strTemp,RICH_LIN_clDefault,G_LOCK_OFF);
-			cODevOut->SetCurLeft(cgCInput.GetLength());
-			cgCInput.SetData(cgCLH->GetData(),(uint32)cgCLH->GetData().length());
-			cODevOut->OutputStr(cgCInput.GetData(),RICH_LIN_clDefault,G_LOCK_OFF);
-			cODevOut->Spin_InUse_clr();
+			uint32 offset;
+			offset = cgCInput.cgEditCur;
+			cgOdevSTDOUT->RewriteChar(offset,COL_clDefault,cgCInput.SetData(cgCLH->GetData()));
 #endif
 		}
 	}
 }
 //------------------------------------------------------------------------------------------//
 void CON_ReadInLine::KeyReturn(void){
-	cgBICPAR->charSBUF->Clean();
-	cgBICPAR->retCommand = "";
-	cgBICPAR->charSBUF->PutInASCII(cgCInput.GetData() + "\r",G_ESCAPE_OFF);
+	cmdSBUF.Put(cgCInput.GetData() + "\n",G_ESCAPE_OFF);
 	
-	if ((cgBICPAR->blInOnlineMode != 0) || (cgCInput.GetData().length() > 1))
+	if ((cgBICenv.blInOnlineMode != 0) || (cgCInput.GetData().length() > 1))
 		cgCLH->Add(cgCInput.GetData());
 	
 	cgCInput.Init();
-	if (cODevOut != nullptr)
-		cODevOut->OutputStr("\r\n",RICH_LIN_clDefault);
 }
 //------------------------------------------------------------------------------------------//
 void CON_ReadInLine::KeyEscape(void){
-	cgBICPAR->charSBUF->PutInHEX("1b");
+	cmdSBUF.Put('\x1b');
 }
 //------------------------------------------------------------------------------------------//
 void CON_ReadInLine::KeyTab(void){
-	std::string		newData;
-	if (cODevOut != nullptr){
+	if (cgOdevSTDOUT != nullptr){
 #ifdef CommonDefH_VC
-		cODevOut->Spin_InUse_set();
-		cODevOut->DelCharFromEnd(0,cgCInput.GetData().length());
-		newData = cgCLH->GetSimilar(cgCInput.GetData());
-		cgCInput.SetData(newData,(uint32)newData.length());
-		cODevOut->OutputStr(cgCInput.GetData(),RICH_CF_clBlack,G_LOCK_OFF);
-		cODevOut->Spin_InUse_clr();
+		uint32 offset;
+		offset = cgCInput.GetData().length();
+		cgOdevSTDOUT->RewriteCharFromEnd(offset, COL_clDefault, cgCInput.SetData(cgCLH->GetSimilar(cgCInput.GetData())));
 #endif
 #ifdef CommonDefH_Unix
-		std::string		strTemp;
-		strTemp = "";
-		strTemp.insert(0,cgCInput.GetLength(),' ');
-		cODevOut->Spin_InUse_set();
-		cODevOut->SetCurLeft(cgCInput.cgEditCur);
-		cODevOut->OutputStr(strTemp,RICH_LIN_clDefault,G_LOCK_OFF);
-		cODevOut->SetCurLeft(cgCInput.GetLength());
-		newData = cgCLH->GetSimilar(cgCInput.GetData());
-		cgCInput.SetData(newData,(uint32)newData.length());
-		cODevOut->OutputStr(cgCInput.GetData(),RICH_LIN_clDefault,G_LOCK_OFF);
-		cODevOut->Spin_InUse_clr();
+		uint32 offset;
+		offset = cgCInput.cgEditCur;
+		cgOdevSTDOUT->RewriteChar(offset,COL_clDefault,cgCInput.SetData(cgCLH->GetSimilar(cgCInput.GetData())));
 #endif
 	}
 }
 //------------------------------------------------------------------------------------------//
 void CON_ReadInLine::KeyDBTab(void){
-	std::string		newData;
-	newData = "\r\n";
-	newData += cgCLH->GetSimilarGroup(cgCInput.GetData());
-	if (newData == "\r\n")
+	STDSTR	newData;
+	newData = cgCLH->GetSimilarGroup(cgCInput.GetData());
+	if (newData == "\n")
 		return;
-	if (cODevOut != nullptr){
-#ifdef CommonDefH_VC
-		cODevOut->Spin_InUse_set();
-		cODevOut->DelCharFromEnd(0,cgCInput.GetData().length());
-		cODevOut->OutputStr(newData,RICH_CF_clPurple,G_LOCK_OFF);
-		cODevOut->OutputStrN(">" + cgCInput.GetData(),RICH_CF_clBlack,G_LOCK_OFF);
-		cODevOut->Spin_InUse_clr();
-#endif
-#ifdef CommonDefH_Unix
-		std::string		strTemp;
-		strTemp = "";
-		strTemp.insert(0,cgCInput.GetLength(),' ');
-		cODevOut->Spin_InUse_set();
-		cODevOut->SetCurLeft(cgCInput.cgEditCur);
-		cODevOut->OutputStr(strTemp,RICH_LIN_clCyan,G_LOCK_OFF);
-		cODevOut->SetCurLeft(cgCInput.GetLength());
-		cODevOut->OutputStr(newData,RICH_LIN_clCyan,G_LOCK_OFF);
-		cODevOut->OutputStrN(">" + cgCInput.GetData(),RICH_LIN_clDefault,G_LOCK_OFF);
-		cODevOut->Spin_InUse_clr();
-#endif
+	if (cgOdevSTDOUT != nullptr){
+		*cgOdevSTDOUT << Start << NL
+		<< COL_clPurple << newData
+		<< COL_clDefault << ">" << cgCInput.GetData()
+		<< Endl;
 	}
 }
 //------------------------------------------------------------------------------------------//
 int32 CON_ReadInLine::InsertChar(uint8 key){
-	if (cgBICPAR->blInPressKeyMode != 0){
-		cgBICPAR->charSBUF->Put(&key,1);
+	if (cgBICenv.blInPressKeyMode != 0){
+		cmdSBUF.Put(key);
 		return 1;
 	}
 	if ((key >= 32) && (key <= 126)){
 		cgCInput.Insert(key);
-		if (cODevOut != nullptr){
+		if (cgOdevSTDOUT != nullptr){
 #ifdef CommonDefH_VC
-			std::string	text;
-			text = key;
-			cODevOut->InsterCharFromEnd(cgCInput.GetData().length() - cgCInput.cgEditCur, text);
+			if (cgCInput.GetData().length() == cgCInput.cgEditCur){
+				cgOdevSTDOUT->Write(COL_clDefault, key);
+			}
+			else{
+				cgOdevSTDOUT->InsterCharFromEnd(cgCInput.GetData().length() - cgCInput.cgEditCur, COL_clDefault, Str_CharToASCIIStr(&key, 1, G_ESCAPE_OFF));
+			}
 #endif
 #ifdef CommonDefH_Unix
-			cODevOut->Spin_InUse_set();
-			cODevOut->SetCurLeft(cgCInput.cgEditCur - 1);
-			cODevOut->OutputStr(cgCInput.GetData(),RICH_LIN_clDefault,G_LOCK_OFF);
-			cODevOut->SetCurLeft(cgCInput.GetLength() - cgCInput.cgEditCur);
-			cODevOut->Spin_InUse_clr();
+			if (cgCInput.GetData().length() == cgCInput.cgEditCur){
+				cgOdevSTDOUT->Write(COL_clDefault,key);
+			}
+			else{
+				cgOdevSTDOUT->InsterChar(COL_clDefault,&key,1);
+			}
 #endif
 		}
 		return 1;
@@ -538,18 +473,22 @@ int32 CON_ReadInLine::InsertChar(uint8 key){
 //------------------------------------------------------------------------------------------//
 int32 CON_ReadInLine::InsertChar(const uint8 *key,uint32 length){
 	cgCInput.Insert(key,length);
-	if (cODevOut != nullptr){
+	if (cgOdevSTDOUT != nullptr){
 #ifdef CommonDefH_VC
-		std::string	text;
-		text = Str_CharToASCIIStr(key,length,G_ESCAPE_OFF);
-		cODevOut->InsterCharFromEnd(cgCInput.GetData().length() - cgCInput.cgEditCur, text);
+		if (cgCInput.GetData().length() == cgCInput.cgEditCur){
+			cgOdevSTDOUT->Write(COL_clDefault,key,length);
+		}
+		else{
+			cgOdevSTDOUT->InsterCharFromEnd(cgCInput.GetData().length() - cgCInput.cgEditCur, COL_clDefault, Str_CharToASCIIStr(key, length, G_ESCAPE_OFF));
+		}
 #endif
 #ifdef CommonDefH_Unix
-		cODevOut->Spin_InUse_set();
-		cODevOut->SetCurLeft(cgCInput.cgEditCur - 1);
-		cODevOut->OutputStr(cgCInput.GetData(), RICH_LIN_clDefault,G_LOCK_OFF);
-		cODevOut->SetCurLeft(cgCInput.GetLength() - cgCInput.cgEditCur);
-		cODevOut->Spin_InUse_clr();
+		if (cgCInput.GetData().length() == cgCInput.cgEditCur){
+			cgOdevSTDOUT->Write(COL_clDefault,key,length);
+		}
+		else{
+			cgOdevSTDOUT->InsterChar(COL_clDefault,key,length);
+		}
 #endif
 		return 1;
 	}
@@ -561,30 +500,28 @@ int32 CON_ReadInLine::DoContrl(void){
 	
 	key = cgNewKey.wParam;
 	
-	if (cgBICPAR->blInPressKeyMode != 0){
+	if (cgBICenv.blInPressKeyMode != 0){
 		if (key == VK_ESCAPE){
 			key = 0x1b;
 		}
 		else if (key != ' '){
-			key = '\r';
+			key = '\n';
 		}
-		cgBICPAR->charSBUF->Put(&key,1);
+		cmdSBUF.Put(&key,1);
 		return 1;
 	}
-	if ((cgblDBEscMode != 0) && (key == VK_RETURN) && (cODevOut != nullptr)){//change display mode
-		cODevOut->Spin_InUse_set();
-		if (cgBICPAR->blDisplayAuto != 0){
-			cgBICPAR->blDisplayAuto = 0;
-			cODevOut->Enable();
+	if ((cgblDBEscMode != 0) && (key == VK_RETURN) && (cgOdevSTDOUT != nullptr)){//change display mode
+		if (cgBICenv.blDisplayAuto != 0){
+			cgBICenv.blDisplayAuto = 0;
+			cgOdevSTDOUT->PrintEnable();
 		}
 		else{
-			cgBICPAR->blDisplayAuto = 1;
+			cgBICenv.blDisplayAuto = 1;
 		}
-		cODevOut->Spin_InUse_clr();
 		cgblDBEscMode = 0;
 		return 1;
 	}
-	if (cgBICPAR->blInOnlineMode != 0){
+	if (cgBICenv.blInOnlineMode != 0){
 		if (cgblDBEscMode != 0){
 #ifdef CommonDefH_VC
 			if ((key >= 0x41) && (key <= 0x5A)){
@@ -625,17 +562,17 @@ int32 CON_ReadInLine::DoContrl(void){
 				return 1;
 			}
 #endif
-			cgBICPAR->charSBUF->Put(&key,1);
+			cmdSBUF.Put(&key,1);
 			if (key != 0x1b){
-				std::string strT;
+				STDSTR strT;
 				if (key == 0x80){
 					key = 0x1b;
 				}
 				key += 0x40;
 				strT = '^';
 				strT += key;
-				if (cODevOut != nullptr)
-					cODevOut->OutputStr(strT,RICH_CF_clBlack);
+				if (cgOdevSTDOUT != nullptr)
+					cgOdevSTDOUT->Write(COL_clDefault,strT);
 			}
 			cgblDBEscMode = 0;
 			return 1;
@@ -720,35 +657,9 @@ int32 CON_ReadInLine::DoContrl(void){
 	return 0;
 }
 //------------------------------------------------------------------------------------------//
-int32 CON_ReadInLine::AKey(const MSG *pMsg){
-	int32	renKeyType,ret;
-	if (cgBICPAR->blUseSecondLH != 0){
-		SwitchSecondLH();
-	}
-	else{
-		SwitchMainLH();
-	}
-	renKeyType = AnalyzeKeyStream(pMsg);
-	CheckPressStatus();
-	ret = 0;
-	if (renKeyType == WM_KEYDOWN){
-		ret = DoContrl();
-	}
-	else if (renKeyType == WM_CHAR){
-		ret = InsertChar(cgNewKey.wParam);
-	}
-	if ((ret == 1) && (cODevOut != nullptr)){
-		cODevOut->Spin_InUse_set();
-		if (cgBICPAR->blDisplayAuto != 0)
-			cODevOut->Disable();
-		cODevOut->Spin_InUse_clr();
-	}
-	return(ret);
-}
-//------------------------------------------------------------------------------------------//
 void CON_ReadInLine::CheckPressStatus(void){
-	double			tTime;
-	SYS_DateTime	dT;
+	double	tTime;
+	TIME	dT;
 	
 	if ((cgNewKey.message == WM_KEYDOWN) && (cgLastKey.message == WM_KEYDOWN) && (cgLastKey.wParam == cgNewKey.wParam)){
 		dT = cgNewKey.keyTime - cgLastKey.keyTime;
@@ -770,10 +681,11 @@ void CON_ReadInLine::CheckPressStatus(void){
 	}
 }
 //------------------------------------------------------------------------------------------//
-int32 CON_ReadInLine::AnalyzeKeyStream(const MSG *pMsg){
-	SYS_DateTime	dT;
-	double			dTsec;
 #ifdef CommonDefH_VC
+int32 CON_ReadInLine::AnalyzeKey(const MSG *pMsg){
+	TIME	dT;
+	double			dTsec;
+
 	cgNewKey.keyTime.Now();
 	cgNewKey.message = pMsg->message;
 	cgNewKey.lParam = 0;
@@ -785,8 +697,14 @@ int32 CON_ReadInLine::AnalyzeKeyStream(const MSG *pMsg){
 		cgblDBEscMode = 0;
 	
 	return(cgNewKey.message);
+}
 #endif
+//------------------------------------------------------------------------------------------//
 #ifdef CommonDefH_Unix
+int32 CON_ReadInLine::AnalyzeKey(const MSG *pMsg){
+	TIME	dT;
+	double	dTsec;
+
 	char key1,key2,key3,key4;
 	
 	cgNewKey.keyTime.Now();
@@ -806,7 +724,7 @@ int32 CON_ReadInLine::AnalyzeKeyStream(const MSG *pMsg){
 	
 	if ((key1 >= 0x20) && (key1 <= 0x7e)){
 		cgNewKey.message = WM_CHAR;
-		if ((cgBICPAR->blInOnlineMode != 0) && (cgblDBEscMode != 0)){
+		if ((cgBICenv.blInOnlineMode != 0) && (cgblDBEscMode != 0)){
 			cgNewKey.message = WM_KEYDOWN;
 			if((key1 >= 0x61) && (key1 <= 0x7a))
 				key1 -= 0x20;
@@ -906,7 +824,98 @@ int32 CON_ReadInLine::AnalyzeKeyStream(const MSG *pMsg){
 	}
 	cgNewKey.wParam = 0;
 	return(cgNewKey.message);
+}
 #endif
+//------------------------------------------------------------------------------------------//
+CON_ReadInLine::CON_ReadInLine(void){
+	cgCInput.Init();
+	cgMainLH.Init();
+	cgSecondLH.Init();
+	cgOdevSTDOUT = nullptr;
+	
+	cgblDBEscMode = 0;
+	
+	cgNewKey.keyTime.Clear();
+	cgNewKey.message = 0;
+	cgNewKey.lParam = 0;
+	cgNewKey.wParam = 0;
+	
+	cgLastKey.keyTime.Clear();
+	cgLastKey.message = 0;
+	cgLastKey.lParam = 0;
+	cgLastKey.wParam = 0;
+	
+	SwitchMainLH();
+	SetDefConsoleAttr(&cgBICenv);
+};
+//------------------------------------------------------------------------------------------//
+int32 CON_ReadInLine::BICThreadFun(void *p){
+#ifdef BIC_CMDH
+	SDTAPP	*sdt = static_cast<SDTAPP*>(p);
+	cmdSBUF.Init(1024 * 2);
+	cmdSBUF.Clean();
+	
+	SetDefConsoleAttr(&cgBICenv,sdt,&cmdSBUF);
+
+	while(BICThread.IsTerminated() == 0){
+		if (cgOdevSTDOUT != nullptr){
+			if (sdt->ExecBIC(&cgBICenv) == -1)
+				break;
+		}
+		else{
+			SYS_SleepMS(100);
+			cgOdevSTDOUT = sdt->m_LogCache.GetG1_STDOUT();
+		}
+	}
+#endif 
+	return 1;
+}
+//------------------------------------------------------------------------------------------//
+int32 CON_ReadInLine::ReceiveKey(const MSG *pMsg){
+	int32	renKeyType,ret;
+	if (cgBICenv.blUseSecondLH != 0){
+		SwitchSecondLH();
+	}
+	else{
+		SwitchMainLH();
+	}
+	renKeyType = AnalyzeKey(pMsg);
+	CheckPressStatus();
+	ret = 0;
+	if (renKeyType == WM_KEYDOWN){
+		ret = DoContrl();
+	}
+	else if (renKeyType == WM_CHAR){
+		ret = InsertChar(cgNewKey.wParam);
+	}
+	if ((ret == 1) && (cgOdevSTDOUT != nullptr)){
+		if (cgBICenv.blDisplayAuto != 0)
+			cgOdevSTDOUT->PrintDisable();
+	}
+	if (cgBICenv.blExit == -1){
+		BICThread.ThreadStop();
+		return -1;
+	}
+	return(ret);
+}
+//------------------------------------------------------------------------------------------//
+int32 CON_ReadInLine::LoadDefault(const STDSTR &filename){
+	STDSTR			strResult;
+	std::fstream	fileStream;
+	
+	if (CFS_CheckFile(filename) < 1)
+		return 0;
+	
+	fileStream.open(filename.c_str(),std::ios::in|std::ios::binary);
+	do{
+		strResult = "";
+		std::getline(fileStream, strResult, '\n');
+		if ((strResult.length() > 0) && (strResult[0] != '#'))
+			AddToMLH(strResult);
+	}while(!fileStream.eof());
+	fileStream.close();
+	return(1);
 }
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
+#endif

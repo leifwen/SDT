@@ -9,35 +9,33 @@
  * Date		: 2012.12.12
  *
 */
-#ifndef SendFilesH
-#define SendFilesH
+
 //------------------------------------------------------------------------------------------//
 #include "Comm_Tree.h"
 #include "SYS_Thread.h"
+#include "Device.h"
 //------------------------------------------------------------------------------------------//
-class DEVICE;
+#ifdef DeviceH
+#ifndef SendFilesH
+#define SendFilesH
+#ifdef SendFilesH
 //------------------------------------------------------------------------------------------//
-class TFileSend : public RTREE_NODE{
-	public:
-		enum{RFLAG_C = 1, RFLAG_S = RTREE_NODE::RFLAG_S + RTREE_NODE::RFLAG_C};
+//------------------------------------------------------------------------------------------//
+class TFileSend : public DEVICE_EXE_FRAME{
 		enum{PACKAGE_MAX_SIZE = 1024 * 2};
 	public:
 				 TFileSend(void);
-		virtual ~TFileSend(void);
+		virtual ~TFileSend(void){cgfileName = "";};
 	private:
-		std::string 	cfileName;
-		DEVICE			*cDevice;
-		SYS_ThreadEx<TFileSend>		exThread;
-		void	SetInRun		(void){SetSFlag(RFLAG_CREATE(0));};
-		void	ClrInRun		(void){ClrSFlag(RFLAG_CREATE(0));};
-		int32	CheckblInRun	(void)const{return(CheckSFlag(RFLAG_CREATE(0)));};
-		int32	SendFile		(void);
+		STDSTR					cgfileName;
+		SYS_Thread<TFileSend>	sendThread;
+	private:
+		int32	SendThreadFun	(void *p);
 	public:
-		int32 	IsStop				(void)const{return((CheckblInRun()) == 0);};
-		void	StopSend(void);
-		int32	Execute(const DEVICE *tDevice,const std::string &tfileName);
+		int32	Execute			(const DEVICE *tDevice,const STDSTR &tfileName);
 };
 //------------------------------------------------------------------------------------------//
-
 //------------------------------------------------------------------------------------------//
+#endif
+#endif
 #endif

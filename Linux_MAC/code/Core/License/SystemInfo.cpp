@@ -125,7 +125,7 @@ int32 WinNTHDSerialNumAsPhysicalReadWithAdminRights(BYTE* dwSerial,UINT* puSeria
 		
 		CString		szDriveName;
 		szDriveName = _T("\\\\.\\PhysicalDrive");
-		szDriveName += Str_ANSIToUnicode(Str_IntToString(uDrive)).c_str();
+		szDriveName += Str_ANSIToUnicode(Str_ToString(uDrive)).c_str();
 		//  Windows NT, Windows 2000, must have admin rights
 		hPhysicalDriveIOCTL = CreateFile(szDriveName,
 										 GENERIC_READ | GENERIC_WRITE,
@@ -184,7 +184,7 @@ int32 WinNTHDSerialNumAsScsiReadWithAdminRights(BYTE* dwSerial,UINT* puSerialLen
 		//  and exit if can't.
 		CString		szDriveName;
 		szDriveName = _T("\\\\.\\Scsi");
-		szDriveName += Str_ANSIToUnicode(Str_IntToString(iController)).c_str();
+		szDriveName += Str_ANSIToUnicode(Str_ToString(iController)).c_str();
 		szDriveName += _T(":");
 		//  Windows NT, Windows 2000, any rights should do
 		hScsiDriveIOCTL = CreateFile(szDriveName,
@@ -353,7 +353,7 @@ int32 WinNTHDSerialNumAsPhysicalReadWithZeroRights(BYTE* dwSerial,UINT* puSerial
 		//  and exit if can't.
 		CString		szDriveName;
 		szDriveName = _T("\\\\.\\PhysicalDrive");
-		szDriveName += Str_ANSIToUnicode(Str_IntToString(drive)).c_str();
+		szDriveName += Str_ANSIToUnicode(Str_ToString(drive)).c_str();
 		
 		//  Windows NT, Windows 2000, Windows XP - admin rights not required
 		hPhysicalDriveIOCTL = CreateFile (szDriveName, 0,
@@ -515,7 +515,7 @@ UINT FindPhoenixBios(BYTE** ppBiosAddr){
 	return 0;
 }
 //------------------------------------------------------------------------------------------//
-void APIComSignature_GetNetCardInfo(std::string *stringData){
+void APIComSignature_GetNetCardInfo(STDSTR *stringData){
 	unsigned long stSize;
 	int32 nRel,netCardNum,IPnumPerNetCard;
 	
@@ -534,44 +534,44 @@ void APIComSignature_GetNetCardInfo(std::string *stringData){
 		nRel = GetAdaptersInfo(pIpAdapterInfo,&stSize);//再次调用GetAdaptersInfo函数,填充pIpAdapterInfo指针变量
 	}
 	if (nRel == ERROR_SUCCESS){//输出网卡信息,可能有多网卡,因此通过循环去判断
-		*stringData = "----------------------------------------------------------------------\r\n";
-		*stringData += "NetCard Detail Information:\r\n";
-		*stringData += "----------------------------------------------------------------------\r\n";
+		*stringData = "----------------------------------------------------------------------\n";
+		*stringData += "NetCard Detail Information:\n";
+		*stringData += "----------------------------------------------------------------------\n";
 		while (pIpAdapterInfo){
 			*stringData += "Number               : ";
-			*stringData += Str_IntToString(++ netCardNum);
-			*stringData += "\r\n";
+			*stringData += Str_ToString(++ netCardNum);
+			*stringData += "\n";
 			*stringData += "Name                 : ";
 			*stringData += pIpAdapterInfo->AdapterName;
-			*stringData += "\r\n";
+			*stringData += "\n";
 			*stringData += "Description          : ";
 			*stringData += pIpAdapterInfo->Description;
-			*stringData += "\r\n";
+			*stringData += "\n";
 			*stringData += "Type                 : ";
 			switch(pIpAdapterInfo->Type){
 				case MIB_IF_TYPE_OTHER:
-					*stringData += "OTHER\r\n";
+					*stringData += "OTHER\n";
 					break;
 				case MIB_IF_TYPE_ETHERNET:
-					*stringData += "ETHERNET\r\n";
+					*stringData += "ETHERNET\n";
 					break;
 				case MIB_IF_TYPE_TOKENRING:
-					*stringData += "TOKENRING\r\n";
+					*stringData += "TOKENRING\n";
 					break;
 				case MIB_IF_TYPE_FDDI:
-					*stringData += "FDDI\r\n";
+					*stringData += "FDDI\n";
 					break;
 				case MIB_IF_TYPE_PPP:
-					*stringData += "PPP\r\n";
+					*stringData += "PPP\n";
 					break;
 				case MIB_IF_TYPE_LOOPBACK:
-					*stringData += "LOOPBACK\r\n";
+					*stringData += "LOOPBACK\n";
 					break;
 				case MIB_IF_TYPE_SLIP:
-					*stringData += "SLIP\r\n";
+					*stringData += "SLIP\n";
 					break;
 				default:
-					*stringData += "\r\n";
+					*stringData += "\n";
 					break;
 			}
 			*stringData += "MAC Address          : ";
@@ -580,34 +580,34 @@ void APIComSignature_GetNetCardInfo(std::string *stringData){
 				if (i < pIpAdapterInfo->AddressLength - 1)
 					*stringData += '-';
 			}
-			//*stringData += "\r\nIP Address on NetCard:\r\n";
-			*stringData += "\r\n\r\n";
+			//*stringData += "\r\nIP Address on NetCard:\n";
+			*stringData += "\n\n";
 			IP_ADDR_STRING *pIpAddrString =&(pIpAdapterInfo->IpAddressList);
 			IPnumPerNetCard = 0;
 			do{//可能网卡有多IP,因此通过循环去判断
 				*stringData += "IPv4 Address Number  : ";
-				*stringData += Str_IntToString(++IPnumPerNetCard);
-				*stringData += "\r\n";
+				*stringData += Str_ToString(++IPnumPerNetCard);
+				*stringData += "\n";
 				*stringData += "IPv4 Address         : ";
 				*stringData += pIpAddrString->IpAddress.String;
-				*stringData += "\r\n";
+				*stringData += "\n";
 				*stringData += "IPv4 Subnet Mask     : ";
 				*stringData += pIpAddrString->IpMask.String;
-				*stringData += "\r\n";
+				*stringData += "\n";
 				*stringData += "IPv4 Default Gateway : ";
 				*stringData += pIpAdapterInfo->GatewayList.IpAddress.String;
-				*stringData += "\r\n";
+				*stringData += "\n";
 				pIpAddrString = pIpAddrString->Next;
 			}while(pIpAddrString);
 			pIpAdapterInfo = pIpAdapterInfo->Next;
-			*stringData += "----------------------------------------------------------------------\r\n";
+			*stringData += "----------------------------------------------------------------------\n";
 		}
 	}
 	if (pIpAdapterInfo != nullptr)
 		delete []pIpAdapterInfo;
 }
 //------------------------------------------------------------------------------------------//
-void APIComSignature_GetHardiskInfo(std::string *stringData){
+void APIComSignature_GetHardiskInfo(STDSTR *stringData){
 	// 硬盘序列号，注意：有的硬盘没有序列号,需要管理员权限
 	BYTE szSystemInfo[4096]; // 在程序执行完毕后，此处存储取得的系统特征码
 	UINT uSystemInfoLen = 0; // 在程序执行完毕后，此处存储取得的系统特征码的长度
@@ -622,7 +622,7 @@ void APIComSignature_GetHardiskInfo(std::string *stringData){
 	}
 }
 //------------------------------------------------------------------------------------------//
-void APIComSignature_GetBOISInfo(std::string *stringData){//读不到
+void APIComSignature_GetBOISInfo(STDSTR *stringData){//读不到
 	// BIOS 编号，支持 AMI, AWARD, PHOENIX
 	SIZE_T ssize;
 	BYTE szSystemInfo[4096]; // 在程序执行完毕后，此处存储取得的系统特征码
@@ -681,13 +681,13 @@ void APIComSignature_GetBOISInfo(std::string *stringData){//读不到
 		BYTE* pBiosSerial = ( BYTE* )ba;
 		UINT uBiosSerialLen = FindAwardBios( &pBiosSerial );
 		if( uBiosSerialLen == 0U ){
-			*stringData = "no AwardBios\r\n";
+			*stringData = "no AwardBios\n";
 			uBiosSerialLen = FindAmiBios( &pBiosSerial );
 			if( uBiosSerialLen == 0U )
-				*stringData += "no AmiBios\r\n";
+				*stringData += "no AmiBios\n";
 			uBiosSerialLen = FindPhoenixBios( &pBiosSerial );
 			if( uBiosSerialLen == 0U )
-				*stringData += "no PhoenixBios\r\n";
+				*stringData += "no PhoenixBios\n";
 		}
 		if( uBiosSerialLen != 0U ){
 			CopyMemory(szSystemInfo + uSystemInfoLen,pBiosSerial,uBiosSerialLen);
@@ -706,7 +706,7 @@ __int64 WinNTHDSerialNumAsPhysicalReadWithZeroRights(int driveNo,BYTE* dwSerial,
 	__int64		size = 0;
 	
 	szDriveName = _T("\\\\.\\PhysicalDrive");
-	szDriveName += Str_ANSIToUnicode(Str_IntToString(driveNo)).c_str();
+	szDriveName += Str_ANSIToUnicode(Str_ToString(driveNo)).c_str();
 	
 	//  Windows NT, Windows 2000, Windows XP - admin rights not required
 	hPhysicalDriveIOCTL = CreateFile (szDriveName, 0,
@@ -767,7 +767,7 @@ __int64 WinNTHDSerialNumAsPhysicalReadWithZeroRights(int driveNo,BYTE* dwSerial,
 	return(size);
 }
 //------------------------------------------------------------------------------------------//
-void SystemInfo_GetHardiskInfo(std::string *stringData){
+void SystemInfo_GetHardiskInfo(STDSTR *stringData){
 	BYTE szSystemInfo[4096]; // 在程序执行完毕后，此处存储取得的系统特征码
 	UINT uSystemInfoLen = 0; // 在程序执行完毕后，此处存储取得的系统特征码的长度
 	
@@ -792,7 +792,7 @@ void SystemInfo_GetHardiskInfo(std::string *stringData){
 	}
 }
 //------------------------------------------------------------------------------------------//
-int32 SystemInfo_GetNetCardInfo(std::string *stringData){
+int32 SystemInfo_GetNetCardInfo(STDSTR *stringData){
 	unsigned long stSize;
 	int32 nRel,netCardNum,IPnumPerNetCard;
 	
@@ -831,7 +831,7 @@ int32 SystemInfo_GetNetCardInfo(std::string *stringData){
 	return(netCardNum);
 }
 //------------------------------------------------------------------------------------------//
-void SystemInfo_GetCPUID(std::string *stringData){
+void SystemInfo_GetCPUID(STDSTR *stringData){
 	BYTE szSystemInfo[80] = { 0 }; // 在程序执行完毕后，此处存储取得的系统特征码
 	bool bException = false;
 	try{
@@ -885,7 +885,7 @@ void SystemInfo_GetCPUID(std::string *stringData){
 #include <net/ethernet.h>
 #include <arpa/inet.h>
 #define max(a,b)    ((a) > (b) ? (a) : (b))
-const std::string &SystemInfo_GetNetCardInfo(std::string *retStr){
+const STDSTR &SystemInfo_GetNetCardInfo(STDSTR *retStr){
 	char				buffer[1024 * 4], *ptr;
 	struct ifconf		ifc;
 	struct ifreq		*ifr;
@@ -896,7 +896,7 @@ const std::string &SystemInfo_GetNetCardInfo(std::string *retStr){
 	uint32	a,b,c,d,e,f;
 	char	macaddr[18];
 	int 	sockfd;
-	std::string strT,lastName;
+	STDSTR strT,lastName;
 	
 	*retStr = "";
 	sockfd = socket(AF_INET, SOCK_DGRAM, 0);
@@ -938,7 +938,7 @@ const std::string &SystemInfo_GetNetCardInfo(std::string *retStr){
 }
 #endif
 #ifdef CommonDefH_Linux
-const std::string &SystemInfo_GetNetCardInfo(std::string *retStr){
+const STDSTR &SystemInfo_GetNetCardInfo(STDSTR *retStr){
 	*retStr += '\r';
 	return(*retStr);
 };

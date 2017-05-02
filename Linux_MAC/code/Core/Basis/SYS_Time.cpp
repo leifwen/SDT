@@ -29,19 +29,19 @@
 #define	DEFAULT_TIMEFORMATE	"hh:mm:ss.zzz"
 #endif
 //------------------------------------------------------------------------------------------//
-double SYS_DateTime::gCompensation = 0.0;
+double TIME::gCompensation = 0.0;
 //------------------------------------------------------------------------------------------//
-std::string SYS_MakeTimeNow(void){
-	SYS_DateTime	dtime;
+STDSTR SYS_MakeTimeNow(void){
+	TIME	dtime;
 	dtime.Now();
 	return(SYS_FormatDateTime1970(DEFAULT_TIMEFORMATE,dtime));
 }
 //------------------------------------------------------------------------------------------//
-std::string SYS_MakeTime(SYS_DateTime &tDateTime){
+STDSTR SYS_MakeTime(TIME &tDateTime){
 	return(SYS_FormatDateTime1970(DEFAULT_TIMEFORMATE,tDateTime));
 }
 //------------------------------------------------------------------------------------------//
-const SYS_DateTime &SYS_Now(SYS_DateTime *tDateTime){
+const TIME &SYS_Now(TIME *tDateTime){
 #ifdef CommonDefH_Unix
 	gettimeofday(&(tDateTime->gDateTime),nullptr);
 #endif
@@ -58,7 +58,7 @@ const SYS_DateTime &SYS_Now(SYS_DateTime *tDateTime){
 	return(*tDateTime);
 }
 //------------------------------------------------------------------------------------------//
-double SYS_GetSec(const SYS_DateTime &tDateTime){
+double SYS_GetSec(const TIME &tDateTime){
 #ifdef CommonDefH_Unix
 	return((double)tDateTime.gDateTime.tv_sec + (double)tDateTime.gDateTime.tv_usec / 1000000.0);
 #endif
@@ -67,7 +67,7 @@ double SYS_GetSec(const SYS_DateTime &tDateTime){
 #endif
 }
 //------------------------------------------------------------------------------------------//
-const SYS_DateTime &SYS_SetDateTime(SYS_DateTime *tRetDateTime,const double &sec){
+const TIME &SYS_SetDateTime(TIME *tRetDateTime,const double &sec){
 #ifdef CommonDefH_MAC
 	tRetDateTime->gDateTime.tv_sec = (__darwin_time_t)sec;
 	tRetDateTime->gDateTime.tv_usec = (__darwin_suseconds_t)((sec - tRetDateTime->gDateTime.tv_sec) * 1000 * 1000);
@@ -83,7 +83,7 @@ const SYS_DateTime &SYS_SetDateTime(SYS_DateTime *tRetDateTime,const double &sec
 	return(*tRetDateTime);
 }
 //------------------------------------------------------------------------------------------//
-const SYS_DateTime &SYS_SetDateTime(SYS_DateTime *tRetDateTime,const SYS_DateTime &tDateTime){
+const TIME &SYS_SetDateTime(TIME *tRetDateTime,const TIME &tDateTime){
 #ifdef CommonDefH_Unix
 	tRetDateTime->gDateTime.tv_sec = tDateTime.gDateTime.tv_sec;
 	tRetDateTime->gDateTime.tv_usec = tDateTime.gDateTime.tv_usec;
@@ -95,7 +95,7 @@ const SYS_DateTime &SYS_SetDateTime(SYS_DateTime *tRetDateTime,const SYS_DateTim
 	return(*tRetDateTime);
 }
 //------------------------------------------------------------------------------------------//
-const SYS_DateTime &SYS_MinusDateTime(SYS_DateTime *tRetDateTime,const double &sec){
+const TIME &SYS_MinusDateTime(TIME *tRetDateTime,const double &sec){
 #ifdef CommonDefH_Unix
 #ifdef CommonDefH_MAC
 	__darwin_time_t			tSec;
@@ -133,7 +133,7 @@ const SYS_DateTime &SYS_MinusDateTime(SYS_DateTime *tRetDateTime,const double &s
 	return(*tRetDateTime);
 }
 //------------------------------------------------------------------------------------------//
-const SYS_DateTime &SYS_MinusDateTime(SYS_DateTime *tRetDateTime,const SYS_DateTime &tDateTime){
+const TIME &SYS_MinusDateTime(TIME *tRetDateTime,const TIME &tDateTime){
 #ifdef CommonDefH_Unix
 	tRetDateTime->gDateTime.tv_sec -= tDateTime.gDateTime.tv_sec;
 	if (tRetDateTime->gDateTime.tv_usec < tDateTime.gDateTime.tv_usec){
@@ -153,7 +153,7 @@ const SYS_DateTime &SYS_MinusDateTime(SYS_DateTime *tRetDateTime,const SYS_DateT
 	return(*tRetDateTime);
 }
 //------------------------------------------------------------------------------------------//
-const SYS_DateTime &SYS_MinusDateTime(SYS_DateTime *tRetDateTime,const SYS_DateTime &tStrartDateTime,const SYS_DateTime &tEndDateTime){
+const TIME &SYS_MinusDateTime(TIME *tRetDateTime,const TIME &tStrartDateTime,const TIME &tEndDateTime){
 #ifdef CommonDefH_Unix
 #ifdef CommonDefH_MAC
 	__darwin_suseconds_t tv_usec;
@@ -182,7 +182,7 @@ const SYS_DateTime &SYS_MinusDateTime(SYS_DateTime *tRetDateTime,const SYS_DateT
 	return(*tRetDateTime);
 }
 //------------------------------------------------------------------------------------------//
-const SYS_DateTime &SYS_AddDateTime(SYS_DateTime *tRetDateTime,const double &sec){
+const TIME &SYS_AddDateTime(TIME *tRetDateTime,const double &sec){
 #ifdef CommonDefH_Unix
 #ifdef CommonDefH_MAC
 	__darwin_time_t			tSec;
@@ -219,7 +219,7 @@ const SYS_DateTime &SYS_AddDateTime(SYS_DateTime *tRetDateTime,const double &sec
 	return(*tRetDateTime);
 }
 //------------------------------------------------------------------------------------------//
-const SYS_DateTime &SYS_AddDateTime(SYS_DateTime *tRetDateTime,const SYS_DateTime &tDateTime){
+const TIME &SYS_AddDateTime(TIME *tRetDateTime,const TIME &tDateTime){
 #ifdef CommonDefH_Unix
 	tRetDateTime->gDateTime.tv_sec += tDateTime.gDateTime.tv_sec;
 	tRetDateTime->gDateTime.tv_usec += tDateTime.gDateTime.tv_usec;
@@ -239,7 +239,7 @@ const SYS_DateTime &SYS_AddDateTime(SYS_DateTime *tRetDateTime,const SYS_DateTim
 	return(*tRetDateTime);
 }
 //------------------------------------------------------------------------------------------//
-const SYS_DateTime &SYS_AddDateTime(SYS_DateTime *tRetDateTime,const SYS_DateTime &tStrartDateTime,const SYS_DateTime &tEndDateTime){
+const TIME &SYS_AddDateTime(TIME *tRetDateTime,const TIME &tStrartDateTime,const TIME &tEndDateTime){
 #ifdef CommonDefH_Unix
 #ifdef CommonDefH_MAC
 	__darwin_suseconds_t tv_usec;
@@ -268,7 +268,7 @@ const SYS_DateTime &SYS_AddDateTime(SYS_DateTime *tRetDateTime,const SYS_DateTim
 	return(*tRetDateTime);
 }
 //------------------------------------------------------------------------------------------//
-void SYS_DecodeDate1970(const SYS_DateTime &tDateTime,int32 *year,int32 *month,int32 *day,G_UTC_VAILD utc){
+void SYS_DecodeDate1970(const TIME &tDateTime,int32 *year,int32 *month,int32 *day,G_UTC utc){
 	struct tm time_tm;
 	
 #ifdef CommonDefH_Unix
@@ -292,7 +292,7 @@ void SYS_DecodeDate1970(const SYS_DateTime &tDateTime,int32 *year,int32 *month,i
 	*year = time_tm.tm_year + 1900;			/*Äê·Ý - ÆäÖµÎª1900ÄêÖÁ½ñÄêÊý*/
 }
 //------------------------------------------------------------------------------------------//
-void SYS_DecodeTime1970(const SYS_DateTime &tDateTime,int32 *hour,int32 *min,int32 *sec,int32 *msec,G_UTC_VAILD utc){
+void SYS_DecodeTime1970(const TIME &tDateTime,int32 *hour,int32 *min,int32 *sec,int32 *msec,G_UTC utc){
 	struct tm time_tm;
 	
 #ifdef CommonDefH_Unix
@@ -318,7 +318,7 @@ void SYS_DecodeTime1970(const SYS_DateTime &tDateTime,int32 *hour,int32 *min,int
 	*hour = time_tm.tm_hour;	/*Ê± - È¡ÖµÇø¼äÎª[0, 23]*/
 }
 //------------------------------------------------------------------------------------------//
-const SYS_DateTime &SYS_EncodeTime1970(SYS_DateTime *tDateTime,std::string sTime,G_UTC_VAILD utc){
+const TIME &SYS_EncodeTime1970(TIME *tDateTime,STDSTR sTime,G_UTC utc){
 	// YYYY/MM/DD,hh/mm/ss,zzz
 	struct tm	time_tm;
 	
@@ -356,7 +356,7 @@ const SYS_DateTime &SYS_EncodeTime1970(SYS_DateTime *tDateTime,std::string sTime
 	return(*tDateTime);
 }
 //------------------------------------------------------------------------------------------//
-void SYS_DecodeTimeABS(const SYS_DateTime &tDateTime,uint64 *hour,uint64 *min,uint64 *sec,uint64 *msec){
+void SYS_DecodeTimeABS(const TIME &tDateTime,uint64 *hour,uint64 *min,uint64 *sec,uint64 *msec){
 #ifdef CommonDefH_Unix
 	*hour = tDateTime.gDateTime.tv_sec / (60 * 60);
 	*min = (tDateTime.gDateTime.tv_sec % (60 * 60)) / 60;
@@ -371,7 +371,7 @@ void SYS_DecodeTimeABS(const SYS_DateTime &tDateTime,uint64 *hour,uint64 *min,ui
 #endif
 }
 //------------------------------------------------------------------------------------------//
-const SYS_DateTime &SYS_EncodeTimeABS(SYS_DateTime *tDateTime,std::string sTime){
+const TIME &SYS_EncodeTimeABS(TIME *tDateTime,STDSTR sTime){
 	// YYYY/MM/DD,hh/mm/ss,zzz
 	uint32 year,mon,mday,hour,min,sec;
 	
@@ -393,7 +393,7 @@ const SYS_DateTime &SYS_EncodeTimeABS(SYS_DateTime *tDateTime,std::string sTime)
 	return(*tDateTime);
 }
 //------------------------------------------------------------------------------------------//
-const SYS_DateTime &SYS_EncodeTimeABS(SYS_DateTime *tDateTime,const uint32 &hour,const uint32 &min,const uint32 &sec,const uint32 &msec){
+const TIME &SYS_EncodeTimeABS(TIME *tDateTime,const uint32 &hour,const uint32 &min,const uint32 &sec,const uint32 &msec){
 #ifdef CommonDefH_Unix
 	tDateTime->gDateTime.tv_sec = hour * 60 * 60 + min * 60 + sec;
 	tDateTime->gDateTime.tv_usec = msec * 1000;
@@ -405,7 +405,7 @@ const SYS_DateTime &SYS_EncodeTimeABS(SYS_DateTime *tDateTime,const uint32 &hour
 	return(*tDateTime);
 }
 //------------------------------------------------------------------------------------------//
-int32 SYS_CompareDateTime(const SYS_DateTime &tStrartDateTime,const SYS_DateTime &tEndDateTime){
+int32 SYS_CompareDateTime(const TIME &tStrartDateTime,const TIME &tEndDateTime){
 #ifdef CommonDefH_Unix
 	if (tStrartDateTime.gDateTime.tv_sec > tEndDateTime.gDateTime.tv_sec)
 		return 1;
@@ -430,24 +430,24 @@ int32 SYS_CompareDateTime(const SYS_DateTime &tStrartDateTime,const SYS_DateTime
 #endif
 }
 //------------------------------------------------------------------------------------------//
-std::string SYS_GetTimeString(int32 flagType,int32 flagCount
+STDSTR SYS_GetTimeString(int32 flagType,int32 flagCount
 							  ,const uint32 &year,const uint32 &month,const uint32 &day
 							  ,const uint32 &hour,const uint32 &min,const uint32 &sec,const uint32 &msec){
-	std::string	retResult,strTemp;
+	STDSTR	retResult,strTemp;
 	retResult = "";
 	if (flagCount > 0){
 		switch(flagType){
 			case 1:{//YY
 				if (flagCount < 3){
-					retResult = Str_IntToString(year % 100);
+					retResult = Str_ToString(year % 100);
 				}
 				else{
-					retResult = Str_IntToString(year);
+					retResult = Str_ToString(year);
 				}
 				break;
 			}
 			case 2:{//MM
-				strTemp = Str_IntToString(month);
+				strTemp = Str_ToString(month);
 				if ((uint32)flagCount > strTemp.length()){
 					strTemp.insert(0,flagCount - strTemp.length(),'0');
 				}
@@ -455,7 +455,7 @@ std::string SYS_GetTimeString(int32 flagType,int32 flagCount
 				break;
 			}
 			case 3:{//DD
-				strTemp = Str_IntToString(day);
+				strTemp = Str_ToString(day);
 				if ((uint32)flagCount > strTemp.length()){
 					strTemp.insert(0,flagCount - strTemp.length(),'0');
 				}
@@ -463,7 +463,7 @@ std::string SYS_GetTimeString(int32 flagType,int32 flagCount
 				break;
 			}
 			case 4:{//hh
-				strTemp = Str_IntToString(hour);
+				strTemp = Str_ToString(hour);
 				if ((uint32)flagCount > strTemp.length()){
 					strTemp.insert(0,flagCount - strTemp.length(),'0');
 				}
@@ -471,14 +471,14 @@ std::string SYS_GetTimeString(int32 flagType,int32 flagCount
 				break;
 			}
 			case 5:{//mm
-				strTemp = Str_IntToString(min);
+				strTemp = Str_ToString(min);
 				if ((uint32)flagCount > strTemp.length()){
 					strTemp.insert(0,flagCount - strTemp.length(),'0');
 				}
 				retResult += strTemp;
 			}break;
 			case 6:{//ss
-				strTemp = Str_IntToString(sec);
+				strTemp = Str_ToString(sec);
 				if ((uint32)flagCount > strTemp.length()){
 					strTemp.insert(0,flagCount - strTemp.length(),'0');
 				}
@@ -486,7 +486,7 @@ std::string SYS_GetTimeString(int32 flagType,int32 flagCount
 				break;
 			}
 			case 7:{//zzz
-				strTemp = Str_IntToString(msec);
+				strTemp = Str_ToString(msec);
 				if ((uint32)flagCount > strTemp.length()){
 					strTemp.insert(0,flagCount - strTemp.length(),'0');
 				}
@@ -499,13 +499,13 @@ std::string SYS_GetTimeString(int32 flagType,int32 flagCount
 	return(retResult);
 }
 //------------------------------------------------------------------------------------------//
-std::string SYS_FormatDateTime(const std::string &style
+STDSTR SYS_FormatDateTime(const STDSTR &style
 							   ,const uint32 &year,const uint32 &month,const uint32 &day
 							   ,const uint32 &hour,const uint32 &min,const uint32 &sec,const uint32 &msec){
-	//style Îª¸ñÊ½»¯×Ö·û´®,ÀýÈçYY/MM/DD,hh:mm:ss(zzz)\r\n";
-	//YYÄê,MMÔÂ·Ý,DDÈÕÆÚ,hhÐ¡Ê±,mm·ÖÖÓ,ssÃë,zzzºÁÃë\r\n";
-	std::string	ret;
-	std::string::size_type length,i;
+	//style Îª¸ñÊ½»¯×Ö·û´®,ÀýÈçYY/MM/DD,hh:mm:ss(zzz)";
+	//YYÄê,MMÔÂ·Ý,DDÈÕÆÚ,hhÐ¡Ê±,mm·ÖÖÓ,ssÃë,zzzºÁÃë";
+	STDSTR	ret;
+	STDSTR::size_type length,i;
 	int32	flag,flagCount,flagType;
 	uint8	charP,charData;
 	
@@ -634,9 +634,9 @@ std::string SYS_FormatDateTime(const std::string &style
 	return(ret);
 }
 //------------------------------------------------------------------------------------------//
-std::string SYS_FormatDateTime1970(const std::string &style,const SYS_DateTime &tDateTime,G_UTC_VAILD utc){
-	//style Îª¸ñÊ½»¯×Ö·û´®,ÀýÈçYY/MM/DD,hh:mm:ss(zzz)\r\n";
-	//YYÄê,MMÔÂ·Ý,DDÈÕÆÚ,hhÐ¡Ê±,mm·ÖÖÓ,ssÃë,zzzºÁÃë\r\n";
+STDSTR SYS_FormatDateTime1970(const STDSTR &style,const TIME &tDateTime,G_UTC utc){
+	//style Îª¸ñÊ½»¯×Ö·û´®,ÀýÈçYY/MM/DD,hh:mm:ss(zzz)";
+	//YYÄê,MMÔÂ·Ý,DDÈÕÆÚ,hhÐ¡Ê±,mm·ÖÖÓ,ssÃë,zzzºÁÃë";
 	int32	year,month,day,hour,min,sec,msec;
 	
 	SYS_DecodeDate1970(tDateTime,&year,&month,&day,utc);
@@ -645,8 +645,8 @@ std::string SYS_FormatDateTime1970(const std::string &style,const SYS_DateTime &
 	return(SYS_FormatDateTime(style,year,month,day,hour,min,sec,msec));
 }
 //------------------------------------------------------------------------------------------//
-std::string SYS_FormatDateTime1900(const std::string &style,SYS_DateTime tDateTime,G_UTC_VAILD utc){
-	std::string	ret;
+STDSTR SYS_FormatDateTime1900(const STDSTR &style,TIME tDateTime,G_UTC utc){
+	STDSTR	ret;
 	int32	year,month,day,hour,min,sec,msec;
 	
 	tDateTime -= (70LL * 365 + 17) * 24 * 60 * 60;
@@ -655,7 +655,7 @@ std::string SYS_FormatDateTime1900(const std::string &style,SYS_DateTime tDateTi
 	return(SYS_FormatDateTime(style,year,month,day,hour,min,sec,msec));
 }
 //------------------------------------------------------------------------------------------//
-std::string SYS_FormatTimeABS(const std::string &style,const SYS_DateTime &tDateTime){
+STDSTR SYS_FormatTimeABS(const STDSTR &style,const TIME &tDateTime){
 	uint64	hour,min,sec,msec;
 	
 	SYS_DecodeTimeABS(tDateTime,&hour,&min,&sec,&msec);
@@ -664,31 +664,31 @@ std::string SYS_FormatTimeABS(const std::string &style,const SYS_DateTime &tDate
 }
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
-uint64 SYS_ASCIIStrToNTP(std::string strInput){
+uint64 SYS_ASCIIStrToNTP(STDSTR strIn){
 	uint8		charData;
 	uint64		ntp;
 	
-	charData = strInput[0];
+	charData = strIn[0];
 	ntp = charData;
-	charData = strInput[1];
+	charData = strIn[1];
 	ntp = (ntp << 8) | charData;
-	charData = strInput[2];
+	charData = strIn[2];
 	ntp = (ntp << 8) | charData;
-	charData = strInput[3];
+	charData = strIn[3];
 	ntp = (ntp << 8) | charData;
-	charData = strInput[4];
+	charData = strIn[4];
 	ntp = (ntp << 8) | charData;
-	charData = strInput[5];
+	charData = strIn[5];
 	ntp = (ntp << 8) | charData;
-	charData = strInput[6];
+	charData = strIn[6];
 	ntp = (ntp << 8) | charData;
-	charData = strInput[7];
+	charData = strIn[7];
 	ntp = (ntp << 8) | charData;
 	
 	return(ntp);
 }
 //------------------------------------------------------------------------------------------//
-std::string SYS_NTPToHEXStr(uint64 ntp){
+STDSTR SYS_NTPToHEXStr(uint64 ntp){
 	uint8			charData[8];
 	
 	charData[7] = (uint8)ntp;

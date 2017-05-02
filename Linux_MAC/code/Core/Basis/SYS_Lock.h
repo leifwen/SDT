@@ -26,7 +26,7 @@
 #include <pthread.h>
 #endif
 //------------------------------------------------------------------------------------------//
-enum	G_LOCK_VAILD	{G_LOCK_OFF = 0		,G_LOCK_ON};
+enum	G_LOCK	{G_LOCK_OFF = 0		,G_LOCK_ON};
 //------------------------------------------------------------------------------------------//
 #ifdef USE_MUTEXLOCK
 //------------------------------------------------------------------------------------------//
@@ -46,16 +46,16 @@ class SYS_Lock{
 	private:
 			pthread_mutex_t		m_Mutex;
 	public:
-		inline	void	Lock	(G_LOCK_VAILD blVaild = G_LOCK_ON){
+		inline	void	Lock	(G_LOCK blVaild = G_LOCK_ON){
 			if (blVaild == G_LOCK_ON)
 				pthread_mutex_lock(&m_Mutex);
 		};
-		inline	int32	TryLock	(G_LOCK_VAILD blVaild = G_LOCK_ON){
+		inline	int32	TryLock	(G_LOCK blVaild = G_LOCK_ON){
 			if (blVaild == G_LOCK_ON)
 				return(pthread_mutex_trylock(&m_Mutex) == 0);
 			return 1;
 		};
-		inline	void	Unlock	(G_LOCK_VAILD blVaild = G_LOCK_ON){
+		inline	void	Unlock	(G_LOCK blVaild = G_LOCK_ON){
 			if (blVaild == G_LOCK_ON)
 				pthread_mutex_unlock(&m_Mutex);
 		};
@@ -70,16 +70,16 @@ class SYS_Lock{
 	private:
 		CRITICAL_SECTION		m_Mutex;
 	public:
-		inline	void	Lock	(G_LOCK_VAILD blVaild = G_LOCK_ON){
+		inline	void	Lock	(G_LOCK blVaild = G_LOCK_ON){
 			if (blVaild == G_LOCK_ON)
 				EnterCriticalSection(&m_Mutex);
 		};
-		inline	int32	TryLock	(G_LOCK_VAILD blVaild = G_LOCK_ON){
+		inline	int32	TryLock	(G_LOCK blVaild = G_LOCK_ON){
 			if (blVaild == G_LOCK_ON)
 				return(TryEnterCriticalSection(&m_Mutex));
 			return 1;
 		};
-		inline	void	Unlock	(G_LOCK_VAILD blVaild = G_LOCK_ON){
+		inline	void	Unlock	(G_LOCK blVaild = G_LOCK_ON){
 			if (blVaild == G_LOCK_ON)
 				LeaveCriticalSection(&m_Mutex);
 		};
@@ -94,16 +94,16 @@ class SYS_Lock{
 	private:
 		std::atomic_flag	m_Mutex;
 	public:
-		inline	void	Lock	(G_LOCK_VAILD blVaild = G_LOCK_ON){
+		inline	void	Lock	(G_LOCK blVaild = G_LOCK_ON){
 			if (blVaild == G_LOCK_ON)
 				while(m_Mutex.test_and_set(std::memory_order_acquire));
 		};
-		inline	int32	TryLock	(G_LOCK_VAILD blVaild = G_LOCK_ON){
+		inline	int32	TryLock	(G_LOCK blVaild = G_LOCK_ON){
 			if (blVaild == G_LOCK_ON)
 				return(m_Mutex.test_and_set(std::memory_order_acquire) == 0);
 			return 1;
 		};
-		inline	void	Unlock	(G_LOCK_VAILD blVaild = G_LOCK_ON){
+		inline	void	Unlock	(G_LOCK blVaild = G_LOCK_ON){
 			if (blVaild == G_LOCK_ON)
 				m_Mutex.clear(std::memory_order_release);
 		};

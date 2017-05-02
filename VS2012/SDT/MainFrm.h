@@ -43,13 +43,15 @@ class CMainFrame : public CMDIFrameWndEx{
 			virtual void Dump(CDumpContext& dc) const;
 		#endif
 		CChildFrame					*m_MCFrm;
-		CChildFrame					*m_CMUXFrm;
+		CChildFrame					*m_AuxCFrm;
+		CChildFrame					*m_CMUXCFrm;
 		CCMUXView					*m_CMUXView;
-		ODEV_NODE_SDOUT				m_oDevNodeAux;
 		CString						m_MyTitle;
+#ifdef MBIM_DeviceServiceH
 		MBIM_DevService				*m_MBIM_DevService;
-		void		AuxCFrmCreate	(void);
-		void		CMUXFrmCreate	(void);
+#endif
+		CChildFrame*	AuxCFrmCreate(void);
+		CChildFrame*	CMUXFrmCreate(void);
 	protected:  // control bar embedded members
 		ITaskbarList3				*m_Pitl3;
 		BOOL						m_Pitl3Created;
@@ -86,7 +88,7 @@ class CMainFrame : public CMDIFrameWndEx{
 		void	InitComboBox_BR			(void);
 		void	CreateComboBox_COMList	(void);
 		void	SetSelectComboBox_COM	(void);
-		#ifdef	SWVERSION_AUXCOM
+		#ifdef	SWVERSION_AUXDEVICE
 		void	InitComboBox_AuxCOM		(void);
 		void	InitComboBox_AuxBR		(void);
 		void	CreateComboBox_AuxCOMList(void);
@@ -98,18 +100,18 @@ class CMainFrame : public CMDIFrameWndEx{
 		int32	CheckUDPInput			(std::string strInput,std::string *strOutput);
 		int32	CheckTCPServerInput		(std::string strInput,std::string *strOutput);
 		int32	CheckUDPServerInput		(std::string strInput,std::string *strOutput);
-		DEVICE::OPEN_TYPE	CheckIPComInput(std::string strInput, std::string *strOutput);
+		CSType	CheckIPComInput			(std::string strInput, std::string *strOutput);
 		int32	DoConnect				(void);
 		void	DoScriptStop			(void);
 		BOOL	IsWin7					(void);
 	protected:// Generated message map functions
-		afx_msg LRESULT OnSetText(WPARAM wParam,LPARAM lParam);
-		afx_msg void	OnClose(void);
-		afx_msg void	OnSysCommand(UINT nID, LPARAM lParam);
-		afx_msg int		OnCreate(LPCREATESTRUCT lpCreateStruct);
-		afx_msg void	OnWindowManager();
-		afx_msg void	OnApplicationLook(UINT id);
-		afx_msg void	OnUpdateApplicationLook(CCmdUI* pCmdUI);
+		afx_msg LRESULT OnSetText		(WPARAM wParam,LPARAM lParam);
+		afx_msg void	OnClose			(void);
+		afx_msg void	OnSysCommand	(UINT nID, LPARAM lParam);
+		afx_msg int		OnCreate		(LPCREATESTRUCT lpCreateStruct);
+		afx_msg void	OnWindowManager	();
+		afx_msg void	OnApplicationLook		(UINT id);
+		afx_msg void	OnUpdateApplicationLook	(CCmdUI* pCmdUI);
 		
 		afx_msg void	OnCOMBO_COM		(void);
 		afx_msg void	OnCOMBO_BR		(void);
@@ -163,7 +165,7 @@ class CMainFrame : public CMDIFrameWndEx{
 		afx_msg void	OnUpdateCOMBO_COM(CCmdUI *pCmdUI);
 		afx_msg void	OnUpdateCOMBO_BR(CCmdUI *pCmdUI);
 		afx_msg void	OnUpdateScoketlist(CCmdUI *pCmdUI);
-		#ifdef	SWVERSION_AUXCOM
+		#ifdef	SWVERSION_AUXDEVICE
 		afx_msg void	OnRiComboAuxcom		(void);
 		afx_msg void	OnRiComboAuxbr		(void);
 		afx_msg void	OnRiCheckAuxescape	(void);
@@ -218,8 +220,8 @@ class CMainFrame : public CMDIFrameWndEx{
 		afx_msg void OnSBAR_GetIP		(void);
 		afx_msg void OnTimer			(UINT nIDEvent);
 
-		afx_msg void	OnAppAbout				(void);
-		afx_msg LRESULT	OnPrintout(WPARAM wParam, LPARAM lParam);
+		afx_msg void	OnAppAbout		(void);
+		afx_msg LRESULT	OnBICClean		(WPARAM wParam, LPARAM lParam);
 
 		DECLARE_MESSAGE_MAP()
 };

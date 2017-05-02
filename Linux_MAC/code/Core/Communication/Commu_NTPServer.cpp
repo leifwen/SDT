@@ -18,8 +18,9 @@
 #include <arpa/inet.h>
 #endif
 //------------------------------------------------------------------------------------------//
+#ifdef Commu_NTPServerH
 //------------------------------------------------------------------------------------------//
-int32 NTPServer::UDPThreadListionFun(void){
+int32 NTPServer::ListionUDP(void *p){
 	sockaddr_in		ListionAddr;
 #ifdef CommonDefH_Unix
 	socklen_t	addrlen;
@@ -29,17 +30,16 @@ int32 NTPServer::UDPThreadListionFun(void){
 #endif
 	uint8			buffer[48];
 	int32			bytesNum;
-	std::string		strTemp;
-	SYS_DateTime	dT2, dT3, dTR;
+	STDSTR		strTemp;
+	TIME	dT2, dT3, dTR;
 	
 	addrlen = sizeof(ListionAddr);
 	dTR.Now();
 	
-	while(udplistionThread.IsTerminated() == 0){
+	while(listionThread.IsTerminated() == 0){
 		bytesNum = (int32)recvfrom(listionSocket, (char*)buffer, 48, 0, (struct sockaddr *)&ListionAddr, &addrlen);
 		if ((bytesNum != SOCKET_ERROR) && (bytesNum == 48)){
 			dT2.Now();
-			
 			/*
 			 strH = "CB 01 00 00";
 			 strR1 = "00 00 00 00";
@@ -63,8 +63,8 @@ int32 NTPServer::UDPThreadListionFun(void){
 			sendto(listionSocket, (char*)buffer, 48, 0, (struct sockaddr *)&ListionAddr, sizeof(ListionAddr));
 		}
 	}
-	
 	return 1;
 }
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
+#endif

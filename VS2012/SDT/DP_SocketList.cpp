@@ -58,56 +58,53 @@ int CSocketListCtrl::OnCreate(LPCREATESTRUCT lpCreateStruct){
 	return 0;
 }
 //------------------------------------------------------------------------------------------//
-void CSocketListCtrl::LoadData(APISocketServer *server){
+void CSocketListCtrl::LoadData(ASOCKETSERVER *server){
 	int32 i;
 
 	m_Server = server;
 	if (m_Server == NULL)
 		return;
 
-	if (m_Server->CheckblUpdate() == 0)
+	if (m_Server->CheckUpdate() == 0)
 		return;
 
 	DeleteAllItems();
 	m_SelectItem = -1;
 	m_SelectSubItem = -1;
 
-	m_Server->Spin_InUse_set();
 	i = 0;
-	RTREE_LChildRChain_Traversal_LINE(APISocket, m_Server,
+	TREE_LChildRChain_Traversal_LINE(ASOCKET, m_Server,
 		operateNode_t->Spin_InUse_set();
-		InsertItem(i,Str_ANSIToUnicode(operateNode_t->GetBufName()).c_str());
-		SetItemText(i, 1, Str_ANSIToUnicode(Str_IntToString(operateNode_t->GetBufPar())).c_str());
-		SetItemData(i, RTREE_NODE::GetdRNodeID(operateNode_t));
-		SetCheck(i, operateNode_t->CheckblSelected());
-		++ i;
+		if (operateNode_t->IsConnected() != 0){
+			InsertItem(i, Str_ANSIToUnicode(operateNode_t->GetBufName()).c_str());
+			SetItemText(i, 1, Str_ANSIToUnicode(Str_ToString(operateNode_t->GetBufPar())).c_str());
+			SetItemData(i, TREE_NODE::GetdRNodeID(operateNode_t));
+			SetCheck(i, operateNode_t->CheckSelected());
+			++i;
+		}
 		operateNode_t->Spin_InUse_clr();
 	);
 	m_Server->ClrblUpdate();
-	m_Server->Spin_InUse_clr();
 }
 //------------------------------------------------------------------------------------------//
 void CSocketListCtrl::Disconnect(int disItem){
-	APISocket		*nextSocket;
+	ASOCKET		*nextSocket;
 
 	if (m_Server == NULL)
 		return;
 	if (disItem < 0)
 		return;
-	m_Server->Spin_InUse_set();
 
-	nextSocket = (APISocket*)RTREE_NODE::FindInLChildRChainByDRNodeID(m_Server, GetItemData(disItem));
-	if (nextSocket != NULL)
-		nextSocket->CloseD(0);
-	m_Server->Spin_InUse_clr();
+	nextSocket = (ASOCKET*)TREE_NODE::FindInLChildRChainByDRNodeID(m_Server, GetItemData(disItem));
+	m_Server->ChildClose(nextSocket);
 }
 //------------------------------------------------------------------------------------------//
 void CSocketListCtrl::OnLButtonDown(UINT nFlags, CPoint point){
 	CMyCListCtrl::OnLButtonDown(nFlags,point);
 	LVHITTESTINFO lvinfo;
 
-	APISocket		*socketSelected;
-	int32			i;
+	ASOCKET		*socketSelected;
+	int32		i;
 
 	lvinfo.pt = point;
 	lvinfo.flags = LVHT_ABOVE;
@@ -120,33 +117,16 @@ void CSocketListCtrl::OnLButtonDown(UINT nFlags, CPoint point){
 			SetCheck(lvinfo.iItem);
 			if (m_Server == NULL)
 				return;
-			m_Server->Spin_InUse_set();
-			socketSelected = (APISocket*)RTREE_NODE::GetSelectedInLChildRChain(m_Server);
-			if (socketSelected != NULL){
-				socketSelected->ClrblSelected();
-				socketSelected->UseExternalFwSBL(NULL);
-				socketSelected->UnlinkCoupleNode();
-			}
-			socketSelected = (APISocket*)RTREE_NODE::FindInLChildRChainByDRNodeID(m_Server, GetItemData(lvinfo.iItem));
-			if (socketSelected != NULL){
-				socketSelected->SetblSelected();
-				socketSelected->UseExternalFwSBL(&GSDTApp.m_Device.rxBufferList);
-				if (GSDTApp.m_Device2.CheckblConnect() != 0)
-					socketSelected->LinkCoupleNode(GSDTApp.m_Device2.cgCurrentDB);
-			}
-			m_Server->Spin_InUse_clr();
+			socketSelected = (ASOCKET*)TREE_NODE::FindInLChildRChainByDRNodeID(m_Server, GetItemData(lvinfo.iItem));
+			if (m_Server->GetSelDB() != socketSelected)
+				m_Server->ChildSetSel(socketSelected);
 		}
 		else{
 			SetCheck(lvinfo.iItem,FALSE);
 			if (m_Server != NULL){
-				m_Server->Spin_InUse_set();
-				socketSelected = (APISocket*)RTREE_NODE::FindInLChildRChainByDRNodeID(m_Server, GetItemData(lvinfo.iItem));
-				if (socketSelected != NULL){
-					socketSelected->ClrblSelected();
-					socketSelected->UseExternalFwSBL(NULL);
-					socketSelected->UnlinkCoupleNode();
-				}
-				m_Server->Spin_InUse_clr();
+				socketSelected = (ASOCKET*)TREE_NODE::FindInLChildRChainByDRNodeID(m_Server, GetItemData(lvinfo.iItem));
+				if (m_Server->GetSelDB() == socketSelected)
+					m_Server->ChildClrSel(socketSelected);
 			}
 		}
 	}
@@ -154,48 +134,41 @@ void CSocketListCtrl::OnLButtonDown(UINT nFlags, CPoint point){
 //------------------------------------------------------------------------------------------//
 void CSocketListCtrl::OnLButtonDblClk(UINT nFlags, CPoint point){
 	CMyCListCtrl::OnLButtonDblClk(nFlags,point);
-	APISocket		*apiSocket;
+	ASOCKET		*aSocket;
 
 	if (m_SelectItem < 0)
 		return;
 	if (m_Server == NULL)
 		return;
-	m_Server->Spin_InUse_set();
-	apiSocket = (APISocket*)RTREE_NODE::FindInLChildRChainByDRNodeID(m_Server, GetItemData(m_SelectItem));
-	if (apiSocket != NULL){
-		if (apiSocket->GetcgODevPool() == NULL){
-			CreateScoketView(apiSocket);
-		}
-		else if (apiSocket->GetcgODevPool()->cODevSDOUT == NULL){
-			CreateScoketView(apiSocket);
-		}
-		else if (apiSocket->GetcgODevPool()->cODevSDOUT->cgCFrm == NULL){
-			CreateScoketView(apiSocket);
+	aSocket = (ASOCKET*)TREE_NODE::FindInLChildRChainByDRNodeID(m_Server, GetItemData(m_SelectItem));
+	if (aSocket != nullptr){
+		if (aSocket->GetG3DefSTDOUT() == nullptr){
+			CreateScoketView(aSocket);
 		}
 		else{
-			apiSocket->GetcgODevPool()->cODevSDOUT->cgCFrm->MDIActivate();
+			((CChildFrame*)(aSocket->GetG3DefSTDOUT()->cgRichEdit->GetParentFrame()))->MDIActivate();
 		}
 	}
-	m_Server->Spin_InUse_clr();
 }
 //------------------------------------------------------------------------------------------//
-void CSocketListCtrl::CreateScoketView(APISocket *apiSocket){
+void CSocketListCtrl::CreateScoketView(ASOCKET *aSocket){
 	CChildFrame		*childpFrm;
 	CCreateContext	context;
-	ODEV_NODE_SDOUT	*newOdevNode;
 	CString			cTitle;
+
 	context.m_pNewViewClass = RUNTIME_CLASS(CMyRichView);
 	childpFrm = new CChildFrame();
 	childpFrm->LoadFrame(IDI_SOCKETFRM,WS_CHILD | WS_OVERLAPPEDWINDOW,theApp.m_pMainWnd,&context);
 	childpFrm->ShowWindow(SW_SHOW);
 	childpFrm->InitialUpdateFrame(NULL,true);
-	cTitle = Str_ANSIToUnicode(apiSocket->GetBufName()).c_str();
-	cTitle += _T(":");
-	cTitle += Str_ANSIToUnicode(Str_IntToString(apiSocket->GetBufPar())).c_str();
-	childpFrm->SetWindowTextW(cTitle);
-	newOdevNode = apiSocket->CreateODevSDOUT((CRichEditView*)childpFrm->GetActiveView(),childpFrm);
 	((CMyRichView*)childpFrm->GetActiveView())->DragAcceptFiles(FALSE);
-	childpFrm->oDevNode = newOdevNode;
+	childpFrm->m_bCanClose = TRUE;
+	childpFrm->m_selfName = "Socket";
+	cTitle = Str_ANSIToUnicode(aSocket->GetDevName()).c_str();
+	childpFrm->SetWindowTextW(cTitle);
+
+	childpFrm->cstdout.Init((CRichEditView*)childpFrm->GetActiveView(), nullptr);
+	aSocket->AddG3D_STDOUT(&childpFrm->cstdout);
 	childpFrm->m_bCanClose = TRUE;
 }
 //------------------------------------------------------------------------------------------//

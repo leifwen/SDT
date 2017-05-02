@@ -14,6 +14,7 @@
 #include "SDT.h"
 #include "DP_Send.h"
 #include "Global.h"
+#include "RichView.h"
 
 #ifdef _DEBUG
 #undef THIS_FILE
@@ -358,16 +359,19 @@ void CSendPaneView::OnSend(void){
 	wstrCommand = cstrText;
 	m_CommandNode.StrTimeout = Str_UnicodeToANSI(wstrCommand);
 	m_CommandNode.StrCycle = "0";
-	m_CommandNode.blEnableHEX = m_CheckBoxHex.GetCheck();
-	m_CommandNode.blEnableSendCR = m_CheckBoxCR.GetCheck();
+	m_CommandNode.cmdTail = (CMD_TAIL)(m_CheckBoxCR.GetCheck());
 
 	if (m_CheckBoxSendEnable.GetCheck()){
 		if (GSDTApp.m_Script.Execute(&GSDTApp.m_Device,&m_CommandNode) == 0)
 			AfxMessageBox(_T("Script is running!"));
 	}
 	else{
-		GSDTApp.m_Device.SendCommand(m_CommandNode.StrCommand,m_CommandNode.blEnableHEX,m_CommandNode.blEnableSendCR
-			,(m_CheckBoxEscape.GetCheck() == 0)?G_ESCAPE_OFF:G_ESCAPE_ON);
+		if (m_CheckBoxHex.GetCheck()){
+			GSDTApp.m_Device.SendHexCommandWithPrint(m_CommandNode.StrCommand);
+		}
+		else{
+			GSDTApp.m_Device.SendCommandWithPrint(m_CommandNode.StrCommand, m_CommandNode.cmdTail, (G_ESCAPE)m_CheckBoxEscape.GetCheck());
+		}
 	}
 }
 //------------------------------------------------------------------------------------------//
@@ -376,10 +380,10 @@ void CSendPaneView::OnDropFiles(HDROP hDropInfo){
 	TCHAR			szFileName[MAX_PATH];
 	CString			cFileName;
 	std::wstring	wstrFileName;
-	std::string		strFileName,strExtName;
+	std::string		strFileName, strExtName;
 
 	nFileCount = DragQueryFile(hDropInfo, 0xFFFFFFFF, NULL, MAX_PATH);
-	((CMDIChildWndEx*)GSDTApp.m_Device.cgODevList.cgOutput->cODevSDOUT->cgRichEdit->GetParentFrame())->MDIActivate();
+	((CMDIChildWndEx*)GSDTApp.m_LogCache.GetG1_STDOUT()->cgRichEdit->GetParentFrame())->MDIActivate();
 	if (nFileCount > 1){
 		PrintFileName(hDropInfo);
 	}
@@ -402,18 +406,16 @@ void CSendPaneView::PrintFileName(HDROP hDropInfo){
 	std::string		strPrint;
 	TCHAR			szFileName[MAX_PATH];
 	int				nFileCount;
-	ODEV_NODE		*record;
-	record = GSDTApp.m_Device.cgODevList.cgOutput->cODevSDOUT;
-	GSDTApp.m_Device.cgODevList.cgOutput->Print();
-	GSDTApp.m_Device.cgODevList.cgOutput->Clean();
+
+	GSDTApp.m_LogCache.GetG1_STDOUT()->Clean();
 
 	nFileCount = DragQueryFile(hDropInfo, 0xFFFFFFFF, NULL, MAX_PATH);
 
 	strPrint = "Total ";
-	strPrint += Str_IntToString(nFileCount);
+	strPrint += Str_ToString(nFileCount);
 	strPrint += " files selected, pls drop one file and try again.";
-	record->WriteToStr(strPrint,RICH_CF_clMaroon);
-	record->WriteDividingLine(RICH_CF_clPurple);
+	GSDTApp.m_LogCache.GetG1_STDOUT()->Write(COL_clMaroon,strPrint);
+	GSDTApp.m_LogCache.GetG1_STDOUT()->WriteNL(COL_DivLine,DIVIDING_LINE);
 	for (int i = 0; i < nFileCount; ++ i){
 		ZeroMemory(szFileName,MAX_PATH);
 		DragQueryFile(hDropInfo,i,szFileName,MAX_PATH);
@@ -421,10 +423,9 @@ void CSendPaneView::PrintFileName(HDROP hDropInfo){
 		cResult += _T("\r\n");
 	}
 	wstrFileName = cResult;
-	record->WriteToStr(Str_UnicodeToANSI(wstrFileName),RICH_CF_clBlue);
-	record->WriteDividingLine(RICH_CF_clPurple);
-	record->WriteToStr("End",RICH_CF_clMaroon);
-	GSDTApp.m_Device.cgODevList.cgOutput->cODevSDOUT->Print();
-	GSDTApp.m_Device.cgODevList.cgOutput->cODevSDOUT->cgRichEdit->GetRichEditCtrl().SetSel(0, 0);
+	GSDTApp.m_LogCache.GetG1_STDOUT()->WriteNL(COL_clBlue,Str_UnicodeToANSI(wstrFileName));
+	GSDTApp.m_LogCache.GetG1_STDOUT()->WriteNL(COL_DivLine, DIVIDING_LINE);
+	GSDTApp.m_LogCache.GetG1_STDOUT()->WriteNL(COL_clMaroon, "End");
+	GSDTApp.m_LogCache.GetG1_STDOUT()->ToHome();
 }
 //------------------------------------------------------------------------------------------//

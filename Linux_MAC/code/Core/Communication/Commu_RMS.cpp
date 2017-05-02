@@ -11,202 +11,236 @@
  */
 //------------------------------------------------------------------------------------------//
 #include "stdafx.h"
-//#define LOGPRINT_ENABLE
 #include "Commu_RMS.h"
-#include "Commu_SSLSocket.h"
 #include "Comm_Convert.h"
 #include "SYS_Time.h"
+#define LOGPRINT_ENABLE
+#define LOGPRINT_ENABLE2
+#include "Comm_Log.h"
 //------------------------------------------------------------------------------------------//
+#ifdef Commu_RMSH
 //------------------------------------------------------------------------------------------//
-#ifdef USE_OPENSSL
-//------------------------------------------------------------------------------------------//
-void MServer_Socket::ThreadsStart(void){
-	txThread.ThreadRun();
-	if (GetCSType() != CSType_UDPS)
-		rxThread.ThreadRun();
+TREE_NODE_FRAME_POOL *POOL_SSLSOCKET::CreateNode(void){
+	return(SetSubNodeSelfName(new RSSLSocket(cgBufMaxSize,GetLogSystem())));
 }
 //------------------------------------------------------------------------------------------//
-void MServer_Socket::ForwardToCouple(const uint8 *databuf,int32 num){
-	if (num > 0){
-		ELogPrint(this,GetcgCoupleNode(this),"MServer_Socket::ForwardToCouple()::Rec data num:%d",num);
-		((RemoteSSLSocket*)GetcgCoupleNode(this))->SSLWrite(databuf, num);
+//------------------------------------------------------------------------------------------//
+TREE_NODE_FRAME_POOL *POOL_BSOCKET::CreateNode(void){
+	return(SetSubNodeSelfName(new BSOCKET_C(cgBufMaxSize,GetLogSystem())));
+}
+//------------------------------------------------------------------------------------------//
+//------------------------------------------------------------------------------------------//
+int32 CPPOOL::GetCP(RSSLSocket **rsslsocket,BSOCKET_C **bsocket){
+	*rsslsocket = (RSSLSocket*)cgPoolS.GetNewSon();
+	*bsocket = (BSOCKET_C*)cgPoolB.GetNewSon();
+	if (*rsslsocket == nullptr){
+		cgPoolB.ChildClose(*bsocket);
+		bsocket = nullptr;
 	}
+	else if (bsocket == nullptr){
+		cgPoolS.ChildClose(*rsslsocket);
+		rsslsocket = nullptr;
+	}
+	else{
+		(*rsslsocket)->LinkCoupleNode(*bsocket);
+		return 1;
+	}
+	return 0;
 }
 //------------------------------------------------------------------------------------------//
-void MServer_Socket::OnCloseDev(void){
-	RemoteSSLSocket	*coupleSocket;
-	ELogPrint(this, "MServer_Socket::OnCloseDev()");
-	coupleSocket = (RemoteSSLSocket*)GetcgCoupleNode(this);
+//------------------------------------------------------------------------------------------//
+void CPPOOL::ChildClose(RSSLSocket *rsslsocket,BSOCKET_C *bsocket){
+	cgPoolS.ChildClose(rsslsocket);
+	cgPoolB.ChildClose(bsocket);
+}
+//------------------------------------------------------------------------------------------//
+//------------------------------------------------------------------------------------------//
+void BSOCKET_C::DoClose(void){
+	BSOCKET	*coupleSocket;
+	ELog(this << "BSOCKET_C::DoClose()");
+	coupleSocket = static_cast<BSOCKET*>(UnlinkCoupleNode());
 	if (coupleSocket != nullptr){
-		coupleSocket->UnlinkCoupleNode();
-		ELogPrint(this, coupleSocket,"MServer_Socket::OnCloseDev()::Will be close");
-		coupleSocket->CloseD(0);
+		ELog(this << "BSOCKET_C::DoClose()::Call " << coupleSocket << "::CloseD()");
+		coupleSocket->CloseD();
 	}
-	ELogPrint(this, "MServer_Socket::Call APISocket::OnCloseDev()");
-	APISocket::OnCloseDev();
+	BSOCKET::DoClose();
 }
 //------------------------------------------------------------------------------------------//
-int32 MAPPINGServer::OnOpenTCPSocket(APISocket *newSocket){
-	return(((RemoteSSLSocket*)GetFather(this))->SendRequestSetupDataChannel(newSocket,cgMapIP,cgMapPort,cgCSType));
+//------------------------------------------------------------------------------------------//
+int32 MAPPINGServer::Open(int32 localPort,const STDSTR &mapIP,int32 mapPort,CSType tCSType){
+	int32 ret;
+	ret = 0;
+	if (InDoing_try() != 0){
+		cgMapIP = mapIP;
+		cgMapPort = mapPort;
+		ret = BSOCKETSERVER::OpenD("",localPort,tCSType,0,G_LOCK_OFF);
+		InDoing_clr();
+	}
+	return(ret);
 };
 //------------------------------------------------------------------------------------------//
-
-
-
-
-
-
-
-//------------------------------------------------------------------------------------------//
-void RemoteSSLSocket::OnCloseDev(void){
-	APISocket	*coupleSocket;
-	ELogPrint(this, "RemoteSSLSocket::OnCloseDev()");
-	coupleSocket = (APISocket*)GetcgCoupleNode(this);
-	if (coupleSocket != nullptr){
-		UnlinkCoupleNode();
-		ELogPrint(this, coupleSocket,"RemoteSSLSocket::OnCloseDev()::Will be close");
-		coupleSocket->CloseD(0);
-	}
-	ELogPrint(this, "RemoteSSLSocket::Call DisconnectAll()");
-	DisconnectAll();
-	ELogPrint(this, "RemoteSSLSocket::Call SSLSocket::OnCloseDev()");
-	SSLSocket::OnCloseDev();
-}
-//------------------------------------------------------------------------------------------//
-void RemoteSSLSocket::ForwardToCouple(const uint8 *databuf,int32 num){
-	if (num > 0){
-		ELogPrint(this,GetcgCoupleNode(this),"RemoteSSLSocket::ForwardToCouple()::Rec data num:%d",num);
-		((MServer_Socket*)GetcgCoupleNode(this))->Write(databuf, num);
-	}
-}
-//------------------------------------------------------------------------------------------//
-//------------------------------------------------------------------------------------------//
-#define SetRSSLFLAG(u64)		B_SetFLAG32(cgRSSLFlag,(u64))
-#define ClrRSSLFLAG(u64)		B_ClrFLAG32(cgRSSLFlag,(u64))
-#define ChkRSSLFLAG(u64)		B_ChkFLAG32(cgRSSLFlag,(u64))
-enum{
-	blSetupMServer	= BD_FLAG64(0),
-	blSetupMServerY	= BD_FLAG64(1),
-	blOffMServer	= BD_FLAG64(2),
-	blOffMServerY	= BD_FLAG64(3),
-	blListMServer	= BD_FLAG64(4),
-	blListMServerY	= BD_FLAG64(5),
-	blLink			= BD_FLAG64(6),
-	blLinkY			= BD_FLAG64(7),
+int32 MAPPINGServer::OnOpenTCPSocket(ASOCKET *newSocket){
+	ELog(this << "MAPPINGServer::OnOpenTCPSocket():: " << newSocket);
+	return(((RSSLSocket*)GetFDB())->SendRequestSetupDataChannel(newSocket,cgMapIP,cgMapPort,(GetCSType() == CSType_TCPS)?CSType_TCP:CSType_UDP));
 };
 //------------------------------------------------------------------------------------------//
-int32 RemoteSSLSocket::MessageProcessing(FNode_MESG *RecMesg,int32 blReady){
-	std::string			strMesg,strContent,*strP;
-	uint32 				mID;
-	MServer_Socket		*mSocket;
-	int32				blDo,blRet,blRet2;
+//------------------------------------------------------------------------------------------//
+
+
+
+
+
+
+
+
+
+
+
+//------------------------------------------------------------------------------------------//
+//------------------------------------------------------------------------------------------//
+STDSTR RSSLSocket::GetMesgText(uint32 mID){
+	STDSTR retStr = "";
+#ifdef LOGPRINT
+	retStr = COMMU_DBUF_SSL::GetMesgText(mID);
+	if (retStr.length() > 0)
+		return(retStr);
 	
-	if (SSLSocket::MessageProcessing(RecMesg,blReady) > 0)
+	retStr = "(" + Str_ToString(mID)+ ")";
+	switch(mID){
+		case MESG_REQ_SetupMServer		:retStr += "MESG_REQ_SetupMServer ";break;
+		case MESG_ANS_SetupMServer		:retStr += "MESG_ANS_SetupMServer ";break;
+		case MESG_REQ_CloseMServer		:retStr += "MESG_REQ_CloseMServer ";break;
+		case MESG_ANS_CloseMServer		:retStr += "MESG_ANS_CloseMServer ";break;
+		case MESG_REQ_ListMServer		:retStr += "MESG_REQ_ListMServer ";break;
+		case MESG_ANS_ListMServer		:retStr += "MESG_ANS_ListMServer ";break;
+		case MESG_REQ_SetupDataChannel	:retStr += "MESG_REQ_SetupDataChannel ";break;
+		case MESG_ANS_SetupDataChannel	:retStr += "MESG_ANS_SetupDataChannel ";break;
+		case MESG_REQ_Link				:retStr += "MESG_REQ_Link ";break;
+		case MESG_ANS_Link				:retStr += "MESG_ANS_Link ";break;
+		default							:retStr = "";break;
+	}
+#endif
+	return(retStr);
+}
+//------------------------------------------------------------------------------------------//
+//------------------------------------------------------------------------------------------//
+void RSSLSocket::DoClose(void){
+	ELog(this << "RSSLSocket::DoClose()");
+	BSOCKET_C::DoClose();
+	cgCPPool.ChildCloseAll();
+	DestroyAll();
+	cgCPPool.cgPoolS.DestroyAll();
+	cgCPPool.cgPoolB.DestroyAll();
+	ClrSFlag(blSetupMServerY | blSetupMServerN | blOffMServerY | blOffMServerN | blListMServerY | blListMServerN | blLinkY | blLinkN);
+}
+//------------------------------------------------------------------------------------------//
+#define CHSendM(_mID,_strMesg,_blRet,_Title) \
+	E2Log(this << _Title << "Send " << GetMesgText(_mID) << "with MESG:" << _strMesg);\
+	_blRet = CtrlCHWrite(_mID,_strMesg);\
+	E2Log(this << _Title << "Send " << GetMesgText(_mID) << ((_blRet > 0) ? "successful" : "fail"));
+#define CHRecM(_mID,_strMesg,_Title) E2Log(this << _Title << "Rec  " << GetMesgText(_mID) << ": " << _strMesg);
+
+#define CHSendMInMP(_mID,_strMesg,_blRet)	CHSendM(_mID,_strMesg,_blRet,"MessageProcessing()::")
+#define CHSendInMP(_mID,_strMesg,_blRet)	CHSend(_mID,_strMesg,_blRet,"MessageProcessing()::")
+#define CHRecInMP(_mID)						CHRec(_mID,"MessageProcessing()::");
+#define CHRecMInMP(_mID,_strMesg)			CHRecM(_mID,_strMesg,"MessageProcessing()::");
+#define E2LogInMP(_strMesg)					E2Log(this << "MessageProcessing()::" << _strMesg);
+//------------------------------------------------------------------------------------------//
+int32 RSSLSocket::MessageProcessing(const uint32 &mID,const STDSTR &strMesg){
+	STDSTR			strMesgT,strContent,*strP;
+	int32			blDo,blRet,blRet2;
+	MAPPINGServer	*mServer = nullptr;
+	RSSLSocket		*rsslsocket = nullptr;
+	BSOCKET_C		*bsocket = nullptr;
+	
+	if (BSOCKET_C::MessageProcessing(mID,strMesg) > 0)
 		return 1;
 
-	if (blReady == 0)
+	if (mID == MESG_NONE)
 		return 0;
 	
 	blDo = 1;
-	RecMesg->ReadContent(&strMesg,&mID);
 	switch (mID){
 		case MESG_REQ_SetupMServer:
-			ELogPrint(this, "MessageProcessing()::Rec  MESG_REQ_SetupMServer");
-			blRet = OpenMappingServer(strMesg);
-			ELogPrint(this, "MessageProcessing()::Send MESG_ANS_SetupMServer with MESG:%s",(blRet > 0) ? "Y" : "N");
-			blRet2 = CtrlCHWrite((blRet > 0) ? "Y" : "N",MESG_ANS_SetupMServer);
-			ELogPrint(this, "MessageProcessing()::Send MESG_ANS_SetupMServer %s",(blRet2 > 0) ? "successful" : "fail");
-			if ((blRet > 0) && (blRet2 > 0)){
-				((RemoteSSLServer*)GetFather(this))->CreateNewMServer(blRet);
-			}
-			else{
-				((RemoteSSLServer*)GetFather(this))->RemoveSelf();
-				((RemoteSSLServer*)GetFather(this))->CloseD();
+			CHRecInMP(mID);
+			blRet = OpenMappingServer(mServer,strMesg);
+			CHSendMInMP(MESG_ANS_SetupMServer,((blRet > 0) ? "Y" : "N"),blRet2);
+			if (blRet2 == 0){
+				ChildClose(mServer);
+				E2LogInMP("Call SelfClose()");
+				SetblNoSendCloseMesg();
+				SelfClose();
 			}
 			break;
 		case MESG_ANS_SetupMServer:
-			ELogPrint(this, "MessageProcessing()::Rec  MESG_ANS_SetupMServer:%s",strMesg.c_str());
-			if (strMesg == "Y")
-				SetRSSLFLAG(blSetupMServerY);
-			SetRSSLFLAG(blSetupMServer);
+			CHRecMInMP(mID,strMesg);
+			SetSFlag((strMesg == "Y")?blSetupMServerY:blSetupMServerN);
 			break;
 		case MESG_REQ_CloseMServer:
-			ELogPrint(this, "MessageProcessing()::Rec  MESG_REQ_CloseMServer");
+			CHRecInMP(mID);
 			blRet = CloseMappingServer(strMesg);
-			ELogPrint(this, "MessageProcessing()::Send MESG_ANS_OffMServer with MESG:%s",(blRet > 0) ? "Y" : "N");
-			blRet2 = CtrlCHWrite((blRet > 0) ? "Y" : "N",MESG_ANS_CloseMServer);
-			ELogPrint(this, "MessageProcessing()::Send MESG_ANS_OffMServer %s",(blRet2 > 0) ? "successful" : "fail");
+			CHSendMInMP(MESG_ANS_CloseMServer,((blRet > 0) ? "Y" : "N"),blRet2);
 			break;
 		case MESG_ANS_CloseMServer:
-			ELogPrint(this, "MessageProcessing()::Rec MESG_ANS_CloseMServer:%s",strMesg.c_str());
-			if (strMesg == "Y")
-				SetRSSLFLAG(blOffMServerY);
-			SetRSSLFLAG(blOffMServer);
+			CHRecMInMP(mID,strMesg);
+			SetSFlag((strMesg == "Y")?blOffMServerY:blOffMServerN);
 			break;
 		case MESG_REQ_ListMServer:
-			ELogPrint(this, "MessageProcessing()::Rec MESG_REQ_ListMServer");
+			CHRecInMP(mID);
 			ListMappingServer(&strContent);
-			strMesg += ",";
-			strMesg += strContent;
-			ELogPrint(this, "MessageProcessing()::Send MESG_ANS_ListMServer");
-			blRet2 = CtrlCHWrite(strMesg,MESG_ANS_ListMServer);
-			ELogPrint(this, "MessageProcessing()::Send MESG_ANS_ListMServer %s",(blRet2 > 0) ? "successful" : "fail");
+			strMesgT = strMesg;
+			strMesgT += ',';
+			strMesgT += strContent;
+			CHSendInMP(MESG_ANS_ListMServer,strMesgT,blRet);
 			break;
 		case MESG_ANS_ListMServer:
-			ELogPrint(this, "MessageProcessing()::Rec MESG_ANS_ListMServer");
-			strP = (std::string*)Str_HexToDec(Str_ReadSubItem(&strMesg, ","));
-			*strP = strMesg;
-			SetRSSLFLAG(blListMServerY);
-			SetRSSLFLAG(blListMServer);
+			CHRecInMP(mID);
+			strMesgT = strMesg;
+			strP = (STDSTR*)Str_HexToDec(Str_ReadSubItem(&strMesgT, ","));
+			*strP = strMesgT;
+			SetSFlag(blListMServerY);
 			break;
 		case MESG_REQ_SetupDataChannel:
-			ELogPrint(this, "MessageProcessing()::Rec MESG_REQ_SetupDataChannel");
-			blRet = OpenCoupleSocket(strMesg);
-			ELogPrint(this, "MessageProcessing()::Send MESG_ANS_SetupDataChannel with MESG:%s",(blRet > 0) ? "Y" : "N");
-			blRet2 = CtrlCHWrite((blRet > 0) ? "Y" : "N",MESG_ANS_SetupDataChannel);
-			ELogPrint(this, "MessageProcessing()::Send MESG_ANS_SetupDataChannel ",(blRet2 > 0) ? "successful" : "fail");
-			if ((blRet > 0) && (blRet2 > 0)){
-				cgRSocket = new MServer_Socket(GetcgODevList(),BufferRxMaxSize());
-				cgLSSLSocket = new RemoteSSLSocket(GetcgODevList(),BufferRxMaxSize());
-				ELogPrint(this, "MessageProcessing()::Create new pre-SSLSocket");
-				ELogPrint(this, "MessageProcessing()::Create new pre-RSocket");
-				ELogPrint(this, "MessageProcessing()::Setup Data Channel successful");
+			CHRecInMP(mID);
+			blRet = OpenCoupleSocket(&rsslsocket,&bsocket,strMesg);
+			CHSendMInMP(MESG_ANS_SetupDataChannel,((blRet > 0) ? "Y" : "N"),blRet2);
+			if (blRet2 == 0){
+				E2LogInMP("Setup Data Channel fail");
+				cgCPPool.ChildClose(rsslsocket,bsocket);
+				E2LogInMP("Call SelfClose()");
+				SetblNoSendCloseMesg();
+				SelfClose();
 			}
-			else{
-				ELogPrint(this, "MessageProcessing()::Setup Data Channel fail");
-				cgLSSLSocket->UnlinkCoupleNode();
-				cgLSSLSocket->RemoveSelf();
-				cgRSocket->RemoveSelf();
-				cgRSocket->CloseD();
-				cgLSSLSocket->CloseD();
+			if (blRet > 0){
+				E2LogInMP("Setup Data Channel successful");
+				E2LogInMP("Create pre-couple");
+				cgCPPool.GetCP(&rsslsocket, &bsocket);
+				cgCPPool.ChildClose(rsslsocket,bsocket);
+				E2LogInMP("pre-couple" << rsslsocket << bsocket);
+				break;
 			}
+			E2LogInMP("Setup Data Channel fail");
 			break;
 		case MESG_ANS_SetupDataChannel:
-			ELogPrint(this, "MessageProcessing()::Rec MESG_ANS_SetupDataChannel");
-			if (strMesg == "Y")
-				SetRSSLFLAG(blLinkY);
-			SetRSSLFLAG(blLink);
-			ELogPrint(this, "MessageProcessing()::Setup Data Channel ",(ChkRSSLFLAG(blLinkY) > 0) ? "successful" : "fail");
+			CHRecMInMP(mID,strMesg);
+			SetSFlag((strMesg == "Y")?blLinkY:blLinkN);
+			E2LogInMP("Setup Data Channel " << ((CheckSFlag(blLinkY) > 0) ? "successful" : "fail"));
 			break;
 		case MESG_REQ_Link:
-			ELogPrint(this, "MessageProcessing()::Rec MESG_REQ_Link");
-			mSocket = (MServer_Socket*)Str_HexToDec(strMesg);
+			CHRecInMP(mID);
+			bsocket = (BSOCKET_C*)Str_HexToDec(strMesg);
 			blRet = 0;
 			try{
-				LinkCoupleNode(mSocket);
-				ELogPrint(this, mSocket, "MessageProcessing()::Is linked");
+				LinkCoupleNode(bsocket);
+				ELog(this << "MessageProcessing()::Link to " << bsocket);
 				blRet = 1;
 			}
 			catch(...){blRet = 0;}
-			ELogPrint(this, "MessageProcessing()::Send MESG_ANS_Link with MESG:%s",(blRet > 0) ? "Y" : "N");
-			blRet2 = CtrlCHWrite((blRet > 0) ? "Y" : "N",MESG_ANS_Link);
-			ELogPrint(this, "MessageProcessing()::Send MESG_ANS_Link %s",(blRet2 > 0) ? "successful" : "fail");
+			CHSendMInMP(MESG_ANS_Link,((blRet > 0) ? "Y" : "N"),blRet2);
 			break;
 		case MESG_ANS_Link:
-			ELogPrint(this, "MessageProcessing()::Rec MESG_ANS_Link:%s",strMesg.c_str());
-			if (strMesg == "Y")
-				SetRSSLFLAG(blLinkY);
-			SetRSSLFLAG(blLink);
+			CHRecMInMP(mID,strMesg);
+			SetSFlag((strMesg == "Y")?blLinkY:blLinkN);
 			break;
 		default:
 			blDo = 0;
@@ -215,134 +249,9 @@ int32 RemoteSSLSocket::MessageProcessing(FNode_MESG *RecMesg,int32 blReady){
 	return(blDo);
 }
 //------------------------------------------------------------------------------------------//
-int32 RemoteSSLSocket::OpenMappingServer(const std::string &strMesg){
-	MAPPINGServer	*tMServer;
-	std::string		strMapIP;
-	int32 			rPort,mapPort,mapCSType;
-	int32	ret;
-	ret = 0;
+int32 RSSLSocket::SendRequestSetupMServer(int32 remotePort,const STDSTR &mapIP,int32 mapPort,CSType tCSType){
+	STDSTR	strMesg;
 	
-	strMapIP = strMesg;
-	rPort = (int32)Str_HexToDec(Str_ReadSubItem(&strMapIP, ","));
-	mapCSType = (int32)Str_HexToDec(Str_ReadSubItem(&strMapIP, ","));
-	mapPort = (int32)Str_HexToDec(Str_ReadSubItem(&strMapIP, ","));
-	
-	tMServer = ((RemoteSSLServer*)GetFather(this))->GetNewMServer();
-	if (tMServer != nullptr){
-		if (tMServer->Run(rPort,strMapIP,mapPort,(COMMU_DBUF::CSType)mapCSType) > 0){
-			ret = 1;
-			AddNode(tMServer);
-		}
-		else{
-			tMServer->CloseD();
-		}
-	}
-	return(ret);
-}
-//------------------------------------------------------------------------------------------//
-int32 RemoteSSLSocket::CloseMappingServer(const std::string &strMesg){
-	int32 			rPort;
-	int32			ret;
-	ret = 0;
-	
-	rPort = (int32)Str_HexToDec(strMesg);
-	if (rPort == 0){
-		ELogPrint(this, "CloseMappingServer()::Close all MServer");
-		DisconnectAll();
-		ret = 1;
-	}
-	else{
-		Spin_InUse_set();
-		RTREE_RChain_Traversal_LINE_nolock(MAPPINGServer,GetcgLChild(this),
-			if (operateNode_t->GetcgPort() == rPort){
-				ELogPrint(this, "CloseMappingServer()::Close MServer(%d)",rPort);
-				operateNode_t->CloseD();
-				ret = 1;
-				break;
-			}
-		);
-		Spin_InUse_clr();
-	}
-	return(ret);
-}
-//------------------------------------------------------------------------------------------//
-int32 RemoteSSLSocket::ListMappingServer(std::string *strMesg){
-	ELogPrint(this, "ListMappingServer()::Prepare MServer list string");
-	*strMesg = "";
-	Spin_InUse_set();
-	RTREE_RChain_Traversal_LINE_nolock(MAPPINGServer,GetcgLChild(this),
-		*strMesg += "MServer(";
-		*strMesg += Str_IntToString(operateNode_t->GetcgPort());
-		*strMesg += ") mapping to ";
-		*strMesg += operateNode_t->GetcgMapIP();
-		*strMesg += ":";
-		*strMesg += Str_IntToString(operateNode_t->GetcgMapPort());
-		if (operateNode_t->GetCSType() == CSType_TCP){
-			*strMesg += ",TCP";
-		}
-		else{
-			*strMesg += ",UDP";
-		}
-		*strMesg += "\r\n";
-	);
-	Spin_InUse_clr();
-	return 1;
-}
-//------------------------------------------------------------------------------------------//
-int32 RemoteSSLSocket::OpenCoupleSocket(std::string strMesg){
-	int32 			ret;
-	std::string		strMapIP;
-	int32 			mapPort,mapCSType;
-	
-	ret = 0;
-	mapCSType = (int32)Str_HexToDec(Str_ReadSubItem(&strMesg, ","));
-	mapPort = (int32)Str_HexToDec(Str_ReadSubItem(&strMesg, ","));
-	strMapIP = Str_ReadSubItem(&strMesg, ",");
-	
-	if (cgRSocket == nullptr)
-		cgRSocket = new MServer_Socket(GetcgODevList(),BufferRxMaxSize());
-	if (cgLSSLSocket == nullptr)
-		cgLSSLSocket = new RemoteSSLSocket(GetcgODevList(),BufferRxMaxSize());
-	
-	if ((cgRSocket != nullptr) && (cgLSSLSocket != nullptr)){
-		cgRSocket->selfName = selfName + "->RSocket" + Str_IntToString(GetnodeID(cgRSocket).load());
-		cgLSSLSocket->SetSelfName(selfName + "->SSLSocket" + Str_IntToString(GetnodeID(cgLSSLSocket).load()));
-		ELogPrint(this, "OpenCoupleSocket()::Created %s",cgRSocket->selfName.c_str());
-		ELogPrint(this, "OpenCoupleSocket()::Created %s",cgLSSLSocket->selfName.c_str());
-		if ((cgLSSLSocket->OpenD(GetBufName(), GetBufPar(), GetCSType(), 0) > 0)
-			&& (cgLSSLSocket->CheckHandshake() > 0)){
-			ELogPrint(this, "OpenCoupleSocket()::Open SSLSocket OK");
-			if (cgLSSLSocket->SendRequestLink(strMesg) > 0){
-				cgLSSLSocket->LinkCoupleNode(cgRSocket);
-				ELogPrint(cgLSSLSocket, cgRSocket, "OpenCoupleSocket()::Linked");
-				if (cgRSocket->OpenD(strMapIP, mapPort, (COMMU_DBUF::CSType)mapCSType, 0) > 0){
-					ELogPrint(this, "OpenCoupleSocket()::Open RSocket OK");
-					AddNode(cgRSocket);
-					AddNode(cgLSSLSocket);
-					ret = 1;
-				}
-				else{
-					ELogPrint(this, "OpenCoupleSocket()::Open RSocket Fail");
-					cgLSSLSocket->LinkCoupleNode(cgRSocket);
-					cgLSSLSocket->CloseD();
-				}
-			}
-			else{
-				cgLSSLSocket->CloseD();
-			}
-		}
-		else{
-			ELogPrint(this, "OpenCoupleSocket()::Open SSLSocket Fail");
-		}
-	}
-	return(ret);
-}
-//------------------------------------------------------------------------------------------//
-int32 RemoteSSLSocket::SendRequestSetupMServer(int32 remotePort,const std::string &mapIP,int32 mapPort,COMMU_DBUF::CSType tCSType){
-	SYS_TIME_S		Timedly;
-	std::string		strMesg;
-
-	ClrRSSLFLAG(blSetupMServer | blSetupMServerY);
 	strMesg = Str_DecToHex((uint64)remotePort);
 	strMesg += ',';
 	strMesg += Str_DecToHex((uint64)tCSType);
@@ -350,50 +259,24 @@ int32 RemoteSSLSocket::SendRequestSetupMServer(int32 remotePort,const std::strin
 	strMesg += Str_DecToHex((uint64)mapPort);
 	strMesg += ',';
 	strMesg += mapIP;
-	ELogPrint(this, "Send MESG_REQ_SetupRemoteServer");
-	if (CtrlCHWrite(strMesg,MESG_REQ_SetupMServer) > 0){
-		SYS_Delay_SetTS(&Timedly, HandshakeTime);
-		while((ChkRSSLFLAG(blSetupMServer) == 0) && (IsConnected() > 0) && (SYS_Delay_CheckTS(&Timedly) == 0))
-			SYS_SleepMS(100);
-	}
-	return(ChkRSSLFLAG(blSetupMServerY));
+	return((SendCHMesg(MESG_REQ_SetupMServer,strMesg,blSetupMServerY,blSetupMServerN,CSSL_FR_T2::HandshakeTime) > 0)?1:0);
 }
 //------------------------------------------------------------------------------------------//
-int32 RemoteSSLSocket::SendRequestOffMServer(int32 remotePort){
-	SYS_TIME_S		Timedly;
-	std::string		strMesg;
-	
-	ClrRSSLFLAG(blOffMServer | blOffMServerY);
+int32 RSSLSocket::SendRequestOffMServer(int32 remotePort){
+	STDSTR		strMesg;
 	strMesg = Str_DecToHex((uint64)remotePort);//0-->close all
-	ELogPrint(this, "Send MESG_REQ_CloseMServer");
-	if (CtrlCHWrite(strMesg,MESG_REQ_CloseMServer) > 0){
-		SYS_Delay_SetTS(&Timedly, HandshakeTime);
-		while((ChkRSSLFLAG(blOffMServer) == 0) && (IsConnected() > 0) && (SYS_Delay_CheckTS(&Timedly) == 0))
-			SYS_SleepMS(100);
-	}
-	return(ChkRSSLFLAG(blOffMServerY));
+	return((SendCHMesg(MESG_REQ_CloseMServer,strMesg,blOffMServerY,blOffMServerN,CSSL_FR_T2::HandshakeTime) > 0)?1:0);
 }
 //------------------------------------------------------------------------------------------//
-int32 RemoteSSLSocket::SendRequestListMServer(std::string *retStr){
-	SYS_TIME_S		Timedly;
-	std::string		strMesg;
-	
-	ClrRSSLFLAG(blListMServer | blListMServerY);
+int32 RSSLSocket::SendRequestListMServer(STDSTR *retStr){
+	STDSTR		strMesg;
 	strMesg = Str_DecToHex((uint64)retStr);
-	ELogPrint(this, "Send MESG_REQ_ListMServer");
-	if (CtrlCHWrite(strMesg,MESG_REQ_ListMServer) > 0){
-		SYS_Delay_SetTS(&Timedly, HandshakeTime);
-		while((ChkRSSLFLAG(blListMServer) == 0) && (IsConnected() > 0) && (SYS_Delay_CheckTS(&Timedly) == 0))
-			SYS_SleepMS(100);
-	}
-	return(ChkRSSLFLAG(blListMServerY));
+	return((SendCHMesg(MESG_REQ_ListMServer,strMesg,blListMServerY,blListMServerN,CSSL_FR_T2::HandshakeTime) > 0)?1:0);
 }
 //------------------------------------------------------------------------------------------//
-int32 RemoteSSLSocket::SendRequestSetupDataChannel(APISocket *mSocket,const std::string &mapIP,int32 mapPort,COMMU_DBUF::CSType tCSType){
-	SYS_TIME_S		Timedly;
-	std::string		strMesg;
+int32 RSSLSocket::SendRequestSetupDataChannel(ASOCKET *mSocket,const STDSTR &mapIP,int32 mapPort,CSType tCSType){
+	STDSTR		strMesg;
 	
-	ClrRSSLFLAG(blLink | blLinkY);
 	strMesg = Str_DecToHex((uint64)tCSType);
 	strMesg += ',';
 	strMesg += Str_DecToHex((uint64)mapPort);
@@ -401,135 +284,112 @@ int32 RemoteSSLSocket::SendRequestSetupDataChannel(APISocket *mSocket,const std:
 	strMesg += mapIP;
 	strMesg += ',';
 	strMesg += Str_DecToHex((uint64)mSocket);
-	ELogPrint(this, "Send MESG_REQ_SetupDataChannel");
-	if (CtrlCHWrite(strMesg,MESG_REQ_SetupDataChannel) > 0){
-		SYS_Delay_SetTS(&Timedly, (HandshakeTime << 1));
-		while((ChkRSSLFLAG(blLink) == 0) && (IsConnected() > 0) && (SYS_Delay_CheckTS(&Timedly) == 0))
-			SYS_SleepMS(100);
-	}
-	return(ChkRSSLFLAG(blLinkY));
+	return((SendCHMesg(MESG_REQ_SetupDataChannel,strMesg,blLinkY,blLinkN,CSSL_FR_T2::HandshakeTime) > 0)?1:0);
 }
 //------------------------------------------------------------------------------------------//
-int32 RemoteSSLSocket::SendRequestLink(const std::string &strMesg){
-	SYS_TIME_S			Timedly;
+int32 RSSLSocket::SendRequestLink(const STDSTR &strMesg){
+	return((SendCHMesg(MESG_REQ_Link,strMesg,blLinkY,blLinkN,CSSL_FR_T2::HandshakeTime) > 0)?1:0);
+}
+//------------------------------------------------------------------------------------------//
+int32 RSSLSocket::OpenMappingServer(MAPPINGServer *retMserver,const STDSTR &strMesg){
+	STDSTR		strMapIP;
+	int32 		remotePort,mapPort,mapCSType;
 	
-	ClrRSSLFLAG(blLink | blLinkY);
-	ELogPrint(this, "Send MESG_REQ_Link");
-	if (CtrlCHWrite(strMesg,MESG_REQ_Link) > 0){
-		SYS_Delay_SetTS(&Timedly, HandshakeTime);
-		while((ChkRSSLFLAG(blLink) == 0) && (IsConnected() > 0) && (SYS_Delay_CheckTS(&Timedly) == 0))
-			SYS_SleepMS(100);
-	}
-	return(ChkRSSLFLAG(blLinkY));
-}
-//------------------------------------------------------------------------------------------//
-
-
-//------------------------------------------------------------------------------------------//
-ControlSocket::~ControlSocket(void){
-	MoveNodeToTrash(cgLSSLSocket,this);
-	MoveNodeToTrash(cgRSocket,this);
-	cgLSSLSocket = nullptr;
-	cgRSocket = nullptr;
-	DisconnectAll();
-}
-//------------------------------------------------------------------------------------------//
-void ControlSocket::PreCreate(void){
-	if ((GetCSType() == CSType_TCP) || (GetCSType() == CSType_UDP)){
-		cgRSocket = new MServer_Socket(GetcgODevList(),BufferRxMaxSize());
-		cgLSSLSocket = new RemoteSSLSocket(GetcgODevList(),BufferRxMaxSize());
-	}
-}
-//------------------------------------------------------------------------------------------//
-void ControlSocket::OnCloseDev(void){
-	ELogPrint(this, "ControlSocket::OnCloseDev()");
-	MoveNodeToTrash(cgLSSLSocket, this);
-	MoveNodeToTrash(cgRSocket, this);
-	cgLSSLSocket = nullptr;
-	cgRSocket = nullptr;
-	ELogPrint(this, "ControlSocket::Call RemoteSSLSocket::OnCloseDev()");
-	RemoteSSLSocket::OnCloseDev();
-}
-//------------------------------------------------------------------------------------------//
-int32 ControlSocket::Ex2ThreadFun(void){
-	RTREE_NODE	*delNode,*fromNode;
-	int32		blNeedUpdate;
+	strMapIP = strMesg;
+	remotePort = (int32)Str_HexToDec(Str_ReadSubItem(&strMapIP, ","));
+	mapCSType = (int32)Str_HexToDec(Str_ReadSubItem(&strMapIP, ","));
+	mapPort = (int32)Str_HexToDec(Str_ReadSubItem(&strMapIP, ","));
 	
-	SYS_SleepMS(6);
-	while(ex2Thread.IsTerminated() == 0){
-		SYS_SleepMS(20);
-		Spin_InUse_set();
-		
-		fromNode = GetcgLChild(this);
-		blNeedUpdate = 0;
-		delNode = nullptr;
-		do{
-			RTREE_RChain_Traversal_LINE(RTREE_NODE,fromNode,
-				if ((GetCSType() == CSType_TCP) || (GetCSType() == CSType_UDP)){
-					if (((APISocket*)operateNode_t)->IsConnected() == 0){
-						delNode = operateNode_t;
-						break;
-					}
-				}
-				else{
-					if (((MAPPINGServer*)operateNode_t)->CheckblConnected() == 0){
-						delNode = operateNode_t;
-						break;
-					}
-				}
-			);
-			fromNode = nullptr;
-			if (delNode != nullptr){
-				fromNode = GetcgRChild(delNode);
-				ELogPrint(this, delNode, "Ex2ThreadFun()::Call CloseD()");
-				if ((GetCSType() == CSType_TCP) || (GetCSType() == CSType_UDP)){
-					((APISocket*)delNode)->CloseD(0);
-				}
-				else{
-					((MAPPINGServer*)delNode)->CloseD();
-				}
-				RemoveNodesInRChain(delNode,nullptr,G_LOCK_OFF);
-				InsertLChild(GetcgTrash(this), delNode);
-				blNeedUpdate = 1;
+	retMserver = (MAPPINGServer*)GetNewSon();
+	if ((retMserver != nullptr) && (retMserver->Open(remotePort,strMapIP,mapPort,(CSType)mapCSType) != 0))
+		return 1;
+	ChildClose(retMserver);
+	retMserver = nullptr;
+	return 0;
+}
+//------------------------------------------------------------------------------------------//
+int32 RSSLSocket::CloseMappingServer(const STDSTR &strMesg){
+	int32	remotePort;
+	int32	ret;
+	ret = 0;
+	
+	remotePort = (int32)Str_HexToDec(strMesg);
+	if (remotePort == 0){
+		ELog(this << "CloseMappingServer()::Close all MServer");
+		ChildCloseAll();
+		ret = 1;
+	}
+	else{
+		TREE_LChildRChain_Traversal_LINE(MAPPINGServer,this,
+			if (operateNode_t->GetBufPar() == remotePort){
+				ELog(this << "CloseMappingServer()::Close MServer(" << remotePort << ")");
+				ChildClose(operateNode_t);
+				ret = 1;
+				break;
 			}
-		}while(fromNode != nullptr);
-		if (blNeedUpdate != 0){
-			CleanTrash(this);
-			SetblUpdate();
-		}
-		Spin_InUse_clr();
+		);
 	}
+	return(ret);
+}
+//------------------------------------------------------------------------------------------//
+int32 RSSLSocket::ListMappingServer(STDSTR *strMesg){
+	ELog(this << "ListMappingServer()::Prepare MServer list string");
+	*strMesg = "";
+	TREE_LChildRChain_Traversal_LINE(MAPPINGServer,this,
+		*strMesg += "MServer(";
+		*strMesg += Str_ToString(operateNode_t->GetBufPar());
+		*strMesg += ") mapping to ";
+		*strMesg += operateNode_t->GetMapIP();
+		*strMesg += ":";
+		*strMesg += Str_ToString(operateNode_t->GetMapPort());
+		if (operateNode_t->GetCSType() == CSType_TCPS){
+			*strMesg += ",TCP";
+		}
+		else{
+			*strMesg += ",UDP";
+		}
+		*strMesg += "\n";
+	);
 	return 1;
 }
 //------------------------------------------------------------------------------------------//
-void ControlSocket::DisconnectAll(void){
-	Spin_InUse_set();
-	if ((GetCSType() == CSType_TCP) || (GetCSType() == CSType_UDP)){
-		RTREE_RChain_Traversal_LINE_nolock(APISocket,GetcgLChild(this),operateNode_t->CloseD(0));
-	}
-	else{
-		RTREE_RChain_Traversal_LINE_nolock(MAPPINGServer,GetcgLChild(this),operateNode_t->CloseD());
-	}
-	SetblUpdate();
-	Spin_InUse_clr();
-}
-//------------------------------------------------------------------------------------------//
-//------------------------------------------------------------------------------------------//
-MAPPINGServer *RemoteSSLServer::GetNewMServer(void){
-	NLTCPS_set();
-	if (cgMServer == nullptr)
-		cgMServer = new MAPPINGServer(GetcgODevList(),cgBufMaxSize);
-	return(cgMServer);
-}
-//------------------------------------------------------------------------------------------//
-void RemoteSSLServer::CreateNewMServer(int32 blenable){
-	if (blenable != 0)
-		cgMServer = new MAPPINGServer(GetcgODevList(),cgBufMaxSize);
-	NLTCPS_clr();
+int32 RSSLSocket::OpenCoupleSocket(RSSLSocket **rsslsocket,BSOCKET_C **bsocket,STDSTR strMesg){
+	STDSTR		strMapIP;
+	int32 		mapPort,mapCSType;
+	
+	mapCSType = (int32)Str_HexToDec(Str_ReadSubItem(&strMesg, ","));
+	mapPort = (int32)Str_HexToDec(Str_ReadSubItem(&strMesg, ","));
+	strMapIP = Str_ReadSubItem(&strMesg, ",");
+	
+	do{
+		if (cgCPPool.GetCP(rsslsocket, bsocket) == 0){
+			ELog(this << "OpenCoupleSocket()::GetCP() fail");
+			break;
+		}
+		ELog(this << "OpenCoupleSocket()::Created " << *rsslsocket << *bsocket);
+		
+		if ((*rsslsocket)->OpenD(GetBufName(), GetBufPar(), GetCSType(), 0) == 0){
+			ELog(this << "OpenCoupleSocket()::Open RSSLSocket fail");
+			break;
+		}
+		ELog(this << "OpenCoupleSocket()::Open RSSLSocket success");
+		if ((*rsslsocket)->SendRequestLink(strMesg) == 0){
+			ELog(this << "OpenCoupleSocket()::" << *rsslsocket << "Link to MappingServer fail");
+			break;
+		}
+		ELog(this << "OpenCoupleSocket()::" << *rsslsocket << "Link to MappingServer success");
+		if ((*bsocket)->OpenD(strMapIP, mapPort, (CSType)mapCSType, 0) == 0){
+			ELog(this << "OpenCoupleSocket()::Open BSocket fail");
+			break;
+		}
+		ELog(this << "OpenCoupleSocket()::Open BSocket success");
+		return 1;
+	}while(0);
+	cgCPPool.ChildClose(*rsslsocket,*bsocket);
+	return 0;
 }
 //------------------------------------------------------------------------------------------//
 #endif
-
 
 
 

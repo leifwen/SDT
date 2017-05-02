@@ -24,402 +24,306 @@
 #include <termios.h>
 #include <sys/ioctl.h>
 #endif
+#ifdef Commu_ComH
 //------------------------------------------------------------------------------------------//
-void APICOM::Init(void){
+void ACOM::Init(void){
+#ifdef CommonDefH_Unix
+	osHandle = -1;//
+#endif
+#ifdef CommonDefH_VC
+	osHandle = INVALID_HANDLE_VALUE;
+#endif
 	vPortName = "";
-#ifdef CommonDefH_Unix
-	Handle = -1;//
-#endif
+	modemStatus = "";
+	ClrSFlag(blDTR | blRTS);
+	if (GetLogSystem() != nullptr){
+		modemStatusThread.ThreadInit(this, &ACOM::ModemStatusThreadFun,"modemStatus");
+		cgThreadList < modemStatusThread;
+		modemStatusThread.Enable();
+	}
+}
+//------------------------------------------------------------------------------------------//
 #ifdef CommonDefH_VC
-	Handle = INVALID_HANDLE_VALUE;
-#endif
-	DTR = 0;
-	RTS = 0;
-	CTS = "";
-	DSR = "";
-	RING = "";
-	DCD = "";
-}
 //------------------------------------------------------------------------------------------//
-int32 APICOM::OpenDev(const std::string &tCDBufName,int32 tCDBufPar,CSType tCSType){
-#ifdef CommonDefH_Unix
-	{
-		struct	termios 	serCfg;
-		
-		if (tCDBufName.length() == 0)
-			return 0;
-#ifdef CommonDefH_MAC
-		if (tCDBufName == "/dev/ptmx"){
-			Handle = posix_openpt(O_RDWR | O_NONBLOCK | O_NOCTTY | O_NDELAY);
-		}
-		else{
-			Handle = open(tCDBufName.c_str(), O_RDWR | O_NONBLOCK | O_NOCTTY | O_NDELAY);
-		}
-#endif
-#ifdef CommonDefH_Linux
-		Handle = open(tCDBufName.c_str(), O_RDWR | O_NONBLOCK | O_NOCTTY | O_NDELAY);
-#endif
-		if(Handle < 0){
-			Close_Do();
-			return 0;
-		}
-		else{
-			if (tcgetattr(Handle, &serCfg) != 0){
-#ifdef CommonDefH_MAC
-				if (tCDBufName != "/dev/ptmx"){
-					Close_Do();
-					return 0;
-				}
-#endif
-#ifdef CommonDefH_Linux
-				Close_Do();
-				return 0;
-#endif
-			}
-			cfmakeraw(&serCfg);
-			switch(tCDBufPar){
-				case 1200:
-					cfsetispeed(&serCfg, B1200);
-					cfsetospeed(&serCfg, B1200);
-					break;
-				case 2400:
-					cfsetispeed(&serCfg, B2400);
-					cfsetospeed(&serCfg, B2400);
-					break;
-				case 4800:
-					cfsetispeed(&serCfg, B4800);
-					cfsetospeed(&serCfg, B4800);
-					break;
-				case 9600:
-					cfsetispeed(&serCfg, B9600);
-					cfsetospeed(&serCfg, B9600);
-					break;
-				case 19200:
-					cfsetispeed(&serCfg, B19200);
-					cfsetospeed(&serCfg, B19200);
-					break;
-				case 38400:
-					cfsetispeed(&serCfg, B38400);
-					cfsetospeed(&serCfg, B38400);
-					break;
-				case 57600:
-					cfsetispeed(&serCfg, B57600);
-					cfsetospeed(&serCfg, B57600);
-					break;
-				case 460800:
-#ifdef CommonDefH_Linux
-					cfsetispeed(&serCfg, B460800);
-					cfsetospeed(&serCfg, B460800);
-#endif
-					break;
-				case 115200:
-				default:
-					cfsetispeed(&serCfg, B115200);
-					cfsetospeed(&serCfg, B115200);
-			}
-			
-			serCfg.c_cflag |= (CLOCAL | CREAD);
-			serCfg.c_cflag &= ~CSIZE;
-			serCfg.c_cflag |= CS8;
-			serCfg.c_cflag &= ~PARENB;
-			serCfg.c_iflag &= ~INPCK;        //enable parity checking
-			serCfg.c_cflag &= ~CSTOPB;
-			
-			serCfg.c_cflag |= (CLOCAL | CREAD);
-			serCfg.c_iflag &= ~(IXON | IXOFF | IXANY);
-			serCfg.c_lflag &= ~(ICANON | ECHO | ECHOE | ISIG);
-			
-			serCfg.c_iflag &= ~(INLCR | ICRNL | IGNCR);
-			serCfg.c_oflag &= ~(ONLCR | OCRNL);
-			
-			serCfg.c_oflag &= ~OPOST;
-			
-			serCfg.c_cc[VTIME] = 1;
-			serCfg.c_cc[VMIN] = 1;        //Update the Opt and do it now
-			
-			if(tcsetattr(Handle, TCSANOW, &serCfg) != 0){
-#ifdef CommonDefH_MAC
-				if (tCDBufName != "/dev/ptmx"){
-					Close_Do();
-					return 0;
-				}
-#endif
-#ifdef CommonDefH_Linux
-				Close_Do();
-				return 0;
-#endif
-			}
-		}
-	}
-#endif
-#ifdef CommonDefH_VC
-	{
-		std::string			strComPortNo;
-		DCB					ComDCB;
-		COMMTIMEOUTS		ComTimeOuts;
-		
-		if (IsConnected() > 0)
-			Close_Do();
-		Clean();
-		
-		strComPortNo = "\\\\.\\" + tCDBufName;
-		Handle = CreateFile(Str_ANSIToUnicode(strComPortNo).c_str(),
-						 GENERIC_READ | GENERIC_WRITE,
-						 0,
-						 nullptr,
-						 OPEN_EXISTING,
-						 0,//FILE_FLAG_OVERLAPPED,
-						 0);
-		
-		if(Handle == INVALID_HANDLE_VALUE){
-			Close_Do();
-			return 0;
-		}
-		else{
-			SetupComm(Handle,(DWORD)cgRxBuffer.BufferMaxSize(),(DWORD)cgTxBuffer.BufferMaxSize());
-			PurgeComm(Handle, PURGE_TXABORT | PURGE_RXABORT | PURGE_TXCLEAR | PURGE_RXCLEAR);
-			
-			ComTimeOuts.ReadIntervalTimeout = 1000;
-			ComTimeOuts.ReadTotalTimeoutMultiplier = 1;
-			ComTimeOuts.ReadTotalTimeoutConstant = 10;
-			ComTimeOuts.WriteTotalTimeoutMultiplier = 1;
-			ComTimeOuts.WriteTotalTimeoutConstant = 10;
-			SetCommTimeouts(Handle,&ComTimeOuts);
-			
-			ComDCB.DCBlength = sizeof(DCB);
-			GetCommState(Handle,&ComDCB);
-			ComDCB.BaudRate = tCDBufPar;
-			ComDCB.fBinary = true;
-			ComDCB.fParity = false;
-			ComDCB.fOutxCtsFlow = false;
-			ComDCB.fOutxDsrFlow = false;
-			ComDCB.fDtrControl = DTR_CONTROL_ENABLE;
-			ComDCB.fDsrSensitivity = false;
-			ComDCB.fTXContinueOnXoff = true;
-			ComDCB.fOutX = false;
-			ComDCB.fInX = false;
-			ComDCB.fErrorChar = false;
-			ComDCB.fNull = false;
-			ComDCB.fRtsControl = RTS_CONTROL_ENABLE;
-			ComDCB.fAbortOnError = true;
-			ComDCB.ByteSize = 8;
-			ComDCB.Parity = NOPARITY;
-			ComDCB.StopBits = ONESTOPBIT;
-			SetCommState(Handle,&ComDCB);
-		}
-	}
-#endif
-	return 1;
-}
-//------------------------------------------------------------------------------------------//
-int32 APICOM::OpenV(const std::string &tCDBufName,int32 tCDBufPar,CSType tCSType,int32 blEnEcho){
-	int32 ret;
-	ret = 0;
-	if (InDoing_try() > 0){
-		if (IsConnected() > 0)
-			Close_Do();
-		Clean();
-		ret = OpenVDev(tCDBufName,tCDBufPar,tCSType);
-		if (ret > 0)
-			Run(tCDBufName,tCDBufPar,tCSType,blEnEcho);
-		InDoing_clr();
-	}
-	return(ret);
-}
-//------------------------------------------------------------------------------------------//
-int32 APICOM::OpenVDev(const std::string &tCDBufName,int32 tCDBufPar,CSType tCSType){
-#ifdef CommonDefH_Unix
-	char *slavename,*sUid,*gUid;
-	int32	ret;
+int32 ACOM::OpenDev(const STDSTR &tCDBufName,int32 tCDBufPar,CSType tCSType,int32 blEnEcho){
+	STDSTR			strComPortNo;
+	DCB				ComDCB;
+	COMMTIMEOUTS	ComTimeOuts;
 	
-	if (APICOM::OpenDev("/dev/ptmx",tCDBufPar,COMMU_DBUF::CSType_None) < 1)
+	strComPortNo = "\\\\.\\" + tCDBufName;
+	osHandle = CreateFile(Str_ANSIToUnicode(strComPortNo).c_str(),
+						GENERIC_READ | GENERIC_WRITE,
+						0,
+						nullptr,
+						OPEN_EXISTING,
+						0,//FILE_FLAG_OVERLAPPED,
+						0);
+	
+	if(osHandle == INVALID_HANDLE_VALUE)
 		return 0;
 	
-	vPortName = tCDBufName;
-	grantpt(Handle);
-	unlockpt(Handle);
-	slavename = ptsname(Handle);
-	ret = symlink(slavename,vPortName.c_str());
-	if (ret == 0){
-		sUid = getenv("SUDO_UID");
-		gUid = getenv("SUDO_GID");
-		
-		if ((sUid != nullptr) && (gUid != nullptr))
-			chown(vPortName.c_str(), atoi(sUid), atoi(gUid));
+	SetupComm(osHandle,(DWORD)cgRxSBUF.BufferMaxSize(),(DWORD)cgTxSBUF.BufferMaxSize());
+	PurgeComm(osHandle, PURGE_TXABORT | PURGE_RXABORT | PURGE_TXCLEAR | PURGE_RXCLEAR);
+	
+	ComTimeOuts.ReadIntervalTimeout = 1000;
+	ComTimeOuts.ReadTotalTimeoutMultiplier = 1;
+	ComTimeOuts.ReadTotalTimeoutConstant = 10;
+	ComTimeOuts.WriteTotalTimeoutMultiplier = 1;
+	ComTimeOuts.WriteTotalTimeoutConstant = 10;
+	SetCommTimeouts(osHandle,&ComTimeOuts);
+	
+	ComDCB.DCBlength = sizeof(DCB);
+	GetCommState(osHandle,&ComDCB);
+	ComDCB.BaudRate = tCDBufPar;
+	ComDCB.fBinary = true;
+	ComDCB.fParity = false;
+	ComDCB.fOutxCtsFlow = false;
+	ComDCB.fOutxDsrFlow = false;
+	ComDCB.fDtrControl = DTR_CONTROL_ENABLE;
+	ComDCB.fDsrSensitivity = false;
+	ComDCB.fTXContinueOnXoff = true;
+	ComDCB.fOutX = false;
+	ComDCB.fInX = false;
+	ComDCB.fErrorChar = false;
+	ComDCB.fNull = false;
+	ComDCB.fRtsControl = RTS_CONTROL_ENABLE;
+	ComDCB.fAbortOnError = true;
+	ComDCB.ByteSize = 8;
+	ComDCB.Parity = NOPARITY;
+	ComDCB.StopBits = ONESTOPBIT;
+	SetCommState(osHandle,&ComDCB);
+	
+	return 1;
+}
+//------------------------------------------------------------------------------------------//
+#endif
+#ifdef CommonDefH_Unix
+//------------------------------------------------------------------------------------------//
+int32 SetBR(ACOM::HANDLE hand,int32 tCDBufPar,CSType tCSType){
+	struct	termios 	serCfg;
+	
+	if (tcgetattr(hand, &serCfg) != 0){
+		#ifdef CommonDefH_MAC
+		if (tCSType == CSType_COM)
+		#endif
+			return 0;
+	}
+	cfmakeraw(&serCfg);
+	switch(tCDBufPar){
+		case 1200:
+			cfsetispeed(&serCfg, B1200);
+			cfsetospeed(&serCfg, B1200);
+			break;
+		case 2400:
+			cfsetispeed(&serCfg, B2400);
+			cfsetospeed(&serCfg, B2400);
+			break;
+		case 4800:
+			cfsetispeed(&serCfg, B4800);
+			cfsetospeed(&serCfg, B4800);
+			break;
+		case 9600:
+			cfsetispeed(&serCfg, B9600);
+			cfsetospeed(&serCfg, B9600);
+			break;
+		case 19200:
+			cfsetispeed(&serCfg, B19200);
+			cfsetospeed(&serCfg, B19200);
+			break;
+		case 38400:
+			cfsetispeed(&serCfg, B38400);
+			cfsetospeed(&serCfg, B38400);
+			break;
+		case 57600:
+			cfsetispeed(&serCfg, B57600);
+			cfsetospeed(&serCfg, B57600);
+			break;
+		case 460800:
+		#ifdef CommonDefH_Linux
+			cfsetispeed(&serCfg, B460800);
+			cfsetospeed(&serCfg, B460800);
+		#endif
+			break;
+		case 115200:
+		default:
+			cfsetispeed(&serCfg, B115200);
+			cfsetospeed(&serCfg, B115200);
+	}
+	if (tcsetattr(hand, TCSANOW, &serCfg) != 0){
+	#ifdef CommonDefH_MAC
+		if (tCSType == CSType_COM)
+	#endif
+			return 0;
+	}
+	return 1;
+}
+//------------------------------------------------------------------------------------------//
+int32 SetAttr(ACOM::HANDLE hand,CSType tCSType){
+	struct	termios 	serCfg;
+	
+	if (tcgetattr(hand, &serCfg) != 0){
+		#ifdef CommonDefH_MAC
+		if (tCSType == CSType_COM)
+		#endif
+		return 0;
+	}
+	cfmakeraw(&serCfg);
+	
+	serCfg.c_cflag |= (CLOCAL | CREAD);
+	serCfg.c_cflag &= ~CSIZE;
+	serCfg.c_cflag |= CS8;
+	serCfg.c_cflag &= ~PARENB;
+	serCfg.c_iflag &= ~INPCK;        //enable parity checking
+	serCfg.c_cflag &= ~CSTOPB;
+	
+	serCfg.c_cflag |= (CLOCAL | CREAD);
+	serCfg.c_iflag &= ~(IXON | IXOFF | IXANY);
+	serCfg.c_lflag &= ~(ICANON | ECHO | ECHOE | ISIG);
+	
+	serCfg.c_iflag &= ~(INLCR | ICRNL | IGNCR);
+	serCfg.c_oflag &= ~(ONLCR | OCRNL);
+	
+	serCfg.c_oflag &= ~OPOST;
+	
+	serCfg.c_cc[VTIME] = 1;
+	serCfg.c_cc[VMIN] = 1;        //Update the Opt and do it now
+	
+	if(tcsetattr(hand, TCSANOW, &serCfg) != 0){
+		#ifdef CommonDefH_MAC
+		if (tCSType == CSType_COM)
+		#endif
+			return 0;
+	}
+	return 1;
+}
+//------------------------------------------------------------------------------------------//
+int32 OpenCOM(ACOM::HANDLE *osHandle,const STDSTR &tCDBufName,int32 tCDBufPar,CSType tCSType,int32 blEnEcho){
+	uint32  par;
+	
+	if (tCDBufName.length() == 0)
+		return 0;
+	
+	par = O_RDWR | O_NONBLOCK | O_NOCTTY | O_NDELAY;
+	
+	if (tCSType == CSType_COMV){
+#ifdef CommonDefH_MAC
+		*osHandle = posix_openpt(par);
+#endif
+#ifdef CommonDefH_Linux
+		*osHandle = open("/dev/ptmx", par);
+#endif
 	}
 	else{
-		vPortName = Str_CharToASCIIStr((uint8*)slavename,(uint32)strlen(slavename),G_ESCAPE_OFF);
+		*osHandle = open(tCDBufName.c_str(), par);
 	}
-	if (GetcgOutput() != nullptr){
-		GetcgOutput()->Spin_InUse_set();
-		GetcgOutput()->WriteStrN("Virtual COM ",RICH_LIN_clCyan,COLSTRING::COL_EP_YES);
-		GetcgOutput()->WriteStr(vPortName,RICH_LIN_clBrown,COLSTRING::COL_EP_YES);
-		GetcgOutput()->WriteStr(" has been created.\r\n",RICH_LIN_clCyan,COLSTRING::COL_EP_YES);
-		GetcgOutput()->Spin_InUse_clr();
+	
+	if ((*osHandle < 0) || (SetAttr(*osHandle,tCSType) == 0) || (SetBR(*osHandle,tCDBufPar,tCSType) == 0))
+		return 0;
+	return 1;
+}
+//------------------------------------------------------------------------------------------//
+int32 ACOM::OpenDev(const STDSTR &tCDBufName,int32 tCDBufPar,CSType tCSType,int32 blEnEcho){
+	if (OpenCOM(&osHandle,tCDBufName,tCDBufPar,tCSType,blEnEcho) == 0)
+		return 0;
+#ifdef CommonDefH_Unix
+	if (tCSType == CSType_COMV){
+		char	*slavename,*sUid,*gUid;
+		
+		grantpt(osHandle);
+		unlockpt(osHandle);
+		slavename = ptsname(osHandle);
+		
+		if (symlink(slavename,tCDBufName.c_str()) == 0){// try create GetBufName in the linux
+			sUid = getenv("SUDO_UID");
+			gUid = getenv("SUDO_GID");
+			
+			if ((sUid != nullptr) && (gUid != nullptr))
+				chown(tCDBufName.c_str(), atoi(sUid), atoi(gUid));
+			vPortName = tCDBufName;
+		}
+		else{// if fail , use the name which OS assign
+			vPortName = Str_CharToASCIIStr((uint8*)slavename,(uint32)strlen(slavename),G_ESCAPE_OFF);
+		}
 	}
 #endif
 	return 1;
 }
 //------------------------------------------------------------------------------------------//
-void APICOM::CloseVDev(void){
+#endif
+//------------------------------------------------------------------------------------------//
+void ACOM::DoPrintOnOpenSuccess(void){
+	if (GetCNType(this) == CN_S){
+		PrintOpenSuccessReport("COM");
+	}
+	else{
+		PrintOpenSuccessReport();
+	}
+	#ifdef CommonDefH_Unix
+	if (GetCSType() == CSType_COMV)
+		PrintMessage(Data(COL_NormalMessage,"Virtual COM"),Data(COL_ImportantMessage,&vPortName),Data(COL_NormalMessage,"has been created"));
+	#endif
+};
+//------------------------------------------------------------------------------------------//
+void ACOM::DoPrintOnClose(void){
+	if (ChkblCloseDueToOS() != 0){
+		PrintConnectionReport(cgAttrTitle,"COM","connection disconnected");
+	}
+	else{
+		PrintConnectionReport("User closed",cgAttrTitle,"COM");
+	}
 #ifdef CommonDefH_Unix
-	if (vPortName.length() > 0){
+	if (GetCSType() == CSType_COMV){
 		unlink(vPortName.c_str());
-		if (GetcgOutput() != nullptr){
-			GetcgOutput()->Spin_InUse_set();
-			GetcgOutput()->WriteStrN("Virtual COM ",RICH_LIN_clCyan,COLSTRING::COL_EP_YES);
-			GetcgOutput()->WriteStr(vPortName,RICH_LIN_clBrown,COLSTRING::COL_EP_YES);
-			GetcgOutput()->WriteStr(" has been deleted.\r\n",RICH_LIN_clCyan,COLSTRING::COL_EP_YES);
-			GetcgOutput()->Spin_InUse_clr();
-		}
+		PrintMessage(Data(COL_NormalMessage,"Virtual COM"),Data(COL_ImportantMessage,&vPortName),Data(COL_NormalMessage,"has been deleted"));
 		vPortName = "";
 	}
 #endif
 }
 //------------------------------------------------------------------------------------------//
-int32 APICOM::SetBaudrate(int32 tCDBufPar){
-	int32 ret;
-	ret = 0;
-	if (InDoing_try() > 0){
-		Spin_InUse_set();
-		ret = SetBaudrate_Do(tCDBufPar);
-		Spin_InUse_clr();
-		InDoing_clr();
-	}
-	return(ret);
-}
-//------------------------------------------------------------------------------------------//
-int32 APICOM::SetBaudrate_Do(int32 tCDBufPar){
-#ifdef CommonDefH_Unix
-	{
-		struct	termios 	serCfg;
-		
-		if (IsConnected() > 0){
-			if (tcgetattr(Handle, &serCfg) != 0){
-#ifdef CommonDefH_MAC
-				if (GetBufName() != "/dev/ptmx"){
-					Close_Do();
-					return 0;
-				}
-#endif
-#ifdef CommonDefH_Linux
-				Close_Do();
-				return 0;
-#endif
-			}
-			cfmakeraw(&serCfg);
-			switch(tCDBufPar){
-				case 1200:
-					cfsetispeed(&serCfg, B1200);
-					cfsetospeed(&serCfg, B1200);
-					break;
-				case 2400:
-					cfsetispeed(&serCfg, B2400);
-					cfsetospeed(&serCfg, B2400);
-					break;
-				case 4800:
-					cfsetispeed(&serCfg, B4800);
-					cfsetospeed(&serCfg, B4800);
-					break;
-				case 9600:
-					cfsetispeed(&serCfg, B9600);
-					cfsetospeed(&serCfg, B9600);
-					break;
-				case 19200:
-					cfsetispeed(&serCfg, B19200);
-					cfsetospeed(&serCfg, B19200);
-					break;
-				case 38400:
-					cfsetispeed(&serCfg, B38400);
-					cfsetospeed(&serCfg, B38400);
-					break;
-				case 57600:
-					cfsetispeed(&serCfg, B57600);
-					cfsetospeed(&serCfg, B57600);
-					break;
-				case 460800:
-#ifdef CommonDefH_Linux
-					cfsetispeed(&serCfg, B460800);
-					cfsetospeed(&serCfg, B460800);
-#endif
-					break;
-				case 115200:
-				default:
-					cfsetispeed(&serCfg, B115200);
-					cfsetospeed(&serCfg, B115200);
-			}
-			if(tcsetattr(Handle, TCSANOW, &serCfg) != 0){
-#ifdef CommonDefH_MAC
-				if (GetBufName() != "/dev/ptmx"){
-					Close_Do();
-					return 0;
-				}
-#endif
-#ifdef CommonDefH_Linux
-				Close_Do();
-				return 0;
-#endif
-			}
-			return 1;
-		}
-		return 0;
-	}
-#endif
+int32 ACOM::SetBaudrate(int32 tCDBufPar){
 #ifdef CommonDefH_VC
-	{
-		DCB		ComDCB;
-		
-		if (IsConnected() > 0){
-			ComDCB.DCBlength = sizeof(DCB);
-			if (GetCommState(Handle,&ComDCB)){
-				ComDCB.BaudRate = tCDBufPar;
-				return(SetCommState(Handle,&ComDCB));
-			}
+	DCB		ComDCB;
+	
+	if (IsConnected() != 0){
+		ComDCB.DCBlength = sizeof(DCB);
+		if (GetCommState(osHandle,&ComDCB)){
+			ComDCB.BaudRate = tCDBufPar;
+			return(SetCommState(osHandle,&ComDCB));
 		}
-		return 0;
 	}
+	return 0;
+#endif
+#ifdef CommonDefH_Unix
+	return(SetBR(osHandle,GetBufPar(),GetCSType()));
 #endif
 }
 //------------------------------------------------------------------------------------------//
-void APICOM::CloseDev(void){
-#ifdef CommonDefH_Unix
-	if (IsConnected() > 0)
-		close(Handle);
-	CloseVDev();
-	Handle = -1;
-#endif
-#ifdef CommonDefH_VC
-	if (IsConnected() > 0){
-		PurgeComm(Handle,PURGE_TXABORT | PURGE_RXABORT | PURGE_TXCLEAR | PURGE_RXCLEAR);
-		CloseHandle(Handle);
-	}
-	Handle = INVALID_HANDLE_VALUE;
-#endif
-	DTR = 0;
-	RTS = 0;
-	CTS = "";
-	DSR = "";
-	RING = "";
-	DCD = "";
+void ACOM::CloseDev(void){
 	COMMU_DBUF::CloseDev();
+#ifdef CommonDefH_Unix
+	if (IsConnected() != 0)
+		close(osHandle);
+	osHandle = -1;
+#endif
+#ifdef CommonDefH_VC
+	if (IsConnected() != 0){
+		PurgeComm(osHandle,PURGE_TXABORT | PURGE_RXABORT | PURGE_TXCLEAR | PURGE_RXCLEAR);
+		CloseHandle(osHandle);
+	}
+	osHandle = INVALID_HANDLE_VALUE;
+#endif
+	ClrSFlag(blDTR | blRTS);
+	modemStatus = "";
 }
 //------------------------------------------------------------------------------------------//
-int32 APICOM::ReadFromDevice(uint32 *retNum,uint8 *buffer,uint32 length){
+int32 ACOM::ReadFromDevice(uint32 *retNum,uint8 *buffer,uint32 length){
 	*retNum = 0;
 #ifdef CommonDefH_Unix
 	int64		retCode;
 #ifdef CommonDefH_Linux
-	retCode = read(Handle,buffer,length);
-	if (retCode == 0){
-		SYS_SleepMS(50);
-		if (CheckblAClose() == 0){
-			SetblSDC();
-			PrintUserDisconnectReport(" COM " + GetBufName() + ":" + Str_IntToString(GetBufPar()) + " connection disconnected.\r\n");
-		}
-		ClrblConnected();
-		CloseDev();
+	retCode = read(osHandle,buffer,length);
+	if (retCode == 0)
 		return -1;
-	}
 	if (retCode > 0){
 		*retNum = (uint32)retCode;
 		return 1;
@@ -427,17 +331,9 @@ int32 APICOM::ReadFromDevice(uint32 *retNum,uint8 *buffer,uint32 length){
 	return 0;
 #endif
 #ifdef CommonDefH_MAC
-	retCode = read(Handle,buffer,length);
-	if (((retCode == -1) && (errno != EINTR) && (errno != EWOULDBLOCK) && (errno != EAGAIN))){
-		SYS_SleepMS(50);
-		if (CheckblAClose() == 0){
-			SetblSDC();
-			PrintUserDisconnectReport(" COM " + GetBufName() + ":" + Str_IntToString(GetBufPar()) + " connection disconnected.\r\n");
-		}
-		ClrblConnected();
-		CloseDev();
+	retCode = read(osHandle,buffer,length);
+	if (((retCode == -1) && (errno != EINTR) && (errno != EWOULDBLOCK) && (errno != EAGAIN)))
 		return -1;
-	}
 	if (retCode > 0){
 		*retNum = (uint32)retCode;
 		return 1;
@@ -449,12 +345,12 @@ int32 APICOM::ReadFromDevice(uint32 *retNum,uint8 *buffer,uint32 length){
 	COMSTAT	ComStat;
 	DWORD dwBytesRead,dwErrorFlags;
 	
-	ClearCommError(Handle,&dwErrorFlags,&ComStat);
+	ClearCommError(osHandle,&dwErrorFlags,&ComStat);
 	if (ComStat.cbInQue > 0){
 		dwBytesRead = ComStat.cbInQue;
 		if (length > dwBytesRead)
 			length = dwBytesRead;
-		if (ReadFile(Handle,buffer,length,&dwBytesRead,nullptr)){
+		if (ReadFile(osHandle,buffer,length,&dwBytesRead,nullptr)){
 			*retNum = (uint32)dwBytesRead;
 			return 1;
 		}
@@ -463,14 +359,14 @@ int32 APICOM::ReadFromDevice(uint32 *retNum,uint8 *buffer,uint32 length){
 #endif
 }
 //------------------------------------------------------------------------------------------//
-int32 APICOM::SendToDevice(uint32 *retNum,const uint8 *buffer,uint32 length){
+int32 ACOM::SendToDevice(uint32 *retNum,const uint8 *buffer,uint32 length){
 #ifdef CommonDefH_Unix
 	int64		retCode;
 	uint32		i;
 	
 	i = 0;
-	while((i < length) && (CheckblAClose() == 0)){
-		retCode = write(Handle, &buffer[i], length - i);
+	while((i < length) && (IsConnected() != 0)){
+		retCode = write(osHandle, &buffer[i], length - i);
 		if (retCode == -1){
 			*retNum = i;
 			return -1;
@@ -484,16 +380,16 @@ int32 APICOM::SendToDevice(uint32 *retNum,const uint8 *buffer,uint32 length){
 	DCB			ComDCB;
 	i = 0;
 	ComDCB.DCBlength = sizeof(DCB);
-	GetCommState(Handle,&ComDCB);
-	while((i < length) && (CheckblAClose() == 0)){
-		while((CheckblAClose() == 0) && ((ComDCB.fOutxCtsFlow && (GetCTSStatus() == "H")) || (ComDCB.fOutxDsrFlow && (GetDSRStatus() == "H")))){
+	GetCommState(osHandle,&ComDCB);
+	while ((i < length) && (IsConnected() != 0)){
+		while ((IsConnected() == 0) && ((ComDCB.fOutxCtsFlow && (GetCTSStatus() == "H")) || (ComDCB.fOutxDsrFlow && (GetDSRStatus() == "H")))){
 			SYS_SleepMS(2);
-			GetCommState(Handle,&ComDCB);
+			GetCommState(osHandle,&ComDCB);
 		}
 		
-		PurgeComm(Handle, PURGE_TXABORT | PURGE_TXCLEAR);
-		ClearCommError(Handle,&dwErrorFlags,&ComStat);
-		WriteFile(Handle,&buffer[i],length - i,&dwBytesWr,nullptr);
+		PurgeComm(osHandle, PURGE_TXABORT | PURGE_TXCLEAR);
+		ClearCommError(osHandle,&dwErrorFlags,&ComStat);
+		WriteFile(osHandle,&buffer[i],length - i,&dwBytesWr,nullptr);
 		i += dwBytesWr;
 	}
 #endif
@@ -502,23 +398,54 @@ int32 APICOM::SendToDevice(uint32 *retNum,const uint8 *buffer,uint32 length){
 }
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
-int32 APICOM::ExThreadFun(void){
-	while(exThread.IsTerminated() == 0){
+int32 ACOM::ModemStatusThreadFun(void *p){
+	STDSTR	strMSstatus;
+	int32	blflag;
+	while(modemStatusThread.IsTerminated() == 0){
 		SYS_SleepMS(50);
-		UpdateMainComModemStatus();
+		if (IsConnected() == 0)
+			continue;
+		
+		blflag = 0;
+		if (GetLogSystem() != nullptr)
+			blflag = B_ChkFLAG64(GetLogSystem()->envcfg,ODEV_FLAG_EnMSReport);
+		
+		if (blflag == 0){
+			modemStatus = GetModemStatus();
+		}
+		else{
+			strMSstatus  = GetModemStatus();
+			
+			if (strMSstatus != modemStatus){
+				PrintConnectionReport("Modem",GetBufName(),"status has changed:",strMSstatus);
+				modemStatus = strMSstatus;
+			}
+		}
 	}
 	return 0;
 }
 //------------------------------------------------------------------------------------------//
-std::string APICOM::GetCTSStatus(void){
-	std::string	retStr;
+STDSTR ACOM::GetModemStatus(void){
+	return("CTS=" + GetCTSStatus() + " ,DSR="+ GetDSRStatus() + " ,RING=" + GetDCDStatus() + " ,DCD=" + GetRINGStatus());
+}
+//------------------------------------------------------------------------------------------//
+STDSTR ACOM::GetFullModemStatus(void){
+	return("CTS=" + GetCTSStatus()
+		   + " ,DSR="+ GetDSRStatus()
+		   + " ,RING=" + GetDCDStatus()
+		   + " ,DCD=" + GetRINGStatus()
+		   + (GetDTRStatus() == 0 ? ", DTR=L" : ", DTR=H")
+		   + (GetRTSStatus() == 0 ? ", RTS=L" : ", RTS=H"));
+}
+//------------------------------------------------------------------------------------------//
+STDSTR ACOM::GetCTSStatus(void){
+	STDSTR	retStr;
 	retStr = "";
 
-	Spin_InUse_set();
 #ifdef CommonDefH_Unix
 	int status;
-	if (IsConnected() > 0){
-		ioctl(Handle, TIOCMGET, &status);
+	if (IsConnected() != 0){
+		ioctl(osHandle, TIOCMGET, &status);
 		if (status & TIOCM_CTS){
 			retStr = 'L';
 		}
@@ -530,8 +457,8 @@ std::string APICOM::GetCTSStatus(void){
 #ifdef CommonDefH_VC
 	DWORD	dwStatus;
 	
-	if (IsConnected() > 0){
-		GetCommModemStatus(Handle,&dwStatus);
+	if (IsConnected() != 0){
+		GetCommModemStatus(osHandle,&dwStatus);
 		if (dwStatus & MS_CTS_ON){
 			retStr = 'L';
 		}
@@ -540,19 +467,17 @@ std::string APICOM::GetCTSStatus(void){
 		}
 	}
 #endif
-	Spin_InUse_clr();
 	return(retStr);
 }
 //------------------------------------------------------------------------------------------//
-std::string APICOM::GetDSRStatus(void){
-	std::string	retStr;
+STDSTR ACOM::GetDSRStatus(void){
+	STDSTR	retStr;
 	retStr = "";
 
-	Spin_InUse_set();
 #ifdef CommonDefH_Unix
 	int status;
-	if (IsConnected() > 0){
-		ioctl(Handle, TIOCMGET, &status);
+	if (IsConnected() != 0){
+		ioctl(osHandle, TIOCMGET, &status);
 		if (status & TIOCM_DSR){
 			retStr = 'L';
 		}
@@ -564,8 +489,8 @@ std::string APICOM::GetDSRStatus(void){
 #ifdef CommonDefH_VC
 	DWORD	dwStatus;
 	
-	if (IsConnected() > 0){
-		GetCommModemStatus(Handle,&dwStatus);
+	if (IsConnected() != 0){
+		GetCommModemStatus(osHandle,&dwStatus);
 		if (dwStatus & MS_DSR_ON){
 			retStr = 'L';
 		}
@@ -574,19 +499,17 @@ std::string APICOM::GetDSRStatus(void){
 		}
 	}
 #endif
-	Spin_InUse_clr();
 	return(retStr);
 }
 //------------------------------------------------------------------------------------------//
-std::string APICOM::GetRINGStatus(void){
-	std::string	retStr;
+STDSTR ACOM::GetRINGStatus(void){
+	STDSTR	retStr;
 	retStr = "";
 
-	Spin_InUse_set();
 #ifdef CommonDefH_Unix
 	int status;
-	if (IsConnected() > 0){
-		ioctl(Handle, TIOCMGET, &status);
+	if (IsConnected() != 0){
+		ioctl(osHandle, TIOCMGET, &status);
 		if (status & TIOCM_RNG){
 			retStr = 'L';
 		}
@@ -598,8 +521,8 @@ std::string APICOM::GetRINGStatus(void){
 #ifdef CommonDefH_VC
 	DWORD	dwStatus;
 	
-	if (IsConnected() > 0){
-		GetCommModemStatus(Handle,&dwStatus);
+	if (IsConnected() != 0){
+		GetCommModemStatus(osHandle,&dwStatus);
 		if (dwStatus & MS_RING_ON){
 			retStr = 'L';
 		}
@@ -608,19 +531,17 @@ std::string APICOM::GetRINGStatus(void){
 		}
 	}
 #endif
-	Spin_InUse_clr();
 	return(retStr);
 }
 //------------------------------------------------------------------------------------------//
-std::string APICOM::GetDCDStatus(void){
-	std::string	retStr;
+STDSTR ACOM::GetDCDStatus(void){
+	STDSTR	retStr;
 	retStr = "";
 
-	Spin_InUse_set();
 #ifdef CommonDefH_Unix
 	int status;
-	if (IsConnected() > 0){
-		ioctl(Handle, TIOCMGET, &status);
+	if (IsConnected() != 0){
+		ioctl(osHandle, TIOCMGET, &status);
 		if (status & TIOCM_CAR){
 			retStr = 'L';
 		}
@@ -632,8 +553,8 @@ std::string APICOM::GetDCDStatus(void){
 #ifdef CommonDefH_VC
 	DWORD	dwStatus;
 	
-	if (IsConnected() > 0){
-		GetCommModemStatus(Handle,&dwStatus);
+	if (IsConnected() != 0){
+		GetCommModemStatus(osHandle,&dwStatus);
 		if (dwStatus & MS_RLSD_ON){
 			retStr = 'L';
 		}
@@ -642,160 +563,120 @@ std::string APICOM::GetDCDStatus(void){
 		}
 	}
 #endif
-	Spin_InUse_clr();
 	return(retStr);
 }
 //------------------------------------------------------------------------------------------//
-void APICOM::SetDTRToHigh(void) {
+void ACOM::SetDTRToHigh(void) {
 
-	Spin_InUse_set();
 #ifdef CommonDefH_Unix
 	int status;
-	if (IsConnected() > 0){
-		ioctl(Handle, TIOCMGET, &status);
+	if (IsConnected() != 0){
+		ioctl(osHandle, TIOCMGET, &status);
 		status &= ~TIOCM_DTR;
-		ioctl(Handle, TIOCMSET, &status);
+		ioctl(osHandle, TIOCMSET, &status);
 	}
 #endif
 #ifdef CommonDefH_VC
-	if (IsConnected() > 0)
-		EscapeCommFunction(Handle,CLRDTR);
+	if (IsConnected() != 0)
+		EscapeCommFunction(osHandle,CLRDTR);
 #endif
-	DTR = 1;
-	Spin_InUse_clr();
+	SetSFlag(blDTR);
 }
 //------------------------------------------------------------------------------------------//
-void APICOM::SetDTRToLow(void){
+void ACOM::SetDTRToLow(void){
 
-	Spin_InUse_set();
 #ifdef CommonDefH_Unix
 	int status;
-	if (IsConnected() > 0){
-		ioctl(Handle, TIOCMGET, &status);
+	if (IsConnected() != 0){
+		ioctl(osHandle, TIOCMGET, &status);
 		status |= TIOCM_DTR;
-		ioctl(Handle, TIOCMSET, &status);
+		ioctl(osHandle, TIOCMSET, &status);
 	}
 #endif
 #ifdef CommonDefH_VC
-	if (IsConnected() > 0)
-		EscapeCommFunction(Handle,SETDTR);
+	if (IsConnected() != 0)
+		EscapeCommFunction(osHandle,SETDTR);
 #endif
-	DTR = 0;
-	Spin_InUse_clr();
+	ClrSFlag(blDTR);
 }
 //------------------------------------------------------------------------------------------//
-void APICOM::SetRTSToHigh(void){
+void ACOM::SetRTSToHigh(void){
 
-	Spin_InUse_set();
 #ifdef CommonDefH_Unix
 	int status;
-	if (IsConnected() > 0){
-		ioctl(Handle, TIOCMGET, &status);
+	if (IsConnected() != 0){
+		ioctl(osHandle, TIOCMGET, &status);
 		status &= ~TIOCM_RTS;
-		ioctl(Handle, TIOCMSET, &status);
+		ioctl(osHandle, TIOCMSET, &status);
 	}
 #endif
 #ifdef CommonDefH_VC
-	if (IsConnected() > 0)
-		EscapeCommFunction(Handle,CLRRTS);
+	if (IsConnected() != 0)
+		EscapeCommFunction(osHandle,CLRRTS);
 #endif
-	RTS = 1;
-	Spin_InUse_clr();
+	SetSFlag(blRTS);
 }
 //------------------------------------------------------------------------------------------//
-void APICOM::SetRTSToLow(void){
+void ACOM::SetRTSToLow(void){
 
-	Spin_InUse_set();
 #ifdef CommonDefH_Unix
 	int status;
-	if (IsConnected() > 0){
-		ioctl(Handle, TIOCMGET, &status);
+	if (IsConnected() != 0){
+		ioctl(osHandle, TIOCMGET, &status);
 		status |= TIOCM_RTS;
-		ioctl(Handle, TIOCMSET, &status);
+		ioctl(osHandle, TIOCMSET, &status);
 	}
 #endif
 #ifdef CommonDefH_VC
-	if (IsConnected() > 0)
-		EscapeCommFunction(Handle,SETRTS);
+	if (IsConnected() != 0)
+		EscapeCommFunction(osHandle,SETRTS);
 #endif
-	RTS = 0;
-	Spin_InUse_clr();
+	ClrSFlag(blRTS);
 }
 //------------------------------------------------------------------------------------------//
-void APICOM::SetDSRFlow(int32 blEnable){
-#ifdef CommonDefH_VC
-	DCB	ComDCB;
-	Spin_InUse_set();
-	ComDCB.DCBlength = sizeof(DCB);
-	if (GetCommState(Handle,&ComDCB)){
-		ComDCB.fOutxDsrFlow = (blEnable != 0);
-		SetCommState(Handle,&ComDCB);
-	}
-	Spin_InUse_clr();
-#endif
-}
-//------------------------------------------------------------------------------------------//
-void APICOM::SetCTSFlow(int32 blEnable){
-#ifdef CommonDefH_VC
-	DCB	ComDCB;
-	Spin_InUse_set();
-	ComDCB.DCBlength = sizeof(DCB);
-	if (GetCommState(Handle,&ComDCB)){
-		ComDCB.fOutxCtsFlow = (blEnable != 0);
-		SetCommState(Handle,&ComDCB);
-	}
-	Spin_InUse_clr();
-#endif
-}
-//------------------------------------------------------------------------------------------//
-void APICOM::UpdateMainComModemStatus(void){
-	std::string	strPrintdata,strMSstatus1,strMSstatus2;
-	int32		blflag;
-	
-	blflag = 0;
-	Spin_InUse_set();
-	if (GetcgODevList() != nullptr)
-		blflag = B_ChkFLAG64(GetcgODevList()->cgODevFlagU64,ODEV_FLAG_EnMSReport);
-	Spin_InUse_clr();
-	
-	if (blflag == 0){
-		CTS = GetCTSStatus();
-		DSR = GetDSRStatus();
-		DCD = GetDCDStatus();
-		RING = GetRINGStatus();
+void ACOM::SetDTR(int32 blHigh) {
+	if (blHigh != 0){
+		SetDTRToHigh();
+		PrintNormalMessage("Set",cgAttrTitle,"DTR to high");
 	}
 	else{
-		strMSstatus1  = CTS + DSR + DCD + RING;
-		CTS = GetCTSStatus();
-		DSR = GetDSRStatus();
-		DCD = GetDCDStatus();
-		RING = GetRINGStatus();
-		strMSstatus2  = CTS + DSR + DCD + RING;
-		
-		if (strMSstatus1 != strMSstatus2){
-			strPrintdata = SYS_MakeTimeNow();
-			strPrintdata += " Modem ";
-			strPrintdata += GetBufName();
-			strPrintdata += " status has changed: ";
-			strPrintdata += ("CTS=" + CTS);
-			strPrintdata += (" ,DSR=" + DSR);
-			strPrintdata += (" ,RING=" + RING);
-			strPrintdata += (" ,DCD=" + DCD);
-			strPrintdata += "\r\nCurrently,total already sent ";
-			strPrintdata += Str_UInt64ToString(TxBytes());
-			strPrintdata += " bytes ,received ";
-			strPrintdata += Str_UInt64ToString(RxBytes());
-			strPrintdata += " bytes.\r\n";
-			Spin_InUse_set();
-			if (GetcgOutput() != nullptr){
-				GetcgOutput()->Spin_InUse_set();
-				GetcgOutput()->WriteDividingLine(RICH_CF_clMaroon,COLSTRING::COL_EP_YES);
-				GetcgOutput()->WriteStrN(strPrintdata,RICH_CF_clPurple,COLSTRING::COL_EP_YES);
-				GetcgOutput()->WriteDividingLine(RICH_CF_clMaroon,COLSTRING::COL_EP_YES);
-				GetcgOutput()->Spin_InUse_clr();
-			}
-			Spin_InUse_clr();
-		}
+		SetDTRToLow();
+		PrintNormalMessage("Set",cgAttrTitle,"DTR to low");
 	}
 }
 //------------------------------------------------------------------------------------------//
+void ACOM::SetRTS(int32 blHigh) {
+	if (blHigh != 0){
+		SetRTSToHigh();
+		PrintNormalMessage("Set",cgAttrTitle,"RTS to high");
+	}
+	else{
+		SetRTSToLow();
+		PrintNormalMessage("Set",cgAttrTitle,"RTS to low");
+	}
+}
+//------------------------------------------------------------------------------------------//
+void ACOM::SetDSRFlow(int32 blEnable){
+#ifdef CommonDefH_VC
+	DCB	ComDCB;
+	
+	ComDCB.DCBlength = sizeof(DCB);
+	if (GetCommState(osHandle,&ComDCB)){
+		ComDCB.fOutxDsrFlow = (blEnable != 0);
+		SetCommState(osHandle,&ComDCB);
+	}
+#endif
+}
+//------------------------------------------------------------------------------------------//
+void ACOM::SetCTSFlow(int32 blEnable){
+#ifdef CommonDefH_VC
+	DCB	ComDCB;
+	ComDCB.DCBlength = sizeof(DCB);
+	if (GetCommState(osHandle,&ComDCB)){
+		ComDCB.fOutxCtsFlow = (blEnable != 0);
+		SetCommState(osHandle,&ComDCB);
+	}
+#endif
+}
+//------------------------------------------------------------------------------------------//
+#endif

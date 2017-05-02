@@ -58,9 +58,9 @@ class CMyCTreeCtrl : public CTreeCtrl{
 		virtual void	OnEditSave(HTREEITEM hItem){;};
 		virtual void	OnEditCheckSave(HTREEITEM hItem){OnEditSave(hItem);};
 	protected:
-		HTREEITEM	m_SelectItem;
-		HTREEITEM	m_HotItem;
-		BOOL		m_blMouseTracking;
+		HTREEITEM		m_SelectItem;
+		HTREEITEM		m_HotItem;
+		BOOL			m_blMouseTracking;
 		INT32			CaclRectLeft(HTREEITEM treeItem);
 		BOOL			DoECClick(HTREEITEM hItem,CPoint point);
 		virtual BOOL	SelectItem(HTREEITEM hItem);

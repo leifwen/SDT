@@ -33,8 +33,8 @@ documentation and/or software.
 
 */
 //------------------------------------------------------------------------------------------//
-#ifndef MD5SumH
-#define MD5SumH
+#ifdef MD5SumH
+//#define MD5SumH
 //------------------------------------------------------------------------------------------//
 #include "BasicDef.h"
 #include "BasicClass.h"

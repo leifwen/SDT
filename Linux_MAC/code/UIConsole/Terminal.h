@@ -8,92 +8,79 @@
  * Writer	: Leif Wen
  * Date		: 2014.01.25
 */
-#ifndef TerminalH
-#define TerminalH
+
 //------------------------------------------------------------------------------------------//
 #include "Commu_RMS.h"
 #include "BIC.h"
 //------------------------------------------------------------------------------------------//
-class TerminalSocket : public APISocket{
+#ifdef Commu_RMSH
+#ifndef TerminalH
+#define TerminalH
+#ifdef TerminalH
+//------------------------------------------------------------------------------------------//
+class TerminalSocket : public RSSLSocket{
 	public:
-		enum{RFLAG_C = 0, RFLAG_S = APISocket::RFLAG_S + APISocket::RFLAG_C};
-				 TerminalSocket(const ODEV_LIST *tODEV_LIST,int32 tSize): APISocket(tODEV_LIST,tSize){
-					CreateSelfODev(COLSTRING::COLType_TXT);
-					selfName = "TerminalSocket";
-				 };
-		virtual ~TerminalSocket(void){;};
+				 TerminalSocket(uint32 tSize,SDTAPP *sdtApp): RSSLSocket(tSize,nullptr){Init(sdtApp);SetGetDataByRead();SetSelfName("TerminalSocket");};
+		virtual ~TerminalSocket(void){BICThread.RemoveSelf();};
+	protected:
+		BIC_ENV			cgBICenv;
+		SBUFFER			cmdSBUF;
+		SYS_Thread<TerminalSocket>	BICThread;
 	private:
-		BICPAR			cgBICPAR;
-		virtual	int32	ExThreadFun		(void);
-		virtual void	ThreadsStart	(void);
-		virtual	void	OnCloseDev		(void);
-	public:
-				void	InitBICPAR		(SDTAPP *sdtApp);
+				void	Init		(SDTAPP *sdtApp);
+		virtual	void	DoClose		(void);
+	protected:
+				int32	DoBICThreadFun		(void *p);
+		virtual	int32	BICThreadFun		(void *p);
 };
 //------------------------------------------------------------------------------------------//
-class TerminalServer : public APISocketServer{
+class TerminalServer : public BSOCKETSERVER{
 	public:
-		enum{RFLAG_C = 0, RFLAG_S = APISocketServer::RFLAG_S + APISocketServer::RFLAG_C};
-				 TerminalServer(int32 tSize) : APISocketServer(nullptr,tSize){selfName = "TS";cgSDTApp = nullptr;};
+				 TerminalServer(uint32 tSize,SDTAPP *sdtApp) : BSOCKETSERVER(tSize,nullptr){SetSelfName("TS");cgSDTApp = sdtApp;};
 		virtual ~TerminalServer(void){;};
-	private:
+	protected:
 		SDTAPP	*cgSDTApp;
-		virtual APISocket	*CreateNewSocket_TCP(const ODEV_LIST *tODEV_LIST,uint32 tSize){
-			TerminalSocket *tPDB;
-			tPDB = new TerminalSocket(tODEV_LIST,tSize);
-			if (tPDB != nullptr){
-				tPDB->InitBICPAR(cgSDTApp);
-				tPDB->selfName = "TS->Socket" + Str_IntToString(GetnodeID(tPDB).load());
-			}
-			return(tPDB);
-		};
+	protected:
+		virtual	TNFP*	CreateNode		(void){return(SetSubNodeSelfName(new TerminalSocket(cgBufMaxSize,cgSDTApp)));};
 	public:
-		int32	Run		(int32 port,SDTAPP *sdtApp){cgSDTApp = sdtApp;return(APISocketServer::OpenD(port,COMMU_DBUF::CSType_TCP,0));};
+				int32	Open			(int32 port){return(BSOCKETSERVER::OpenD("",port,CSType_TCPS,0));};
 };
 //------------------------------------------------------------------------------------------//
-#ifdef USE_OPENSSL
 //------------------------------------------------------------------------------------------//
-class RSTSocket : public ControlSocket{
+#ifndef Terminal_RSTH
+#define Terminal_RSTH
+#ifdef Terminal_RSTH
+//------------------------------------------------------------------------------------------//
+class RSTSocket : public TerminalSocket{
 	public:
-		enum{RFLAG_C = 0, RFLAG_S = ControlSocket::RFLAG_S + ControlSocket::RFLAG_C};
-				 RSTSocket(const ODEV_LIST *tODEV_LIST,int32 tSize): ControlSocket(tODEV_LIST,tSize){Init();SetSelfName("RSTCilent");};
-		virtual ~RSTSocket(void){commandThread.RemoveSelf();};
+		enum{RFLAG_C = 3, RFLAG_S = TerminalSocket::RFLAG_S + TerminalSocket::RFLAG_C};
 	private:
-		SYS_ThreadEx<RSTSocket>	commandThread;
-		BICPAR			cgBICPAR;
-		uint32			cgTSFlag;
+		enum{blSetupTerminalY = RFLAG_CREATE(0),blSetupTerminalN = RFLAG_CREATE(1),blCloseTerminalY = RFLAG_CREATE(2),};
+	public:
+				 RSTSocket(uint32 tSize,SDTAPP *sdtApp): TerminalSocket(tSize,sdtApp){Init();SetblUseSSL();SetSelfName("RSTCilent");};
+		virtual ~RSTSocket(void){;};
 	private:
-				void	Init			(void);
-		virtual	int32	CommandThreadFun(void);
-		virtual	void	OnCloseDev		(void);
-		virtual	int32	MessageProcessing(FNode_MESG *RecMesg,int32 blReady);
+				void	Init				(void);
+				int32	BICThreadFun		(void *p);
+		virtual	void	ThreadsStop			(void);
+		virtual	STDSTR	GetMesgText			(uint32 mID);
+		virtual	int32	MessageProcessing	(const uint32 &mID,const STDSTR &strMesg);
 	public:
-				void	InitBICPAR(SDTAPP *sdtApp);
-	public:
-				int32	SendRequestSetupTerminal(void);
-				int32	SendRequestCloseTerminal(void);
-				int32	CheckRemoteTerminalStatus(void);
+				int32	SendRequestSetupTerminal	(void);
+				int32	SendRequestCloseTerminal	(void);
+				int32	CheckTerminalClosed			(void){return(CheckSFlag(blCloseTerminalY));};
 };
 //------------------------------------------------------------------------------------------//
-class RSTServer : public RemoteSSLServer{
+class RSTServer : public TerminalServer{
 	public:
-		enum{RFLAG_C = 0, RFLAG_S = RemoteSSLServer::RFLAG_S + RemoteSSLServer::RFLAG_C};
-				 RSTServer(int32 tSize) : RemoteSSLServer(nullptr,tSize){selfName = "RST";cgSDTApp = nullptr;};
+				 RSTServer(uint32 tSize,SDTAPP *sdtApp) : TerminalServer(tSize,sdtApp){selfName = "RST";};
 		virtual ~RSTServer(void){;};
 	private:
-		SDTAPP	*cgSDTApp;
-		virtual APISocket	*CreateNewSocket_TCP(const ODEV_LIST *tODEV_LIST,uint32 tSize){
-			RSTSocket *tPDB = new RSTSocket(tODEV_LIST,tSize);
-			if (tPDB != nullptr){
-				tPDB->InitBICPAR(cgSDTApp);
-				tPDB->SetSelfName("RSTS->Socket" + Str_IntToString(GetnodeID(tPDB).load()));
-			}
-			return(tPDB);
-		};
-	public:
-		int32	Run		(int32 port,SDTAPP *sdtApp){cgSDTApp = sdtApp;return(RemoteSSLServer::Run(port,COMMU_DBUF::CSType_TCP));};
+		virtual	TNFP*	CreateNode		(void){return(SetSubNodeSelfName(new RSTSocket(cgBufMaxSize,cgSDTApp)));};
 };
 //------------------------------------------------------------------------------------------//
 #endif
-//------------------------------------------------------------------------------------------//
+#endif
+#endif
+#endif
 #endif

@@ -12,169 +12,367 @@
  				use int32 to replace bool
  				use int32 to replace uint32
 */
+//------------------------------------------------------------------------------------------//
+#include "SYS_Time.h"
+#include "Commu_SSL.h"
+#include "ODEV_Include.h"
+//------------------------------------------------------------------------------------------//
+#ifndef CSTypeH
+#define CSTypeH
+enum CSType	{CSType_None = 0,CSType_COM,CSType_COMV,CSType_TCP,CSType_UDP,CSType_TCPS,CSType_UDPS};
+#endif
+//------------------------------------------------------------------------------------------//
+#if defined Comm_BufferH && defined ODEV_SystemH
 #ifndef COMMU_DBUFH
 #define COMMU_DBUFH
+#ifdef COMMU_DBUFH
 //------------------------------------------------------------------------------------------//
-#include "Comm_Buffer.h"
-#include "SYS_Thread.h"
-#include "ODEV_Node.h"
-//------------------------------------------------------------------------------------------//
-class ODEV_NODE_FILE;
-class ODEV_NODE_SDOUT;
-class ODEV_LIST;
-class ODEV_LIST_POOL;
-class Field_Node;
-//------------------------------------------------------------------------------------------//
-class COMMU_DBUF_B : public PUB_DBUF{
-	public:
-		enum		{RFLAG_C = 6, RFLAG_S = PUB_DBUF::RFLAG_S + PUB_DBUF::RFLAG_C};
-		enum		{PACKAGE_MAX_SIZE = 1024 * 8};
-		enum CSType	{CSType_None = 0,CSType_TCP,CSType_UDP,CSType_TCPS,CSType_UDPS};
-	public:
-				 COMMU_DBUF_B(uint32 tSize) : PUB_DBUF(tSize){CreateTrash(this);Init();};
-		virtual	~COMMU_DBUF_B(void){MoveNodeToTrash((RTREE_NODE*)cgSelfODdev,this);DestroyAll();UnlinkCoupleNode();CloseD();};
-	private:
-		void	Init	(void);
-		Field_Node		*cgFNode_TX;//only in UDP mode need usd this
-		ODEV_NODE		*cgSelfODdev;
-	public:
-		inline	void	Init(const Field_Node *fn){cgFNode_TX = (Field_Node*)fn;};
-	protected:
-		SYS_ThreadEx_List				cgThreadList;
-		SYS_ThreadEx<COMMU_DBUF_B>		rxThread;
-		SYS_ThreadEx<COMMU_DBUF_B>		txThread;
-	private:
-		virtual	int32	RxThreadFun		(void);
-		virtual	int32	TxThreadFun		(void);
-		virtual	int32	ReadFromDevice	(uint32 *retNum,uint8 *buffer,uint32 length)		{*retNum = 0;return 0;};
-		virtual	int32	SendToDevice	(uint32 *retNum,const uint8 *buffer,uint32 length)	{*retNum = 0;return 0;};
-		virtual	void	ForwardToCouple	(const uint8 *databuf,int32 num);
-	public:
-		virtual	void	DoAfterReadFromDevice	(const uint8 *databuf,int32 num);
-	protected:
-		virtual	int32	OpenDev		(const std::string &tCDBufName,int32 tCDBufPar,CSType tCSType){return 0;};
-		virtual	int32	DoAfterOpen	(void);
-		virtual	void	CloseDev	(void);
-		virtual	void	OnCloseDev	(void);
-		virtual void	ThreadsStart(void);
-		virtual	ODEV_NODE*	CreateSelfODev	(COLSTRING::COLType tCOLType = COLSTRING::COLType_TXT);
-	public:
-		inline	void		SetcgSelfODdev	(ODEV_NODE *tDev){cgSelfODdev = tDev;};
-		inline	ODEV_NODE*	GetcgSelfODdev	(void){return(cgSelfODdev);};
-	private:
-		PUB_SBUF_LIST	cgInternalFwSBufList;
-		PUB_SBUF_LIST	*rxFwSBufList;	//used for quick forwder in rx thread
-	protected:
-		inline	PUB_SBUF_LIST*	GetRxFwSBufList(void){return(rxFwSBufList);};
-	public:
-		void	UseSelfFwSBL	(void);
-		void	UseExternalFwSBL(const PUB_SBUF_LIST *tRxFwSBufList);
-	protected:
-		void	Run		(const std::string &tCDBufName,int32 tCDBufPar,CSType tCSType,int32 blEnEcho);
-		int32	Close_Do(int32 blClrBufName = 1);
-	public:
-		int32	OpenD	(const std::string &tCDBufName,int32 tCDBufPar,CSType tCSType,int32 blEnEcho);
-		int32	CloseD	(int32 blClrBufName = 1);
-		void	PushSend(void);
-	private:
-		std::string		cgCDBufName;
-		int32			cgCDBufPar;
-		CSType			cgCSType;
-	public:
-		inline const std::string	&GetBufName		(void)const{return(cgCDBufName);};
-		inline const int32			&GetBufPar		(void)const{return(cgCDBufPar);};
-		inline const CSType			&GetCSType		(void)const{return(cgCSType);};
-		inline const void			SetCSType		(CSType tCSType){cgCSType = tCSType;};
-	protected:
-		inline void		SetblConnected		(void)		{SetSFlag(RFLAG_CREATE(1));};
-		inline void		ClrblConnected		(void)		{ClrSFlag(RFLAG_CREATE(1));};
-		inline void		SetblAClose			(void)		{SetSFlag(RFLAG_CREATE(2));};
-		inline void		ClrblAClose			(void)		{ClrSFlag(RFLAG_CREATE(2));};
-		inline void		SetblSDC			(void)		{SetSFlag(RFLAG_CREATE(3));};
-		inline void		ClrblSDC			(void)		{ClrSFlag(RFLAG_CREATE(3));};
-		inline int32	CheckblHold			(void)const	{return(CheckSFlag(RFLAG_CREATE(4)));};
-		inline void		SetblPushSend		(void)		{SetSFlag(RFLAG_CREATE(5));};
-		inline void		ClrblPushSend		(void)		{ClrSFlag(RFLAG_CREATE(5));};
-		inline int32	CheckblPushSend		(void)const	{return(CheckSFlag(RFLAG_CREATE(5)));};
-		inline void		SetblcgRxBufferUsed	(void)		{SetSFlag(RFLAG_CREATE(6));};
-		inline void		ClrblcgRxBufferUsed	(void)		{ClrSFlag(RFLAG_CREATE(6));};
-		inline int32	CheckblcgRxBufferUsed(void)const{return(CheckSFlag(RFLAG_CREATE(6)));};
-	public:
-		inline void		EnableEcho			(void)		{SetSFlag(RFLAG_CREATE(0));};
-		inline void		DisableEcho			(void)		{ClrSFlag(RFLAG_CREATE(0));};
-		inline int32	CheckEnableEcho		(void)const	{return(CheckSFlag(RFLAG_CREATE(0)));};
-		inline int32	IsConnected			(void)const	{return(CheckSFlag(RFLAG_CREATE(1)));};
-		inline int32	CheckblAClose		(void)const	{return(CheckSFlag(RFLAG_CREATE(2)));};
-		inline int32	CheckblSDC			(void)const	{return(CheckSFlag(RFLAG_CREATE(3)));};
-		inline void		SetblHold			(void)		{SetSFlag(RFLAG_CREATE(4));};
-		inline void		ClrblHold			(void)		{ClrSFlag(RFLAG_CREATE(4));};
+struct OPEN_PAR{
+	STDSTR		name;
+	int32		port;
+	CSType		type;
+	int32		blEcho;
 };
-//------------------------------------------------------------------------------------------//
-class COMMU_DBUF : public COMMU_DBUF_B{
-	public:
-		enum		{RFLAG_C = 0, RFLAG_S = COMMU_DBUF_B::RFLAG_S + COMMU_DBUF_B::RFLAG_C};
-	public:
-				 COMMU_DBUF(const ODEV_LIST *tODEV_LIST,uint32 tSize) : COMMU_DBUF_B(tSize){Init(tODEV_LIST);};
-		virtual	~COMMU_DBUF(void){exThread.RemoveSelf(); ex2Thread.RemoveSelf();};
-	private:
-		void	Init	(const ODEV_LIST *tODEV_LIST);
-	protected:
-		SYS_ThreadEx<COMMU_DBUF>		exThread;
-		SYS_ThreadEx<COMMU_DBUF>		ex2Thread;
-	private:
-		virtual	int32	ExThreadFun		(void){return 1;};
-		virtual	int32	Ex2ThreadFun	(void);
-	private:
-		ODEV_LIST		*cgODevList;	//used for external
-		ODEV_LIST_POOL	*cgOutput;		//used for external
-	protected:
-		inline	ODEV_LIST		*GetcgODevList	(void){return(cgODevList);};
-		inline	ODEV_LIST_POOL	*GetcgOutput	(void){return(cgOutput);};
-	private:
-				ODEV_LIST_POOL	*cgODevPool;
-				ODEV_LIST_POOL	*CreateOutputList	(void);
-	public:
-				void 			SetODEV_LIST	(const ODEV_LIST *tODEV_LIST);
-		inline	ODEV_LIST_POOL	*GetcgODevPool	(void){return(cgODevPool);};
-				ODEV_NODE_SDOUT	*CreateODevSDOUT(const void *tRichEdit,const void *tCFrm);
-				ODEV_NODE_FILE	*CreateODevFile	(const std::string &tfileName);
-	public:
-		void	UpdataRecordUI(void);
-#ifdef CommonDefH_VC
-		void	UpdataRecordUISDOUT(void);
-#endif
-	protected:
-		void	PrintRecData		(ODEV_LIST_POOL *output, const std::string &strData, uint32 byteNum, int32 blEnRecMsg);
-		void	PrintRecData_lock	(ODEV_LIST_POOL *output, const std::string &strData, uint32 byteNum, int32 blEnRecMsg);
-	public:
-		void	PrintOpenSuccessReport		(const std::string &strData);
-		void	PrintOpenFailReport			(const std::string &strDevName);
-	public:
-		virtual	void	PrintUserDisconnectReport	(const std::string &strDevName);
-		virtual void	CreateLogFile				(void){;};
+inline void SetOpenPar(OPEN_PAR &op,const STDSTR &tCDBufName,int32 tCDBufPar,CSType tCSType,int32 blEnEcho){
+	op.name = tCDBufName;
+	op.port = tCDBufPar;
+	op.type = tCSType;
+	op.blEcho = blEnEcho;
 };
+enum{
+	COL_DB_TxTitle		= COL_clPurple,
+	COL_DB_TxText		= COL_clBlack,
+	COL_DB_RxTitle		= COL_clRed,
+	COL_DB_RxText		= COL_clBlue,
+	COL_DB_RxTitleM		= COL_DB_TxTitle,
+	COL_DB_RxTextM		= COL_DB_TxText,
+	COL_DB_RxTitleS		= COL_DB_RxTitle,
+	COL_DB_RxTextS		= COL_DB_RxText,
+	COL_DB_Statistics	= COL_clRed,
+};
+#define	COL_RxData(_str)	ColData(COL_DB_RxText,_str)
+#define	COL_TxData(_str)	ColData(COL_DB_TxText,_str)
 //------------------------------------------------------------------------------------------//
-class CDBUF_POOL : public PUB_DBUF_LIST{
+class COMMU_DBUF_FRAME : public DBUFFER{
 	public:
-		enum{RFLAG_C = 0, RFLAG_S = PUB_DBUF_LIST::RFLAG_S + PUB_DBUF_LIST::RFLAG_C};
-	public:
-				 CDBUF_POOL(void) : PUB_DBUF_LIST(){CreateTrash(this);};
-		virtual ~CDBUF_POOL(void){ DestroyAll(); };
+		enum	{RFLAG_C = 6, RFLAG_S = DBUFFER::RFLAG_S + DBUFFER::RFLAG_C};
+		enum	{PACKAGE_MAX_SIZE = 1024 * 8};
 	private:
+		enum{
+			cdf_blConnected		= RFLAG_CREATE(0),
+			cdf_blOpened		= RFLAG_CREATE(1),
+			cdf_blCloseByUser	= RFLAG_CREATE(2),
+			cdf_blCloseDueToOS	= RFLAG_CREATE(3),
+			cdf_blPushSend		= RFLAG_CREATE(4),
+			cdf_blEcho			= RFLAG_CREATE(5),
+		};
 	public:
-		void	LUpdataRecordUI	(void){RTREE_LChildRChain_T(COMMU_DBUF,UpdataRecordUI());};
-#ifdef CommonDefH_VC
-		void	LUpdataRecordUISDOUT(void){RTREE_LChildRChain_T(COMMU_DBUF,UpdataRecordUISDOUT());};
-#endif
-		void	LUnlink			(void){RTREE_LChildRChain_T(COMMU_DBUF,UnlinkCoupleNode());};
+				 COMMU_DBUF_FRAME(void):DBUFFER(){;};
+				 COMMU_DBUF_FRAME(uint32 tSize) : DBUFFER()	{Init(tSize);SetSelfName("COMMU_DBUF_FRAME");};
+		virtual	~COMMU_DBUF_FRAME(void)						{UnlinkCoupleNode();CloseD();selfCloseThread.ThreadStop();};
+	protected:
+		void	Init	(uint32 tSize);
+	protected:
+		SYS_Thread_List					cgThreadList;
+		SYS_Thread<COMMU_DBUF_FRAME>	selfCloseThread;
+	private:
+		int32	SelfCloseThreadFun	(void *p);
+	protected:
+				virtual	int32	DoOpen			(const STDSTR &tCDBufName,int32 tCDBufPar,CSType tCSType,int32 blEnEcho);
+		inline	virtual	int32	OpenDev			(const STDSTR &tCDBufName,int32 tCDBufPar,CSType tCSType,int32 blEnEcho){return 0;};
+				virtual void	DoThreadsStart	(void);
+		inline	virtual int32	ThreadsStart	(void){DoThreadsStart();return 1;};
+				virtual	void	DoClose			(void);
+		inline	virtual	void	CloseDev		(void){;};
+		inline	virtual void	ThreadsStop		(void){cgThreadList.LThreadStop();};
+	public:
+				virtual	void	ChildCloseAll	(void);
+				virtual	void	ChildClose		(COMMU_DBUF_FRAME *commu);
+	public:
+				int32	Open		(const OPEN_PAR& par){return(OpenD(par.name,par.port,par.type,par.blEcho));};
+				int32	OpenD		(const STDSTR &tCDBufName,int32 tCDBufPar,CSType tCSType,int32 blEnEcho,G_LOCK blLock = G_LOCK_ON);
+				void	CloseD		(void);
+				void	SelfClose	(void);
+	public:
+				void	PushSend	(void);
+		inline	void	AddThread	(TREE_NODE *thread){cgThreadList.AddNode(thread);};
+	private:
+		STDSTR		cgDevName;
+		STDSTR		cgCDBufName;
+		int32		cgCDBufPar;
+		CSType		cgCSType;
+	public:
+		inline const STDSTR	&GetDevName		(void)const		{return(cgDevName);};
+		inline const STDSTR	&GetBufName		(void)const		{return(cgCDBufName);};
+		inline const int32	&GetBufPar		(void)const		{return(cgCDBufPar);};
+		inline const CSType	&GetCSType		(void)const		{return(cgCSType);};
+		inline const void	SetCSType		(CSType tCSType){cgCSType = tCSType;};
+	protected:
+		inline int32	ChkblOpened			(void)const	{return(CheckSFlag(cdf_blOpened));};
+		inline int32	ChkblCloseByUser	(void)const	{return(CheckSFlag(cdf_blCloseByUser));};
+		inline int32	ChkblCloseDueToOS	(void)const	{return(CheckSFlag(cdf_blCloseDueToOS));};
 	
-		void	SEnableEcho		(void){RTREE_LChildRChain_T(COMMU_DBUF,EnableEcho());};
-		void	SDisableEcho	(void){RTREE_LChildRChain_T(COMMU_DBUF,DisableEcho());};
-		void	LEnableEcho		(void){RTREE_LChildRChain_T(COMMU_DBUF,EnableEcho());};
-		void	LDisableEcho	(void){RTREE_LChildRChain_T(COMMU_DBUF,DisableEcho());};
+		inline void		ClrblPushSend		(void)		{ClrSFlag(cdf_blPushSend);};
+		inline int32	ChkblPushSend		(void)const	{return(CheckSFlag(cdf_blPushSend));};
+	public:
+		inline int32	IsConnected			(void)const	{return(CheckSFlag(cdf_blConnected));};
 	
-		COMMU_DBUF	*Find		(const std::string &tDBufName,int32 tDBufPar);
-		COMMU_DBUF	*SetSelect	(const std::string &tDBufName,int32 tDBufPar);
+		inline virtual	void	EnableEcho	(void)		{SetSFlag(cdf_blEcho);};
+		inline virtual	void	DisableEcho	(void)		{ClrSFlag(cdf_blEcho);};
+		inline			int32	CheckEcho	(void)const	{return(CheckSFlag(cdf_blEcho));};
+	public:
+		COMMU_DBUF_FRAME *Find(const STDSTR &tDBufName,int32 tDBufPar){
+			COMMU_DBUF_FRAME *retCmmu;
+			retCmmu = nullptr;
+			TREE_LChildRChain_Find(COMMU_DBUF_FRAME,this,retCmmu,((operateNode_t->GetBufName() == tDBufName) && (operateNode_t->GetBufPar() == tDBufPar)));
+			return(retCmmu);
+		}
 };
 //------------------------------------------------------------------------------------------//
+//------------------------------------------------------------------------------------------//
+class COMMU_DBUF_FRAME_LOG : public COMMU_DBUF_FRAME{
+	public:
+		enum	{RFLAG_C = 1, RFLAG_S = COMMU_DBUF_FRAME::RFLAG_S + COMMU_DBUF_FRAME::RFLAG_C};
+	private:
+		enum	{cdfl_blLog = RFLAG_CREATE(0),};
+	public:
+				 COMMU_DBUF_FRAME_LOG(void):COMMU_DBUF_FRAME(){;};
+				 COMMU_DBUF_FRAME_LOG(uint32 tSize,const ODEV_SYSTEM *logSys = nullptr) : COMMU_DBUF_FRAME(){Init(tSize,logSys);SetSelfName("COMMU_DBUF_FRAME_LOG");};
+		virtual	~COMMU_DBUF_FRAME_LOG(void);
+	protected:
+		void	Init	(uint32 tSize,const ODEV_SYSTEM *logSys = nullptr);
+	protected:
+		virtual	int32	DoOpen					(const STDSTR &tCDBufName,int32 tCDBufPar,CSType tCSType,int32 blEnEcho);
+		virtual	void	DoClose					(void);
+	private:
+		virtual	void	DoPrintOnOpenSuccess	(void){PrintOpenSuccessReport();};
+		virtual	void	DoPrintOnOpenFail		(void){PrintOpenFailReport();};
+		virtual	void	DoPrintOnClose			(void){PrintConnectionReport("User closed the connection");};
+	private:
+		ODEV_SYSTEM		*logSystem;
+		ODEV_VG3D		*cgVG3D;
+		OUTPUT_NODE		*cgG2Self;
+	public:
+		inline	ODEV_SYSTEM		*GetLogSystem		(void)const {return(logSystem);};
+		inline	ODEV_VG3D		*GetVG3D			(void)const	{return(cgVG3D);};
+				ODEV_VG3D		*CreateODev_VG3D	(void);
+				ODEV_FILE		*CreateODev_G3File	(const STDSTR &fName);
+		virtual	OUTPUT_NODE		*CreateODev_G2Self	(void);
+	public:
+		OUTPUT_NODE		*GetG2DefSelf		(void)const;
+		OUTPUT_NODE		*GetG3DefSelf		(void)const;
+		ODEV_STDOUT		*GetG3DefSTDOUT		(void)const;
+		ODEV_FILE		*GetG3DefFile		(void)const;
+	public:
+		OUTPUT_NODE		*AddG3D_Self	(OUTPUT_NODE *oG3D);
+		ODEV_STDOUT		*AddG3D_STDOUT	(ODEV_STDOUT *oG3D);
+	protected:
+		STDSTR	cgAttrTitle;
+	public:
+		inline	void SetAttrTitle	(const STDSTR &strIn){cgAttrTitle = strIn;};
+	protected:
+		void PrintStr				(const COLSTR &colStr1,const COLSTR &colStr2 = "",const COLSTR &colStr3 = "",const COLSTR &colStr4 = ""
+									,const COLSTR &colStr5 = "",const COLSTR &colStr6 = "",const COLSTR &colStr7 = "",const COLSTR &colStr8 = "");
+		void PrintStrNL				(const COLSTR &colStr1,const COLSTR &colStr2 = "",const COLSTR &colStr3 = "",const COLSTR &colStr4 = ""
+									,const COLSTR &colStr5 = "",const COLSTR &colStr6 = "",const COLSTR &colStr7 = "",const COLSTR &colStr8 = "");
+		void PrintWithTime			(const COLSTR &colStr1,const COLSTR &colStr2 = "",const COLSTR &colStr3 = "",const COLSTR &colStr4 = ""
+									,const COLSTR &colStr5 = "",const COLSTR &colStr6 = "",const COLSTR &colStr7 = "",const COLSTR &colStr8 = "");
+		void PrintWithDividingLine	(const COLSTR &colStr1,const COLSTR &colStr2 = "",const COLSTR &colStr3 = "",const COLSTR &colStr4 = ""
+									,const COLSTR &colStr5 = "",const COLSTR &colStr6 = "",const COLSTR &colStr7 = "",const COLSTR &colStr8 = "");
+		void PrintMessage			(const COLSTR &colStr1,const COLSTR &colStr2 = "",const COLSTR &colStr3 = "",const COLSTR &colStr4 = ""
+									,const COLSTR &colStr5 = "",const COLSTR &colStr6 = "",const COLSTR &colStr7 = "",const COLSTR &colStr8 = "");
+		void PrintNormalMessage		(const STDSTR &strData1,const STDSTR &strData2 = "",const STDSTR &strData3 = "",const STDSTR &strData4 = ""
+									,const STDSTR &strData5 = "",const STDSTR &strData6 = "",const STDSTR &strData7 = "",const STDSTR &strData8 = "");
+		void PrintWarningMessage	(const STDSTR &strData1C1,const STDSTR &strData2C2 = "",const STDSTR &strData3C2 = "",const STDSTR &strData4C2 = ""
+									,const STDSTR &strData5C2 = "",const STDSTR &strData6C2 = "",const STDSTR &strData7C2 = "",const STDSTR &strData8C2 = "");
+		void PrintConnectionReport	(OUTPUT_NODE *node,const STDSTR &strData1,const STDSTR &strData2 = "",const STDSTR &strData3 = "",const STDSTR &strData4 = "");
+	protected:
+				void PrintConnectionReport	(const STDSTR &strData1,const STDSTR &strData2 = "",const STDSTR &strData3 = "",const STDSTR &strData4 = "");
+		inline	void PrintOpenSuccessReport	(const STDSTR &strTitle = ""){PrintNormalMessage ("Successfully connect to",cgAttrTitle,strTitle,GetDevName());};
+		inline	void PrintOpenFailReport	(const STDSTR &strTitle = ""){PrintWarningMessage("Failed connect to",strTitle,GetDevName());};
+	protected:
+		SYS_Thread<COMMU_DBUF_FRAME_LOG>	logThread;
+	protected:
+					SBUFFER		cgLogSBUF;
+		virtual		int32		LogThreadFun			(void *p){cgLogSBUF.Init(PACKAGE_MAX_SIZE);return 1;};
+	public:
+		inline void		EnableLog			(void)		{logThread.Enable();SetSFlag(cdfl_blLog);};
+		inline void		DisableLog			(void)		{logThread.Disable();ClrSFlag(cdfl_blLog);};
+		inline int32	CheckEnableLog		(void)const	{return(CheckSFlag(cdfl_blLog));};
+};
+//------------------------------------------------------------------------------------------//
+class COMMU_DBUF_FRAME_FW : public COMMU_DBUF_FRAME_LOG{
+	public:
+				 COMMU_DBUF_FRAME_FW(void):COMMU_DBUF_FRAME_LOG(){;};
+				 COMMU_DBUF_FRAME_FW(uint32 tSize,const ODEV_SYSTEM *logSys = nullptr) : COMMU_DBUF_FRAME_LOG(){Init(tSize,logSys);SetSelfName("COMMU_DBUF_FRAME_FW");};
+		virtual	~COMMU_DBUF_FRAME_FW(void);
+	protected:
+		void	Init	(uint32 tSize,const ODEV_SYSTEM *logSys = nullptr);
+	public:
+		inline	virtual	void	AddSon		(DBUFFER *sdb)	{COMMU_DBUF_FRAME_LOG::AddSon(sdb);static_cast<COMMU_DBUF_FRAME_FW*>(sdb)->UseExternalFwSBufList(GetFwSBufList());};
+		inline	virtual	void	RemoveSelf	(void)			{UseSelfFwSBufList();COMMU_DBUF_FRAME_LOG::RemoveSelf();};
+	protected:
+		SYS_Thread<COMMU_DBUF_FRAME_FW>	fwThread;
+		SBUF_LIST	cgInternalFwSBufList;
+	private:
+		SBUF_LIST	*rxFwSBufList;
+	private:
+		virtual	int32	FwThreadFun		(void *p);
+	private:
+		static	uint32	ForwardToSelf	(COMMU_DBUF_FRAME_FW *commu,const FIFO8 &fifoIn,uint32 num,uint32 *outNum);
+	public:
+		const SBUF_LIST *GetFwSBufList	(void){return(rxFwSBufList);};
+		void	UseSelfFwSBufList		(void);
+		void	UseExternalFwSBufList	(const SBUF_LIST *tRxFwSBufList);
+		void	RxDataShareTo			(SBUFFER *tSBUF);
+		
+		inline	void	SetGetDataByRead	(void){fwThread.Disable();fwThread.ThreadStop();};
+		inline	void	SetGetDataByShare	(void){fwThread.Enable();};
+};
+//------------------------------------------------------------------------------------------//
+class COMMU_DBUF_THREAD : public COMMU_DBUF_FRAME_FW{
+	public:
+				 COMMU_DBUF_THREAD():COMMU_DBUF_FRAME_FW(){;};
+				 COMMU_DBUF_THREAD(uint32 tSize,const ODEV_SYSTEM *logSys) : COMMU_DBUF_FRAME_FW(){Init(tSize,logSys);SetSelfName("COMMU_DBUF_THREAD");};
+		virtual	~COMMU_DBUF_THREAD(void);
+	protected:
+		void	Init	(uint32 tSize,const ODEV_SYSTEM *logSys = nullptr);
+	protected:
+		SYS_Thread<COMMU_DBUF_THREAD>	rxThread;
+		SYS_Thread<COMMU_DBUF_THREAD>	txThread;
+	private:
+		virtual	int32	RxThreadFun			(void *p);
+		virtual	int32	TxThreadFun			(void *p);
+		virtual	int32	SendToDevice		(uint32 *retNum,const uint8 *buffer,uint32 length)	{*retNum = 0;return 0;};
+		virtual	int32	ReadFromDevice		(uint32 *retNum,uint8 *buffer,uint32 length)		{*retNum = 0;return 0;};
+	protected:
+		virtual	FIFO8	*ReceiveFifo		(void)												{return(&cgRxSBUF.cgFIFO);};
+		virtual	void	AfterReadFromDevice	(void){;};
+};
+//------------------------------------------------------------------------------------------//
+#ifdef Commu_SSLH
+enum{
+	MESG_REQ_Close = MESG_NEXT,
+	MESG_ANS_Close,
+	MESG_NEXT_SSL,
+};
+//------------------------------------------------------------------------------------------//
+class COMMU_DBUF_SSL : public COMMU_DBUF_THREAD{
+	public:
+		enum	{RFLAG_C = 2, RFLAG_S = COMMU_DBUF_THREAD::RFLAG_S + COMMU_DBUF_THREAD::RFLAG_C};
+	private:
+		enum	{cds_blUseSSL = RFLAG_CREATE(0),cds_blClose = RFLAG_CREATE(1),};
+	public:
+				 COMMU_DBUF_SSL():COMMU_DBUF_THREAD(){SetSelfName("COMMU_DBUF_SSL");};
+				 COMMU_DBUF_SSL(uint32 tSize,const ODEV_SYSTEM *logSys = nullptr) : COMMU_DBUF_THREAD(){
+					 Init(tSize,logSys);
+					 Init(CCT_AES128,CCT_AES_CBC,CCT_MD5,G_ENDIAN_LITTLE);
+					 SetSelfName("COMMU_DBUF_SSL");
+				 };
+		virtual	~COMMU_DBUF_SSL(void){;};
+	private:
+				void	Init	(CCT_AES_KEYL type,CCT_AES_MODE mode,CCT_Digest digestType,G_ENDIAN tEV);
+	protected:
+		inline	void	Init	(uint32 tSize,const ODEV_SYSTEM *logSys = nullptr)	{COMMU_DBUF_THREAD::Init(tSize, logSys);Init(CCT_AES128,CCT_AES_CBC,CCT_MD5,G_ENDIAN_LITTLE);};
+	public:
+		inline	virtual void	SetSelfName	(const STDSTR &strName)					{selfName = strName;cgSSLT2.SetSelfName(strName);};
+						void	SetConfig	(CCT_AES_KEYL type = CCT_AES128,CCT_AES_MODE mode = CCT_AES_CBC,CCT_Digest digestType = CCT_MD5,G_ENDIAN tEV = G_ENDIAN_LITTLE);
+	private:
+		CSSL_FR_T2		cgSSLT2;
+		SYS_Lock		cgSendCHMesgLock;
+	protected:
+		virtual	STDSTR	GetMesgText			(uint32 mID);
+	protected:
+		virtual	void	Clean				(void){COMMU_DBUF_THREAD::Clean();cgSSLT2.Clean();};
+		virtual int32	ThreadsStart		(void);
+		virtual	void	DoClose				(void);
+		virtual	void	CloseDev			(void);
+		virtual	FIFO8	*ReceiveFifo		(void);
+		virtual	void	AfterReadFromDevice	(void);
+	public:
+		virtual	int32	MessageProcessing	(const uint32 &mID,const STDSTR &strMesg);
+		void			SSLEnable		(void);
+		void			SSLDisable		(void);
+		inline void		SetNoBlock		(void){cgSSLT2.SetNoBlock();};
+		inline void		SetBlock		(void){cgSSLT2.SetBlock();};
+	public:
+				int32	SendCHMesg		(uint32 mID,const STDSTR &strMesg,const uint64 &flagY,const uint64 &flagN,const uint32 &waitTimeS);
+				int32	CheckFlagStatus	(const uint64 &flagY,const uint64 &flagN,SYS_TIME_S &timedly);
+				int32	SendREQ_Close	(void);
+	
+		inline	uint32	CtrlCHWrite		(uint32 mesgID,const PROTOCOL_NODE &pnNode)					{return(cgSSLT2.CtrlCHWrite(mesgID,pnNode));};
+		inline	uint32	CtrlCHWrite		(uint32 mesgID,const FIFO8 &fifoIn,uint32 num,uint32 offset){return(cgSSLT2.CtrlCHWrite(mesgID,fifoIn,num,offset));};
+		inline	uint32	CtrlCHWrite		(uint32 mesgID,const uint8 *data,uint32 num)				{return(cgSSLT2.CtrlCHWrite(mesgID,data,num));};
+		inline	uint32	CtrlCHWrite		(uint32 mesgID,const STDSTR &strData)						{return(cgSSLT2.CtrlCHWrite(mesgID,strData));};
+	
+		inline	uint32	DataCHWrite		(const PROTOCOL_NODE &pnNode)				{return(cgSSLT2.DataCHWrite(pnNode));};
+		inline	uint32	DataCHWrite		(const FIFO8 &fifo,uint32 num,uint32 offset){return(cgSSLT2.DataCHWrite(fifo,num,offset));};
+		inline	uint32	DataCHWrite		(const uint8 *data,uint32 num)				{return(cgSSLT2.DataCHWrite(data,num));};
+		inline	uint32	DataCHWrite		(const uint8 data)							{return(cgSSLT2.DataCHWrite(data));};
+		inline	uint32	DataCHWrite		(const STDSTR &strData)						{return(cgSSLT2.DataCHWrite(strData));};
+		inline	uint32	DataCHWriteInHex(const STDSTR &strData)						{return(cgSSLT2.DataCHWriteInHex(strData));};
+	public:
+		virtual	uint32	Send			(const PROTOCOL_NODE &pnIn);
+		virtual	uint32	Send			(const FIFO8 &fifoIn,uint32 num,uint32 offset);
+		virtual	uint32	Send			(const uint8 *data,uint32 num);
+		virtual	uint32	Send			(const uint8 data);
+		virtual	uint32	Send			(const STDSTR &strIn,G_ESCAPE blEscape);
+		virtual	uint32	SendInHEX		(const STDSTR &strIn);
+	protected:
+		inline void		SetblUseSSL			(void){SetSFlag(cds_blUseSSL);};
+		inline void		ClrblUseSSL			(void){ClrSFlag(cds_blUseSSL);};
+		inline int32	SetblNoSendCloseMesg(void)const	{return(CheckSFlag(cds_blClose));};
+};
+//------------------------------------------------------------------------------------------//
+#define CHSend(_mID,_strMesg,_blRet,_Title) \
+	E2Log(this << _Title << "Send " << GetMesgText(_mID));\
+	_blRet = CtrlCHWrite(_mID,_strMesg);\
+	E2Log(this << _Title << "Send " << GetMesgText(_mID) << ((_blRet > 0) ? "successful" : "fail"));
+#define CHRec(_mID,_Title) E2Log(this << _Title << "Rec  " << GetMesgText(_mID));
+//------------------------------------------------------------------------------------------//
+class COMMU_DBUF : public COMMU_DBUF_SSL{
+	public:
+				 COMMU_DBUF():COMMU_DBUF_SSL(){;};
+	COMMU_DBUF(uint32 tSize,const ODEV_SYSTEM *logSys = nullptr) : COMMU_DBUF_SSL(){Init(tSize,logSys);SetSelfName("COMMU_DBUF");};
+		virtual	~COMMU_DBUF(void){;};
+	protected:
+		void	Init	(uint32 tSize,const ODEV_SYSTEM *logSys = nullptr){COMMU_DBUF_SSL::Init(tSize, logSys);SetGetDataByShare();};
+	private:
+		virtual	int32	LogThreadFun	(void *p);
+	protected:
+		virtual	void	PrintRecData	(const STDSTR &strData, uint32 byteNum, int32 blEnRecMsg);
+};
+//------------------------------------------------------------------------------------------//
+#else
+//------------------------------------------------------------------------------------------//
+class COMMU_DBUF : public COMMU_DBUF_THREAD{
+	public:
+				 COMMU_DBUF():COMMU_DBUF_THREAD(){;};
+				 COMMU_DBUF(uint32 tSize,const ODEV_SYSTEM *logSys = nullptr) : COMMU_DBUF_THREAD(){Init(tSize,logSys);SetSelfName("COMMU_DBUF");};
+		virtual	~COMMU_DBUF(void){;};
+	protected:
+		void	Init	(uint32 tSize,const ODEV_SYSTEM *logSys = nullptr){COMMU_DBUF_THREAD::Init(tSize, logSys);SetGetDataByShare();};
+	private:
+		virtual	int32	LogThreadFun	(void *p);
+	protected:
+		virtual	void	PrintRecData	(const STDSTR &strData, uint32 byteNum, int32 blEnRecMsg);
+};
 #endif
+//------------------------------------------------------------------------------------------//
+//------------------------------------------------------------------------------------------//
+		STDSTR		MakeByteNum			(uint32 ByteNum, uint64 tTotal, uint32 blCR);
+		STDSTR		MakeTitle			(const STDSTR &strTitle, uint32 ByteNum, uint64 tTotal, uint32 blCR);
+
+inline	STDSTR		MakeTxTitle			(uint32 ByteNum, uint64 tTotal, uint32 blCR = 0) {return(MakeTitle(" Send     ", ByteNum, tTotal,blCR));};
+inline	STDSTR		MakeRxTitle			(uint32 ByteNum, uint64 tTotal, uint32 blCR = 1) {return(MakeTitle(" Received ", ByteNum, tTotal,blCR));};
+inline	STDSTR		MakeEchoTitle		(uint32 ByteNum, uint64 tTotal, uint32 blCR = 1) {return(MakeTitle(" Echo     ", ByteNum, tTotal,blCR));};
+
+		STDSTR		MakeTxTitle			(const STDSTR &strM, const STDSTR &strS, uint32 ByteNum, uint64 tTotal, uint32 blCR = 1);
+		STDSTR		MakeRxTitle			(const STDSTR &strM, const STDSTR &strS, uint32 ByteNum, uint64 tTotal, uint32 blCR = 1);
+		STDSTR		MakeEchoTitle		(const STDSTR &strM, uint32 ByteNum, uint64 tTotal, uint32 blCR = 1);
+//------------------------------------------------------------------------------------------//
+//------------------------------------------------------------------------------------------//
+#endif
+#endif
+#endif
+

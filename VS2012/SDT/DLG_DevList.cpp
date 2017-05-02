@@ -41,13 +41,13 @@ BOOL CDevListCtrl::DoShowExItem(int hItem,int hSubItem,int type){
 }
 //------------------------------------------------------------------------------------------//
 void CDevListCtrl::OnEditSave(int hItem,int hSubItem){
-	CString		cstrText;
+	CString			cstrText;
 	std::wstring	strwText;
-	IPCOMNAME	*newNode;
+	IPCOMNAME		*newNode;
 	cstrText = GetItemText(hItem,hSubItem);
 	strwText = cstrText.GetBuffer(0);
 	m_IPCOMLIST->Spin_InUse_set();
-	newNode = (IPCOMNAME*)RTREE_NODE::FindInLChildRChainByDRNodeID(m_IPCOMLIST,GetItemData(hItem));
+	newNode = (IPCOMNAME*)TREE_NODE::FindInLChildRChainByDRNodeID(m_IPCOMLIST,GetItemData(hItem));
 	newNode->Spin_InUse_set();
 	switch(hSubItem){
 		case 0:
@@ -73,7 +73,7 @@ void CDevListCtrl::OnEditSave(int hItem,int hSubItem){
 			newNode->strUserDefineName = Str_UnicodeToANSI(strwText);
 			break;
 	}
-	IPCOMNAME::CreateShowName(newNode);
+	newNode->CreateShowName();
 	newNode->Spin_InUse_clr();
 	m_IPCOMLIST->Spin_InUse_clr();
 }
@@ -140,7 +140,7 @@ void CDevListCtrl::LoadData(IPCOMLIST *tIPCOMLIST){
 
 	i = 0;
 	m_IPCOMLIST->Spin_InUse_set();
-	RTREE_LChildRChain_Traversal_LINE(IPCOMNAME, m_IPCOMLIST,
+	TREE_LChildRChain_Traversal_LINE(IPCOMNAME, m_IPCOMLIST,
 		operateNode_t->Spin_InUse_set();
 		if (operateNode_t->blAvailable != 0){
 			if (operateNode_t->typeID == PublicDevice_DEVID_APICOM)
@@ -158,10 +158,10 @@ void CDevListCtrl::LoadData(IPCOMLIST *tIPCOMLIST){
 			InsertItem(i,_T("Unavailable"));
 		}
 		SetItemText(i, 1, Str_ANSIToUnicode(operateNode_t->strIPComName).c_str());
-		SetItemText(i, 2, Str_ANSIToUnicode(Str_IntToString(operateNode_t->portBaudrate)).c_str());
+		SetItemText(i, 2, Str_ANSIToUnicode(Str_ToString(operateNode_t->portBaudrate)).c_str());
 		SetItemText(i, 3, Str_ANSIToUnicode(operateNode_t->TCPTypeOrFriendlyName).c_str());
 		SetItemText(i, 4, Str_ANSIToUnicode(operateNode_t->strUserDefineName).c_str());
-		SetItemData(i, RTREE_NODE::GetdRNodeID(operateNode_t));
+		SetItemData(i, TREE_NODE::GetdRNodeID(operateNode_t));
 		++ i;
 		operateNode_t->Spin_InUse_clr();
 	);
@@ -182,15 +182,15 @@ int CDevListCtrl::CreateNode(int node){
 		newNode->portBaudrate = 115200;
 		newNode->TCPTypeOrFriendlyName = "Socket Client";
 		newNode->strUserDefineName = "";
-		IPCOMNAME::CreateShowName(newNode);
-		RTREE_NODE::InsertRChild(RTREE_NODE::FindInLChildRChainByDRNodeID(m_IPCOMLIST, GetItemData(node)), newNode);
+		newNode->CreateShowName();
+		TREE_NODE::InsertAfter(TREE_NODE::FindInLChildRChainByDRNodeID(m_IPCOMLIST, GetItemData(node)), newNode);
 
 		InsertItem(node + 1,_T("TCP"));
 		SetItemText(node + 1,1,_T("127.0.0.1"));
 		SetItemText(node + 1,2,_T("115200"));
 		SetItemText(node + 1,3,_T("Socket Client"));
 		SetItemText(node + 1,4,_T(""));
-		SetItemData(node + 1, RTREE_NODE::GetdRNodeID(newNode));
+		SetItemData(node + 1, TREE_NODE::GetdRNodeID(newNode));
 	}
 	m_IPCOMLIST->Spin_InUse_clr();
 	SetItemState(node, 0, LVIS_SELECTED|LVIS_FOCUSED);
@@ -206,7 +206,7 @@ int CDevListCtrl::DelNode(int delItem){
 	if (delItem < 0)
 		return -1;
 	m_IPCOMLIST->Spin_InUse_set();
-	delNode = (IPCOMNAME*)RTREE_NODE::FindInLChildRChainByDRNodeID(m_IPCOMLIST, GetItemData(delItem));
+	delNode = (IPCOMNAME*)TREE_NODE::FindInLChildRChainByDRNodeID(m_IPCOMLIST, GetItemData(delItem));
 	m_IPCOMLIST->MoveNodeToTrash(delNode, m_IPCOMLIST);
 	m_IPCOMLIST->CleanTrash(m_IPCOMLIST);
 	m_IPCOMLIST->Spin_InUse_clr();
@@ -231,8 +231,8 @@ int CDevListCtrl::UpNode(int moveItem){
 		return(moveItem);
 	PriorItem = moveItem - 1;
 	m_IPCOMLIST->Spin_InUse_set();
-	moveNode = (IPCOMNAME*)RTREE_NODE::FindInLChildRChainByDRNodeID(m_IPCOMLIST, GetItemData(moveItem));
-	RTREE_NODE::MoveNodesUpInRChain(moveNode);
+	moveNode = (IPCOMNAME*)TREE_NODE::FindInLChildRChainByDRNodeID(m_IPCOMLIST, GetItemData(moveItem));
+	TREE_NODE::MoveUp(moveNode);
 	DeleteItem(moveItem);
 	moveNode->Spin_InUse_set();
 	if (moveNode->blAvailable != 0){
@@ -251,10 +251,10 @@ int CDevListCtrl::UpNode(int moveItem){
 		InsertItem(PriorItem,_T("Unavailable"));
 	}
 	SetItemText(PriorItem,1,Str_ANSIToUnicode(moveNode->strIPComName).c_str());
-	SetItemText(PriorItem,2,Str_ANSIToUnicode(Str_IntToString(moveNode->portBaudrate)).c_str());
+	SetItemText(PriorItem,2,Str_ANSIToUnicode(Str_ToString(moveNode->portBaudrate)).c_str());
 	SetItemText(PriorItem,3,Str_ANSIToUnicode(moveNode->TCPTypeOrFriendlyName).c_str());
 	SetItemText(PriorItem,4,Str_ANSIToUnicode(moveNode->strUserDefineName).c_str());
-	SetItemData(PriorItem, RTREE_NODE::GetdRNodeID(moveNode));
+	SetItemData(PriorItem, TREE_NODE::GetdRNodeID(moveNode));
 	moveNode->Spin_InUse_clr();
 	m_IPCOMLIST->Spin_InUse_clr();
 	if (m_SelectItem == moveItem){

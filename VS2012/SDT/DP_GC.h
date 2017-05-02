@@ -56,7 +56,6 @@ class CGCTree : public CMyCTreeCtrl{
 		HTREEITEM	DelNodeL3		(HTREEITEM delItem);
 		void		LoadNodeL3		(HTREEITEM rootItem,COMMAND_GROUP *group);
 		BOOL		SelectItem		(HTREEITEM hItem);
-		HTREEITEM	GroupCopy		(void);
 	public:
 		void		LoadData		(GC_LIST *tGCList);
 		HTREEITEM	CreateNode		(HTREEITEM hItem = NULL);

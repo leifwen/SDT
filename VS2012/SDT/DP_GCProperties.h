@@ -32,7 +32,8 @@ class CGCPropertyGridCtrl : public CMFCPropertyGridCtrl{
 		COMMAND_GROUP	*m_group;
 		HTREEITEM		m_hItem;
 		mutable  BOOL	m_blIsModified;
-		CMFCPropertyGridProperty *CreateEnaItem(INT32 id,CString title,int32 blEnable,CString description = _T(""));
+		CMFCPropertyGridProperty *CreateEnableItem(INT32 id,CString title,int32 blEnable,CString description = _T(""));
+		CMFCPropertyGridProperty *CreateCMDTailItem(INT32 id, CString title, CMD_TAIL tail, CString description = _T(""));
 		CMFCPropertyGridProperty *CreateYesItem(INT32 id,CString title,int32 blEnable,CString description = _T(""));
 		CMFCPropertyGridProperty *CreateTxtItem(INT32 id,CString title,CString content,CString description = _T(""));
 		CMFCPropertyGridProperty *CreateIntItem(INT32 id,CString title,long content,CString description = _T(""));

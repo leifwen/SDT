@@ -13,6 +13,7 @@
 //
 
 #pragma once
+#include "Global.h"
 //------------------------------------------------------------------------------------------//
 class CChildFrame : public CMDIChildWndEx{
 		DECLARE_DYNCREATE(CChildFrame)
@@ -20,7 +21,9 @@ class CChildFrame : public CMDIChildWndEx{
 				 CChildFrame(void);
 		virtual ~CChildFrame(void);
 	public:// Overrides
-		ODEV_NODE_SDOUT	*oDevNode;
+		std::string		m_selfName;
+		ODEV_VG3D		m_VG3D;
+		ODEV_STDOUT		cstdout;
 		BOOL			m_bCanClose;
 		virtual BOOL PreCreateWindow(CREATESTRUCT& cs);
 	public:// Implementation

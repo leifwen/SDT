@@ -8,23 +8,24 @@
  * Writer	: Leif Wen
  * Date		: 2014.12.20
 */
+//------------------------------------------------------------------------------------------//
+#include "Commu_Socket.h"
+//------------------------------------------------------------------------------------------//
+#ifdef Commu_SocketH
 #ifndef Commu_NTPServerH
 #define Commu_NTPServerH
+#ifdef Commu_NTPServerH
 //------------------------------------------------------------------------------------------//
-#include "Comm_Buffer.h"
-#include "Commu_Socket.h"
-#include "Commu_SocketServer.h"
-//------------------------------------------------------------------------------------------//
-class NTPServer : public APISocketServer{
+class NTPServer : public ASOCKETSERVER{
 	public:
-		enum{ RFLAG_C = 0, RFLAG_S = APISocketServer::RFLAG_S + APISocketServer::RFLAG_C };
-	public:
-				 NTPServer(void) : APISocketServer(nullptr,64){cgPort = 123;};
+				 NTPServer(void) : ASOCKETSERVER(1024,nullptr){SetSelfName("NTPServer");};
 		virtual ~NTPServer(void){;};
 	private:
-		virtual int32	UDPThreadListionFun	(void);
+		virtual int32	ListionUDP(void *p);
 	public:
-		int32	Run		(int32 port){return(APISocketServer::OpenD(port,COMMU_DBUF::CSType_UDP,0));};
+		int32	Run		(int32 port = 123){return(OpenD("",port,CSType_UDPS,0));};
 };
 //------------------------------------------------------------------------------------------//
+#endif
+#endif
 #endif

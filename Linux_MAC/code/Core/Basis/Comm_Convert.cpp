@@ -21,10 +21,10 @@
 #include "Comm_FIFO.h"
 #include <algorithm>
 //------------------------------------------------------------------------------------------//
-std::string Str_FloatToString(double fZ,int32 blNozero,int32 slen,int32 alen){
+STDSTR Str_FloatToString(double fZ,int32 blNozero,int32 slen,int32 alen){
 	char tmpstr[256];
-	std::string	result;
-	std::string::size_type		pos1,pos;
+	STDSTR	result;
+	STDSTR::size_type		pos1,pos;
 	
 	memset(tmpstr,'\0',sizeof(tmpstr));
 #ifdef CommonDefH_Unix
@@ -37,7 +37,7 @@ std::string Str_FloatToString(double fZ,int32 blNozero,int32 slen,int32 alen){
 	if (blNozero != 0){
 		pos1 = result.find_last_not_of('0');
 		pos = result.find_last_of('.');
-		if (pos1 != std::string::npos){
+		if (pos1 != STDSTR::npos){
 			if (pos < pos1)
 				pos = pos1 + 1;
 		}
@@ -47,71 +47,11 @@ std::string Str_FloatToString(double fZ,int32 blNozero,int32 slen,int32 alen){
 	return(result);
 }
 //------------------------------------------------------------------------------------------//
-std::string Str_IntToString(int32 fZ){
-	char tmpstr[256];
-	std::string	result;
-	
-	memset(tmpstr,'\0',sizeof(tmpstr));
-#ifdef CommonDefH_Unix
-	snprintf(tmpstr,sizeof(tmpstr),"%d",fZ);
-#endif
-#ifdef CommonDefH_VC
-	sprintf_s(tmpstr, sizeof(tmpstr), "%d", fZ);
-#endif
-	result = tmpstr;
-	return(result);
-}
-//------------------------------------------------------------------------------------------//
-std::string Str_UIntToString(uint32 fZ){
-	char tmpstr[256];
-	std::string	result;
-	
-	memset(tmpstr,'\0',sizeof(tmpstr));
-#ifdef CommonDefH_Unix
-	snprintf(tmpstr,sizeof(tmpstr),"%u",fZ);
-#endif
-#ifdef CommonDefH_VC
-	sprintf_s(tmpstr,sizeof(tmpstr),"%u",fZ);
-#endif
-	result = tmpstr;
-	return(result);
-}
-//------------------------------------------------------------------------------------------//
-std::string Str_UInt64ToString(uint64 fZ){
-	char tmpstr[256];
-	std::string	result;
-	
-	memset(tmpstr,'\0',sizeof(tmpstr));
-#ifdef CommonDefH_Unix
-	snprintf(tmpstr,sizeof(tmpstr),"%llu",fZ);
-#endif
-#ifdef CommonDefH_VC
-	sprintf_s(tmpstr,sizeof(tmpstr),"%llu",fZ);
-#endif
-	result = tmpstr;
-	return(result);
-}
-//------------------------------------------------------------------------------------------//
-std::string Str_Int64ToString(int64 fZ){
-	char tmpstr[256];
-	std::string	result;
-	
-	memset(tmpstr,'\0',sizeof(tmpstr));
-#ifdef CommonDefH_Unix
-	snprintf(tmpstr,sizeof(tmpstr),"%lld",fZ);
-#endif
-#ifdef CommonDefH_VC
-	sprintf_s(tmpstr,sizeof(tmpstr),"%lld",fZ);
-#endif
-	result = tmpstr;
-	return(result);
-}
-//------------------------------------------------------------------------------------------//
-uint64 Str_HexToDec(const std::string &str){
+uint64 Str_HexToDec(const STDSTR &str){
 	uint8	charP;
 	uint32	i,length;
 	uint64	result;
-	std::string	asciiStr;
+	STDSTR	asciiStr;
 	
 	//test:B6 53 CC 1C C4 F4 AB E2
 
@@ -141,9 +81,9 @@ uint64 Str_HexToDec(const std::string &str){
 	return(result);
 }
 //------------------------------------------------------------------------------------------//
-std::string Str_DecToHex(uint64 fZ){
+STDSTR Str_DecToHex(uint64 fZ){
 	char tmpstr[256];
-	std::string	result;
+	STDSTR	result;
 
 	memset(tmpstr,'\0',sizeof(tmpstr));
 #ifdef CommonDefH_Unix
@@ -156,9 +96,9 @@ std::string Str_DecToHex(uint64 fZ){
 	return(result);
 }
 //------------------------------------------------------------------------------------------//
-std::string Str_DecToHex(const std::string &str){
+STDSTR Str_DecToHex(const STDSTR &str){
 	char		tmpstr[256];
-	std::string	result;
+	STDSTR	result;
 	uint64		ret64;
 	
 	ret64 = strtoull(str.c_str(),nullptr,10);
@@ -174,10 +114,10 @@ std::string Str_DecToHex(const std::string &str){
 	return(result);
 }
 //------------------------------------------------------------------------------------------//
-uint64 Str_CharToUint64(const uint8 *retBuf,G_Endian_VAILD endianType){
+uint64 Str_CharToUint64(const uint8 *retBuf,G_ENDIAN endianType){
 	uint64 ret;
 	ret = 0;
-	if (endianType == G_LITTLE_ENDIAN){
+	if (endianType == G_ENDIAN_LITTLE){
 		retBuf += 7;
 		ret |= (*retBuf--);ret <<= 8;
 		ret |= (*retBuf--);ret <<= 8;
@@ -201,10 +141,10 @@ uint64 Str_CharToUint64(const uint8 *retBuf,G_Endian_VAILD endianType){
 	return(ret);
 }
 //------------------------------------------------------------------------------------------//
-uint32 Str_CharToUint32(const uint8 *retBuf,G_Endian_VAILD endianType){
+uint32 Str_CharToUint32(const uint8 *retBuf,G_ENDIAN endianType){
 	uint32 ret;
 	ret = 0;
-	if (endianType == G_LITTLE_ENDIAN){
+	if (endianType == G_ENDIAN_LITTLE){
 		retBuf += 3;
 		ret |= (*retBuf--);ret <<= 8;
 		ret |= (*retBuf--);ret <<= 8;
@@ -220,10 +160,10 @@ uint32 Str_CharToUint32(const uint8 *retBuf,G_Endian_VAILD endianType){
 	return(ret);
 }
 //------------------------------------------------------------------------------------------//
-uint16 Str_CharToUint16(const uint8 *retBuf,G_Endian_VAILD endianType){
+uint16 Str_CharToUint16(const uint8 *retBuf,G_ENDIAN endianType){
 	uint16 ret;
 	ret = 0;
-	if (endianType == G_LITTLE_ENDIAN){
+	if (endianType == G_ENDIAN_LITTLE){
 		retBuf += 1;
 		ret |= (*retBuf--);ret <<= 8;
 		ret |= (*retBuf);
@@ -235,8 +175,8 @@ uint16 Str_CharToUint16(const uint8 *retBuf,G_Endian_VAILD endianType){
 	return(ret);
 }
 //------------------------------------------------------------------------------------------//
-const uint8 *Str_Uint64ToChar(uint8 *retBuf,uint64 data,G_Endian_VAILD endianType){
-	if (endianType == G_LITTLE_ENDIAN){
+const uint8 *Str_Uint64ToChar(uint8 *retBuf,uint64 data,G_ENDIAN endianType){
+	if (endianType == G_ENDIAN_LITTLE){
 		*retBuf++ = (uint8)(data);data >>= 8;
 		*retBuf++ = (uint8)(data);data >>= 8;
 		*retBuf++ = (uint8)(data);data >>= 8;
@@ -260,8 +200,8 @@ const uint8 *Str_Uint64ToChar(uint8 *retBuf,uint64 data,G_Endian_VAILD endianTyp
 	return(retBuf);
 }
 //------------------------------------------------------------------------------------------//
-const uint8 *Str_Uint32ToChar(uint8 *retBuf,uint32 data,G_Endian_VAILD endianType){
-	if (endianType == G_LITTLE_ENDIAN){
+const uint8 *Str_Uint32ToChar(uint8 *retBuf,uint32 data,G_ENDIAN endianType){
+	if (endianType == G_ENDIAN_LITTLE){
 		*retBuf++ = (uint8)(data);data >>= 8;
 		*retBuf++ = (uint8)(data);data >>= 8;
 		*retBuf++ = (uint8)(data);data >>= 8;
@@ -277,8 +217,8 @@ const uint8 *Str_Uint32ToChar(uint8 *retBuf,uint32 data,G_Endian_VAILD endianTyp
 	return(retBuf);
 }
 //------------------------------------------------------------------------------------------//
-const uint8 *Str_Uint16ToChar(uint8 *retBuf,uint16 data,G_Endian_VAILD endianType){
-	if (endianType == G_LITTLE_ENDIAN){
+const uint8 *Str_Uint16ToChar(uint8 *retBuf,uint16 data,G_ENDIAN endianType){
+	if (endianType == G_ENDIAN_LITTLE){
 		*retBuf++ = (uint8)(data);
 		*retBuf = (uint8)(data >> 8);
 	}
@@ -289,11 +229,11 @@ const uint8 *Str_Uint16ToChar(uint8 *retBuf,uint16 data,G_Endian_VAILD endianTyp
 	return(retBuf);
 }
 //------------------------------------------------------------------------------------------//
-const std::string &Str_LTrimSelf(std::string &str){
-	std::string::size_type		ret;
+const STDSTR &Str_LTrimSelf(STDSTR &str){
+	STDSTR::size_type		ret;
 	
 	ret = str.find_first_not_of(' ');
-	if (ret == std::string::npos){
+	if (ret == STDSTR::npos){
 		str = "";
 	}
 	else if (ret > 0){
@@ -302,12 +242,12 @@ const std::string &Str_LTrimSelf(std::string &str){
 	return(str);
 }
 //------------------------------------------------------------------------------------------//
-std::string Str_LTrim(const std::string &str){
-	std::string::size_type		ret;
-	std::string		returnStr;
+STDSTR Str_LTrim(const STDSTR &str){
+	STDSTR::size_type		ret;
+	STDSTR		returnStr;
 	
 	ret = str.find_first_not_of(' ');
-	if (ret == std::string::npos){
+	if (ret == STDSTR::npos){
 		returnStr = "";
 	}
 	else if (ret > 0){
@@ -319,11 +259,11 @@ std::string Str_LTrim(const std::string &str){
 	return(returnStr);
 }
 //------------------------------------------------------------------------------------------//
-const std::string &Str_LTrim(std::string *returnStr,const std::string &str){
-	std::string::size_type		ret;
+const STDSTR &Str_LTrim(STDSTR *returnStr,const STDSTR &str){
+	STDSTR::size_type		ret;
 	
 	ret = str.find_first_not_of(' ');
-	if (ret == std::string::npos){
+	if (ret == STDSTR::npos){
 		*returnStr = "";
 	}
 	else if (ret > 0){
@@ -335,11 +275,11 @@ const std::string &Str_LTrim(std::string *returnStr,const std::string &str){
 	return(*returnStr);
 }
 //------------------------------------------------------------------------------------------//
-const std::string &Str_RTrimSelf(std::string &str){
-	std::string::size_type		ret;
+const STDSTR &Str_RTrimSelf(STDSTR &str){
+	STDSTR::size_type		ret;
 	
 	ret = str.find_last_not_of(' ');
-	if (ret == std::string::npos){
+	if (ret == STDSTR::npos){
 		str = "";
 	}
 	else if (ret < (str.length() - 1)){
@@ -348,12 +288,12 @@ const std::string &Str_RTrimSelf(std::string &str){
 	return(str);
 }
 //------------------------------------------------------------------------------------------//
-std::string Str_RTrim(const std::string &str){
-	std::string::size_type		ret;
-	std::string returnStr;
+STDSTR Str_RTrim(const STDSTR &str){
+	STDSTR::size_type		ret;
+	STDSTR returnStr;
 	
 	ret = str.find_last_not_of(' ');
-	if (ret == std::string::npos){
+	if (ret == STDSTR::npos){
 		returnStr = "";
 	}
 	else if(ret < (str.length() - 1)){
@@ -365,11 +305,11 @@ std::string Str_RTrim(const std::string &str){
 	return(returnStr);
 }
 //------------------------------------------------------------------------------------------//
-const std::string &Str_RTrim(std::string *returnStr,const std::string &str){
-	std::string::size_type		ret;
+const STDSTR &Str_RTrim(STDSTR *returnStr,const STDSTR &str){
+	STDSTR::size_type		ret;
 	
 	ret = str.find_last_not_of(' ');
-	if (ret == std::string::npos){
+	if (ret == STDSTR::npos){
 		*returnStr = "";
 	}
 	else if(ret < (str.length() - 1)){
@@ -381,11 +321,11 @@ const std::string &Str_RTrim(std::string *returnStr,const std::string &str){
 	return(*returnStr);
 }
 //------------------------------------------------------------------------------------------//
-const std::string &Str_TrimSelf(std::string &str){
-	std::string::size_type		s;
+const STDSTR &Str_TrimSelf(STDSTR &str){
+	STDSTR::size_type		s;
 	
 	s = str.find_last_not_of(' ');
-	if (s == std::string::npos){
+	if (s == STDSTR::npos){
 		str = "";
 	}
 	else{
@@ -398,11 +338,11 @@ const std::string &Str_TrimSelf(std::string &str){
 	return(str);
 }
 //------------------------------------------------------------------------------------------//
-std::string Str_Trim(const std::string &str){
-	std::string::size_type		s,e;
-	std::string returnStr;
+STDSTR Str_Trim(const STDSTR &str){
+	STDSTR::size_type		s,e;
+	STDSTR returnStr;
 	s = str.find_first_not_of(' ');
-	if (s == std::string::npos){
+	if (s == STDSTR::npos){
 		returnStr = "";
 	}
 	else{
@@ -417,11 +357,11 @@ std::string Str_Trim(const std::string &str){
 	return(returnStr);
 }
 //------------------------------------------------------------------------------------------//
-const std::string &Str_Trim(std::string *returnStr,const std::string &str){
-	std::string::size_type		s,e;
+const STDSTR &Str_Trim(STDSTR *returnStr,const STDSTR &str){
+	STDSTR::size_type		s,e;
 	
 	s = str.find_first_not_of(' ');
-	if (s == std::string::npos){
+	if (s == STDSTR::npos){
 		*returnStr = "";
 	}
 	else{
@@ -436,14 +376,14 @@ const std::string &Str_Trim(std::string *returnStr,const std::string &str){
 	return(*returnStr);
 }
 //------------------------------------------------------------------------------------------//
-const std::string &Str_UpperCaseSelf(std::string &str){
+const STDSTR &Str_UpperCaseSelf(STDSTR &str){
  	std::transform(str.begin(), str.end(), str.begin(), toupper);
 	return(str);
 }
 //------------------------------------------------------------------------------------------//
-std::string	Str_UpperCase(const std::string &str){
-	std::string::size_type		i,length;
-	std::string	strResult;
+STDSTR	Str_UpperCase(const STDSTR &str){
+	STDSTR::size_type		i,length;
+	STDSTR	strResult;
 	uint8		charP;
 	
 	length = str.length();
@@ -460,8 +400,8 @@ std::string	Str_UpperCase(const std::string &str){
 	return(strResult);
 }
 //------------------------------------------------------------------------------------------//
-const std::string& Str_UpperCase(std::string *returnStr,const std::string &str){
-	std::string::size_type		i,length;
+const STDSTR& Str_UpperCase(STDSTR *returnStr,const STDSTR &str){
+	STDSTR::size_type		i,length;
 	uint8		charP;
 	
 	length = str.length();
@@ -477,14 +417,14 @@ const std::string& Str_UpperCase(std::string *returnStr,const std::string &str){
 	return(*returnStr);
 }
 //------------------------------------------------------------------------------------------//
-const std::string &Str_LowerCaseSelf(std::string &str){
+const STDSTR &Str_LowerCaseSelf(STDSTR &str){
 	std::transform(str.begin(), str.end(), str.begin(), tolower);
 	return(str);
 }
 //------------------------------------------------------------------------------------------//
-std::string	Str_LowerCase(const std::string &str){
-	std::string::size_type		i,length;
-	std::string	strResult;
+STDSTR	Str_LowerCase(const STDSTR &str){
+	STDSTR::size_type		i,length;
+	STDSTR	strResult;
 	uint8		charP;
 	
 	length = str.length();
@@ -500,8 +440,8 @@ std::string	Str_LowerCase(const std::string &str){
 	return(strResult);
 }
 //------------------------------------------------------------------------------------------//
-const std::string& Str_LowerCase(std::string *returnStr,const std::string &str){
-	std::string::size_type		i,length;
+const STDSTR& Str_LowerCase(STDSTR *returnStr,const STDSTR &str){
+	STDSTR::size_type		i,length;
 	uint8		charP;
 	
 	length = str.length();
@@ -517,9 +457,9 @@ const std::string& Str_LowerCase(std::string *returnStr,const std::string &str){
 	return(*returnStr);
 }
 //------------------------------------------------------------------------------------------//
-std::string Str_Replace(const std::string &str,const std::string &strS,const std::string &strD){
-	std::string		stringResult;
-	std::string::size_type		ret,head,length;
+STDSTR Str_Replace(const STDSTR &str,const STDSTR &strS,const STDSTR &strD){
+	STDSTR		stringResult;
+	STDSTR::size_type		ret,head,length;
 	
 	stringResult = "";
 	head = 0;
@@ -527,7 +467,7 @@ std::string Str_Replace(const std::string &str,const std::string &strS,const std
 	
 	while(head < str.length()){
 		ret = str.find(strS,head);
-		if (ret == std::string::npos){
+		if (ret == STDSTR::npos){
 			stringResult += str.substr(head);
 			break;
 		}
@@ -540,15 +480,15 @@ std::string Str_Replace(const std::string &str,const std::string &strS,const std
 	return(stringResult);
 }
 //------------------------------------------------------------------------------------------//
-std::string Str_SplitSubItem(std::string *strInput,uint8 subChar){
-	std::string				strResult;
-	std::string::size_type	pos,length;
+STDSTR Str_SplitSubItem(STDSTR *strIn,uint8 subChar){
+	STDSTR				strResult;
+	STDSTR::size_type	pos,length;
 	uint8*					charP;
 	
-	length = strInput->length();
+	length = strIn->length();
 	pos = 0;
 	strResult = "";
-	charP = (uint8*)strInput->c_str();
+	charP = (uint8*)strIn->c_str();
 	while(pos < length){
 		++ pos;
 		if ((*charP == '\\') && (pos < length)){
@@ -564,275 +504,232 @@ std::string Str_SplitSubItem(std::string *strInput,uint8 subChar){
 		}
 		else{
 			if (*charP == subChar){
-				*strInput = strInput->substr(pos);
+				*strIn = strIn->substr(pos);
 				return (strResult);
 			}
 			strResult += *charP;
 		}
 		++ charP;
 	}
-	*strInput = "";
+	*strIn = "";
 	return(strResult);
 }
 //------------------------------------------------------------------------------------------//
-std::string Str_ReadSubItem(std::string *strInput,const std::string &subChar,int32 blReturnSubChar){
-	std::string	strResult;
-	std::string::size_type		pos;
+STDSTR Str_ReadSubItem(STDSTR *strIn,const STDSTR &subChar,int32 blReturnSubChar){
+	STDSTR	strResult;
+	STDSTR::size_type		pos;
 	
-	pos = strInput->find(subChar,0);
+	pos = strIn->find(subChar,0);
 	
-	if (pos != std::string::npos){
+	if (pos != STDSTR::npos){
 		if (blReturnSubChar == 0){
-			strResult = strInput->substr(0,pos);
-			*strInput = strInput->substr(pos + subChar.length());
+			strResult = strIn->substr(0,pos);
+			*strIn = strIn->substr(pos + subChar.length());
 		}
 		else{
-			strResult = strInput->substr(0,pos + subChar.length());
-			*strInput = strInput->substr(pos + subChar.length());
+			strResult = strIn->substr(0,pos + subChar.length());
+			*strIn = strIn->substr(pos + subChar.length());
 		}
 		return(strResult);
 	}
-	strResult = *strInput;
-	*strInput = "";
+	strResult = *strIn;
+	*strIn = "";
 	return(strResult);
 }
 //------------------------------------------------------------------------------------------//
-std::string Str_ReadSubItemR(std::string *strInput,const std::string &subChar,int32 blReturnSubChar){
-	std::string	strResult;
-	std::string::size_type		pos;
+STDSTR Str_ReadSubItemR(STDSTR *strIn,const STDSTR &subChar,int32 blReturnSubChar){
+	STDSTR	strResult;
+	STDSTR::size_type		pos;
 	
-	pos = strInput->rfind(subChar);
+	pos = strIn->rfind(subChar);
 	
-	if (pos != std::string::npos){
+	if (pos != STDSTR::npos){
 		if (blReturnSubChar == 0){
-			strResult = strInput->substr(pos + subChar.length());
-			*strInput = strInput->substr(0,strInput->length() - strResult.length() - subChar.length());
+			strResult = strIn->substr(pos + subChar.length());
+			*strIn = strIn->substr(0,strIn->length() - strResult.length() - subChar.length());
 		}
 		else{
-			strResult = strInput->substr(pos);
-			*strInput = strInput->substr(0,strInput->length() - strResult.length());
+			strResult = strIn->substr(pos);
+			*strIn = strIn->substr(0,strIn->length() - strResult.length());
 		}
 		return(strResult);
 	}
 	return("");
 }
 //------------------------------------------------------------------------------------------//
-std::string	Str_UnTransferChar(const std::string &strInput){
-	std::string::size_type i,length;
-	std::string	retStr;
-	uint8	charT;
-	
-	length = strInput.length();
-	i = 0;
-	retStr = "";
-	while(i < length){
-		charT = strInput[i];
-		switch (charT) {
-			case '\\':
-				retStr += "\\\\";
-				break;
-			case '\a':
-				retStr += "\\a";
-				break;
-			case '\b':
-				retStr += "\\b";
-				break;
-			case '\f':
-				retStr += "\\f";
-				break;
-			case '\n':
-				retStr += "\\n";
-				break;
-			case '\r':
-				retStr += "\\r";
-				break;
-			case '\t':
-				retStr += "\\t";
-				break;
-			case '\v':
-				retStr += "\\v";
-				break;
-			case '\0':
-				retStr += "\\0";
-				break;
-			default:
-				retStr += charT;
-				break;
-		}
-		++ i;
-	}
-	return(retStr);
+const STDSTR& AddSpaceInFront(STDSTR *strIn,uint32 length){
+	if (strIn->length() < length)
+		strIn->insert(0,length - strIn->length(),' ');
+	return(*strIn);
 }
 //------------------------------------------------------------------------------------------//
-const std::string &Str_CharToStr(std::string *retStr,const uint8 *buf,uint64 num,int32 blToHex
-								 ,G_ESCAPE_VAILD blEscape,G_SPACE_VAILD blSpace,G_Append_VAILD blAppend){
-	//eacape \0xhh,\a,\b,\f,\n,\r,\t,\v,\\,\',\",\0,\/
-	std::string				strData;
-	std::string::size_type	i,length,j;
-	uint8					charData,charData1;
-	
-	length = (std::string::size_type)num;
-	i = 0;
-	if (blAppend == G_Append_OFF)
-		*retStr = "";
-	charData1 = 0;
-	while(i < length){
-		charData = buf[i];
-		if (blEscape != G_ESCAPE_OFF){
-			j = 0;
-			if ((i + 4) < length){
-				j = FIFO_UINT8::Escape0xhhToChar(&charData1,Str_CharToStr(&strData,&buf[i],5,0,G_ESCAPE_OFF,G_SPACE_OFF,G_Append_OFF));
-			}
-			else if ((i + 4) == length){
-				j = FIFO_UINT8::Escape0xhhToChar(&charData1,Str_CharToStr(&strData,&buf[i],4,0,G_ESCAPE_OFF,G_SPACE_OFF,G_Append_OFF));
-			}
-			if (j > 0){
-				i += j;
-				charData = charData1;
-			}
-			else if ((i + 1) < length){
-				j = FIFO_UINT8::EscapeToChar(&charData1,Str_CharToStr(&strData,&buf[i],2,0,G_ESCAPE_OFF,G_SPACE_OFF,G_Append_OFF));
-				if (j > 0){
-					i += j;
-					charData = charData1;
-				}
-			}
-			else if (charData == '\\'){
-				++ i;
-				continue;
-			}
-		}
-		if (blToHex == 0){
-			*retStr += charData;
-		}
-		else{
-			*retStr += FIFO_UINT8::CharToHex(charData);
-			if (blSpace != G_SPACE_OFF)
-				*retStr += ' ';
-		}
-		++ i;
+const STDSTR &Str_UnTransferChar(STDSTR *retStr,const uint8 *buf,uint64 num){
+	while(num-- > 0){
+		FIFO8::UnEscapeToStr(retStr,*buf);
+		++ buf;
 	};
 	return(*retStr);
 }
 //------------------------------------------------------------------------------------------//
-const std::string &Str_HEXTo(std::string *retStr,const std::string &strInput,int32 blToASCII,G_SPACE_VAILD blSpace,G_Append_VAILD blAppend){
-	std::string::size_type	i,length,j;
-	uint8	charP,charData,charResult;
+const STDSTR &Str_CharToStrInEscape(STDSTR *retStr,const uint8 *buf,uint64 num){
+	uint64	count;
+	uint8	chardata;
+	const uint8	*p;
+
+	p = buf;
+	count = 0;
 	
-	length = strInput.length();
-	i = 0;
-	j = 0;
-	charResult = 0;
-	charData = 0;
-	if (blAppend == G_Append_OFF)
-		*retStr = "";
-	while(i < length){
-		charP = strInput[i ++];
-		
-		if (charP >= '0' && charP <= '9'){
-			charData = charP - '0';
-			++ j;
-		}
-		else if (charP >= 'A' && charP <= 'F'){
-			charData = charP - 'A' + 0x0a;
-			++ j;
-		}
-		else if (charP >= 'a' && charP <= 'f'){
-			charData = charP - 'a' + 0x0a;
-			++ j;
-		}
-		if (j == 1){
-			charResult = charData;
-		}
-		else if (j == 2){
-			charResult = ((charResult << 4) & 0xf0) | charData;
-		}
-		if ((j > 0) && ((charP == ' ') || (j == 2) || (i == length))){
-			if (blToASCII != 0){
-				*retStr += charResult;
+	while(num > 0){
+		if (*p == '\\'){
+			retStr->append((char*)buf,count);
+			count = 0;
+			++p;
+			if (--num > 0){
+				if (FIFO8::EscapeToChar(&chardata,p,num) > 0)
+					*retStr += chardata;
 			}
-			else{
-				*retStr += FIFO_UINT8::CharToHex(charResult);
+			buf = p;
+		}
+		else{
+			++p;
+			--num;
+			++count;
+		}
+	}
+	retStr->append((char*)buf,count);
+
+	return(*retStr);
+}
+//------------------------------------------------------------------------------------------//
+const STDSTR &Str_CharToStr(STDSTR *retStr,const uint8 *buf,uint64 num,G_HA blHA,G_ESCAPE blEscape,G_SPACE blSpace,G_APPEND blAppend){
+	uint8	chardata;
+	if (blAppend == G_APPEND_OFF)
+		*retStr = "";
+	
+	if (blHA == G_HEX){
+		if (blEscape == G_ESCAPE_OFF){
+			while(num-- > 0){
+				FIFO8::CharToHex(retStr,*buf);
+				++buf;
 				if (blSpace == G_SPACE_ON)
 					*retStr += ' ';
 			}
-			j = 0;
+		}
+		else{
+			while(num > 0){
+				if (*buf == '\\'){
+					++buf;
+					if (--num > 0){
+						if (FIFO8::EscapeToChar(&chardata,buf,num) > 0){
+							FIFO8::CharToHex(retStr,chardata);
+							if (blSpace == G_SPACE_ON)
+								*retStr += ' ';
+						}
+					}
+				}
+				else{
+					FIFO8::CharToHex(retStr,*buf);
+					if (blSpace == G_SPACE_ON)
+						*retStr += ' ';
+					++buf;
+					--num;
+				}
+			}
+		}
+	}
+	else if (blEscape == G_ESCAPE_ON){
+		Str_CharToStrInEscape(retStr,buf,num);
+	}
+	else{
+		retStr->append((char*)buf,num);
+	}
+	return(*retStr);
+}
+//------------------------------------------------------------------------------------------//
+const STDSTR &Str_HEXTo(STDSTR *retStr,const uint8 *buf,uint64 num,G_HA blHA,G_SPACE blSpace,G_APPEND blAppend){
+	uint8	*dataT,chardata;
+	if (blAppend == G_APPEND_OFF)
+		*retStr = "";
+	
+	dataT = &chardata;
+	
+
+	while(num > 0){
+		if (FIFO8::Escape_xhh(dataT,buf,num) > 0){
+			if (blHA == G_HEX){
+				FIFO8::CharToHex(retStr,chardata);
+				if (blSpace == G_SPACE_ON)
+					*retStr += ' ';
+			}
+			else{
+				*retStr += chardata;
+			}
+		}
+		else{
+			++buf;
+			--num;
 		}
 	}
 	return(*retStr);
 }
 //------------------------------------------------------------------------------------------//
-std::string::size_type Str_DCompare(const std::string &strContent,const std::string &strD1,std::string::size_type strContentPostion){
-	std::string::size_type	ret;
-	
-	do{
-		ret = strContent.find(strD1,strContentPostion);
-		
-		if (ret == std::string::npos)
-			return ret;
-		if ((ret % 2) == 0)
-			return ret;
-		++ strContentPostion;
-	}while((++ strContentPostion) < strContent.length());
-	return 0;
-}
 #ifdef CommonDefH_VC
 //------------------------------------------------------------------------------------------//
-std::wstring Str_ANSIToUnicode(const std::string &strInput){
+std::wstring Str_ANSIToUnicode(const STDSTR &strIn){
 	int32			unicodeLen;
 	wchar_t			*pUnicode;
 	std::wstring	ret;
 	
-	unicodeLen = MultiByteToWideChar(CP_ACP,0,strInput.c_str(),-1,nullptr,0);
+	unicodeLen = MultiByteToWideChar(CP_ACP,0,strIn.c_str(),-1,nullptr,0);
 	
 	pUnicode = new  wchar_t[unicodeLen + 1];
 	memset(pUnicode,0,(unicodeLen + 1)*sizeof(wchar_t));
-	MultiByteToWideChar(CP_ACP,0,strInput.c_str(),-1,(LPWSTR)pUnicode,unicodeLen);
+	MultiByteToWideChar(CP_ACP,0,strIn.c_str(),-1,(LPWSTR)pUnicode,unicodeLen);
 	
 	ret = (wchar_t*)pUnicode;
 	delete  []pUnicode;
 	return  ret;
 }
 //------------------------------------------------------------------------------------------//
-std::string Str_UnicodeToANSI(const std::wstring &strInput){
-	char*			pElementText;
-	int32			iTextLen;
-	std::string		strText;
+STDSTR Str_UnicodeToANSI(const std::wstring &strIn){
+	char*		pElementText;
+	int32		iTextLen;
+	STDSTR		strText;
 	
-	iTextLen = WideCharToMultiByte(CP_ACP,0,strInput.c_str(),-1,nullptr,0,nullptr,nullptr);
+	iTextLen = WideCharToMultiByte(CP_ACP,0,strIn.c_str(),-1,nullptr,0,nullptr,nullptr);
 	pElementText = new char[iTextLen + 1];
 	memset((void*)pElementText,0,sizeof(char) * (iTextLen + 1));
-	WideCharToMultiByte( CP_ACP,0,strInput.c_str(),-1,pElementText,iTextLen,nullptr,nullptr);
+	WideCharToMultiByte( CP_ACP,0,strIn.c_str(),-1,pElementText,iTextLen,nullptr,nullptr);
 	
 	strText = pElementText;
 	delete []pElementText;
 	return(strText);
 }
 //------------------------------------------------------------------------------------------//
-std::wstring Str_UTF8ToUnicode(const std::string &strInput){
+std::wstring Str_UTF8ToUnicode(const STDSTR &strIn){
 	int32			unicodeLen;
 	wchar_t			*pUnicode;
 	std::wstring	ret;
 	
-	unicodeLen = MultiByteToWideChar(CP_UTF8,0,strInput.c_str(),-1,nullptr,0);
+	unicodeLen = MultiByteToWideChar(CP_UTF8,0,strIn.c_str(),-1,nullptr,0);
 	
 	pUnicode = new  wchar_t[unicodeLen+1];
 	memset(pUnicode,0,(unicodeLen + 1)*sizeof(wchar_t));
-	MultiByteToWideChar( CP_UTF8,0,strInput.c_str(),-1,(LPWSTR)pUnicode,unicodeLen);
+	MultiByteToWideChar( CP_UTF8,0,strIn.c_str(),-1,(LPWSTR)pUnicode,unicodeLen);
 	
 	ret = (wchar_t*)pUnicode;
 	delete  []pUnicode;
 	return(ret);
 }
 //------------------------------------------------------------------------------------------//
-std::string Str_UnicodeToUTF8(const std::wstring &strInput){
-	char*			pElementText;
-	int32			iTextLen;
-	std::string		strText;
-	iTextLen = WideCharToMultiByte( CP_UTF8,0,strInput.c_str(),-1,nullptr,0,nullptr,nullptr);
+STDSTR Str_UnicodeToUTF8(const std::wstring &strIn){
+	char*		pElementText;
+	int32		iTextLen;
+	STDSTR		strText;
+	iTextLen = WideCharToMultiByte( CP_UTF8,0,strIn.c_str(),-1,nullptr,0,nullptr,nullptr);
 	pElementText = new char[iTextLen + 1];
 	memset((void*)pElementText,0,sizeof(char) * (iTextLen + 1));
-	WideCharToMultiByte(CP_UTF8,0,strInput.c_str(),-1,pElementText,iTextLen,nullptr,nullptr);
+	WideCharToMultiByte(CP_UTF8,0,strIn.c_str(),-1,pElementText,iTextLen,nullptr,nullptr);
 	
 	strText = pElementText;
 	delete []pElementText;
@@ -840,44 +737,5 @@ std::string Str_UnicodeToUTF8(const std::wstring &strInput){
 }
 //------------------------------------------------------------------------------------------//
 #endif
-//------------------------------------------------------------------------------------------//
-int ExecuteConsoleCommand(const std::string &strCommand){
-#ifdef CommonDefH_Unix
-	char	**argv;
-	std::string	cmd,strArg;
-	int32	num,ret;
-	
-	num = 0;
-	cmd = strCommand;
-	do{
-		Str_TrimSelf(cmd);
-		strArg = Str_ReadSubItem(&cmd, " ");
-		if (strArg.length() > 0)
-			++ num;
-	}while(cmd.length() > 0);
-	
-	if (num > 0){
-		argv = new char*[num + 1];
-		argv[num] = (char*)nullptr;
-		
-		num = 0;
-		cmd = strCommand;
-		do{
-			Str_TrimSelf(cmd);
-			strArg = Str_ReadSubItem(&cmd, " ");
-			if (strArg.length() > 0){
-				argv[num] = new char[strArg.length() + 1];
-				memcpy(argv[num],strArg.c_str(),strArg.length());
-				argv[num][strArg.length()] = 0;
-				++ num;
-			}
-		}while(cmd.length() > 0);
-		ret = execvp(argv[0],argv);
-		delete []argv;
-		return(ret);
-	}
-#endif
-	return 0;
-}
 //------------------------------------------------------------------------------------------//
 

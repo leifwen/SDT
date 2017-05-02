@@ -64,6 +64,7 @@
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>$(SolutionDir)..\Linux_MAC\code\Core;$(SolutionDir)..\Linux_MAC\code\Core\AppLayer;$(SolutionDir)..\Linux_MAC\code\Core\AppLayer\Script;$(SolutionDir)..\Linux_MAC\code\Core\Basis;$(SolutionDir)..\Linux_MAC\code\Core\BasisEx;$(SolutionDir)..\Linux_MAC\code\Core\Output;$(SolutionDir)..\Linux_MAC\code\Core\Communication;$(SolutionDir)..\Linux_MAC\code\Core\Win7;$(SolutionDir)..\Linux_MAC\code\Core\Win7\MBIM;$(SolutionDir)..\Linux_MAC\code\UIConsole;$(SolutionDir)..\Linux_MAC\code\UIConsole\BIC;$(SolutionDir).\SDT;$(SolutionDir).\SDTReg</AdditionalIncludeDirectories>
       <ExceptionHandling>Async</ExceptionHandling>
+      <BrowseInformation>true</BrowseInformation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -79,6 +80,9 @@
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
+    <Bscmake>
+      <PreserveSbr>true</PreserveSbr>
+    </Bscmake>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>

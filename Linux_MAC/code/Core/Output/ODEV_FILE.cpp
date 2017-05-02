@@ -12,6 +12,10 @@
 //------------------------------------------------------------------------------------------//
 #include "stdafx.h"
 #include "ODEV_FILE.h"
+//------------------------------------------------------------------------------------------//
+#ifdef ODEV_FILEH
+//------------------------------------------------------------------------------------------//
+#include "SYS_Time.h"
 #include "Comm_Convert.h"
 #include "Comm_File.h"
 //------------------------------------------------------------------------------------------//
@@ -21,39 +25,255 @@
 #include <sys/stat.h>
 #endif
 //------------------------------------------------------------------------------------------//
-int32 ODEV_NODE_FILE::Print(G_LOCK_VAILD blLock){
-	std::string	strName,strT;
-	
-	Spin_InUse_set(G_LOCK_ON);
-#ifdef CommonDefH_VC
-	strName = ODEV_CreateLOGDIR() + "\\" + cgfileName;
-#endif
-#ifdef CommonDefH_Unix
-	strName = ODEV_CreateLOGDIR() + "/" + cgfileName;
-#endif
-	Spin_InUse_clr(G_LOCK_ON);
-	if ((GetUnreadLength(G_LOCK_ON) > 1024 * 8) || (SYS_Delay_CheckTS(&cgTimeS) != 0)){
-		SYS_Delay_SetTS(&cgTimeS, 1000);
-		if (cgCOLType == COLType_COL){
-			ODEV_AddToRTFFile(strName, ReadStr(&strT,G_LOCK_OFF));
+namespace  {
+	STDSTR ColorConvert(uint32 tCol){
+		switch (tCol){
+			case	COL_clBlack:	return(COL_CF_clBlack);
+			case	COL_clMaroon:	return(COL_CF_clMaroon);
+			case	COL_clDGreen:	return(COL_CF_clDGreen);
+			case	COL_clDYellow:	return(COL_CF_clDYellow);
+			case	COL_clDBlue:	return(COL_CF_clDBlue);
+			case	COL_clDMagenta:	return(COL_CF_clDMagenta);
+			case	COL_clDCyan:	return(COL_CF_clDCyan);
+			case	COL_clDGray:	return(COL_CF_clDGray);
+				
+			case	COL_clGray:		return(COL_CF_clGray);
+			case	COL_clRed:		return(COL_CF_clRed);
+			case	COL_clGreen:	return(COL_CF_clGreen);
+			case	COL_clYellow:	return(COL_CF_clYellow);
+			case	COL_clBlue:		return(COL_CF_clBlue);
+			case	COL_clMagenta:	return(COL_CF_clMagenta);
+			case	COL_clCyan:		return(COL_CF_clCyan);
+			case	COL_clWhite:	return(COL_CF_clWhite);
+			case	COL_clPurple:	return(COL_CF_clPurple);
+			case	COL_NONE:;
+			case	COL_clDefault:	return(COL_CF_clDefault);
 		}
-		else if (cgCOLType == COLType_TXT){
-			ODEV_AddToTXTFile(strName, ReadStr(&strT,G_LOCK_OFF));
-		}
+		return("");
+	}
+};
+//------------------------------------------------------------------------------------------//
+void ODEV_FILE::Init(const STDSTR &filename,uint64 tColType){
+	Spin_InUse_set();
+	cgfileName = filename;
+	cgContentRAW = "";
+	cgContentTXT = "";
+	cgContentRTF = "";
+	SYS_Delay_SetTS(&cgTimeS, FREQUENCY);
+	ClrSFlag(of_blRAW | of_blTXT | of_blRTF);
+	SetSFlag(tColType);
+	Spin_InUse_clr();
+};
+//------------------------------------------------------------------------------------------//
+uint32 ODEV_FILE::CheckPrint(uint32 addr)const{
+	if (COLRECORD::GetGroup(cgAddress) == COLRECORD::CRD_G3)
+		return (OUTPUT_NODE::CheckPrint(addr));
+	if (COLRECORD::GetGroup(cgAddress) == COLRECORD::CRD_G2){
+		if (COLRECORD::CheckGroup(COLRECORD::CRD_G3,addr) == 0)
+			return 0;
 	}
 	return 1;
+};
+//------------------------------------------------------------------------------------------//
+void ODEV_FILE::Print(uint32 col, uint32 ctrl,const uint8 *data, uint32 num){
+	if (CheckSFlag(of_blRAW) != 0)
+		PrintRAW(col,ctrl,data,num);
+	if (CheckSFlag(of_blTXT) != 0)
+		PrintTXT(col,ctrl,data,num);
+	if (CheckSFlag(of_blRTF) != 0)
+		PrintRTF(col,ctrl,data,num);
+	if (SYS_Delay_CheckTS(&cgTimeS) != 0)
+		SYS_Delay_SetTS(&cgTimeS, FREQUENCY);
 }
 //------------------------------------------------------------------------------------------//
-std::string	ODEV_CreateFileTime(void){
-	SYS_DateTime 		dtDate;
+void ODEV_FILE::PrintRTF(uint32 col, uint32 ctrl,const uint8 *data, uint32 num){
+	STDSTR	strName;
+	uint32  length;
+	uint8   *p;
+	
+	Spin_InUse_set();
+	
+	if (num > 0){
+		ctrl &= COLRECORD::CRD_NL;
+		
+		if ((cgLastCOL != col) && (col != COL_NONE))
+			cgContentRTF += ColorConvert(col);
+		
+		if ((ctrl != 0) && (cgLastCR == 0))
+			cgContentRTF += RICH_PARL;
+		
+		p = (uint8*)data;
+		if ((*p == '\r') || (*p == '\n')){
+			if ((ctrl == 0) && (cgLastCR == 0))
+				cgContentRTF += RICH_PARL;
+			++ data;
+			-- num;
+			++ p;
+		}
+		
+		length  = 0;
+		while(++length <= num){
+			if (*p == '\\'){
+				Str_CharToStr(&cgContentRTF, data, length - 1, G_ASCII, G_ESCAPE_OFF, G_SPACE_OFF, G_APPEND_ON);
+				cgContentRTF += "\\\\";
+				data += length;
+				num -= length;;
+				length = 0;
+			}
+			else if (*p == '}'){
+				Str_CharToStr(&cgContentRTF, data, length - 1, G_ASCII, G_ESCAPE_OFF, G_SPACE_OFF, G_APPEND_ON);
+				cgContentRTF += "  \\}";
+				data += length;
+				num -= length;;
+				length = 0;
+			}
+			else if (*p == '{'){
+				Str_CharToStr(&cgContentRTF, data, length - 1, G_ASCII, G_ESCAPE_OFF, G_SPACE_OFF, G_APPEND_ON);
+				cgContentRTF += "  \\{";
+				data += length;
+				num -= length;;
+				length = 0;
+			}
+			else if (*p == '\r'){
+				Str_CharToStr(&cgContentRTF, data, length - 1, G_ASCII, G_ESCAPE_OFF, G_SPACE_OFF, G_APPEND_ON);
+				cgContentRTF += RICH_PARL;
+				data += length;
+				num -= length;;
+				length = 0;
+			}
+			else if ((*p == '\n') && (*(p - 1) == '\r')){
+				Str_CharToStr(&cgContentRTF, data, length - 1, G_ASCII, G_ESCAPE_OFF, G_SPACE_OFF, G_APPEND_ON);
+				data += length;
+				num -= length;
+				length = 0;
+			}
+			else if (*p == '\n'){
+				Str_CharToStr(&cgContentRTF, data, length - 1, G_ASCII, G_ESCAPE_OFF, G_SPACE_OFF, G_APPEND_ON);
+				cgContentRTF += RICH_PARL;
+				data += length;
+				num -= length;
+				length = 0;
+			}
+			else if (*p <= 0x1f){
+				Str_CharToStr(&cgContentRTF, data, length - 1, G_ASCII, G_ESCAPE_OFF, G_SPACE_OFF, G_APPEND_ON);
+				data += length;
+				num -= length;
+				length = 0;
+			}
+			++ p;
+		}
+		Str_CharToStr(&cgContentRTF, data, length - 1, G_ASCII, G_ESCAPE_OFF, G_SPACE_OFF, G_APPEND_ON);
+	}
+	if ((cgContentRTF.length() > UNWRITESIZE) || (SYS_Delay_CheckTS(&cgTimeS) != 0)){
+#ifdef CommonDefH_VC
+		strName = CreateLOGDIR() + "\\" + cgfileName + ".rtf";
+#endif
+#ifdef CommonDefH_Unix
+		strName = CreateLOGDIR() + "/" + cgfileName + ".rtf";
+#endif
+		AddToRTFFile(strName,cgContentRTF);
+		cgContentRTF = "";
+	}
+	Spin_InUse_clr();
+}
+//------------------------------------------------------------------------------------------//
+void ODEV_FILE::PrintTXT(uint32 col, uint32 ctrl,const uint8 *data, uint32 num){
+	STDSTR	strName;
+	uint32  length;
+	uint8   *p;
+	
+	Spin_InUse_set();
+	if (num > 0){
+		ctrl &= COLRECORD::CRD_NL;
+		
+		if ((ctrl != 0) && (cgLastCR == 0))
+			cgContentTXT += "\r\n";
+		
+		p = (uint8*)data;
+		if ((*p == '\r') || (*p == '\n')){
+			if ((ctrl == 0) && (cgLastCR == 0))
+				cgContentTXT += "\r\n";
+			++ data;
+			-- num;
+			++ p;
+		}
+		
+		length  = 0;
+		while(++length <= num){
+			if (*p == '\r'){
+				Str_CharToStr(&cgContentTXT, data, length - 1, G_ASCII, G_ESCAPE_OFF, G_SPACE_OFF, G_APPEND_ON);
+				cgContentTXT += "\r\n";
+				data += length;
+				num -= length;;
+				length = 0;
+			}
+			else if ((*p == '\n') && (*(p - 1) == '\r')){
+				Str_CharToStr(&cgContentTXT, data, length - 1, G_ASCII, G_ESCAPE_OFF, G_SPACE_OFF, G_APPEND_ON);
+				data += length;
+				num -= length;
+				length = 0;
+			}
+			else if (*p == '\n'){
+				Str_CharToStr(&cgContentTXT, data, length - 1, G_ASCII, G_ESCAPE_OFF, G_SPACE_OFF, G_APPEND_ON);
+				cgContentTXT += "\r\n";
+				data += length;
+				num -= length;
+				length = 0;
+			}
+			else if (*p <= 0x1f){
+				Str_CharToStr(&cgContentTXT, data, length - 1, G_ASCII, G_ESCAPE_OFF, G_SPACE_OFF, G_APPEND_ON);
+				data += length;
+				num -= length;
+				length = 0;
+			}
+			++ p;
+		}
+		Str_CharToStr(&cgContentTXT, data, length - 1, G_ASCII, G_ESCAPE_OFF, G_SPACE_OFF, G_APPEND_ON);
+	}
+	if ((cgContentTXT.length() > UNWRITESIZE) || (SYS_Delay_CheckTS(&cgTimeS) != 0)){
+#ifdef CommonDefH_VC
+		strName = CreateLOGDIR() + "\\" + cgfileName + ".txt";
+#endif
+#ifdef CommonDefH_Unix
+		strName = CreateLOGDIR() + "/" + cgfileName + ".txt";
+#endif
+		AddToTXTFile(strName,cgContentTXT);
+		cgContentTXT = "";
+	}
+	Spin_InUse_clr();
+}
+//------------------------------------------------------------------------------------------//
+void ODEV_FILE::PrintRAW(uint32 col, uint32 ctrl,const uint8 *data, uint32 num){
+	STDSTR	strName;
+	Spin_InUse_set();
+	
+	if (num > 0)
+		Str_CharToStr(&cgContentRAW, data, num, G_ASCII, G_ESCAPE_OFF, G_SPACE_OFF, G_APPEND_ON);
+	
+	if ((cgContentRAW.length() > UNWRITESIZE) || (SYS_Delay_CheckTS(&cgTimeS) != 0)){
+#ifdef CommonDefH_VC
+		strName = CreateLOGDIR() + "\\" + cgfileName + ".bin";
+#endif
+#ifdef CommonDefH_Unix
+		strName = CreateLOGDIR() + "/" + cgfileName + ".bin";
+#endif
+		AddToTXTFile(strName,cgContentRAW);
+		cgContentRAW = "";
+	}
+	Spin_InUse_clr();
+}
+//------------------------------------------------------------------------------------------//
+//------------------------------------------------------------------------------------------//
+STDSTR	ODEV_FILE::CreateFileTime(void){
+	TIME 	dtDate;
 	dtDate.Now();
 	return(dtDate.FormatDateTime("YYYY.MM.DD@hh.mm.ss(zzz)"));
 }
 //------------------------------------------------------------------------------------------//
-std::string ODEV_CreateLOGDIR(void){
+STDSTR ODEV_FILE::CreateLOGDIR(void){
 #ifdef CommonDefH_Unix
 	{
-		std::string		strfileDir;
+		STDSTR		strfileDir;
 		char work_path[256];
 		char *path;
 		
@@ -86,10 +306,10 @@ std::string ODEV_CreateLOGDIR(void){
 #endif
 }
 //------------------------------------------------------------------------------------------//
-std::string ODEV_GetLOGDIR(void){
+STDSTR ODEV_FILE::GetLOGDIR(void){
 #ifdef CommonDefH_Unix
 	{
-		std::string		strfileDir;
+		STDSTR		strfileDir;
 		char work_path[256];
 		char *path;
 		
@@ -118,21 +338,24 @@ std::string ODEV_GetLOGDIR(void){
 #endif
 }
 //------------------------------------------------------------------------------------------//
-std::string ODEV_CreateNewLOGFileName(void){
-	std::string		strName,strTemp,fileDir,strRet;
+STDSTR ODEV_FILE::CreateNewLOGFileName(void){
+	STDSTR		strName,strTemp,fileDir,strRet;
 	int32 i;
 	
-	fileDir = ODEV_CreateLOGDIR();
+	fileDir = CreateLOGDIR();
 	i = 100;
 	while(-- i > 0){
-		strRet = ODEV_CreateFileTime();
+		strRet = CreateFileTime();
 #ifdef CommonDefH_Unix
 		strName = fileDir + "/" + strRet;
 		strTemp = strName + ".txt";
 		if (access(strName.c_str(),0) == -1){
 			strTemp = strName + ".rtf";
-			if (access(strName.c_str(),0) == -1)
-				break;
+			if (access(strName.c_str(),0) == -1){
+				strTemp = strName + ".bin";
+				if (access(strName.c_str(),0) == -1)
+					break;
+			}
 		}
 #endif
 #ifdef CommonDefH_VC
@@ -143,30 +366,37 @@ std::string ODEV_CreateNewLOGFileName(void){
 		if (!PathFileExists(cName)){
 			strTemp = strName + ".rtf";
 			cName = Str_ANSIToUnicode(strTemp).c_str();
-			if (!PathFileExists(cName))
-				break;
+			if (!PathFileExists(cName)){
+				strTemp = strName + ".bin";
+				cName = Str_ANSIToUnicode(strTemp).c_str();
+				if (!PathFileExists(cName))
+					break;
+			}
 		}
 #endif
 	}
 	return(strRet);
 }
 //------------------------------------------------------------------------------------------//
-std::string ODEV_CreateNewLOGFileName(const std::string &tIP,int32 tPort){
-	std::string		strName,strTemp,fileDir,strRet,strNameEx;
+STDSTR ODEV_FILE::CreateNewLOGFileName(const STDSTR &tIP,int32 tPort){
+	STDSTR		strName,strTemp,fileDir,strRet,strNameEx;
 	int32 i;
 	
-	fileDir = ODEV_CreateLOGDIR();
-	strNameEx = "_" + tIP + "@" + Str_IntToString(tPort);
+	fileDir = CreateLOGDIR();
+	strNameEx = "_" + tIP + "@" + Str_ToString(tPort);
 	i = 100;
 	while(-- i > 0){
-		strRet = ODEV_CreateFileTime() + strNameEx;
+		strRet = CreateFileTime() + strNameEx;
 #ifdef CommonDefH_Unix
 		strName = fileDir + "/" + strRet;
 		strTemp = strName + ".txt";
 		if (access(strName.c_str(),0) == -1){
 			strTemp = strName + ".rtf";
-			if (access(strName.c_str(),0) == -1)
-				break;
+			if (access(strName.c_str(),0) == -1){
+				strTemp = strName + ".bin";
+				if (access(strName.c_str(),0) == -1)
+					break;
+			}
 		}
 #endif
 #ifdef CommonDefH_VC
@@ -177,359 +407,57 @@ std::string ODEV_CreateNewLOGFileName(const std::string &tIP,int32 tPort){
 		if (!PathFileExists(cName)){
 			strTemp = strName + ".rtf";
 			cName = Str_ANSIToUnicode(strTemp).c_str();
-			if (!PathFileExists(cName))
-				break;
+			if (!PathFileExists(cName)){
+				strTemp = strName + ".bin";
+				cName = Str_ANSIToUnicode(strTemp).c_str();
+				if (!PathFileExists(cName))
+					break;
+			}
 		}
 #endif
 	}
 	return(strRet);
 }
 //------------------------------------------------------------------------------------------//
-
-
-//------------------------------------------------------------------------------------------//
-void ODEV_AddToTXTFile(const std::string &fName,const std::string &content){
-	std::string	strName, stringOut, str0;
-	if (content.length() == 0)
-		return;
-	strName = fName + ".txt";
-	
-	stringOut = Str_Replace(content, "\r\n", "\r");
-	stringOut = Str_Replace(stringOut, "\n", "\r");
-	stringOut = Str_Replace(stringOut, "\r", "\r\n");
-	str0 = '\0';
-	stringOut = Str_Replace(stringOut, str0, "\\0");
-	
-	if (CFS_CheckFile(strName) == 0){
-		CFS_WriteFile(strName, stringOut);
-	}
-	else{
-		CFS_AddToFile(strName, stringOut);
-	}
-}
-//------------------------------------------------------------------------------------------//
-void ODEV_CreateEmptyRTFFile(const std::string &fName){
-	std::string		strResult;
+void ODEV_FILE::CreateEmptyRTFFile(const STDSTR &fName){
+	STDSTR		strResult;
 	
 	strResult = RICH_HEAD;
 	strResult += RICH_COLOR;
 	strResult += RICH_TEXT_HEAD;
 	strResult += RICH_END;
-	CFS_WriteFile(fName + ".rtf",strResult);
+	CFS_WriteFile(fName,strResult);
 }
 //------------------------------------------------------------------------------------------//
-void ODEV_FormatString(std::string *returnStr,const std::string &strInput){
-	std::string::size_type		i,length;
-	uint8	charData;
-	
-	length = strInput.length();
-	
-	i = 0;
-	*returnStr = "";
-	
-	while(i < length){
-		charData = strInput[i];
-		if (charData == '\\'){
-			*returnStr += "\\\\";
-		}
-		else if (charData == '}'){	//\}
-			*returnStr += "  \\}";
-		}
-		else if (charData == '{'){	//\}
-			*returnStr += "  \\{";
-		}
-		else{
-			*returnStr += charData;
-		}
-		++ i;
-	}
-}
-//------------------------------------------------------------------------------------------//
-void ODEV_AddToRTFFile(const std::string &fName,const std::string &content){
+void ODEV_FILE::AddToRTFFile(const STDSTR &fName,const STDSTR &content){
 	std::fstream	fileStream;
-	std::string		fileName,stringTemp,stringOut,stringTemp1,strColor,str0;
+	STDSTR			fileName;
 	
-	std::string	strName;
 	if (content.length() == 0)
 		return;
-	strName = fName + ".rtf";
 	
-	if (CFS_CheckFile(strName) == 0)
-		ODEV_CreateEmptyRTFFile(fName);
+	if (CFS_CheckFile(fName) == 0)
+		CreateEmptyRTFFile(fName);
 	
-	fileStream.open(strName.c_str(),std::ios::in|std::ios::out|std::ios::binary);
+	fileStream.open(fName.c_str(),std::ios::in|std::ios::out|std::ios::binary);
 	fileStream.seekp(-3,std::ios::end);
 	
-	stringTemp = content;
-	while(stringTemp.length() > 0){
-		stringOut = Str_ReadSubItem(&stringTemp,",");
-		if (stringOut.length() == 0)
-			continue;
-		if (stringOut == RICH_CF_clBlack){
-			if (strColor != stringOut){
-				strColor  = stringOut;
-				fileStream << RICH_CF_clBlack;
-			}
-			continue;
-		}
-		if (stringOut == RICH_CF_clMaroon){
-			if (strColor != stringOut){
-				strColor  = stringOut;
-				fileStream << RICH_CF_clMaroon;
-			}
-			continue;
-		}
-		if (stringOut == RICH_CF_clDGreen){
-			if (strColor != stringOut){
-				strColor  = stringOut;
-				fileStream << RICH_CF_clDGreen;
-			}
-			continue;
-		}
-		if (stringOut == RICH_CF_clDBrown){
-			if (strColor != stringOut){
-				strColor  = stringOut;
-				fileStream << RICH_CF_clDBrown;
-			}
-			continue;
-		}
-		if (stringOut == RICH_CF_clDBlue){
-			if (strColor != stringOut){
-				strColor  = stringOut;
-				fileStream << RICH_CF_clDBlue;
-			}
-			continue;
-		}
-		if (stringOut == RICH_CF_clDMagenta){
-			if (strColor != stringOut){
-				strColor  = stringOut;
-				fileStream << RICH_CF_clDMagenta;
-			}
-			continue;
-		}
-		if (stringOut == RICH_CF_clDCyan){
-			if (strColor != stringOut){
-				strColor  = stringOut;
-				fileStream << RICH_CF_clDCyan;
-			}
-			continue;
-		}
-		if (stringOut == RICH_CF_clDGray){
-			if (strColor != stringOut){
-				strColor  = stringOut;
-				fileStream << RICH_CF_clDGray;
-			}
-			continue;
-		}
-		if (stringOut == RICH_CF_clGray){
-			if (strColor != stringOut){
-				strColor  = stringOut;
-				fileStream << RICH_CF_clGray;
-			}
-			continue;
-		}
-		if (stringOut == RICH_CF_clRed){
-			if (strColor != stringOut){
-				strColor  = stringOut;
-				fileStream << RICH_CF_clRed;
-			}
-			continue;
-		}
-		if (stringOut == RICH_CF_clGreen){
-			if (strColor != stringOut){
-				strColor  = stringOut;
-				fileStream << RICH_CF_clGreen;
-			}
-			continue;
-		}
-		if (stringOut == RICH_CF_clYellow){
-			if (strColor != stringOut){
-				strColor  = stringOut;
-				fileStream << RICH_CF_clYellow;
-			}
-			continue;
-		}
-		if (stringOut == RICH_CF_clBlue){
-			if (strColor != stringOut){
-				strColor  = stringOut;
-				fileStream << RICH_CF_clBlue;
-			}
-			continue;
-		}
-		if (stringOut == RICH_CF_clMagenta){
-			if (strColor != stringOut){
-				strColor  = stringOut;
-				fileStream << RICH_CF_clMagenta;
-			}
-			continue;
-		}
-		if (stringOut == RICH_CF_clCyan){
-			if (strColor != stringOut){
-				strColor  = stringOut;
-				fileStream << RICH_CF_clCyan;
-			}
-			continue;
-		}
-		if (stringOut == RICH_CF_clPurple){
-			if (strColor != stringOut){
-				strColor  = stringOut;
-				fileStream << RICH_CF_clPurple;
-			}
-			continue;
-		}
-		if (stringOut == RICH_CF_clWhite){
-			if (strColor != stringOut){
-				strColor  = stringOut;
-				fileStream << RICH_CF_clWhite;
-			}
-			continue;
-		}
-		
-		if (stringOut == RICH_LIN_clDefault){
-			if (strColor != stringOut){
-				strColor  = stringOut;
-				fileStream << RICH_CF_clBlack;
-			}
-			continue;
-		}
-		if (stringOut == RICH_LIN_clBlack){
-			if (strColor != stringOut){
-				strColor  = stringOut;
-				fileStream << RICH_CF_clBlack;
-			}
-			continue;
-		}
-		if (stringOut == RICH_LIN_clRed){
-			if (strColor != stringOut){
-				strColor  = stringOut;
-				fileStream << RICH_CF_clMaroon;
-			}
-			continue;
-		}
-		if (stringOut == RICH_LIN_clGreen){
-			if (strColor != stringOut){
-				strColor  = stringOut;
-				fileStream << RICH_CF_clDGreen;
-			}
-			continue;
-		}
-		if (stringOut == RICH_LIN_clBrown){
-			if (strColor != stringOut){
-				strColor  = stringOut;
-				fileStream << RICH_CF_clDBrown;
-			}
-			continue;
-		}
-		if (stringOut == RICH_LIN_clBlue){
-			if (strColor != stringOut){
-				strColor  = stringOut;
-				fileStream << RICH_CF_clDBlue;
-			}
-			continue;
-		}
-		if (stringOut == RICH_LIN_clMagenta){
-			if (strColor != stringOut){
-				strColor  = stringOut;
-				fileStream << RICH_CF_clDMagenta;
-			}
-			continue;
-		}
-		if (stringOut == RICH_LIN_clCyan){
-			if (strColor != stringOut){
-				strColor  = stringOut;
-				fileStream << RICH_CF_clDCyan;
-			}
-			continue;
-		}
-		if (stringOut == RICH_LIN_clGray){
-			if (strColor != stringOut){
-				strColor  = stringOut;
-				fileStream << RICH_CF_clDGray;
-			}
-			continue;
-		}
-		if (stringOut == RICH_LIN_clDarkGray){
-			if (strColor != stringOut){
-				strColor  = stringOut;
-				fileStream << RICH_CF_clGray;
-			}
-			continue;
-		}
-		if (stringOut == RICH_LIN_clLightRed){
-			if (strColor != stringOut){
-				strColor  = stringOut;
-				fileStream << RICH_CF_clRed;
-			}
-			continue;
-		}
-		if (stringOut == RICH_LIN_clLightGreen){
-			if (strColor != stringOut){
-				strColor  = stringOut;
-				fileStream << RICH_CF_clGreen;
-			}
-			continue;
-		}
-		if (stringOut == RICH_LIN_clYellow){
-			if (strColor != stringOut){
-				strColor  = stringOut;
-				fileStream << RICH_CF_clYellow;
-			}
-			continue;
-		}
-		if (stringOut == RICH_LIN_clLightBlue){
-			if (strColor != stringOut){
-				strColor  = stringOut;
-				fileStream << RICH_CF_clBlue;
-			}
-			continue;
-		}
-		if (stringOut == RICH_LIN_clLightMagenta){
-			if (strColor != stringOut){
-				strColor  = stringOut;
-				fileStream << RICH_CF_clMagenta;
-			}
-			continue;
-		}
-		if (stringOut == RICH_LIN_clLightCyan){
-			if (strColor != stringOut){
-				strColor  = stringOut;
-				fileStream << RICH_CF_clCyan;
-			}
-			continue;
-		}
-		if (stringOut == RICH_LIN_clWhite){
-			if (strColor != stringOut){
-				strColor  = stringOut;
-				fileStream << RICH_CF_clBlack;
-			}
-			continue;
-		}
-		
-		stringTemp1 = Str_HEXToASCII(stringOut);
-		ODEV_FormatString(&stringOut,stringTemp1);
-		stringOut = Str_Replace(stringOut,"\r\n","\r");
-		stringOut = Str_Replace(stringOut,"\n","\r");
-		stringOut = Str_Replace(stringOut,"\r",RICH_PARL);
-		str0 = '\0';
-		stringOut = Str_Replace(stringOut,str0,"\\0");
-		
-		fileStream << stringOut;
-	}
-	fileStream << RICH_END;
+	fileStream << content << RICH_END;
 	fileStream.flush();
 	fileStream.close();
 }
 //------------------------------------------------------------------------------------------//
+void ODEV_FILE::AddToTXTFile(const STDSTR &fName,const STDSTR &content){
+	if (content.length() == 0)
+		return;
+	
+	if (CFS_CheckFile(fName) == 0){
+		CFS_WriteFile(fName, content);
+	}
+	else{
+		CFS_AddToFile(fName, content);
+	}
+}
 //------------------------------------------------------------------------------------------//
-
-
-
-
-
-
-
-
-
-
-
-
+//------------------------------------------------------------------------------------------//
+#endif

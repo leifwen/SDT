@@ -11,15 +11,19 @@
 #ifndef BICH
 #define BICH
 //------------------------------------------------------------------------------------------//
+#include "BIC_Define.h"
 #include "BIC_B.h"
+#include "BIC_EXE.h"
+#include "BIC_ConCtrl.h"
+#include "BIC_MSDT.h"
+#include "BIC_Calc.h"
+#include "BIC_Terminal.h"
 #include "BIC_COM.h"
 #include "BIC_Socket.h"
-#include "BIC_Connect.h"
-#include "BIC_AUX.h"
-#include "BIC_Script.h"
+#include "BIC_Device.h"
+#include "BIC_SCM.h"
+#include "BIC_GCM.h"
 #include "BIC_CMUX.h"
-#include "BIC_Other.h"
-#include "BIC_Calc.h"
 #include "BIC_Dict.h"
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//

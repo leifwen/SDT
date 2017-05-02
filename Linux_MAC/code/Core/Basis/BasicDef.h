@@ -27,29 +27,32 @@
 	#define CommonDefH_Unix
 #endif
 //------------------------------------------------------------------------------------------//
-//#define LOGPRINT
+#define USE_MUTEXLOCK
+#define USE_OPENSSL
+
+#ifdef CommonDefH_VC
+	#define CommonDefH_EnableLicense
+	#define CommonDefH_EnableSMC
+#endif
+#ifdef CommonDefH_Unix
+	#undef USE_MUTEXLOCK
+	//#undef USE_OPENSSL
+#endif
+#ifdef CommonDefH_Linux
+	//#undef USE_OPENSSL
+#endif
 //------------------------------------------------------------------------------------------//
-class RTREE_NODE;
-void MyLogPrint(const RTREE_NODE *treeNode,const char * format, ...);
-void MyLogPrint(const RTREE_NODE &treeNode,const char * format, ...);
-void MyLogPrint(const RTREE_NODE *treeNode1,const RTREE_NODE *treeNode2,const char *format, ...);
-void MyLogPrint(const RTREE_NODE &treeNode1,const RTREE_NODE &treeNode2,const char *format, ...);
-void MyLogPrint(const char * format, ...);
+#ifndef CommonDefH_VC
+	//#define LOGPRINT
+#endif
 //------------------------------------------------------------------------------------------//
-#ifdef LOGPRINT
-	#ifdef LOGPRINT_ENABLE
-		#define ELogPrint(x,...) MyLogPrint(x,##__VA_ARGS__)
-	#else
-		#define ELogPrint(x,...) ;
-	#endif
-	#ifdef LOGPRINT_ENABLE2
-		#define E2LogPrint(x,...) MyLogPrint(x,##__VA_ARGS__)
-	#else
-		#define E2LogPrint(x,...) ;
-	#endif
-#else
-	#define ELogPrint(x,...) ;
-	#define E2LogPrint(x,...) ;
+#include <string>
+#include <iostream>
+//#include <stdio.h>
+//#include <stdlib.h>
+//#include <string.h>
+#ifdef CommonDefH_Unix
+#include <unistd.h>
 #endif
 //------------------------------------------------------------------------------------------//
 typedef const 		char		char8;
@@ -61,18 +64,15 @@ typedef	unsigned	int			uint32;
 typedef	signed		int			int32;
 typedef	signed		long long	int64;
 typedef	unsigned	long long	uint64;
+typedef				std::string STDSTR;
 //typedef	signed		__int64		int64;
-enum	G_ESCAPE_VAILD	{G_ESCAPE_OFF = 0	,G_ESCAPE_ON};
-enum	G_SPACE_VAILD	{G_SPACE_OFF = 0	,G_SPACE_ON};
-enum	G_Endian_VAILD	{G_LITTLE_ENDIAN = 0,G_BIG_ENDIAN};
 //------------------------------------------------------------------------------------------//
-#include <string>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#ifdef CommonDefH_Unix
-	#include <unistd.h>
-#endif
+enum G_ENDIAN	{G_ENDIAN_LITTLE = 0,G_ENDIAN_BIG};
+enum G_ESCAPE	{G_ESCAPE_OFF = 0	,G_ESCAPE_ON};
+enum G_SPACE	{G_SPACE_OFF = 0	,G_SPACE_ON};
+enum G_APPEND	{G_APPEND_OFF = 0	,G_APPEND_ON};
+enum G_HA		{G_HEX = 0			,G_ASCII};
+enum CMD_TAIL	{CMD_NONE = 0,CMD_R,CMD_N,CMD_RN,};
 //------------------------------------------------------------------------------------------//
 #include "GlobalDef.h"
 //------------------------------------------------------------------------------------------//

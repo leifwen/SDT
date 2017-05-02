@@ -22,7 +22,6 @@
 
 #include "resource.h"
 #include "RichView.h"
-#include "Global.h"
 #include <fstream>
 
 #ifdef _DEBUG
@@ -47,7 +46,8 @@ CMyRichView::CMyRichView(void){
 		,DEFAULT_QUALITY			// nQuality
 		,DEFAULT_PITCH | FF_SWISS	// nPitchAndFamily
 		,_T("宋体"));				//Courier New
-	m_blEnableConsole = FALSE;
+	m_Console = nullptr;
+	SetExPar(&cgCF, COL_RGB_clBlack);
 }
 //------------------------------------------------------------------------------------------//
 BEGIN_MESSAGE_MAP(CMyRichView, CRichEditView)
@@ -67,7 +67,6 @@ int CMyRichView::OnCreate(LPCREATESTRUCT lpCreateStruct){
 		return -1;
 	RevokeDragDrop(this->GetSafeHwnd());
 	SetFont(&m_ViewFont);
-
 	return 0;
 }
 //------------------------------------------------------------------------------------------//
@@ -102,6 +101,116 @@ void CMyRichView::Dump(CDumpContext& dc) const{
 	CRichEditView::Dump(dc);
 }
 #endif //_DEBUG
+
+//------------------------------------------------------------------------------------------//
+CHARFORMAT2& CMyRichView::SetExPar(CHARFORMAT2 *tcf, const COLORREF &col){
+	memset(tcf, 0, sizeof(CHARFORMAT2));
+	tcf->cbSize = sizeof(CHARFORMAT2);
+	tcf->dwMask = CFM_BOLD | CFM_CHARSET | CFM_COLOR | CFM_FACE | CFM_OFFSET | CFM_SIZE;
+	tcf->dwEffects = 0;
+	tcf->yHeight = 14 * 14;
+	tcf->yOffset = 0;
+	tcf->bCharSet = GB2312_CHARSET;
+	tcf->bPitchAndFamily = DEFAULT_PITCH | FF_DONTCARE;
+	lstrcpy(tcf->szFaceName, _T("宋体"));//Arial,Courier New
+	tcf->crTextColor = col;
+	return(*tcf);
+}
+//------------------------------------------------------------------------------------------//
+void CMyRichView::SetCurFromEnd(int32 offset){
+	long	nStartChar, nEndChar;
+	Spin_Print_Lock();
+	GetRichEditCtrl().SetSel(-1, -1);
+	GetRichEditCtrl().GetSel(nStartChar, nEndChar);
+	nStartChar -= offset;
+	GetRichEditCtrl().SetSel(nStartChar, nStartChar);
+	Spin_Print_Unlock();
+}
+//------------------------------------------------------------------------------------------//
+void CMyRichView::DelCharFromEnd(int32 offset, int32 length){
+	long	nStartChar, nEndChar;
+	Spin_Print_Lock();
+	GetRichEditCtrl().HideSelection(TRUE, FALSE);
+	GetRichEditCtrl().SetSel(-1, -1);
+	GetRichEditCtrl().GetSel(nStartChar, nEndChar);
+	nStartChar -= offset;
+	nEndChar = nStartChar + length;
+	GetRichEditCtrl().SetSel(nStartChar, nEndChar);
+	GetRichEditCtrl().ReplaceSel(_T(""));
+	GetRichEditCtrl().HideSelection(FALSE, FALSE);
+	Spin_Print_Unlock();
+}
+//------------------------------------------------------------------------------------------//
+void CMyRichView::RewriteCharFromEnd(int32 offset, const COLORREF &col,const STDSTR &strIn){
+	long	nStartChar, nEndChar;
+
+	Spin_Print_Lock();
+	GetRichEditCtrl().HideSelection(TRUE, FALSE);
+	GetRichEditCtrl().SetSel(-1, -1);
+	GetRichEditCtrl().GetSel(nStartChar, nEndChar);
+	nStartChar -= offset;
+
+	GetRichEditCtrl().SetSel(nStartChar, nEndChar);
+	GetRichEditCtrl().ReplaceSel(Str_ANSIToUnicode(strIn).c_str());
+	GetRichEditCtrl().SetSel(nStartChar, -1);
+
+	GetRichEditCtrl().SetSelectionCharFormat(SetExPar(&cgCF, col));
+	GetRichEditCtrl().SetSel(-1, -1);
+	GetRichEditCtrl().HideSelection(FALSE, FALSE);
+	Spin_Print_Unlock();
+}
+//------------------------------------------------------------------------------------------//
+void CMyRichView::InsterCharFromEnd(int32 offset, const COLORREF &col,const STDSTR &strIn){
+	long	nStartChar, nEndChar;
+
+	Spin_Print_Lock();
+	GetRichEditCtrl().HideSelection(TRUE, FALSE);
+	GetRichEditCtrl().SetSel(-1, -1);
+	GetRichEditCtrl().GetSel(nStartChar, nEndChar);
+	nStartChar -= offset;
+
+	GetRichEditCtrl().SetSel(nStartChar, nStartChar);
+	GetRichEditCtrl().ReplaceSel(Str_ANSIToUnicode(strIn).c_str());
+	GetRichEditCtrl().SetSel(nStartChar, nStartChar + strIn.length());
+
+	GetRichEditCtrl().SetSelectionCharFormat(SetExPar(&cgCF, col));
+	GetRichEditCtrl().SetSel(nStartChar + strIn.length(), nStartChar + strIn.length());
+	GetRichEditCtrl().HideSelection(FALSE, FALSE);
+	Spin_Print_Unlock();
+}
+//------------------------------------------------------------------------------------------//
+void CMyRichView::AppendChar(const COLORREF &col, const STDSTR &strIn, G_LOCK blLock){
+	long	nStartChar, nEndChar;
+	Spin_Print_Lock(blLock);
+	if (GetRichEditCtrl().GetTextLength() > ODEV_STDOUT::BUF_MAX_SIZE)
+		Clean(G_LOCK_OFF);
+	GetRichEditCtrl().HideSelection(TRUE, FALSE);
+	GetRichEditCtrl().SetSel(-1, -1);
+	GetRichEditCtrl().GetSel(nStartChar, nEndChar);
+
+	GetRichEditCtrl().SetSel(nStartChar, nStartChar);
+	GetRichEditCtrl().ReplaceSel(Str_ANSIToUnicode(strIn).c_str());
+	GetRichEditCtrl().SetSel(nStartChar, nStartChar + strIn.length());
+
+	GetRichEditCtrl().SetSelectionCharFormat(SetExPar(&cgCF, col));
+	GetRichEditCtrl().SetSel(nStartChar + strIn.length(), nStartChar + strIn.length());
+	GetRichEditCtrl().HideSelection(FALSE, FALSE);
+	GetRichEditCtrl().SetSel(-1, -1);
+	Spin_Print_Unlock(blLock);
+}
+//------------------------------------------------------------------------------------------//
+void CMyRichView::ToHome(void){
+	Spin_Print_Lock();
+	GetRichEditCtrl().SetSel(0, 0);
+	Spin_Print_Unlock();
+}
+//------------------------------------------------------------------------------------------//
+void CMyRichView::Clean(G_LOCK blLock){
+	Spin_Print_Lock(blLock);
+	GetRichEditCtrl().SetSel(0, -1);
+	GetRichEditCtrl().Clear();
+	Spin_Print_Unlock(blLock);
+}
 //------------------------------------------------------------------------------------------//
 void CMyRichView::OnDropFiles(HDROP hDropInfo){
 	int				nFileCount;
@@ -109,10 +218,9 @@ void CMyRichView::OnDropFiles(HDROP hDropInfo){
 	TCHAR			szFileName[MAX_PATH];
 	CString			cFileName;
 	std::wstring	wstrFileName;
-	std::string		strFileName,strExtName,strT;
+	std::string		strFileName, strExtName, strT;
 
 	nFileCount = DragQueryFile(hDropInfo, 0xFFFFFFFF, NULL, MAX_PATH);
-	//((CMDIChildWndEx*)GSDTApp.m_Device.cDevOutList->cODevRichMemo->cgRichEdit->GetParentFrame())->MDIActivate();
 	if (nFileCount > 1){
 		PrintFileName(hDropInfo);
 	}
@@ -126,7 +234,7 @@ void CMyRichView::OnDropFiles(HDROP hDropInfo){
 			if (PrintDirList(strFileName) == FALSE){
 				if (::GetKeyState(VK_MENU) & 0x8000){
 					strT = Str_Replace(strFileName, " ", "\\ ");
-					GSDTApp.m_ReadInline.Paste((uint8*)strT.c_str(), strT.length());
+					GSDTApp.m_Console.Paste((uint8*)strT.c_str(), strT.length());
 				}
 				else{
 					pos = strFileName.find_last_of('.');
@@ -172,6 +280,49 @@ static DWORD CALLBACK MyStreamInCallback(DWORD dwCookie, LPBYTE pbBuff, LONG cb,
 	return 0;
 }
 //------------------------------------------------------------------------------------------//
+static DWORD CALLBACK MyStreamInCallback_HEX(DWORD dwCookie, LPBYTE pbBuff, LONG cb, LONG *pcb){
+	STDSTR  strT;
+	LPBYTE	tempSave;
+	LONG	num;
+	uint8	charData;
+	CFile* pFile = (CFile*)dwCookie;
+
+	tempSave = pbBuff + ((cb / 3) << 1);
+
+	num = pFile->Read(tempSave, cb / 3);
+	*pcb = 0;
+
+	while(num > 0){
+		charData = (*tempSave >> 4) & (0x0f);
+		if (charData < 0x0a){
+			charData += '0';
+		}
+		else{
+			charData += ('A' - 0x0a);
+		}
+		*pbBuff = charData;
+
+		++pbBuff;
+		charData = (*tempSave) & (0x0f);
+		if (charData < 0x0a){
+			charData += '0';
+		}
+		else{
+			charData += ('A' - 0x0a);
+		}
+		*pbBuff = charData;
+
+		++pbBuff;
+		*pbBuff = ' ';
+
+		++pbBuff;
+		++tempSave;
+		--num;
+		*pcb += 3;
+	};
+	return 0;
+}
+//------------------------------------------------------------------------------------------//
 static DWORD CALLBACK MyStreamOutCallback(DWORD dwCookie, LPBYTE pbBuff, LONG cb, LONG *pcb){
 	CFile* pFile = (CFile*) dwCookie;
 	pFile->Write(pbBuff, cb);
@@ -180,16 +331,18 @@ static DWORD CALLBACK MyStreamOutCallback(DWORD dwCookie, LPBYTE pbBuff, LONG cb
 }
 //------------------------------------------------------------------------------------------//
 BOOL CMyRichView::PreTranslateMessage(MSG *pMsg){
-	if (m_blEnableConsole == TRUE){
-		if (GSDTApp.m_ReadInline.AKey(pMsg) != 0)
+	if (m_Console != nullptr){
+		if (m_Console->ReceiveKey(pMsg) != 0)
 			return TRUE;
 	}
 	return(CRichEditView::PreTranslateMessage(pMsg));
 }
 //------------------------------------------------------------------------------------------//
 void CMyRichView::OnPaste(void){
-	if (m_blEnableConsole == FALSE){
+	if (m_Console == nullptr){
+		Spin_Print_Lock();
 		GetRichEditCtrl().Paste();
+		Spin_Print_Unlock();
 		return;
 	}
 
@@ -211,7 +364,7 @@ void CMyRichView::OnPaste(void){
 		}
 	}
 	CloseClipboard();
-	GSDTApp.m_ReadInline.Paste((uint8*)ClipBoardText.c_str(), ClipBoardText.length());
+	m_Console->Paste((uint8*)ClipBoardText.c_str(), ClipBoardText.length());
 	return;
 }
 //------------------------------------------------------------------------------------------//
@@ -245,32 +398,33 @@ void CMyRichView::SaveToRtfFile(std::string &tFileName){
 	cFile.Open(Str_ANSIToUnicode(tFileName).c_str(),CFile::modeCreate|CFile::modeWrite);
 	es.dwCookie = (DWORD) &cFile;
 	es.pfnCallback = MyStreamOutCallback; 
+	Spin_Print_Lock();
 	GetRichEditCtrl().StreamOut(SF_RTF, es);
+	Spin_Print_Unlock();
 	cFile.Close();
 }
 //------------------------------------------------------------------------------------------//
 void CMyRichView::PrintRtfFile(std::string &tFileName){
 	if (CFS_CheckFile(tFileName) == 0)
 		return;
-
-	GetRichEditCtrl().SetSel(0,-1);
-	GetRichEditCtrl().Clear();
+	Clean();
 
 	CFile cFile;
 	EDITSTREAM es;
 	cFile.Open(Str_ANSIToUnicode(tFileName).c_str(),CFile::modeRead);
 	es.dwCookie = (DWORD) &cFile;
 	es.pfnCallback = MyStreamInCallback;
+
+	Spin_Print_Lock();
 	GetRichEditCtrl().StreamIn(SF_RTF, es);
+	Spin_Print_Unlock();
 	cFile.Close();
 }
 //------------------------------------------------------------------------------------------//
 void CMyRichView::PrintTxtFile(std::string &tFileName){
 	if (CFS_CheckFile(tFileName) == 0)
 		return;
-
-	GetRichEditCtrl().SetSel(0,-1);
-	//GetRichEditCtrl().Clear();
+	Clean();
 
 	CFile cFile;
 	EDITSTREAM es;
@@ -279,59 +433,30 @@ void CMyRichView::PrintTxtFile(std::string &tFileName){
 	es.pfnCallback = MyStreamInCallback;
 
 	SetFont(&m_ViewFont);
+	Spin_Print_Lock();
 	GetRichEditCtrl().StreamIn(SF_TEXT, es);
-	//GetRichEditCtrl().SetSel(-1, -1);
-	//GetRichEditCtrl().SetSelectionCharFormat(&m_ViewFont);
+	GetRichEditCtrl().SetSel(0, 0);
+	Spin_Print_Unlock();
 	cFile.Close();
 }
 //------------------------------------------------------------------------------------------//
 void CMyRichView::PrintHexFile(std::string &tFileName){
-	std::string		strResult,str0;
-	uint64			fileSize;
-	uint8			buffer[8192];
-	std::fstream	fileStream;
-	uint32			num;
-	ODEV_NODE_SDOUT	oDevNode;
-
-	oDevNode.Init(this, NULL);
-
 	if (CFS_CheckFile(tFileName) == 0)
 		return;
+	Clean();
 
-	GetRichEditCtrl().SetSel(0,-1);
-	GetRichEditCtrl().Clear();
+	CFile cFile;
+	EDITSTREAM es;
+	cFile.Open(Str_ANSIToUnicode(tFileName).c_str(), CFile::modeRead);
+	es.dwCookie = (DWORD)&cFile;
+	es.pfnCallback = MyStreamInCallback_HEX;
 
-	fileSize = CFS_CheckFileSize(tFileName);
-
-	fileStream.open(tFileName.c_str(),std::ios::in|std::ios::binary);
-	strResult = "Read in Hexadecimal mode, total ";
-	strResult += Str_UInt64ToString(fileSize);
-	strResult += " Bytes:\r\n";
-	oDevNode.WriteToStr(strResult,RICH_CF_clMaroon);
-	oDevNode.WriteDividingLine(RICH_CF_clPurple);
-
-	if (fileSize < COLSTRING::BUF_MAX_SIZE / 3){
-		do{
-			fileStream.read((char*)buffer,sizeof(buffer));
-			num = (uint32)fileStream.gcount();
-			strResult = Str_CharToHEXStr(buffer,num,G_SPACE_ON);
-			oDevNode.WriteToStr(strResult,RICH_CF_clBlack);
-			oDevNode.Print();
-		}while(!fileStream.eof());
-		fileStream.close();
-	}
-	else{
-		strResult = "File size is more then ";
-		strResult += Str_IntToString(COLSTRING::BUF_MAX_SIZE / 3);
-		strResult += " Bytes, do not show the detail.";
-		oDevNode.WriteToStr(strResult,RICH_CF_clBlue);
-	}
-
-
-	oDevNode.WriteDividingLine(RICH_CF_clPurple);
-	oDevNode.WriteToStr("End",RICH_CF_clMaroon);
-	oDevNode.Print();
-	GetRichEditCtrl().SetSel(0,0);
+	SetFont(&m_ViewFont);
+	Spin_Print_Lock();
+	GetRichEditCtrl().StreamIn(SF_TEXT, es);
+	GetRichEditCtrl().SetSel(0, 0);
+	Spin_Print_Unlock();
+	cFile.Close();
 }
 //------------------------------------------------------------------------------------------//
 void CMyRichView::PrintFileName(HDROP hDropInfo){
@@ -340,19 +465,18 @@ void CMyRichView::PrintFileName(HDROP hDropInfo){
 	std::string		strPrint;
 	TCHAR			szFileName[MAX_PATH];
 	int				nFileCount;
-	ODEV_NODE_SDOUT	oDevNode;
 
-	oDevNode.Init(this,NULL);
-	GetRichEditCtrl().SetSel(0,-1);
-	GetRichEditCtrl().Clear();
+	Spin_Print_Lock();
+	Clean(G_LOCK_OFF);
 
 	nFileCount = DragQueryFile(hDropInfo, 0xFFFFFFFF, NULL, MAX_PATH);
 
 	strPrint = "Total ";
-	strPrint += Str_IntToString(nFileCount);
-	strPrint += " files selected, pls drop one file and try again.";
-	oDevNode.WriteToStr(strPrint,RICH_CF_clMaroon);
-	oDevNode.WriteDividingLine(RICH_CF_clPurple);
+	strPrint += Str_ToString(nFileCount);
+	strPrint += " files selected, pls drop one file and try again.\n";
+	AppendChar(COL_RGB_clMaroon,strPrint, G_LOCK_OFF);
+	AppendChar(COL_RGB_clPurple,DIVIDING_LINE, G_LOCK_OFF);
+
 	for (int i = 0; i < nFileCount; ++ i){
 		ZeroMemory(szFileName,MAX_PATH);
 		DragQueryFile(hDropInfo,i,szFileName,MAX_PATH);
@@ -360,24 +484,22 @@ void CMyRichView::PrintFileName(HDROP hDropInfo){
 		cResult += _T("\r\n");
 	}
 	wstrFileName = cResult;
-	oDevNode.WriteToStr(Str_UnicodeToANSI(wstrFileName),RICH_CF_clBlue);
-	oDevNode.WriteDividingLine(RICH_CF_clPurple);
-	oDevNode.WriteToStr("End",RICH_CF_clMaroon);
-	oDevNode.Print();
+	AppendChar(COL_RGB_clBlue,Str_UnicodeToANSI(wstrFileName), G_LOCK_OFF);
+	AppendChar(COL_RGB_clPurple,DIVIDING_LINE, G_LOCK_OFF);
+	AppendChar(COL_RGB_clMaroon,"End", G_LOCK_OFF);
+
 	GetRichEditCtrl().SetSel(0,0);
+	Spin_Print_Unlock();
 }
 //------------------------------------------------------------------------------------------//
 BOOL CMyRichView::PrintDirList(std::string &tDirName){
 	std::wstring	wstrFileName;
 	std::string		strPrint;
 	int				nFileCount;
-	ODEV_NODE_SDOUT	oDevNode;
 
 	CFileFind	fileFinder;
 	CString		filePath,fileName,fileDir;
 	BOOL		blFinished;
-
-	oDevNode.Init(this, NULL);
 
 	filePath = Str_ANSIToUnicode(tDirName).c_str();
 	blFinished = fileFinder.FindFile(filePath);
@@ -409,26 +531,26 @@ BOOL CMyRichView::PrintDirList(std::string &tDirName){
 		}
 	}
 
-	GetRichEditCtrl().SetSel(0,-1);
-	GetRichEditCtrl().Clear();
-
+	Spin_Print_Lock();
+	Clean(G_LOCK_OFF);
 
 	strPrint = "Total ";
-	strPrint += Str_IntToString(nFileCount);
+	strPrint += Str_ToString(nFileCount);
 	strPrint += " files.\r\n";
 
-	oDevNode.WriteToStr(strPrint,RICH_CF_clMaroon);
-	oDevNode.WriteDividingLine(RICH_CF_clPurple);
-	oDevNode.WriteToStr(tDirName + "\\\r\n",RICH_CF_clBlack);
+	AppendChar(COL_RGB_clMaroon,strPrint);
+	AppendChar(COL_RGB_clPurple,DIVIDING_LINE, G_LOCK_OFF);
+	AppendChar(COL_RGB_clBlack,tDirName + "\\\r\n", G_LOCK_OFF);
 
 	wstrFileName = fileDir;
-	oDevNode.WriteToStr(Str_UnicodeToANSI(wstrFileName),RICH_CF_clRed);
+	AppendChar(COL_RGB_clRed,Str_UnicodeToANSI(wstrFileName));
 	wstrFileName = fileName;
-	oDevNode.WriteToStr(Str_UnicodeToANSI(wstrFileName),RICH_CF_clBlue);
-	oDevNode.WriteDividingLine(RICH_CF_clPurple);
-	oDevNode.WriteToStr("End",RICH_CF_clMaroon);
-	oDevNode.Print();
+	AppendChar(COL_RGB_clBlue,Str_UnicodeToANSI(wstrFileName));
+	AppendChar(COL_RGB_clPurple,DIVIDING_LINE, G_LOCK_OFF);
+	AppendChar(COL_RGB_clMaroon,"End");
+
 	GetRichEditCtrl().SetSel(0,0);
+	Spin_Print_Unlock();
 	return TRUE;
 }
 //------------------------------------------------------------------------------------------//

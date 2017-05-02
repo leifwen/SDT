@@ -16,145 +16,359 @@
 #include "stdafx.h"
 #include "Comm_FIFO.h"
 //------------------------------------------------------------------------------------------//
-std::string FIFO_UINT8::CharToHex(uint8 data){
-	std::string		stringData;
-	uint8			charData;
-	
-	charData = (data >> 4) & (0x0f);
-	if (charData < 0x0a){
-		charData += '0';
+#ifdef Comm_FIFOH
+//------------------------------------------------------------------------------------------//
+inline uint32 HToD(uint8 *&retChar,const uint8 *&data){
+	if (*data >= '0' && *data <= '9'){
+		*retChar = *data - '0';
+		return 1;
 	}
-	else{
-		charData += ('A' - 0x0a);
+	else if (*data >= 'A' && *data <= 'F'){
+		*retChar = *data - 'A' + 0x0a;
+		return 1;
 	}
-	
-	stringData = charData;
-	
-	charData = data & (0x0f);
-	if (charData < 0x0a){
-		charData += '0';
+	else if (*data >= 'a' && *data <= 'f'){
+		*retChar = *data - 'a' + 0x0a;
+		return 1;
 	}
-	else{
-		charData += ('A' - 0x0a);
-	}
-	
-	stringData += charData;
-	return(stringData);
+	return 0;
 }
 //------------------------------------------------------------------------------------------//
-uint32 FIFO_UINT8::Escape0xhhToChar(uint8 *retChar,const std::string &strInput){
-	std::string::size_type		j,length;
-	std::string	stringData;
-	uint8		charData,charResult;
+template <typename TYPE_INT>
+inline uint32 Escape_xhh(uint8 *&retChar,const uint8 *&data,TYPE_INT &num){
+	uint8	ret;
+	if (HToD(retChar,data) > 0){
+		++ data;
+		if (--num > 0){
+			ret = *retChar;
+			if (HToD(retChar,data) > 0){
+				*retChar |= (ret << 4);
+				++data;
+				--num;
+				return 2;
+			}
+		}
+		return 1;
+	}
+	return 0;
+}
+//------------------------------------------------------------------------------------------//
+uint32 FIFO8::Escape_xhh(uint8 *&retChar,const uint8 *&data,uint32 &num){
+	return(::Escape_xhh(retChar,data,num));
+}
+//------------------------------------------------------------------------------------------//
+uint32 FIFO8::Escape_xhh(uint8 *&retChar,const uint8 *&data,uint64 &num){
+	return(::Escape_xhh(retChar,data,num));
+}
+//------------------------------------------------------------------------------------------//
+inline uint32 OToD(uint8 *&retChar,const uint8 *&data){
+	if (*data >= '0' && *data <= '7'){
+		*retChar = *data - '0';
+		return 1;
+	}
+	return 0;
+}
+//------------------------------------------------------------------------------------------//
+template <typename TYPE_INT>
+inline uint32 Escape_ooo(uint8 *&retChar,const uint8 *&data,TYPE_INT &num){
+	uint8	ret;
+	if (OToD(retChar,data) > 0){
+		++ data;
+		if (--num > 0){
+			ret = *retChar;
+			if (OToD(retChar,data) > 0){
+				*retChar |= (ret << 3);
+				++ data;
+				if (--num > 0){
+					ret = *retChar;
+					if (OToD(retChar,data) > 0){
+						*retChar |= (ret << 3);
+						++ data;
+						-- num;
+						return 3;
+					}
+				}
+				return 2;
+			}
+		}
+		return 1;
+	}
+	return 0;
+}
+//------------------------------------------------------------------------------------------//
+template <typename TYPE_INT>
+uint32 EscapeToChar(uint8 *retChar,const uint8 *&data,TYPE_INT &num){
+	switch (*data) {
+		case 'a':	*retChar = '\a';++ data;-- num;return 1;
+		case 'b':	*retChar = '\b';++ data;-- num;return 1;
+		case 'f':	*retChar = '\f';++ data;-- num;return 1;
+		case 'n':	*retChar = '\n';++ data;-- num;return 1;
+		case 'r':	*retChar = '\r';++ data;-- num;return 1;
+		case 't':	*retChar = '\t';++ data;-- num;return 1;
+		case 'v':	*retChar = '\v';++ data;-- num;return 1;
+		case '\\':	*retChar = '\\';++ data;-- num;return 1;
+		case '\'':	*retChar = '\'';++ data;-- num;return 1;
+		case '\"':	*retChar = '\"';++ data;-- num;return 1;
+		case '\?':	*retChar = '\?';++ data;-- num;return 1;
+		case '\0':	*retChar = '\0';++ data;-- num;return 1;
+		case 'x':
+			*retChar = 'x';
+			++ data;
+			if (--num > 0)
+				return(Escape_xhh(retChar,data,num) + 1);
+			return 1;
+		default:
+			return(::Escape_ooo(retChar,data,num));
+	}
+	return 0;
+}
+//------------------------------------------------------------------------------------------//
+uint32 FIFO8::EscapeToChar(uint8 *retChar,const uint8 *&data,uint32 &num){
+	return(::EscapeToChar(retChar,data,num));
+}
+//------------------------------------------------------------------------------------------//
+uint32 FIFO8::EscapeToChar(uint8 *retChar,const uint8 *&data,uint64 &num){
+	return(::EscapeToChar(retChar,data,num));
+}
+//------------------------------------------------------------------------------------------//
+uint32 FIFO8::PutInHEX(const uint8 *data,uint32 num){
+	uint32	length,offset,slength,copyNum;
+	uint8	*addr,*dataT,chardata;
 	
-	*retChar = 0;
-	length = strInput.length();
-	if (length < 4)
+	if ((dataAreaPointer == nullptr) || (num == 0))
 		return 0;
 	
-	stringData = strInput.substr(0,3);
-	if ((stringData == "\\0x") || (stringData == "\\0X")){
-		charData = strInput[3];
-		j = 0;
-		if (charData >= '0' && charData <= '9'){
-			charData = charData - '0';
-			++ j;
-		}
-		else if (charData >= 'A' && charData <= 'F'){
-			charData = charData - 'A' + 0x0a;
-			++ j;
-		}
-		else if (charData >= 'a' && charData <= 'f'){
-			charData = charData - 'a' + 0x0a;
-			++ j;
-		}
-		if (j == 0)
-			return 0;
-		charResult = charData;
-		if (length == 4){
-			*retChar = charResult;
-			return 3;
-		}
-		charData = strInput[4];
-		if (charData >= '0' && charData <= '9'){
-			charData = charData - '0';
-			++ j;
-		}
-		else if (charData >= 'A' && charData <= 'F'){
-			charData = charData - 'A' + 0x0a;
-			++ j;
-		}
-		else if (charData >= 'a' && charData <= 'f'){
-			charData = charData - 'a' + 0x0a;
-			++ j;
-		}
-		if (j == 1){
-			*retChar = charResult;
-			return 3;
-		}
-		charResult = ((charResult << 4) & 0xf0) | charData;
-		*retChar = charResult;
-		return 4;
-	}
-	return 0;
-}
-//------------------------------------------------------------------------------------------//
-uint32 FIFO_UINT8::EscapeToChar(uint8 *retChar,const std::string &strInput){
-	//	\a,\b,\f,\n,\r,\t,\v,\\,\',\",\0
+	copyNum = 0;
+	offset = 0;
+	slength = CalcInCapacity(length,offset);
+	dataT = &chardata;
 	
-	if (strInput == "\\\\"){
-		*retChar = '\\';
-		return 1;
+	if (length > 0){
+		addr = dataAreaPointer + offset;
+		while(num > 0){
+			if (Escape_xhh(dataT,data,num) > 0){
+				*addr = chardata;
+				++addr;
+				++copyNum;
+				--length;
+			}
+			else{
+				++data;
+				--num;
+			}
+			if ((length == 0) && (slength > 0)){
+				addr = dataAreaPointer;
+				length = slength;
+				slength = 0;
+			}
+			if (length == 0)
+				break;
+		}
+	};
+	if (inPreCount == 0){
+		offsetIn += copyNum;
 	}
-	if (strInput == "\\a"){
-		*retChar = '\a';
-		return 1;
+	else{
+		offsetInPre += copyNum;
 	}
-	if (strInput == "\\b"){
-		*retChar = '\b';
-		return 1;
-	}
-	if (strInput == "\\f"){
-		*retChar = '\f';
-		return 1;
-	}
-	if (strInput == "\\n"){
-		*retChar = '\n';
-		return 1;
-	}
-	if (strInput == "\\r"){
-		*retChar = '\r';
-		return 1;
-	}
-	if (strInput == "\\t"){
-		*retChar = '\t';
-		return 1;
-	}
-	if (strInput == "\\v"){
-		*retChar = '\v';
-		return 1;
-	}
-	if (strInput == "\\\'"){
-		*retChar = '\'';
-		return 1;
-	}
-	if (strInput == "\\\""){
-		*retChar = '\"';
-		return 1;
-	}
-	if (strInput == "\\0"){
-		*retChar = '\0';
-		return 1;
-	}
-	if (strInput[0] == '\\'){
-		*retChar = strInput[1];
-		return 1;
-	}
-	return 0;
+	return(copyNum);
 }
 //------------------------------------------------------------------------------------------//
-void FIFO_UINT8::EscapeToStr(std::string *retStr,uint8 dataChar){
-	switch (dataChar) {
+uint32 FIFO8::PutInEscape(const uint8 *data,uint32 num){
+	uint32	length,offset,slength,copyNum,count;
+	uint8	*addr,chardata;
+	const uint8	*p;
+	
+	if ((dataAreaPointer == nullptr) || (num == 0))
+		return 0;
+	
+	copyNum = 0;
+	offset = 0;
+	slength = CalcInCapacity(length,offset);
+	
+	if (length > 0){
+		addr = dataAreaPointer + offset;
+		p = data;
+		count  = 0;
+		while(num > 0){
+			if (*p == '\\'){
+				copyNum += Copy(addr,length,data,count);
+				if ((length == 0) && (slength > 0)){
+					addr = dataAreaPointer;
+					length = slength;
+					slength = 0;
+					copyNum += Copy(addr,length,data,count);
+				}
+				if ((count > 0) || (length == 0))
+					break;
+				++p;
+				if (--num > 0){
+					if (EscapeToChar(&chardata,p,num) > 0){
+						*addr = chardata;
+						++addr;
+						++copyNum;
+						--length;
+					}
+				}
+				data = p;
+			}
+			else{
+				++p;
+				--num;
+				++count;
+			}
+		}
+		copyNum += Copy(addr,length,data,count);
+		if ((count > 0) && (slength > 0)){
+			addr = dataAreaPointer;
+			copyNum += Copy(addr,slength,data,count);
+		}
+		
+		if (inPreCount == 0){
+			offsetIn += copyNum;
+		}
+		else{
+			offsetInPre += copyNum;
+		}
+	}
+	return(copyNum);
+}
+//------------------------------------------------------------------------------------------//
+uint32 FIFO8::ReadInEscape(uint8 *dataOut,uint32 num,uint32 offset)const{
+	uint32	length,slength,copyNum;
+	const uint8	*addr,*p,*p2;
+	uint32	count,i,j;
+	uint8	chardata,data[3];
+	
+	if ((dataAreaPointer == nullptr) || (num == 0))
+		return 0;
+	
+	copyNum = 0;
+	slength = CalcOutCapacity(length,offset);
+	
+	if (length > 0){
+		addr = dataAreaPointer + offset;
+		p = addr;
+		count  = 0;
+		while(num > count){
+			if (*p == '\\'){
+				copyNum += Copy(dataOut,num,addr,count);
+				if (num == 0)
+					return(copyNum);
+				++p;
+				--length;
+				if ((length < 3) && (slength > 0)){
+					switch(length){
+						case 0:;
+							data[0] = *dataAreaPointer;
+							if (slength > 1)
+								data[1] = *(dataAreaPointer + 1);
+							if (slength > 2)
+								data[2] = *(dataAreaPointer + 2);
+							break;
+						case 1:;
+							data[0] = *p;
+							data[1] = *dataAreaPointer;
+							if (slength > 1)
+								data[2] = *(dataAreaPointer + 1);
+							break;
+						case 2:;
+							data[0] = *p;
+							data[1] = *(p + 1);
+							data[2] = *dataAreaPointer;
+						default:;
+					}
+					j = length + slength;
+					p2 = data;
+					i = EscapeToChar(&chardata,p2,j);
+					if (i > 0){
+						*dataOut = chardata;
+						++dataOut;
+						++copyNum;
+						--num;
+						if (i > ((length > 0)?(length - 1):0)){
+							p = dataAreaPointer + i - length;
+							length = j;
+							slength = 0;
+						}
+						else{
+							length -= i;
+							p += i;
+						}
+					}
+				}
+				else if (length > 0){
+					if (EscapeToChar(&chardata,p,length) > 0){
+						*dataOut = chardata;
+						++dataOut;
+						++copyNum;
+						--num;
+					}
+				}
+				addr = p;
+			}
+			else{
+				++p;
+				++count;
+				--length;
+			}
+			if ((length == 0) && (slength > 0)){
+				copyNum += Copy(dataOut,num,addr,count);
+				p = dataAreaPointer;
+				length = slength;
+				slength = 0;
+				addr = p;
+			}
+			if (length == 0)
+				break;
+		}
+		copyNum += Copy(dataOut,num,addr,count);
+	}
+	return(copyNum);
+}
+//------------------------------------------------------------------------------------------//
+uint32 FIFO8::Put(const STDSTR &strIn,G_ESCAPE blEscape){
+	if (blEscape == G_ESCAPE_OFF)
+		return(Put((uint8*)strIn.c_str(),(uint32)strIn.length()));
+	return(PutInEscape((uint8*)strIn.c_str(),(uint32)strIn.length()));
+}
+//------------------------------------------------------------------------------------------//
+const STDSTR& FIFO8::Read(STDSTR *retStr,uint32 num,uint32 offset)const{
+	uint32	slength;
+	uint8	*addr;
+	
+	if ((dataAreaPointer == nullptr) || (num == 0))
+		return(*retStr);
+	
+	slength = CalcOutLength(num,offset);
+	
+	if (num > 0){
+		addr = dataAreaPointer + offset;
+		retStr->append((char*)addr,num);
+		if (slength > 0){
+			addr = dataAreaPointer;
+			retStr->append((char*)addr,slength);
+		}
+	}
+	return(*retStr);
+}
+//------------------------------------------------------------------------------------------//
+const STDSTR& FIFO8::Get(STDSTR *retStr,uint32 num){
+	uint32	offset;
+	
+	if ((dataAreaPointer == nullptr) || (num == 0))
+		return(*retStr);
+	
+	offset = 0;
+	num += CalcOutLength(num,offset);
+	
+	Read(retStr,num,0);
+	offsetOut += num;
+	return(*retStr);
+}
+//------------------------------------------------------------------------------------------//
+void FIFO8::UnEscapeToStr(STDSTR *retStr,uint8 data){
+	switch (data) {
 		case '\\':
 			*retStr += "\\\\";
 			break;
@@ -183,117 +397,25 @@ void FIFO_UINT8::EscapeToStr(std::string *retStr,uint8 dataChar){
 			*retStr += "\\0";
 			break;
 		default:
-			*retStr += dataChar;
+			*retStr += data;
 			break;
 	}
 }
 //------------------------------------------------------------------------------------------//
-uint32 FIFO_UINT8::GetInLine(std::string *retStr,uint8 endChar){
-	uint32	length,slength,offset,numRet;
+const STDSTR& FIFO8::ReadUnEscape(STDSTR *retStr,uint32 num,uint32 offset)const{
+	uint32	slength;
 	uint8	*addr;
 	
-	if (dataAreaPointer == nullptr)
-		return 0;
-	
-	numRet = 0;
-	offset = 0;
-	slength = CalcOutCapacity(length, offset);
-
-	if (length > 0){
-		do{
-			addr = dataAreaPointer + offset;
-			while(length-- > 0){
-				*retStr += *addr;
-				++ numRet;
-				if (*addr == endChar)
-					goto GetInLine_end;
-				++ addr;
-			}
-			if (slength == 0)
-				break;
-			length = slength;
-			offset = 0;
-			slength = 0;
-		}while(1);
-	GetInLine_end:
-		offsetOut += numRet;
-	}
-	return(numRet);
-}
-//------------------------------------------------------------------------------------------//
-uint32 FIFO_UINT8::ReadInLine(std::string *retStr,uint8 endChar,uint32 offset)const{
-	uint32	length,slength,numRet;
-	uint8	*addr;
-	
-	if (dataAreaPointer == nullptr)
-		return 0;
-	
-	numRet = 0;
-	slength = CalcOutCapacity(length, offset);
-	
-	if (length > 0){
-		do{
-			addr = dataAreaPointer + offset;
-			while(length-- > 0){
-				*retStr += *addr;
-				++ numRet;
-				if (*addr == endChar)
-					goto GetInLine_end;
-				++ addr;
-			}
-			if (slength == 0)
-				break;
-			length = slength;
-			offset = 0;
-			slength = 0;
-		}while(1);
-	}
-GetInLine_end:
-	return(numRet);
-}
-//------------------------------------------------------------------------------------------//
-uint32 FIFO_UINT8::GetInASCII(std::string *retStr,uint32 num){
-	uint32	offset,slength,numRet;
-	uint8	*addr;
-	
-	if (dataAreaPointer == nullptr)
-		return 0;
+	if ((dataAreaPointer == nullptr) || (num == 0))
+		return(*retStr);
 	
 	offset = 0;
 	slength = CalcOutLength(num, offset);
-	numRet = num + slength;
 	if (num > 0){
 		do{
 			addr = dataAreaPointer + offset;
 			while(num-- > 0){
-				*retStr += *addr;
-				++ addr;
-			}
-			if (slength == 0)
-				break;
-			num = slength;
-			offset = 0;
-			slength = 0;
-		}while(1);
-		offsetOut += numRet;
-	}
-	return(numRet);
-}
-//------------------------------------------------------------------------------------------//
-uint32 FIFO_UINT8::ReadInASCII(std::string *retStr,uint32 num,uint32 offset)const{
-	uint32	slength,numRet;
-	uint8	*addr;
-	
-	if (dataAreaPointer == nullptr)
-		return 0;
-	
-	slength = CalcOutLength(num, offset);
-	numRet = num + slength;
-	if (num > 0){
-		do{
-			addr = dataAreaPointer + offset;
-			while(num-- > 0){
-				*retStr += *addr;
+				UnEscapeToStr(retStr,*addr);
 				++ addr;
 			}
 			if (slength == 0)
@@ -303,107 +425,61 @@ uint32 FIFO_UINT8::ReadInASCII(std::string *retStr,uint32 num,uint32 offset)cons
 			slength = 0;
 		}while(1);
 	}
-	return(numRet);
+	return(*retStr);
 }
 //------------------------------------------------------------------------------------------//
-uint32 FIFO_UINT8::GetInASCII_E(std::string *retStr,uint32 num){
-	uint32	offset,slength,numRet;
-	uint8	*addr;
+const STDSTR& FIFO8::GetUnEscape(STDSTR *retStr,uint32 num){
+	uint32	offset;
 	
-	if (dataAreaPointer == nullptr)
-		return 0;
+	if ((dataAreaPointer == nullptr) || (num == 0))
+		return(*retStr);
 	
 	offset = 0;
-	slength = CalcOutLength(num, offset);
-	numRet = num + slength;
-	if (num > 0){
-		do{
-			addr = dataAreaPointer + offset;
-			while(num-- > 0){
-				EscapeToStr(retStr,*addr);
-				++ addr;
-			}
-			if (slength == 0)
-				break;
-			num = slength;
-			offset = 0;
-			slength = 0;
-		}while(1);
-		offsetOut += numRet;
+	num += CalcOutLength(num,offset);
+	
+	ReadUnEscape(retStr,num,0);
+	offsetOut += num;
+	return(*retStr);
+}
+//------------------------------------------------------------------------------------------//
+void FIFO8::CharToHex(STDSTR *retStr,uint8 data){
+	uint8	charData;
+	
+	charData = (data >> 4) & (0x0f);
+	if (charData < 0x0a){
+		charData += '0';
 	}
-	return(numRet);
-}
-//------------------------------------------------------------------------------------------//
-uint32 FIFO_UINT8::ReadInASCII_E(std::string *retStr,uint32 num,uint32 offset)const{
-	uint32	slength,numRet;
-	uint8	*addr;
-	
-	if (dataAreaPointer == nullptr)
-		return 0;
-	
-	offset = 0;
-	slength = CalcOutLength(num, offset);
-	numRet = num + slength;
-	if (num > 0){
-		do{
-			addr = dataAreaPointer + offset;
-			while(num-- > 0){
-				EscapeToStr(retStr,*addr);
-				++ addr;
-			}
-			if (slength == 0)
-				break;
-			num = slength;
-			offset = 0;
-			slength = 0;
-		}while(1);
+	else{
+		charData += ('A' - 0x0a);
 	}
-	return(numRet);
-}
-//------------------------------------------------------------------------------------------//
-uint32 FIFO_UINT8::GetInHEX(std::string *retStr,uint32 num){
-	uint32	offset,slength,numRet;
-	uint8	*addr;
 	
-	if (dataAreaPointer == nullptr)
-		return 0;
+	*retStr += charData;
 	
-	offset = 0;
-	slength = CalcOutLength(num, offset);
-	numRet = num + slength;
-	if (num > 0){
-		do{
-			addr = dataAreaPointer + offset;
-			while(num-- > 0){
-				*retStr += CharToHex(*addr);
-				++ addr;
-			}
-			if (slength == 0)
-				break;
-			num = slength;
-			offset = 0;
-			slength = 0;
-		}while(1);
-		offsetOut += numRet;
+	charData = data & (0x0f);
+	if (charData < 0x0a){
+		charData += '0';
 	}
-	return(numRet);
+	else{
+		charData += ('A' - 0x0a);
+	}
+	
+	*retStr += charData;
 }
 //------------------------------------------------------------------------------------------//
-uint32 FIFO_UINT8::ReadInHEX(std::string *retStr,uint32 num,uint32 offset)const{
-	uint32	slength,numRet;
+const STDSTR& FIFO8::ReadInHEX(STDSTR *retStr,uint32 num,uint32 offset)const{
+	uint32	slength;
 	uint8	*addr;
 	
 	if (dataAreaPointer == nullptr)
-		return 0;
+		return(*retStr);
 	
 	offset = 0;
 	slength = CalcOutLength(num, offset);
-	numRet = num + slength;
 	if (num > 0){
 		do{
 			addr = dataAreaPointer + offset;
 			while(num-- > 0){
-				*retStr += CharToHex(*addr);
+				CharToHex(retStr,*addr);
 				++ addr;
 			}
 			if (slength == 0)
@@ -413,53 +489,37 @@ uint32 FIFO_UINT8::ReadInHEX(std::string *retStr,uint32 num,uint32 offset)const{
 			slength = 0;
 		}while(1);
 	}
-	return(numRet);
+	return(*retStr);
 }
 //------------------------------------------------------------------------------------------//
-uint32 FIFO_UINT8::GetInHEX_S(std::string *retStr,uint32 num){
-	uint32	offset,slength,numRet;
+const STDSTR& FIFO8::GetInHEX(STDSTR *retStr,uint32 num){
+	uint32	offset;
+	
+	if ((dataAreaPointer == nullptr) || (num == 0))
+		return(*retStr);
+	
+	offset = 0;
+	num += CalcOutLength(num,offset);
+	
+	ReadInHEX(retStr,num,0);
+	offsetOut += num;
+	return(*retStr);
+}
+//------------------------------------------------------------------------------------------//
+const STDSTR& FIFO8::ReadInHEX_S(STDSTR *retStr,uint32 num,uint32 offset)const{
+	uint32	slength;
 	uint8	*addr;
 	
 	if (dataAreaPointer == nullptr)
-		return 0;
+		return(*retStr);
 	
 	offset = 0;
 	slength = CalcOutLength(num, offset);
-	numRet = num + slength;
 	if (num > 0){
 		do{
 			addr = dataAreaPointer + offset;
 			while(num-- > 0){
-				*retStr += CharToHex(*addr);
-				*retStr += ' ';
-				++ addr;
-			}
-			if (slength == 0)
-				break;
-			num = slength;
-			offset = 0;
-			slength = 0;
-		}while(1);
-		offsetOut += numRet;
-	}
-	return(numRet);
-}
-//------------------------------------------------------------------------------------------//
-uint32 FIFO_UINT8::ReadInHEX_S(std::string *retStr,uint32 num,uint32 offset)const{
-	uint32	slength,numRet;
-	uint8	*addr;
-	
-	if (dataAreaPointer == nullptr)
-		return 0;
-	
-	offset = 0;
-	slength = CalcOutLength(num, offset);
-	numRet = num + slength;
-	if (num > 0){
-		do{
-			addr = dataAreaPointer + offset;
-			while(num-- > 0){
-				*retStr += CharToHex(*addr);
+				CharToHex(retStr,*addr);
 				*retStr += ' ';
 				++ addr;
 			}
@@ -470,156 +530,139 @@ uint32 FIFO_UINT8::ReadInHEX_S(std::string *retStr,uint32 num,uint32 offset)cons
 			slength = 0;
 		}while(1);
 	}
-	return(numRet);
+	return(*retStr);
 }
 //------------------------------------------------------------------------------------------//
-uint32 FIFO_UINT8::PutInHEX(const std::string &strInput){
-	std::string::size_type	i,length,j;
-	uint8	charP,charData,charResult;
-	uint32	unuse,unuseToEnd,count;
-	uint8	*addr;
+const STDSTR& FIFO8::GetInHEX_S(STDSTR *retStr,uint32 num){
+	uint32	offset;
+	
+	if ((dataAreaPointer == nullptr) || (num == 0))
+		return(*retStr);
+	
+	offset = 0;
+	num += CalcOutLength(num,offset);
+	
+	ReadInHEX_S(retStr,num,0);
+	offsetOut += num;
+	return(*retStr);
+}
+//------------------------------------------------------------------------------------------//
+const STDSTR& FIFO8::ReadInLine(STDSTR *retStr,uint8 endChar,uint32 offset)const{
+	uint32	length,slength,count;
+	uint8	*addr,*p;
 	
 	if (dataAreaPointer == nullptr)
-		return 0;
+		return(*retStr);
 	
-	unuse = maxSize - offsetIn + offsetOut;
-	unuseToEnd = maxSize - (offsetIn & (maxSize - 1));
-	if (unuseToEnd > unuse)
-		unuseToEnd = unuse;
-	addr = dataAreaPointer + (offsetIn & (maxSize - 1));
+	slength = CalcOutCapacity(length, offset);
+	addr = dataAreaPointer + offset;
 	
-	length = strInput.length();
-	i = 0;
-	j = 0;
-	count = 0;
-	charResult = 0;
-	charData = 0;
-	while(i < length){
-		charP = strInput[i ++];
+	while (length > 0){
+		count  = 0;
+		p = addr;
+		while(++count <= length){
+			if (*p == endChar){
+				retStr->append((char*)addr, count - 1);
+				return(*retStr);
+			}
+			++ p;
+		}
+		retStr->append((char*)addr, count - 1);
 		
-		if (charP >= '0' && charP <= '9'){
-			charData = charP - '0';
-			++ j;
-		}
-		else if (charP >= 'A' && charP <= 'F'){
-			charData = charP - 'A' + 0x0a;
-			++ j;
-		}
-		else if (charP >= 'a' && charP <= 'f'){
-			charData = charP - 'a' + 0x0a;
-			++ j;
-		}
-		if (j == 1){
-			charResult = charData;
-		}
-		else if (j == 2){
-			charResult = ((charResult << 4) & 0xf0) | charData;
-		}
-		if ((j > 0) && ((charP == ' ') || (j == 2) || (i == length))){
-			if (unuseToEnd > 0){
-				*addr = charResult;
-				++ addr;
-				++ count;
-				if (--unuseToEnd == 0){
-					unuse -= count;
-					addr = dataAreaPointer;
-				}
-			}
-			else if (unuse > 0){
-				*addr = charResult;
-				++ addr;
-				++ count;
-				-- unuse;
-			}
-			else{
-				break;
-			}
-			j = 0;
-		}
+		length = slength;
+		addr = dataAreaPointer;
 	}
-	offsetIn += count;
-	return(count);
+	return(*retStr);
 }
 //------------------------------------------------------------------------------------------//
-uint32 FIFO_UINT8::PutInEscape(const std::string &strInput){
-	//eacape \0xhh,\a,\b,\f,\n,\r,\t,\v,\\,\',\",\0,\/
-	std::string				strData;
-	std::string::size_type	i,length,j;
-	uint8					charData,charData1;
-	uint32	unuse,unuseToEnd,count;
+const STDSTR& FIFO8::GetInLine(STDSTR *retStr,uint8 endChar){
+	uint32	length,slength,offset,count,copyNum;
+	uint8	*addr,*p;
+	
+	if (dataAreaPointer == nullptr)
+		return(*retStr);
+	
+	offset = 0;
+	slength = CalcOutCapacity(length, offset);
+	addr = dataAreaPointer + offset;
+	copyNum = 0;
+	while (length > 0){
+		count  = 0;
+		p = addr;
+		while(++count <= length){
+			if (*p == endChar){
+				retStr->append((char*)addr, count - 1);
+				copyNum += count;
+				offsetOut += copyNum;
+				return(*retStr);
+			}
+			++ p;
+		}
+		retStr->append((char*)addr, count - 1);
+		copyNum += (count - 1);
+		length = slength;
+		addr = dataAreaPointer;
+	}
+	offsetOut += copyNum;
+	return(*retStr);
+}
+//------------------------------------------------------------------------------------------//
+uint32 FIFO8::Put(std::stringstream &streamIn){
+	uint32	length,offset;
+	uint32	slength,copyNum;
 	uint8	*addr;
 	
 	if (dataAreaPointer == nullptr)
 		return 0;
 	
-	unuse = maxSize - offsetIn + offsetOut;
-	unuseToEnd = maxSize - (offsetIn & (maxSize - 1));
-	if (unuseToEnd > unuse)
-		unuseToEnd = unuse;
-	addr = dataAreaPointer + (offsetIn & (maxSize - 1));
+	copyNum = 0;
+	offset = 0;
+	slength = CalcInCapacity(length,offset);
 	
-	length = strInput.length();
-	i = 0;
-	count = 0;
-	charData1 = 0;
-	while(i < length){
-		charData = strInput[i];
-		j = 0;
-		if ((i + 4) < length){
-			strData = strInput.substr(i,5);
-			j = Escape0xhhToChar(&charData1,strData);
+	if (length > 0){
+		addr = dataAreaPointer + offset;
+		copyNum += (uint32)streamIn.readsome((char*)addr, length);
+		if ((!streamIn.eof()) && (slength > 0)){
+			addr = dataAreaPointer;
+			copyNum += (uint32)streamIn.readsome((char*)addr, slength);
 		}
-		else if ((i + 4) == length){
-			strData = strInput.substr(i,4);
-			j = Escape0xhhToChar(&charData1,strData);
-		}
-		if (j > 0){
-			i += j;
-			charData = charData1;
-		}
-		else if ((i + 1) < length){
-			strData = strInput.substr(i,2);
-			j = EscapeToChar(&charData1,strData);
-			if (j > 0){
-				i += j;
-				charData = charData1;
-			}
-		}
-		else if (charData == '\\'){
-			++ i;
-			continue;
-		}
-		if (unuseToEnd > 0){
-			*addr = charData;
-			++ addr;
-			++ count;
-			if (--unuseToEnd == 0){
-				unuse -= count;
-				addr = dataAreaPointer;
-			}
-		}
-		else if (unuse > 0){
-			*addr = charData;
-			++ addr;
-			++ count;
-			-- unuse;
+		if (inPreCount == 0){
+			offsetIn += copyNum;
 		}
 		else{
-			break;
+			offsetInPre += copyNum;
 		}
-		++ i;
-	};
-	offsetIn += count;
-	return(count);
+	}
+	return(copyNum);
 }
 //------------------------------------------------------------------------------------------//
-uint32 FIFO_UINT8::PutInASCII(const std::string &strInput,G_ESCAPE_VAILD blEscape){
-	if (blEscape == G_ESCAPE_OFF)
-		return(Put((uint8*)strInput.c_str(),(uint32)strInput.length()));
-	return(PutInEscape(strInput));
+uint32 FIFO8::Get(std::stringstream *streamOut){
+	uint32	length,offset;
+	uint32	slength,copyNum;
+	uint8	*addr;
+	
+	if (dataAreaPointer == nullptr)
+		return 0;
+	
+	copyNum = 0;
+	offset = 0;
+	slength = CalcOutCapacity(length,offset);
+	
+	if (length > 0){
+		addr = dataAreaPointer + offset;
+		streamOut->write((char*)addr, length);
+		copyNum += length;
+		if (slength > 0){
+			addr = dataAreaPointer;
+			streamOut->write((char*)addr, length);
+			copyNum += length;
+		}
+		offsetOut += copyNum;
+	}
+	return(copyNum);
 }
 //------------------------------------------------------------------------------------------//
-void FIFO_UINT8::FillZero(void){
+void FIFO8::FillZero(void){
 	uint8 *p;
 	uint32 i;
 	p = dataAreaPointer;
@@ -629,5 +672,6 @@ void FIFO_UINT8::FillZero(void){
 	offsetIn = 0;
 	offsetOut = 0;
 }
+//------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------/
-
+#endif

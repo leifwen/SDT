@@ -15,223 +15,135 @@
 #include "Comm_Convert.h"
 #include "AppLayer.h"
 //------------------------------------------------------------------------------------------//
+#ifdef BIC_SocketH
 //------------------------------------------------------------------------------------------//
-int32 BIC_TCP::Command(BICPAR *tBICPAR, const std::string &par,std::string *ret)const{
-	*ret = "";
-	if (BI_SET_ConnectPar(tBICPAR,par,DEVICE::DEVID_TCPClient) == 0)
-		PrintDoRet(tBICPAR,"Set fail due to already connected");
-	return(cgReturnCode);
-}
-//------------------------------------------------------------------------------------------//
-int32 BIC_TCP::Help(BICPAR *tBICPAR,int32 blDetail)const{
-	PrintHelpItem(tBICPAR,cgCommand,"Set as TCP mode.");
-	if (blDetail == 0)
-		return(cgReturnCode);
-	PrintHelpItem(tBICPAR,"     [IP][PORT]","Destination IP and port.");
+int32 BIC_TCP::Command(BIC_ENV *env, const STDSTR &par,void *eda)const{
+	if (BI_SetConnectPar(static_cast<ExpandDeviceAttr*>(eda),par,CSType_TCP) == 0)
+		PrintFail(env,"already connected");
 	return(cgReturnCode);
 }
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
-int32 BIC_UDP::Command(BICPAR *tBICPAR, const std::string &par,std::string *ret)const{
-	*ret = "";
-	if (BI_SET_ConnectPar(tBICPAR,par,DEVICE::DEVID_UDPClient) == 0)
-		PrintDoRet(tBICPAR,"Set fail set due to already connected");
-	return(cgReturnCode);
-}
-//------------------------------------------------------------------------------------------//
-int32 BIC_UDP::Help(BICPAR *tBICPAR,int32 blDetail)const{
-	PrintHelpItem(tBICPAR,cgCommand,"Set as UDP mode.");
-	if (blDetail == 0)
-		return(cgReturnCode);
-	PrintHelpItem(tBICPAR,"     [IP][PORT]","Destination IP and port.");
+int32 BIC_UDP::Command(BIC_ENV *env, const STDSTR &par,void *eda)const{
+	if (BI_SetConnectPar(static_cast<ExpandDeviceAttr*>(eda),par,CSType_UDP) == 0)
+		PrintFail(env,"already connected");
 	return(cgReturnCode);
 }
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
-int32 BIC_TCPS::Command(BICPAR *tBICPAR, const std::string &par,std::string *ret)const{
-	*ret = "";
-	if (BI_SET_ConnectPar(tBICPAR,par,DEVICE::DEVID_TCPServer) == 0)
-		PrintDoRet(tBICPAR,"Set fail due to already connected");
-	return(cgReturnCode);
-}
-//------------------------------------------------------------------------------------------//
-int32 BIC_TCPS::Help(BICPAR *tBICPAR,int32 blDetail)const{
-	PrintHelpItem(tBICPAR,cgCommand,"Set as TCP server mode.");
-	if (blDetail == 0)
-		return(cgReturnCode);
-	PrintHelpItem(tBICPAR,"     [PORT]","Local listen port.");
+int32 BIC_TCPS::Command(BIC_ENV *env, const STDSTR &par,void *eda)const{
+	if (BI_SetConnectPar(static_cast<ExpandDeviceAttr*>(eda),par,CSType_TCPS) == 0)
+		PrintFail(env,"already connected");
 	return(cgReturnCode);
 }
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
-int32 BIC_UDPS::Command(BICPAR *tBICPAR, const std::string &par,std::string *ret)const{
-	*ret = "";
-	if (BI_SET_ConnectPar(tBICPAR,par,DEVICE::DEVID_UDPServer) == 0)
-		PrintDoRet(tBICPAR,"Set fail due to already connected");
-	return(cgReturnCode);
-}
-//------------------------------------------------------------------------------------------//
-int32 BIC_UDPS::Help(BICPAR *tBICPAR,int32 blDetail)const{
-	PrintHelpItem(tBICPAR,cgCommand,"Set as UDP server mode.");
-	if (blDetail == 0)
-		return(cgReturnCode);
-	PrintHelpItem(tBICPAR,"     [PORT]","Local listen port.");
+int32 BIC_UDPS::Command(BIC_ENV *env, const STDSTR &par,void *eda)const{
+	if (BI_SetConnectPar(static_cast<ExpandDeviceAttr*>(eda),par,CSType_UDPS) == 0)
+		PrintFail(env,"already connected");
 	return(cgReturnCode);
 }
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
-int32 BIC_PORT::Command(BICPAR *tBICPAR, const std::string &par,std::string *ret)const{
-	*ret = "";
+int32 BIC_PORT::Command(BIC_ENV *env, const STDSTR &par,void *eda)const{
 	if (par.length() == 0)
-		return(Help(tBICPAR));
-	if (BI_SET_ConnectPar2(tBICPAR,par) == 0)
-		PrintDoRet(tBICPAR,"Set fail due to already connected");
-	return(cgReturnCode);
-}
-//------------------------------------------------------------------------------------------//
-int32 BIC_PORT::Help(BICPAR *tBICPAR,int32 blDetail)const{
-	PrintHelpItem(tBICPAR,cgCommand,"Set port.");
-	if (blDetail == 0)
-		return(cgReturnCode);
-	PrintHelpItem(tBICPAR,"     <n>","Port.");
+		return(Help(env));
+	if (BI_SetConnectPar2(static_cast<ExpandDeviceAttr*>(eda),par) == 0)
+		PrintFail(env,"already connected");
 	return(cgReturnCode);
 }
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
-int32 BIC_SI::Help(BICPAR *tBICPAR,int32 blDetail)const{
-	PrintHelpItem(tBICPAR,cgCommand,"Socket information.");
-	return(cgReturnCode);
-}
-//------------------------------------------------------------------------------------------//
-int32 BIC_SI::Command(BICPAR *tBICPAR, const std::string &par,std::string *ret)const{
-	*ret = "";
+int32 BIC_SI::Command(BIC_ENV *env, const STDSTR &par,void *eda)const{
+	ExpandDeviceAttr* attr = static_cast<ExpandDeviceAttr*>(eda);
+	
 	if (par.length() > 0)
-		return(Help(tBICPAR));
+		return(Help(env));
 
-	if ((tBICPAR->sdtApp->m_Device.cgDevType == DEVICE::DEVID_TCPServer) || (tBICPAR->sdtApp->m_Device.cgDevType == DEVICE::DEVID_UDPServer)){
-		PrintStrN(tBICPAR,DEV_LINE_START,RICH_LIN_clDefault);
-		tBICPAR->sdtApp->m_Device.cgAPISocketServer->Spin_InUse_set();
-		RTREE_LChildRChain_Traversal_LINE_nolock(APISocket,tBICPAR->sdtApp->m_Device.cgAPISocketServer,BIC_SI_LS_PrintSocket(tBICPAR,operateNode_t));
-		tBICPAR->sdtApp->m_Device.cgAPISocketServer->Spin_InUse_clr();
-		PrintStrN(tBICPAR,DEV_LINE_START,RICH_LIN_clDefault);
+	if (attr->IsServerOpened()){
+		PrintStrNL(env,Data(COL_clDefault,DEV_LINE_START));
+		TREE_LChildRChain_Traversal_LINE_nolock(ASOCKET,attr->AServer(),BIC_SI_LS_PrintSocket(env,operateNode_t));
+		PrintStrNL(env,Data(COL_clDefault,DEV_LINE_START));
 	}
 	else{
-		PrintDoRet(tBICPAR,"Fail execute due to no connected");
+		PrintFail(env,"no connect");
 	}
 	return(cgReturnCode);
 }
 //------------------------------------------------------------------------------------------//
-int32 BIC_SI::BIC_SI_LS_PrintSocket(BICPAR *tBICPAR,APISocket *tSocket){
-	std::string		strPrintData;
+int32 BIC_SI::BIC_SI_LS_PrintSocket(BIC_ENV *env,ASOCKET *tSocket){
+	STDSTR		strPrintData;
 	
 	if (tSocket != nullptr){
-		strPrintData = Str_IntToString(GetdRNodeID(tSocket));
-		if (strPrintData.length() < 3)
-			strPrintData.insert(0,3 - strPrintData.length(),' ');
+		strPrintData = Str_ToString(GetdRNodeID(tSocket));
+		AddSpaceInFront(&strPrintData,3);
 		strPrintData += ".";
 		
-		if (tSocket->CheckblSelected() == 0){
+		if (tSocket->CheckSelected() == 0){
 			strPrintData += "   ";
 		}
 		else{
 			strPrintData += " * ";
 		}
-		PrintStr(tBICPAR,strPrintData,RICH_LIN_clDefault);
-		PrintStr(tBICPAR,tSocket->GetBufName(),RICH_LIN_clBrown);
-		PrintStr(tBICPAR,"@",RICH_LIN_clDefault);
-		PrintStr(tBICPAR,Str_IntToString(tSocket->GetBufPar()) + "\n",RICH_LIN_clBrown);
-		PrintStr(tBICPAR,"     Received : " + Str_UInt64ToString(tSocket->RxBytes()) + " bytes\n",RICH_LIN_clCyan);
-		PrintStr(tBICPAR,"     Echo     : " + Str_UInt64ToString(tSocket->FwBytes()) + " bytes\n",RICH_LIN_clCyan);
-		PrintStr(tBICPAR,"     Sent     : " + Str_UInt64ToString(tSocket->TxBytes()) + " bytes\n",RICH_LIN_clCyan);
+		PrintNL(env) << COL_clDefault << strPrintData
+		<< ColData(COL_clYellow,tSocket->GetBufName()) << ColData(COL_clDefault,"@") << ColData(COL_clYellow,Str_ToString(tSocket->GetBufPar())) << NL
+		<< COL_clCyan
+		<< "     Received : " << Str_ToString(tSocket->RxBytes()) << " bytes\n"
+		<< "     Echo     : " << Str_ToString(tSocket->FwBytes()) << " bytes\n"
+		<< "     Sent     : " << Str_ToString(tSocket->TxBytes()) << " bytes\n"
+		<< Endl;
 	}
 	return 1;
 }
 //------------------------------------------------------------------------------------------//
-int32 BIC_SS::Help(BICPAR *tBICPAR,int32 blDetail)const{
-	PrintHelpItem(tBICPAR,cgCommand,"Socket select.");
-	if (blDetail == 0)
-		return(cgReturnCode);
-	PrintHelpItem(tBICPAR,"     <num>","Socket number.");
-	return(cgReturnCode);
-}
 //------------------------------------------------------------------------------------------//
-int32 BIC_SS::Command(BICPAR *tBICPAR, const std::string &par,std::string *ret)const{
-	APISocket		*socketSelected;
-	APISocketServer	*socketPool;
+int32 BIC_SS::Command(BIC_ENV *env, const STDSTR &par,void *eda)const{
+	ExpandDeviceAttr* attr = static_cast<ExpandDeviceAttr*>(eda);
+	ASOCKET			*selSocket;
 	int32 			num;
 	
-	*ret = "";
 	if (par.length() == 0)
-		return(Help(tBICPAR));
+		return(Help(env));
 	
-	if ((tBICPAR->sdtApp->m_Device.cgDevType == DEVICE::DEVID_TCPServer) || (tBICPAR->sdtApp->m_Device.cgDevType == DEVICE::DEVID_UDPServer)){
+	if (attr->IsServerOpened()){
 		num = atoi(par.c_str());
-		socketPool = tBICPAR->sdtApp->m_Device.cgAPISocketServer;
-		socketPool->Spin_InUse_set();
-		do{
-			socketSelected = (APISocket*)GetSelectedInLChildRChain(socketPool);
-			if (socketSelected != nullptr){
-				socketSelected->ClrblSelected();
-				socketSelected->UseExternalFwSBL(nullptr);
-				socketSelected->UnlinkCoupleNode();
-				tBICPAR->sdtApp->m_Device.cgAPISocketServer->SetblUpdate();
-				if (GetdRNodeID(socketSelected) == (uint32)num){
-					PrintStrN(tBICPAR,DEV_LINE_START,RICH_LIN_clDefault);
-					BIC_SI::BIC_SI_LS_PrintSocket(tBICPAR,socketSelected);
-					PrintStrN(tBICPAR,DEV_LINE_START,RICH_LIN_clDefault);
-					break;
-				}
-			}
-			socketSelected = (APISocket*)FindInLChildRChainByDRNodeID_nolock(socketPool,num);
-			if (socketSelected != nullptr){
-				socketSelected->SetblSelected();
-				socketSelected->UseExternalFwSBL(&tBICPAR->sdtApp->m_Device.rxBufferList);
-				if (tBICPAR->sdtApp->m_Device2.CheckblConnect() != 0)
-					socketSelected->LinkCoupleNode(tBICPAR->sdtApp->m_Device2.cgCurrentDB);
-				
-				PrintStrN(tBICPAR,DEV_LINE_START,RICH_LIN_clDefault);
-				BIC_SI::BIC_SI_LS_PrintSocket(tBICPAR,socketSelected);
-				PrintStrN(tBICPAR,DEV_LINE_START,RICH_LIN_clDefault);
-				tBICPAR->sdtApp->m_Device.cgAPISocketServer->SetblUpdate();
-			}
-		}while(0);
-		socketPool->Spin_InUse_clr();
+		
+		selSocket = static_cast<ASOCKET*>(FindInLChildRChainByDRNodeID(attr->AServer(), num));
+		if (attr->AServer()->GetSelDB() == selSocket){
+			attr->AServer()->ChildClrSel(selSocket);
+		}
+		else{
+			attr->AServer()->ChildSetSel(selSocket);
+		}
+		
+		PrintStrNL(env,Data(COL_clDefault,DEV_LINE_START));
+		BIC_SI::BIC_SI_LS_PrintSocket(env,selSocket);
+		PrintStrNL(env,Data(COL_clDefault,DEV_LINE_START));
 	}
 	else{
-		PrintDoRet(tBICPAR,"Fail execute due to no connected");
+		PrintFail(env,"no connect");
 	}
 	return(cgReturnCode);
 }
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
-int32 BIC_SSD::Help(BICPAR *tBICPAR,int32 blDetail)const{
-	PrintHelpItem(tBICPAR,cgCommand,"Socket shutdown.");
-	if (blDetail == 0)
-		return(cgReturnCode);
-	PrintHelpItem(tBICPAR,"     <num>","Socket number.");
-	return(cgReturnCode);
-}
-//------------------------------------------------------------------------------------------//
-int32 BIC_SSD::Command(BICPAR *tBICPAR, const std::string &par,std::string *ret)const{
-	APISocket			*tSocket;
-	APISocketServer		*socketPool;
-	int32 			num;
-	*ret = "";
-	if (par.length() == 0)
-		return(Help(tBICPAR));
+int32 BIC_SSD::Command(BIC_ENV *env, const STDSTR &par,void *eda)const{
+	ExpandDeviceAttr* attr = static_cast<ExpandDeviceAttr*>(eda);
 	
-	if ((tBICPAR->sdtApp->m_Device.cgDevType == DEVICE::DEVID_TCPServer) || (tBICPAR->sdtApp->m_Device.cgDevType == DEVICE::DEVID_UDPServer)){
-		socketPool = tBICPAR->sdtApp->m_Device.cgAPISocketServer;
+	int32 num;
+
+	if (par.length() == 0)
+		return(Help(env));
+	
+	if (attr->IsServerOpened()){
 		num = atoi(par.c_str());
-		socketPool->Spin_InUse_set();
-		tSocket = (APISocket*)FindInLChildRChainByDRNodeID_nolock(socketPool, num);
-		if (tSocket != nullptr)
-			tSocket->CloseD(0);
-		socketPool->Spin_InUse_clr();
+		attr->AServer()->ChildClose(static_cast<ASOCKET*>(FindInLChildRChainByDRNodeID(attr->AServer(), num)));
 	}
 	else{
-		PrintDoRet(tBICPAR,"Fail execute due to no connected");
+		PrintFail(env,"no connect");
 	}
 	return(cgReturnCode);
 }
 //------------------------------------------------------------------------------------------//
+//------------------------------------------------------------------------------------------//
+#endif

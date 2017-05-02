@@ -14,9 +14,9 @@
 #define Commu_IncludeH
 //------------------------------------------------------------------------------------------//
 #include "ODEV_Include.h"
+#include "Commu_SSL.h"
 #include "Commu_DBuf.h"
 #include "Commu_Com.h"
 #include "Commu_Socket.h"
-#include "Commu_SocketServer.h"
 //------------------------------------------------------------------------------------------//
 #endif

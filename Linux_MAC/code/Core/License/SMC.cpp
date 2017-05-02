@@ -15,16 +15,14 @@
 #include "Comm_File.h"
 #include "Comm_Crypto.h"
 #include "License_Checker.h"
-//------------------------------------------------------------------------------------------//
-FIFO_UINT8	g_SMCCyCodeStream;
 #ifdef USE_OPENSSL
 //------------------------------------------------------------------------------------------//
-int32 SMC_SourceCodeAnalysis(std::string *retStr,const std::string &sFN){
+int32 SMC_SourceCodeAnalysis(STDSTR *retStr,const STDSTR &sFN){
 	uint8			buffer[1024 * 8];
 	int32			count;
 	std::fstream	fileStream;
-	std::string		uint32Stack,strSearch,strTemp;
-	std::string::size_type	searchLocate,searchRet,searchOffset,srearchLength,lengthEncrypt,lengthStrBeg,lengthStrEnd;
+	STDSTR			uint32Stack,strSearch,strTemp;
+	STDSTR::size_type	searchLocate,searchRet,searchOffset,srearchLength,lengthEncrypt,lengthStrBeg,lengthStrEnd;
 	uint64			num;
 	
 	if (CFS_CheckFile(sFN) == 0)
@@ -49,7 +47,7 @@ int32 SMC_SourceCodeAnalysis(std::string *retStr,const std::string &sFN){
 		searchLocate = 0;
 		do{
 			searchRet = strSearch.find("SMCEncrypt",searchLocate);
-			if (searchRet == std::string::npos){//no find.
+			if (searchRet == STDSTR::npos){//no find.
 				searchOffset += strSearch.length() - lengthStrBeg + 1;
 				strSearch.erase(0,strSearch.length() - lengthStrBeg + 1);
 				break;
@@ -72,7 +70,7 @@ int32 SMC_SourceCodeAnalysis(std::string *retStr,const std::string &sFN){
 					-- count;
 					*retStr += strTemp;
 					*retStr += ',';
-					srearchLength = searchOffset + searchRet + lengthStrEnd - (std::string::size_type)Str_HexToDec(strTemp);
+					srearchLength = searchOffset + searchRet + lengthStrEnd - (STDSTR::size_type)Str_HexToDec(strTemp);
 					*retStr += Str_DecToHex(srearchLength);
 					*retStr += ',';
 					continue;
@@ -91,7 +89,7 @@ void SMC_EncryptCYCodeBlock(uint8 *data,uint32 num){
 	//SMCEncrypt_Begin-----------------SMCEncrypt_End
 	//\xEB\x0E**************-----------------\xEB\x0C************
 	//|<-      strBeg    ->||<-  strCode  ->||<-    strEnd    ->|
-	std::string::size_type	lengthStrEnd;
+	STDSTR::size_type	lengthStrEnd;
 	uint8	*p;
 	
 	lengthStrEnd = strlen("SMCEncrypt_End");
@@ -99,24 +97,23 @@ void SMC_EncryptCYCodeBlock(uint8 *data,uint32 num){
 	p = data;
 	*p++ = '\xEB';
 	*p++ = '\x0E';//lengthStrBeg - 2
-#ifdef USE_OPENSSL
+	
 	RAND_bytes(p,0x0E);
-#endif
 	p = data + num - lengthStrEnd;
 	*p++ = '\xEB';
 	*p++ = '\x0C';//lengthStrEnd - 2
-#ifdef USE_OPENSSL
+	
 	RAND_bytes(p,0x0C);
-#endif
 }
 //------------------------------------------------------------------------------------------//
-int32 SMC_CreateCYCodeStream(std::string *retStr,const std::string &sFN_SDT,std::string strAnalysisFIFO){
+int32 SMC_CreateCYCodeStream(STDSTR *retStr,const STDSTR &sFN_SDT,STDSTR strAnalysisFIFO){
 	uint8			buffer[1024 * 2];
 	std::fstream	fileStream;
 	int32			ret;
 	uint64			offset,length,num;
+#ifdef Comm_PAH
 	CCY_FNLC_AES	cyBlock;
-	FIFO_UINT8		tFIFO_Result;
+	FIFO8			tFIFO_Result;
 	
 	if (CFS_CheckFile(sFN_SDT) == 0)
 		return 0;
@@ -142,19 +139,20 @@ int32 SMC_CreateCYCodeStream(std::string *retStr,const std::string &sFN_SDT,std:
 		cyBlock.SetContent(buffer,(uint32)length,CCY_AESKey32Bye("SMCEncrypt"));
 	}
 	*retStr = "";
-	tFIFO_Result.GetInASCII(retStr, -1);
+	tFIFO_Result.Get(retStr, -1);
 	ret = 1;
 SMC_err:
 	fileStream.close();
+#endif
 	return(ret);
 }
 //------------------------------------------------------------------------------------------//
-int32 SMC_SourceCodeReplace(const std::string &sFN_SDT,std::string strAnalysisFIFO){
+int32 SMC_SourceCodeReplace(const STDSTR &sFN_SDT,STDSTR strAnalysisFIFO){
 	uint8			buffer[2];
 	std::fstream	fileStream;
 	uint16			codeNo;
 	uint64			offset,length;
-	std::string		strContent;
+	STDSTR			strContent;
 	
 	if (CFS_CheckFile(sFN_SDT) == 0)
 		return 0;
@@ -179,16 +177,19 @@ int32 SMC_SourceCodeReplace(const std::string &sFN_SDT,std::string strAnalysisFI
 	return 1;
 }
 //------------------------------------------------------------------------------------------//
-int32 SMC_DecryptCYCodeBlock(std::string *retStr,const FIFO_UINT8 &cyCodeStream,uint32 codeNo){
-	std::string		sMKey;
+#ifdef SMC_YESH
+int32 SMC_DecryptCYCodeBlock(STDSTR *retStr,const FIFO8 &cyCodeStream,uint32 codeNo){
+	STDSTR			sMKey;
 	uint32			retRead;
 	CCY_FN_AES_MK	cyBlock_MK;
 
 	cyBlock_MK.Init(&cyCodeStream, CCT_AES256, CCT_AES_CBC, CCT_SHA256);
 	
 	retRead = 0;
-	while(codeNo-- > 0)
-		retRead += cyBlock_MK.AnalysisFrame(cyCodeStream, retRead);
+	while(codeNo-- > 0){
+		cyBlock_MK.AnalysisFrame(&cyCodeStream, retRead);
+		retRead += cyBlock_MK.GetLength();
+	}
 
 	if (retRead != 0){
 		if (cyBlock_MK.ReadContent(retStr, MakeMulitKey(&sMKey), &cyCodeStream) != 0)
@@ -204,8 +205,14 @@ int32 SMC_DecryptCYCodeBlock(std::string *retStr,const FIFO_UINT8 &cyCodeStream,
 
 
 
-#ifdef CommonDefH_VC
 
+
+
+
+//------------------------------------------------------------------------------------------//
+#ifdef CommonDefH_VC
+//------------------------------------------------------------------------------------------//
+FIFO8	g_SMCCyCodeStream;
 //------------------------------------------------------------------------------------------//
 int32 SMC_BLOCK::Init(uint8 *cOffset,uint32 cCodeSize){
 	int32	blRet;
@@ -228,8 +235,8 @@ int32 SMC_BLOCK::Init(uint8 *cOffset,uint32 cCodeSize){
 }
 //------------------------------------------------------------------------------------------//
 int32 SMC_BLOCK::Decrypt(void){
-	int32		blRet,cyCodeNo;
-	std::string	runCode;
+	int32	blRet,cyCodeNo;
+	STDSTR	runCode;
 	
 	blRet = 0;
 	if (blInit == 1){
@@ -250,7 +257,7 @@ int32 SMC_BLOCK::Decrypt(void){
 }
 //------------------------------------------------------------------------------------------//
 int32 SMC_BLOCK::Resume(void){
-	int32		blRet;
+	int32	blRet;
 	
 	blRet = 0;
 	if (blInit == 1){
@@ -265,6 +272,7 @@ int32 SMC_BLOCK::Resume(void){
 	return(blRet);
 }
 //------------------------------------------------------------------------------------------//
-#endif
-#endif
 //------------------------------------------------------------------------------------------//
+#endif
+#endif
+#endif

@@ -31,7 +31,26 @@ CGCPropertyGridCtrl::CGCPropertyGridCtrl(void){
 	m_hItem = NULL;
 }
 //------------------------------------------------------------------------------------------//
-CMFCPropertyGridProperty *CGCPropertyGridCtrl::CreateEnaItem(INT32 id,CString title,int32 blEnable,CString description){
+CMFCPropertyGridProperty *CGCPropertyGridCtrl::CreateCMDTailItem(INT32 id, CString title, CMD_TAIL tail, CString description){
+	CMFCPropertyGridProperty *item;
+
+	item = new CMFCPropertyGridProperty(title, (_variant_t)_T(""), description);
+	item->AddOption(_T("None"));
+	item->AddOption(_T("R"));
+	item->AddOption(_T("N"));
+	item->AddOption(_T("RN"));
+	switch (tail){
+		case CMD_NONE:item->SetValue(_T("None")); break;
+		case CMD_R:item->SetValue(_T("R")); break;
+		case CMD_N:item->SetValue(_T("N")); break;
+		case CMD_RN:item->SetValue(_T("RN")); break;
+	}
+	item->AllowEdit(FALSE);
+	item->SetData(id);
+	return(item);
+}
+//------------------------------------------------------------------------------------------//
+CMFCPropertyGridProperty *CGCPropertyGridCtrl::CreateEnableItem(INT32 id,CString title,int32 blEnable,CString description){
 	CMFCPropertyGridProperty *item;
 	
 	item = new CMFCPropertyGridProperty(title,(_variant_t)_T(""),description);
@@ -128,7 +147,7 @@ void CGCPropertyGridCtrl::CreateGroupP(COMMAND_GROUP *group){
 	m_blIsModified = 0;
 	pGroup->AddSubItem(CreateTxtItem(1,_T("Name"),_T(""),_T("Group Name.")));
 	pGroup->AddSubItem(CreateIntItem(2,_T("Interval(ms)"),200,_T("Interval time between two command sending.Unit is ms.")));
-	pGroup->AddSubItem(CreateEnaItem(3,_T("Enable"),0,_T("Enable/Disable execution.")));
+	pGroup->AddSubItem(CreateEnableItem(3,_T("Enable"),0,_T("Enable/Disable execution.")));
 	pGroup->AddSubItem(CreateIntItem(4,_T("Cycle unmber"),1,_T("Cycle unmber.")));
 	AddProperty(pGroup);
 }
@@ -181,21 +200,20 @@ void CGCPropertyGridCtrl::CreateCommandP(COMMAND_NODE *command){
 
 	pGroup = new CMFCPropertyGridProperty(_T("Command"));
 	pGroup->AddSubItem(CreateTxtItem(7,_T("Command"),_T("")));
-	pGroup->AddSubItem(CreateEnaItem(8,_T("Enable"),1,_T("Enable/Disable send.")));
-	pGroup->AddSubItem(CreateEnaItem(9,_T("Send <CR>"),1,_T("Enable/Disable send <CR> in the command end.")));
-	pGroup->AddSubItem(CreateYesItem(10,_T("HEX"),0,_T("Command is HEX format.")));
+	pGroup->AddSubItem(CreateEnableItem(8,_T("Enable"),1,_T("Enable/Disable send.")));
+	pGroup->AddSubItem(CreateCMDTailItem(9,_T("Send <CR><LF>"),CMD_R,_T("Send <CR><LF> in the command end.")));
 	AddProperty(pGroup);
 
 	pGroup = new CMFCPropertyGridProperty(_T("Time"));
-	pGroup->AddSubItem(CreateTxtItem(11,_T("Timeout(S)"),_T("Unit is s.")));
-	pGroup->AddSubItem(CreateIntItem(12,_T("Cycle number"),1));
+	pGroup->AddSubItem(CreateTxtItem(10,_T("Timeout(S)"),_T("Unit is s.")));
+	pGroup->AddSubItem(CreateIntItem(11,_T("Cycle number"),1));
 	AddProperty(pGroup);
 
 	pGroup = new CMFCPropertyGridProperty(_T("Condition"));
-	pGroup->AddSubItem(CreateTxtItem(13,_T("Continue"),_T("")));
-	pGroup->AddSubItem(CreateTxtItem(14,_T("Resend"),_T("")));
-	pGroup->AddSubItem(CreateTxtItem(15,_T("Stop"),_T("")));
-	pGroup->AddSubItem(CreateTxtItem(16,_T("Catch"),_T("")));
+	pGroup->AddSubItem(CreateTxtItem(12,_T("Continue"),_T("")));
+	pGroup->AddSubItem(CreateTxtItem(13,_T("Resend"),_T("")));
+	pGroup->AddSubItem(CreateTxtItem(14,_T("Stop"),_T("")));
+	pGroup->AddSubItem(CreateTxtItem(15,_T("Catch"),_T("")));
 	AddProperty(pGroup);
 }
 //------------------------------------------------------------------------------------------//
@@ -222,17 +240,11 @@ void CGCPropertyGridCtrl::LoadCommandP(COMMAND_NODE *command){
 	else{
 		pGroup->GetSubItem(1)->SetValue(_T("Enable"));
 	}
-	if (command->blEnableSendCR == 0){
-		pGroup->GetSubItem(2)->SetValue(_T("Disable"));
-	}
-	else{
-		pGroup->GetSubItem(2)->SetValue(_T("Enable"));
-	}
-	if (command->blEnableHEX == 0){
-		pGroup->GetSubItem(3)->SetValue(_T("No"));
-	}
-	else{
-		pGroup->GetSubItem(3)->SetValue(_T("Yes"));
+	switch (command->cmdTail){
+		case CMD_NONE:pGroup->GetSubItem(2)->SetValue(_T("None")); break;
+		case CMD_R:pGroup->GetSubItem(2)->SetValue(_T("R")); break;
+		case CMD_N:pGroup->GetSubItem(2)->SetValue(_T("N")); break;
+		case CMD_RN:pGroup->GetSubItem(2)->SetValue(_T("RN")); break;
 	}
 	pGroup = GetProperty(2);
 	pGroup->GetSubItem(0)->SetValue(Str_ANSIToUnicode(command->StrTimeout).c_str());
@@ -350,23 +362,20 @@ void CGCPropertyGridCtrl::OnPropertyChanged(CMFCPropertyGridProperty* pProp) con
 			break;
 		case 9:
 			cValue = pProp->GetValue();
-			if (cValue == _T("Disable")){
-				m_command->blEnableSendCR = 0;
+			if (cValue == _T("None")){
+				m_command->cmdTail = CMD_NONE;
 			}
-			else if (cValue == _T("Enable")){
-				m_command->blEnableSendCR = 1;
+			else if (cValue == _T("R")){
+				m_command->cmdTail = CMD_R;
+			}
+			else if (cValue == _T("N")){
+				m_command->cmdTail = CMD_N;
+			}
+			else if (cValue == _T("RN")){
+				m_command->cmdTail = CMD_RN;
 			}
 			break;
 		case 10:
-			cValue = pProp->GetValue();
-			if (cValue == _T("No")){
-				m_command->blEnableHEX = 0;
-			}
-			else if (cValue == _T("Yes")){
-				m_command->blEnableHEX = 1;
-			}
-			break;
-		case 11:
 			double doubleValue;
 			cValue = pProp->GetValue();
 			m_command->StrTimeout = Str_UnicodeToANSI(cValue.GetBuffer(0));
@@ -374,23 +383,23 @@ void CGCPropertyGridCtrl::OnPropertyChanged(CMFCPropertyGridProperty* pProp) con
 			m_command->StrTimeout = Str_FloatToString(doubleValue);
 			pProp->SetValue(Str_ANSIToUnicode(m_command->StrTimeout).c_str());
 			break;
-		case 12:
+		case 11:
 			intValue = pProp->GetValue().lVal;
-			m_command->StrCycle = Str_IntToString(intValue);
+			m_command->StrCycle = Str_ToString(intValue);
 			break;
-		case 13:
+		case 12:
 			cValue = pProp->GetValue();
 			m_command->StrContinue = Str_UnicodeToANSI(cValue.GetBuffer(0));
 			break;
-		case 14:
+		case 13:
 			cValue = pProp->GetValue();
 			m_command->StrResend = Str_UnicodeToANSI(cValue.GetBuffer(0));
 			break;
-		case 15:
+		case 14:
 			cValue = pProp->GetValue();
 			m_command->StrStop = Str_UnicodeToANSI(cValue.GetBuffer(0));
 			break;
-		case 16:
+		case 15:
 			cValue = pProp->GetValue();
 			m_command->StrCatch = Str_UnicodeToANSI(cValue.GetBuffer(0));
 			break;

@@ -8,297 +8,205 @@
  * Writer	: Leif Wen
  * Date		: 2014.01.25
 */
-#ifndef BIC_BH
-#define BIC_BH
+
 //------------------------------------------------------------------------------------------//
+#include "BIC_Define.h"
 #include "Comm_Tree.h"
 #include "Device.h"
 //------------------------------------------------------------------------------------------//
+#ifdef DeviceH
+#ifndef BIC_BH
+#define BIC_BH
+#ifdef BIC_BH
+//------------------------------------------------------------------------------------------//
 enum{
-	BI_RETCODE_EXIT	= -1,
-	BI_RETCODE_NO	= 0,
-	BI_RETCODE_EXIT_HELP,
-	BI_RETCODE_EXECUTE,
-	BI_RETCODE_EXECUTE_BASH,
-	BI_RETCODE_EXECUTE_SH,
-	
-	BI_RETCODE_RETURN,
-	BI_RETCODE_HELP,
-	BI_RETCODE_DISPLAY,
-	
-	BI_RETCODE_MAIN,
-	BI_RETCODE_DEV,
-	BI_RETCODE_ECHO,
-	BI_RETCODE_REC,
-	
-	BI_RETCODE_COM,
-	BI_RETCODE_COM_BR,
-	BI_RETCODE_COM_MS,
-	BI_RETCODE_COM_DTR,
-	BI_RETCODE_COM_RTS,
-	BI_RETCODE_COM_LS,
-	
-	BI_RETCODE_TCP,
-	BI_RETCODE_UDP,
-	BI_RETCODE_TCPS,
-	BI_RETCODE_UDPS,
-	BI_RETCODE_PORT,
-	
-	BI_RETCODE_SI,
-	BI_RETCODE_SS,
-	BI_RETCODE_SSD,
-	
-	BI_RETCODE_CONNECT,
-	BI_RETCODE_DISCONNECT,
-	BI_RETCODE_CR,
-	
-	BI_RETCODE_AUX,
-	BI_RETCODE_AUX_COM,
-	BI_RETCODE_AUX_BR,
-	BI_RETCODE_AUX_MS,
-	BI_RETCODE_AUX_OPEN,
-	BI_RETCODE_AUX_CLOSE,
-	BI_RETCODE_AUX_REC,
-	BI_RETCODE_AUX_DTR,
-	BI_RETCODE_AUX_RTS,
-	
-	BI_RETCODE_SC,
-	BI_RETCODE_SC_EG,
-	BI_RETCODE_SC_LOAD,
-	BI_RETCODE_SC_SAVE,
-	BI_RETCODE_SC_LS,
-	BI_RETCODE_SC_SET,
-	BI_RETCODE_SC_CLONE,
-	BI_RETCODE_SC_DEL,
-	BI_RETCODE_SC_MVUP,
-	BI_RETCODE_SC_MVDN,
-	BI_RETCODE_SC_COMMAND,
-	BI_RETCODE_SC_SEND,
-	
-	BI_RETCODE_GC,
-	BI_RETCODE_GC_EG,
-	BI_RETCODE_GC_LOAD,
-	BI_RETCODE_GC_SAVE,
-	BI_RETCODE_GC_LS,
-	BI_RETCODE_GC_SET,
-	BI_RETCODE_GC_CLONE,
-	BI_RETCODE_GC_DEL,
-	BI_RETCODE_GC_MVUP,
-	BI_RETCODE_GC_MVDN,
-	BI_RETCODE_GC_GN,
-	BI_RETCODE_GC_GROUP,
-	BI_RETCODE_GC_GROUP_LS,
-	BI_RETCODE_GC_GROUP_SET,
-	BI_RETCODE_GC_GROUP_CLONE,
-	BI_RETCODE_GC_GROUP_DEL,
-	BI_RETCODE_GC_GROUP_MVUP,
-	BI_RETCODE_GC_GROUP_MVDN,
-	BI_RETCODE_GC_GROUP_COMMAND,
-	BI_RETCODE_GC_GROUP_CONTINUE,
-	BI_RETCODE_GC_GROUP_RESEND,
-	BI_RETCODE_GC_GROUP_CSTOP,
-	BI_RETCODE_GC_GROUP_CATCH,
-	BI_RETCODE_GC_GROUP_SEND,
-	
-	BI_RETCODE_SCRIPT,
-	BI_RETCODE_STOP,
-	BI_RETCODE_RUN,
-	BI_RETCODE_SEND,
-	BI_RETCODE_SENDA,
-	BI_RETCODE_SENDFILE,
-	
-	BI_RETCODE_CMUX,
-	BI_RETCODE_CMUX_ON,
-	BI_RETCODE_CMUX_OFF,
-	BI_RETCODE_CMUX_CLD,
-	BI_RETCODE_CMUX_PSC,
-	BI_RETCODE_CMUX_FC,
-	BI_RETCODE_CMUX_DTR,
-	BI_RETCODE_CMUX_RTS,
-	BI_RETCODE_DLCI,
-	
-	BI_RETCODE_NEWRECORD,
-	BI_RETCODE_MSDT,
-	BI_RETCODE_PATCHSDT,
-	BI_RETCODE_APPROVE,
-	BI_RETCODE_LSERVER,
-	BI_RETCODE_CREGREPORT,
-	
-	BI_RETCODE_NTP,
-	BI_RETCODE_NTPSERVER,
-	BI_RETCODE_TERMINALSERVER,
-		
-	BI_RETCODE_RST,
-	BI_RETCODE_RST_ON,
-	BI_RETCODE_RST_OFF,
-	BI_RETCODE_RST_LINK,
-	BI_RETCODE_RST_MAPPING,
-	BI_RETCODE_RST_LOGIN,
-	
-	BI_RETCODE_CALC,
-	BI_RETCODE_CALC_HEX2DEC,
-	BI_RETCODE_CALC_DEC2HEX,
-	BI_RETCODE_CALC_MD5,
-	BI_RETCODE_CALC_SHA1,
-	BI_RETCODE_CALC_SHA224,
-	BI_RETCODE_CALC_SHA256,
-	BI_RETCODE_CALC_SHA384,
-	BI_RETCODE_CALC_SHA512,
-	BI_RETCODE_CALC_BAS64,
-	
-	BI_RETCODE_DICT,
-	BI_RETCODE_DICT_DO,
-	BI_RETCODE_DICT_READ,
-	BI_RETCODE_DICT_SAVE,
-	BI_RETCODE_DICT_FIND,
-	BI_RETCODE_DICT_UPDATE,
+	COL_Result	= COL_clYellow,
+	COL_Sucess	= COL_NormalMessage,
+	COL_Fail	= COL_ImportantMessage,
 };
 //------------------------------------------------------------------------------------------//
-class SDTAPP;
-class PUB_SBUF;
-class IPCOMLIST;
-struct BICPAR{
-    SDTAPP		*sdtApp;
-	ODEV_NODE	*oDevNode;
-	PUB_SBUF	*charSBUF;
-	IPCOMLIST	*validComList;
-	std::string	retCommand;
-	int32		blExit;
-	int32		blInOnlineMode;
-	int32		blInPressKeyMode;
-	int32		blUseSecondLH;
-	int32		blDisplayAuto;
-    uint32		gDID;
+class BIC_Tools : public TREE_NODE{
+	public:
+				 BIC_Tools(void) : TREE_NODE()  {cgTitle = "";cgPrintTitle = "";};
+		virtual ~BIC_Tools(void){;};
+	public:
+		inline	static	void	SetblExit			(BIC_ENV *env){if (env->blExit != -1) env->blExit = 1;};
+		inline	static	void	ClrblExit			(BIC_ENV *env){if (env->blExit != -1) env->blExit = 0;};
+	public:
+				static	uint8	BI_ReadChar			(BIC_ENV *env,int32 blWait = 1);
+				static	int32	BI_ReadCommand		(BIC_ENV *env,STDSTR *retCMD);
+				static	uint8	PrintPressAnyKey	(BIC_ENV *env);
+				static	uint8	PressAnyKey			(BIC_ENV *env,ExpandDeviceAttr *eda,SYS_TIME_S *dly = nullptr);
+	public:
+		inline	static	void	SplitPar1			(STDSTR &strPar1,STDSTR &strPar2,const STDSTR &par,const STDSTR &split = " "){
+			strPar2 = Str_LTrim(par);
+			strPar1 = Str_ReadSubItem(&strPar2,split);
+			Str_LTrimSelf(strPar2);
+		};
+		inline	static	void	SplitPar1			(STDSTR *strPar1,STDSTR *strPar2,const STDSTR &split = " "){
+			*strPar1 = Str_ReadSubItem(strPar2,split);
+			Str_LTrimSelf(*strPar2);
+		};
+	public:
+				STDSTR		cgTitle;
+				STDSTR		cgPrintTitle;
+	public:
+				void		SetSLTitle	(const STDSTR &fTitle){cgPrintTitle = fTitle + "/" + cgTitle;UpdateTitle(cgPrintTitle);};
+				void		UpdateTitle	(const STDSTR &fTitle){TREE_LChildRChain_Traversal_LINE_nolock(BIC_Tools,this,operateNode_t->SetSLTitle(fTitle););};
+		virtual	TREE_NODE*	AddNode		(TNF *tTreeNode){((BIC_Tools*)tTreeNode)->SetSLTitle(cgTitle);return(TREE_NODE::AddNode(tTreeNode));};
+	public:
+		inline	static 	OUTPUT_NODE	&STDout	(BIC_ENV *env){return(*env->cstdout);};
+	
+		inline	static	OUTPUT_NODE	&Print	(BIC_ENV *env){return(OUTPUT_NODE::Print(env->cstdout));};
+		inline	static	OUTPUT_NODE	&PrintNL(BIC_ENV *env){return(OUTPUT_NODE::PrintNL(env->cstdout));};
+		static	void	PrintStr			(BIC_ENV *env,const COLSTR &colStr1,const COLSTR &colStr2 = "",const COLSTR &colStr3 = "",const COLSTR &colStr4 = ""
+											 ,const COLSTR &colStr5 = "",const COLSTR &colStr6 = "",const COLSTR &colStr7 = "",const COLSTR &colStr8 = "");
+		static	void	PrintStrNL			(BIC_ENV *env,const COLSTR &colStr1,const COLSTR &colStr2 = "",const COLSTR &colStr3 = "",const COLSTR &colStr4 = ""
+											 ,const COLSTR &colStr5 = "",const COLSTR &colStr6 = "",const COLSTR &colStr7 = "",const COLSTR &colStr8 = "");
+		static	void	PrintWithTime		(BIC_ENV *env,const COLSTR &colStr1,const COLSTR &colStr2 = "",const COLSTR &colStr3 = "",const COLSTR &colStr4 = ""
+											 ,const COLSTR &colStr5 = "",const COLSTR &colStr6 = "",const COLSTR &colStr7 = "",const COLSTR &colStr8 = "");
+		static	void	PrintWithDividingLine(BIC_ENV *env,const COLSTR &colStr1,const COLSTR &colStr2 = "",const COLSTR &colStr3 = "",const COLSTR &colStr4 = ""
+											 ,const COLSTR &colStr5 = "",const COLSTR &colStr6 = "",const COLSTR &colStr7 = "",const COLSTR &colStr8 = "");
+		static	void	PrintMessage		(BIC_ENV *env,const COLSTR &colStr1,const COLSTR &colStr2 = "",const COLSTR &colStr3 = "",const COLSTR &colStr4 = ""
+											 ,const COLSTR &colStr5 = "",const COLSTR &colStr6 = "",const COLSTR &colStr7 = "",const COLSTR &colStr8 = "");
+		static	void	PrintNormalMessage	(BIC_ENV *env,const STDSTR &strData1,const STDSTR &strData2 = "",const STDSTR &strData3 = "",const STDSTR &strData4 = ""
+											 ,const STDSTR &strData5 = "",const STDSTR &strData6 = "",const STDSTR &strData7 = "",const STDSTR &strData8 = "");
+		static	void	PrintWarningMessage	(BIC_ENV *env,const STDSTR &strData1C1,const STDSTR &strData2C2 = "",const STDSTR &strData3C2 = "",const STDSTR &strData4C2 = ""
+											 ,const STDSTR &strData5C2 = "",const STDSTR &strData6C2 = "",const STDSTR &strData7C2 = "",const STDSTR &strData8C2 = "");
+	public:
+		static	void	PrintALine			(BIC_ENV *env,const COLSTR &colStr1,const COLSTR &colStr2 = "",const COLSTR &colStr3 = "",const COLSTR &colStr4 = ""
+											 ,const COLSTR &colStr5 = "",const COLSTR &colStr6 = "",const COLSTR &colStr7 = "",const COLSTR &colStr8 = "");
+	public:
+		static	void	PrintTitle			(BIC_ENV *env,CSType tDevType,int32 blPrintTail = 0);
+		static	void	PrintHelpItem		(BIC_ENV *env,const STDSTR &command,const STDSTR &desp1,const STDSTR &desp2 = "",const STDSTR &desp3 = "",const STDSTR &desp4 = "");
+		static	void	PrintHelpSubItem	(BIC_ENV *env,const STDSTR &command,const STDSTR &desp1,const STDSTR &desp2 = "",const STDSTR &desp3 = "",const STDSTR &desp4 = "");
+	public:
+		static	void	PrintFail			(BIC_ENV *env,const COLSTR &colStr1 = "",const COLSTR &colStr2 = "",const COLSTR &colStr3 = "",const COLSTR &colStr4 = "");
+		static	void	PrintSuccess		(BIC_ENV *env,const COLSTR &colStr1 = "",const COLSTR &colStr2 = "",const COLSTR &colStr3 = "",const COLSTR &colStr4 = "");
+		static	void	PrintResult			(BIC_ENV *env,const COLSTR &colStr1 = "",const COLSTR &colStr2 = "",const COLSTR &colStr3 = "",const COLSTR &colStr4 = ""
+											 ,const COLSTR &colStr5 = "",const COLSTR &colStr6 = "",const COLSTR &colStr7 = "",const COLSTR &colStr8 = "");
+	public:
+		static	int32	BI_SetConnectPar	(ExpandDeviceAttr *eda,const STDSTR &par,CSType tDevType);
+		static	int32	BI_SetConnectPar2	(ExpandDeviceAttr *eda,const STDSTR &par);
+	public:
+				int32	OnlineMode			(BIC_ENV *env,COMMU_DBUF_FRAME *cmmu,CMD_TAIL tail)const;
+		virtual	int32	OnlineModeExit		(BIC_ENV *env)const{return 0;};
+				int32	InPressKeyMode		(BIC_ENV *env)const;
+		virtual	int32	InPressKeyModeExit	(BIC_ENV *env)const{return 0;};
 };
 //------------------------------------------------------------------------------------------//
-class BIC_Node : public RTREE_NODE{
+class BIC_Node : public BIC_Tools{
 	public:
-		enum{RFLAG_C = 0, RFLAG_S = RTREE_NODE::RFLAG_S + RTREE_NODE::RFLAG_C};
-	public:
-				 BIC_Node(void) : RTREE_NODE()  {cgTitle = "";cgPrintTitle = "";cgCommand = "";cgReturnCode = BI_RETCODE_NO;};
+				 BIC_Node(void) : BIC_Tools()  {selfName = "";cgCommand = "";cgReturnCode = BI_RETCODE_NO;cgblTrySubCMD = 0;};
 		virtual ~BIC_Node(void){;};
-	public:
-		static	void	SetblExit			(BICPAR *tBICPAR){if (tBICPAR->blExit != -1) tBICPAR->blExit = 1;};
-		static	void	ClrblExit			(BICPAR *tBICPAR){if (tBICPAR->blExit != -1) tBICPAR->blExit = 0;};
-		static	uint8	BI_ReadChar			(BICPAR *tBICPAR,int32 blWait = 1);
-		static	int32	BI_ReadCommand		(BICPAR *tBICPAR);
-	public:
-		static	void	PrintTitle			(BICPAR *tBICPAR,DEVICE::DEVID_TYPE tDevType,int32 blPrintTail = 0);
-		static	void	PrintDoRet			(BICPAR *tBICPAR,const std::string &strData)
-												{tBICPAR->oDevNode->WriteToStrN(strData + "\n",RICH_LIN_clLightBlue,COLSTRING::COL_EP_YES);};
-		static	void	PrintStr			(BICPAR *tBICPAR,const std::string &strData,const std::string &strColor)
-												{tBICPAR->oDevNode->WriteToStr(strData,strColor,COLSTRING::COL_EP_YES);};
-        static	void	PrintStrN			(BICPAR *tBICPAR,const std::string &strData,const std::string &strColor)
-												{tBICPAR->oDevNode->WriteToStrN(strData,strColor,COLSTRING::COL_EP_YES);};
-		static	void	PrintHelpItem		(BICPAR *tBICPAR,const std::string &command,const std::string &desp);
-		static	uint8	PrintPressAnyKey	(BICPAR *tBICPAR);
-		static	uint8	PressAnyKey			(BICPAR *tBICPAR);
-	public:
-		static	int32	BI_SET_ConnectPar	(BICPAR *tBICPAR,const std::string &par,DEVICE::DEVID_TYPE tDevType);
-		static	int32	BI_SET_ConnectPar2	(BICPAR *tBICPAR,const std::string &par);
-	public:
-		std::string		cgPrintTitle;
-		std::string		cgTitle;
-		void 			SetSLTitle			(const std::string &fTitle);
-		int32			UpdateTitle			(const std::string &fTitle);
 	protected:
-		std::string		cgCommand;
-		int32			cgReturnCode;
-	protected:
-		virtual	int32	ExecLC		(BICPAR *tBICPAR,const std::string &fullCMD,std::string *ret)const;
-		virtual	int32	ExecLC_T	(BICPAR *tBICPAR,const std::string &exTitle,std::string *ret)const;
+		STDSTR		cgCommand;
+		int32		cgReturnCode;
+		int32		cgblTrySubCMD;
 	public:
-		virtual	int32	ExecuteLC	(BICPAR *tBICPAR,const std::string &par,const std::string &exTitle,std::string *ret)const;
-		virtual	int32	HelpLC		(BICPAR *tBICPAR,int32 blDetail = 1,int32 blPrintSubTitle = 1)const;
-
-		virtual	int32	Check		(BICPAR *tBICPAR,const std::string &fullCMD,std::string *retPar)const;
-		virtual	int32	Execute		(BICPAR *tBICPAR,const std::string &fullCMD,std::string *ret)const;
-		virtual	int32	Help		(BICPAR *tBICPAR,int32 blDetail = 1)const;
-		virtual	int32	Command		(BICPAR *tBICPAR,const std::string &par,std::string *ret)const;
-		virtual	int32	AddNode		(RTREE_NODE *tTreeNode){RTREE_NODE::AddNode(tTreeNode);((BIC_Node*)tTreeNode)->SetSLTitle(cgTitle);return 1;};
+		inline int32 ExecuteTraversalChild(BIC_ENV *env,const STDSTR &cmd,void *p)const{
+			int32	retCode;
+			retCode = BI_RETCODE_NO;
+			TREE_LChildRChain_Traversal_LINE_nolock(BIC_Node,this,
+				retCode = operateNode_t->Execute(env,cmd,p);
+				if (retCode != BI_RETCODE_NO)
+					break;
+			);
+			return(retCode);
+		}
+		int32 HelpTraversalChild(BIC_ENV *env,int32 blDetail = 1,int32 blPrintSubTitle = 1)const{
+			if ((GetcgDown(this) != nullptr) && (blPrintSubTitle != 0))
+				PrintALine(env,"Subcommand explain:");
+			TREE_LChildRChain_Traversal_LINE_nolock(BIC_Node,this,operateNode_t->Help(env,blDetail););
+			return(cgReturnCode);
+		}
+		inline	virtual void	SetSubNodeSelfName(const STDSTR &strName){
+			TREE_LChildRChain_Traversal_LINE_nolock(BIC_Node,this,operateNode_t->SetSelfName(strName);operateNode_t->SetSubNodeSelfName(strName););
+		}
+	public:
+		virtual	int32	Check		(BIC_ENV *env,const STDSTR &rawIn,STDSTR *retPar)const;
+		virtual	int32	Execute		(BIC_ENV *env,const STDSTR &rawIn,void *p)const;
+	public:
+		virtual	int32	Help		(BIC_ENV *env,int32 blDetail = 1)const{return(cgReturnCode);};
+		virtual	int32	Command		(BIC_ENV *env,const STDSTR &par,void *p)const;
+	
+		int32	ExecuteAsConsole	(BIC_ENV *env,const STDSTR &cmd,const STDSTR &exTitle,void *p)const;
+};
+//------------------------------------------------------------------------------------------//
+class BIC_VERSION : public BIC_Node{
+	public:
+				 BIC_VERSION(void) : BIC_Node() {cgCommand = "ver";cgReturnCode = BI_RETCODE_VERSION;};
+		virtual ~BIC_VERSION(void){;};
+	public:
+		virtual	int32	Command (BIC_ENV *env,const STDSTR &par,void *p)const{PrintResult(env, SWVERSION_SHORTNAME, SWVERSION_VER);return(cgReturnCode);};
+		virtual	int32	Help	(BIC_ENV *env,int32 blDetail = 1)const{
+			PrintHelpItem(env,cgCommand,"SDT Version.");
+			return(cgReturnCode);
+		};
 };
 //------------------------------------------------------------------------------------------//
 class BIC_HELP : public BIC_Node{
 	public:
-		enum{RFLAG_C = 0, RFLAG_S = BIC_Node::RFLAG_S + BIC_Node::RFLAG_C};
-	public:
 				 BIC_HELP(void) : BIC_Node() {cgCommand = "?/help";cgReturnCode = BI_RETCODE_HELP;};
 		virtual ~BIC_HELP(void){;};
 	public:
-		virtual	int32	Help	(BICPAR *tBICPAR,int32 blDetail = 1)const;
-		virtual	int32	Command	(BICPAR *tBICPAR,const std::string &par,std::string *ret)const;
+		virtual	int32	Command (BIC_ENV *env,const STDSTR &par,void *p)const;
+		virtual	int32	Help	(BIC_ENV *env,int32 blDetail = 1)const{
+			PrintHelpItem(env,cgCommand,"Help information.");
+			if (blDetail == 0)
+				return(cgReturnCode);
+			PrintHelpSubItem(env,"[-d]","List command detail.");
+			return(cgReturnCode);
+		};
 };
 //------------------------------------------------------------------------------------------//
 class BIC_EXIT : public BIC_Node{
 	public:
-		enum{RFLAG_C = 0, RFLAG_S = BIC_Node::RFLAG_S + BIC_Node::RFLAG_C};
-	public:
 				 BIC_EXIT(void) : BIC_Node() {cgCommand = "exit";cgReturnCode = BI_RETCODE_EXIT;};
 		virtual ~BIC_EXIT(void){;};
 	public:
-		virtual	int32	Help	(BICPAR *tBICPAR,int32 blDetail = 1)const;
-		virtual	int32	Command	(BICPAR *tBICPAR,const std::string &par,std::string *ret)const;
-};
-//------------------------------------------------------------------------------------------//
-class BIC_EXEC : public BIC_Node{
-	public:
-		enum{RFLAG_C = 0, RFLAG_S = BIC_Node::RFLAG_S + BIC_Node::RFLAG_C};
-	public:
-				 BIC_EXEC(void) : BIC_Node() {cgCommand = "ex/execute";cgReturnCode = BI_RETCODE_EXECUTE;};
-		virtual ~BIC_EXEC(void){;};
-	public:
-		virtual	int32	Help	(BICPAR *tBICPAR,int32 blDetail = 1)const;
-		virtual	int32	Command	(BICPAR *tBICPAR,const std::string &par,std::string *ret)const;
-};
-//------------------------------------------------------------------------------------------//
-class BIC_EXE_BASH : public BIC_Node{
-	public:
-	    enum{RFLAG_C = 0, RFLAG_S = BIC_Node::RFLAG_S + BIC_Node::RFLAG_C};
-	public:
-			     BIC_EXE_BASH(void) : BIC_Node() {cgCommand = "bash";cgReturnCode = BI_RETCODE_EXECUTE_BASH;};
-	    virtual ~BIC_EXE_BASH(void){;};
-	public:
-	    virtual	int32	Help	(BICPAR *tBICPAR,int32 blDetail = 1)const;
-	    virtual	int32	Command	(BICPAR *tBICPAR,const std::string &par,std::string *ret)const;
-};
-//------------------------------------------------------------------------------------------//
-class BIC_EXE_SH : public BIC_Node{
-	public:
-	    enum{RFLAG_C = 0, RFLAG_S = BIC_Node::RFLAG_S + BIC_Node::RFLAG_C};
-	public:
-			     BIC_EXE_SH(void) : BIC_Node() {cgCommand = "exsh";cgReturnCode = BI_RETCODE_EXECUTE_SH;};
-	    virtual ~BIC_EXE_SH(void){;};
-	public:
-	    virtual	int32	Help	(BICPAR *tBICPAR,int32 blDetail = 1)const;
-	    virtual	int32	Command	(BICPAR *tBICPAR,const std::string &par,std::string *ret)const;
+		virtual	int32	Command (BIC_ENV *env,const STDSTR &par,void *p)const{
+			#ifdef CommonDefH_VC
+				return(BI_RETCODE_NO);
+			#endif
+			#ifdef CommonDefH_Unix
+				env->blExit = cgReturnCode;
+				PrintStr(env,"\n");
+				return(cgReturnCode);
+			#endif
+		};
+		virtual	int32	Help	(BIC_ENV *env,int32 blDetail = 1)const{
+			PrintHelpItem(env,cgCommand,"Exit SDT.");
+			return(BI_RETCODE_EXIT_HELP);
+		};
 };
 //------------------------------------------------------------------------------------------//
 class BIC_RETURN : public BIC_Node{
 	public:
-	    enum{RFLAG_C = 0, RFLAG_S = BIC_Node::RFLAG_S + BIC_Node::RFLAG_C};
+				 BIC_RETURN(void) : BIC_Node() {cgCommand = "r/return";cgReturnCode = BI_RETCODE_RETURN;};
+		virtual ~BIC_RETURN(void){;};
 	public:
-                 BIC_RETURN(void) : BIC_Node() {cgCommand = "r/return";cgReturnCode = BI_RETCODE_RETURN;};
-	    virtual ~BIC_RETURN(void){;};
-	public:
-	    virtual	int32	Help	(BICPAR *tBICPAR,int32 blDetail = 1)const;
-	    virtual	int32	Command	(BICPAR *tBICPAR,const std::string &par,std::string *ret)const;
+		virtual	int32	Command (BIC_ENV *env,const STDSTR &par,void *p)const{PrintStr(env,"\n");return(cgReturnCode);};
+		virtual	int32	Help	(BIC_ENV *env,int32 blDetail = 1)const{
+			PrintHelpItem(env,cgCommand,"Return to the upper menu.");
+			return(cgReturnCode);
+		};
 };
 //------------------------------------------------------------------------------------------//
 class BIC_Node_S : public BIC_Node{
 	public:
-	    enum{RFLAG_C = 0, RFLAG_S = BIC_Node::RFLAG_S + BIC_Node::RFLAG_C};
-	public:
-			     BIC_Node_S(void) : BIC_Node() {InitSubNode();};
-	    virtual ~BIC_Node_S(void){;};
+				 BIC_Node_S(void) : BIC_Node() {InitSubNode();};
+		virtual ~BIC_Node_S(void){;};
 	protected:
-		void	InitSubNode(void){
-            AddNode(&cgSub_EXIT);
-			AddNode(&cgSub_HELP);
-            AddNode(&cgSub_RETURN);
-        }
-	    BIC_HELP	cgSub_HELP;
-    	BIC_RETURN	cgSub_RETURN;
-	    BIC_EXIT	cgSub_EXIT;
+		void	InitSubNode(void){Add(cgSub_EXIT) < cgSub_VERSION < cgSub_HELP < cgSub_RETURN;};
+	protected:
+		BIC_EXIT	cgSub_EXIT;
+		BIC_VERSION cgSub_VERSION;
+		BIC_HELP	cgSub_HELP;
+		BIC_RETURN	cgSub_RETURN;
 };
 //------------------------------------------------------------------------------------------//
+//------------------------------------------------------------------------------------------//
+#endif
+#endif
 #endif

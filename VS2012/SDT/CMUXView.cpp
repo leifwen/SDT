@@ -456,7 +456,7 @@ void CCMUXCOMCtrl::InitBR(void){
 //------------------------------------------------------------------------------------------//
 void CCMUXCOMCtrl::InitComboBox_COM(void){
 	CreateComboBox_COMList();
-	m_ValidAuxComList.selectedNode = (IPCOMNAME*)m_ValidAuxComList.GetLastChild(&m_ValidAuxComList);
+	m_ValidAuxComList.selectedNode = (IPCOMNAME*)TREE_NODE::GetcgTail(TREE_NODE::GetcgDown(&m_ValidAuxComList));
 	SetSelectComboBox_COM();
 }
 //------------------------------------------------------------------------------------------//
@@ -486,7 +486,7 @@ void CCMUXCOMCtrl::SetSelectComboBox_COM(void){
 		sstrPortName = "UDP SERVER";
 	sstrShowName = listItem->strShowName.c_str();
 	m_ComboCOM.SetWindowText(sstrPortName);
-	sstrBR = Str_IntToString(listItem->portBaudrate).c_str();
+	sstrBR = Str_ToString(listItem->portBaudrate).c_str();
 	id = m_ComboBR.FindString(0,sstrBR);
 	m_ComboBR.SetCurSel(id);
 	m_ComboCOM.SetDroppedWidth(300);
@@ -504,7 +504,7 @@ void CCMUXCOMCtrl::CreateComboBox_COMList(void){
 
 	m_ValidAuxComList.Spin_InUse_set();
 	i = 0;
-	RTREE_LChildRChain_Traversal_LINE(IPCOMNAME, (&m_ValidAuxComList),
+	TREE_LChildRChain_Traversal_LINE(IPCOMNAME, (&m_ValidAuxComList),
 		if (operateNode_t->typeID == PublicDevice_DEVID_APICOM)
 			sstrPortName = operateNode_t->strIPComName.c_str();
 		if (operateNode_t->typeID == PublicDevice_DEVID_TCPClient){
@@ -521,7 +521,7 @@ void CCMUXCOMCtrl::CreateComboBox_COMList(void){
 			sstrPortName = "UDP SERVER";
 		sstrShowName = operateNode_t->strShowName.c_str();
 		m_ComboCOM.InsertString(i,sstrShowName);
-		m_ComboCOM.SetItemData(i, RTREE_NODE::GetdRNodeID(operateNode_t));
+		m_ComboCOM.SetItemData(i, TREE_NODE::GetdRNodeID(operateNode_t));
 		++ i;
 		if (sstrBackup == sstrShowName)
 			m_ValidAuxComList.selectedNode = operateNode_t;
@@ -557,7 +557,7 @@ void CCMUXCOMCtrl::OnOpen(void){
 	std::string		sText;
 	int32			br;
 
-	if (GSDTApp.m_CMUXDriver.CheckblStart() == 0){
+	if (GSDTApp.m_CMUXDriver.IsConnected() == 0){
 		m_CMUXCOM = NULL;
 		m_blConnect = FALSE;
 		m_ButtonOpen.SetWindowText(_T("Open"));
@@ -587,7 +587,7 @@ void CCMUXCOMCtrl::OnOpen(void){
 		}
 	}
 	else{
-		GSDTApp.m_CMUXDriver.VCOMClose(m_ComNumber,1);
+		GSDTApp.m_CMUXDriver.VCOMClose(m_ComNumber);
 		m_CMUXCOM = NULL;
 		m_blConnect = FALSE;
 		m_ButtonOpen.SetWindowText(_T("Open"));
@@ -601,7 +601,7 @@ void CCMUXCOMCtrl::OnOpen(void){
 //------------------------------------------------------------------------------------------//
 void CCMUXCOMCtrl::OnDTR(void){
 #ifdef	SWVERSION_CMUX
-	if (GSDTApp.m_CMUXDriver.CheckblStart() == 0){
+	if (GSDTApp.m_CMUXDriver.IsConnected() == 0){
 		m_CMUXCOM = NULL;
 		m_CheckDTR.EnableWindow(FALSE);
 		return;
@@ -609,15 +609,15 @@ void CCMUXCOMCtrl::OnDTR(void){
 	if (m_CMUXCOM == NULL)
 		return;
 	GSDTApp.m_CMUXDriver.Spin_InUse_set();
-	m_CMUXCOM->vPortDTR = (m_CMUXCOM->vPortDTR == 0);
-	GSDTApp.m_CMUXDriver.SendMSC(m_ComNumber,m_CMUXCOM->vPortDTR,m_CMUXCOM->vPortRTS);
+	m_CMUXCOM->Update_DTR(m_CMUXCOM->Check_DTR() == 0);
+	GSDTApp.m_CMUXDriver.SendMSC(m_ComNumber,m_CMUXCOM->Check_DTR(),m_CMUXCOM->Check_RTS());
 	GSDTApp.m_CMUXDriver.Spin_InUse_clr();
 #endif
 }
 //------------------------------------------------------------------------------------------//
 void CCMUXCOMCtrl::OnRTS(void){
 #ifdef	SWVERSION_CMUX
-	if (GSDTApp.m_CMUXDriver.CheckblStart() == 0){
+	if (GSDTApp.m_CMUXDriver.IsConnected() == 0){
 		m_CMUXCOM = NULL;
 		m_CheckRTS.EnableWindow(FALSE);
 		return;
@@ -625,76 +625,76 @@ void CCMUXCOMCtrl::OnRTS(void){
 	if (m_CMUXCOM == NULL)
 		return;
 	GSDTApp.m_CMUXDriver.Spin_InUse_set();
-	m_CMUXCOM->vPortRTS = (m_CMUXCOM->vPortRTS == 0);
-	GSDTApp.m_CMUXDriver.SendMSC(m_ComNumber,m_CMUXCOM->vPortDTR,m_CMUXCOM->vPortRTS);
+	m_CMUXCOM->Update_RTS(m_CMUXCOM->Check_RTS() == 0);
+	GSDTApp.m_CMUXDriver.SendMSC(m_ComNumber,m_CMUXCOM->Check_DTR(),m_CMUXCOM->Check_RTS());
 	GSDTApp.m_CMUXDriver.Spin_InUse_clr();
 #endif
 }
 //------------------------------------------------------------------------------------------//
 void CCMUXCOMCtrl::OnHEX(void){
 #ifdef	SWVERSION_CMUX
-	if (GSDTApp.m_CMUXDriver.CheckblStart() == 0){
+	if (GSDTApp.m_CMUXDriver.IsConnected() == 0){
 		m_CMUXCOM = NULL;
 		return;
 	}
 	if (m_CMUXCOM == NULL)
 		return;
 	GSDTApp.m_CMUXDriver.Spin_InUse_set();
-	m_CMUXCOM->vPortHEX = (m_CMUXCOM->vPortHEX == 0);
-	if (m_CMUXCOM->vPortHEX != 0)
-		m_CMUXCOM->vPortEscape = 0;
+	m_CMUXCOM->Update_HEX(m_CMUXCOM->Check_HEX() == 0);
+	if (m_CMUXCOM->Check_HEX() != 0)
+		m_CMUXCOM->Update_Escape(0);
 	GSDTApp.m_CMUXDriver.Spin_InUse_clr();
 #endif
 }
 //------------------------------------------------------------------------------------------//
 void CCMUXCOMCtrl::OnEscape(void){
 #ifdef	SWVERSION_CMUX
-	if (GSDTApp.m_CMUXDriver.CheckblStart() == 0){
+	if (GSDTApp.m_CMUXDriver.IsConnected() == 0){
 		m_CMUXCOM = NULL;
 		return;
 	}
 	if (m_CMUXCOM == NULL)
 		return;
 	GSDTApp.m_CMUXDriver.Spin_InUse_set();
-	m_CMUXCOM->vPortEscape = (m_CMUXCOM->vPortEscape == 0);
-	if (m_CMUXCOM->vPortEscape != 0)
-		m_CMUXCOM->vPortHEX = 0;
+	m_CMUXCOM->Update_Escape(m_CMUXCOM->Check_Escape() == 0);
+	if (m_CMUXCOM->Check_Escape() != 0)
+		m_CMUXCOM->Update_HEX(0);
 	GSDTApp.m_CMUXDriver.Spin_InUse_clr();
 #endif
 }
 //------------------------------------------------------------------------------------------//
 void  CCMUXCOMCtrl::RefreshCOM(void){
 #ifdef	SWVERSION_CMUX
-	if (GSDTApp.m_CMUXDriver.CheckblStart() != 0){
+	if (GSDTApp.m_CMUXDriver.IsConnected() != 0){
 		if (m_CMUXCOM != NULL){
 			if (m_CMUXCOM->IsConnected() != 0){
 				std::string	strTemp;
 				m_blConnect = TRUE;
 				GSDTApp.m_CMUXDriver.Spin_InUse_set();
-				m_CheckDSR.SetCheck(m_CMUXCOM->vPortDSR != 0);
-				m_CheckCTS.SetCheck(m_CMUXCOM->vPortCTS != 0);
-				m_CheckDCD.SetCheck(m_CMUXCOM->vPortDCD != 0);
-				m_CheckRING.SetCheck(m_CMUXCOM->vPortRING != 0);
+				m_CheckDSR.SetCheck(m_CMUXCOM->Check_DSR() != 0);
+				m_CheckCTS.SetCheck(m_CMUXCOM->Check_CTS() != 0);
+				m_CheckDCD.SetCheck(m_CMUXCOM->Check_DCD() != 0);
+				m_CheckRING.SetCheck(m_CMUXCOM->Check_RING() != 0);
 					
-				m_CheckDTR.SetCheck(m_CMUXCOM->vPortDTR != 0);
-				m_CheckRTS.SetCheck(m_CMUXCOM->vPortRTS != 0);
+				m_CheckDTR.SetCheck(m_CMUXCOM->Check_DTR() != 0);
+				m_CheckRTS.SetCheck(m_CMUXCOM->Check_RTS() != 0);
 
-				m_CheckEscape.SetCheck(m_CMUXCOM->vPortEscape != 0);
-				m_CheckHEX.SetCheck(m_CMUXCOM->vPortHEX != 0);
+				m_CheckEscape.SetCheck(m_CMUXCOM->Check_Escape() != 0);
+				m_CheckHEX.SetCheck(m_CMUXCOM->Check_HEX() != 0);
 
 				strTemp = "Rx:";
-				strTemp += Str_UInt64ToString(m_CMUXCOM->RxBytes());
+				strTemp += Str_ToString(m_CMUXCOM->RxBytes());
 
 				m_StaticRx.SetValue(strTemp);
 
 				strTemp = "Tx:";
-				strTemp += Str_UInt64ToString(m_CMUXCOM->TxBytes());
+				strTemp += Str_ToString(m_CMUXCOM->TxBytes());
 				m_StaticTx.SetValue(strTemp);
 				GSDTApp.m_CMUXDriver.Spin_InUse_clr();
 				return;
 			}
 			else{
-				GSDTApp.m_CMUXDriver.VCOMClose(m_ComNumber,1);
+				GSDTApp.m_CMUXDriver.VCOMClose(m_ComNumber);
 			}
 		}
 	}

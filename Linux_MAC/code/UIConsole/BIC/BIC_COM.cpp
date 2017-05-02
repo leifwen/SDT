@@ -15,359 +15,195 @@
 #include "Comm_Convert.h"
 #include "AppLayer.h"
 //------------------------------------------------------------------------------------------//
+#if defined BIC_COMH
 //------------------------------------------------------------------------------------------//
-int32 BIC_COM::Help(BICPAR *tBICPAR,int32 blDetail)const{
-	PrintHelpItem(tBICPAR,cgCommand,"Set as COM mode.");
-	if (blDetail == 0)
-		return(cgReturnCode);
-	PrintHelpItem(tBICPAR,"     [name][br]"		,"COM name and baudrate.");
-	return(cgReturnCode);
-}
-//------------------------------------------------------------------------------------------//
-int32 BIC_COM::Command(BICPAR *tBICPAR,const std::string &par,std::string *ret)const{
-	std::string		strPar1,strPar2;
-	
-	*ret = "";
-	
-	strPar2 = Str_Trim(par);
-	strPar1 = Str_ReadSubItem(&strPar2," ");
-	Str_LTrimSelf(strPar2);
-	
-	if (BI_SET_ConnectPar(tBICPAR,par,DEVICE::DEVID_APICOM) == 0)
-		PrintDoRet(tBICPAR,"Set fail due to already connected");
-	
+int32 BIC_COM::Command(BIC_ENV *env,const STDSTR &par,void *eda)const{
+	if (BI_SetConnectPar(static_cast<ExpandDeviceAttr*>(eda),par,CSType_COM) == 0)
+		PrintFail(env,"already connected");
 	return(cgReturnCode);
 }
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
-int32 BIC_COM_BR::Help(BICPAR *tBICPAR,int32 blDetail)const{
-	PrintHelpItem(tBICPAR,cgCommand,"Set COM baudrate.");
-	if (blDetail == 0)
-		return(cgReturnCode);
-	PrintHelpItem(tBICPAR,"     <n>","Baudrate.");
-	return(cgReturnCode);
-}
-//------------------------------------------------------------------------------------------//
-int32 BIC_COM_BR::Command(BICPAR *tBICPAR,const std::string &par,std::string *ret)const{
-	*ret = "";
+int32 BIC_COM_BR::Command(BIC_ENV *env,const STDSTR &par,void *eda)const{
+	ExpandDeviceAttr* attr = static_cast<ExpandDeviceAttr*>(eda);
+	
 	if (par.length() == 0)
-		return(Help(tBICPAR));
+		return(Help(env));
 	
-	if (tBICPAR->sdtApp->m_Device.cgDevType == DEVICE::DEVID_APICOM){
-		BI_SET_ConnectPar2(tBICPAR,par);
+	if (attr->IsCom()){
+		BI_SetConnectPar2(attr,par);
 	}
 	else{
-		PrintDoRet(tBICPAR,"Set fail due to no COM device");
+		PrintFail(env,"no COM device");
 	}
 	return(cgReturnCode);
 }
 //------------------------------------------------------------------------------------------//
-int32 BIC_COM_DTR::Help(BICPAR *tBICPAR,int32 blDetail)const{
-	PrintHelpItem(tBICPAR,cgCommand,"Set DTR.");
-	if (blDetail == 0)
-		return(cgReturnCode);
-	PrintHelpItem(tBICPAR,"     [-H[t]]"	,"Set to High, t is time, unit is S.");
-	PrintHelpItem(tBICPAR,"     [-L[t]]"	,"Set to Low, t is time, unit is S.");
-	return(cgReturnCode);
-}
 //------------------------------------------------------------------------------------------//
-int32 BIC_COM_DTR::Command(BICPAR *tBICPAR,const std::string &par,std::string *ret)const{
-	std::string		strPrintData,strPar1,strPar2,strSub;
-	double			timeMs;
-	SYS_TIME_S		timeS;
+int32 BIC_COM_DTR::Command(BIC_ENV *env,const STDSTR &par,void *eda)const{
+	ExpandDeviceAttr* attr = static_cast<ExpandDeviceAttr*>(eda);
 	
-	*ret = "";
-	if ((tBICPAR->sdtApp->m_Device.cgDevType == DEVICE::DEVID_APICOM) && (tBICPAR->sdtApp->m_Device.CheckblConnect() != 0)){
+	STDSTR		strPar1,strPar2,strPar3;
+	SYS_TIME_S	timeS;
+	int32		bltime;
+	
+	if (attr->IsComOpened()){
 		if (par.length() == 0){
-			if (tBICPAR->sdtApp->m_Device.cgAPIECom->GetDTRStatus() == 0){
-				PrintStrN(tBICPAR," DTR is high.\n",RICH_LIN_clDefault);
-			}
-			else{
-				PrintStrN(tBICPAR," DTR is low.\n",RICH_LIN_clDefault);
-			}
+			PrintResult(env,selfName,"COM DTR is",((attr->ACom()->GetDTRStatus() != 0)?"high":"low"));
 		}
 		else{
-			strPar2 = par;
-			while(strPar2.length() > 0){
-				strPar1 = Str_Trim(Str_ReadSubItem(&strPar2, " "));
+			SplitPar1(strPar1, strPar3, par);
+			do{
+				bltime = 0;
+				SplitPar1(&strPar2,&strPar3);
+				if ((strPar2.length() > 0) && (strPar2 != "-H") && (strPar2 != "-L")){
+					SYS_Delay_SetTS(&timeS,atof(strPar2.c_str()) * 1000);
+					bltime = 1;
+				}
 				if (strPar1 == "-H"){
-					tBICPAR->sdtApp->m_Device.cgAPIECom->SetDTRToHigh();
-					strPrintData = SYS_MakeTimeNow();
-					strPrintData += " Set DTR to high\r\n";
-					if (tBICPAR->sdtApp->m_Device.cgODevList.cgOutput != nullptr){
-						tBICPAR->sdtApp->m_Device.cgODevList.cgOutput->Spin_InUse_set();
-						tBICPAR->sdtApp->m_Device.cgODevList.cgOutput->WriteDividingLine(RICH_CF_clMaroon,COLSTRING::COL_EP_YES);
-						tBICPAR->sdtApp->m_Device.cgODevList.cgOutput->WriteStrN(strPrintData,RICH_CF_clPurple,COLSTRING::COL_EP_YES);
-						tBICPAR->sdtApp->m_Device.cgODevList.cgOutput->WriteDividingLine(RICH_CF_clMaroon,COLSTRING::COL_EP_YES);
-						tBICPAR->sdtApp->m_Device.cgODevList.cgOutput->Spin_InUse_clr();
-					}
-					return(cgReturnCode);
+					attr->ACom()->SetDTR(1);
 				}
 				else if (strPar1 == "-L"){
-					tBICPAR->sdtApp->m_Device.cgAPIECom->SetDTRToLow();
-					strPrintData = SYS_MakeTimeNow();
-					strPrintData += " Set DTR to Low\r\n";
-					if (tBICPAR->sdtApp->m_Device.cgODevList.cgOutput != nullptr){
-						tBICPAR->sdtApp->m_Device.cgODevList.cgOutput->Spin_InUse_set();
-						tBICPAR->sdtApp->m_Device.cgODevList.cgOutput->WriteDividingLine(RICH_CF_clMaroon,COLSTRING::COL_EP_YES);
-						tBICPAR->sdtApp->m_Device.cgODevList.cgOutput->WriteStrN(strPrintData,RICH_CF_clPurple,COLSTRING::COL_EP_YES);
-						tBICPAR->sdtApp->m_Device.cgODevList.cgOutput->WriteDividingLine(RICH_CF_clMaroon,COLSTRING::COL_EP_YES);
-						tBICPAR->sdtApp->m_Device.cgODevList.cgOutput->Spin_InUse_clr();
-					}
-					return(cgReturnCode);
+					attr->ACom()->SetDTR(0);
 				}
-				else if(strPar1.length() > 2){
-					strSub = strPar1.substr(0,2);
-					if (strSub == "-H"){
-						strSub = strPar1.substr(2);
-						timeMs = atof(strSub.c_str());
-						tBICPAR->sdtApp->m_Device.cgAPIECom->SetDTRToHigh();
-						strPrintData = SYS_MakeTimeNow();
-						SYS_Delay_SetTS(&timeS,timeMs * 1000);
-						strPrintData += " Set DTR to high\r\n";
-						if (tBICPAR->sdtApp->m_Device.cgODevList.cgOutput != nullptr){
-							tBICPAR->sdtApp->m_Device.cgODevList.cgOutput->Spin_InUse_set();
-							tBICPAR->sdtApp->m_Device.cgODevList.cgOutput->WriteDividingLine(RICH_CF_clMaroon,COLSTRING::COL_EP_YES);
-							tBICPAR->sdtApp->m_Device.cgODevList.cgOutput->WriteStrN(strPrintData,RICH_CF_clPurple,COLSTRING::COL_EP_YES);
-							tBICPAR->sdtApp->m_Device.cgODevList.cgOutput->WriteDividingLine(RICH_CF_clMaroon,COLSTRING::COL_EP_YES);
-							tBICPAR->sdtApp->m_Device.cgODevList.cgOutput->Spin_InUse_clr();
-						}
-						
-						while ((tBICPAR->blExit == 0) && (SYS_Delay_CheckTS(&timeS) == 0)){
-							tBICPAR->blInPressKeyMode = 1;
-							if (BI_ReadChar(tBICPAR,0) == 27){
-								PrintStrN(tBICPAR,"Pressed ESC, stop execute command.\r\n",RICH_LIN_clRed);
-								tBICPAR->blInPressKeyMode = 0;
-								return(cgReturnCode);
-							}
-						}
-						tBICPAR->blInPressKeyMode = 0;
-						continue;
-					}
-					else if (strSub == "-L"){
-						strSub = strPar1.substr(2);
-						timeMs = atof(strSub.c_str());
-						tBICPAR->sdtApp->m_Device.cgAPIECom->SetDTRToLow();
-						strPrintData = SYS_MakeTimeNow();
-						SYS_Delay_SetTS(&timeS,timeMs * 1000);
-						strPrintData += " Set DTR to Low\r\n";
-						if (tBICPAR->sdtApp->m_Device.cgODevList.cgOutput != nullptr){
-							tBICPAR->sdtApp->m_Device.cgODevList.cgOutput->Spin_InUse_set();
-							tBICPAR->sdtApp->m_Device.cgODevList.cgOutput->WriteDividingLine(RICH_CF_clMaroon,COLSTRING::COL_EP_YES);
-							tBICPAR->sdtApp->m_Device.cgODevList.cgOutput->WriteStrN(strPrintData,RICH_CF_clPurple,COLSTRING::COL_EP_YES);
-							tBICPAR->sdtApp->m_Device.cgODevList.cgOutput->WriteDividingLine(RICH_CF_clMaroon,COLSTRING::COL_EP_YES);
-							tBICPAR->sdtApp->m_Device.cgODevList.cgOutput->Spin_InUse_clr();
-						}
-						
-						while ((tBICPAR->blExit == 0) && (SYS_Delay_CheckTS(&timeS) == 0)){
-							tBICPAR->blInPressKeyMode = 1;
-							if (BI_ReadChar(tBICPAR,0) == 27){
-								PrintStrN(tBICPAR,"Pressed ESC, stop execute command.\r\n",RICH_LIN_clRed);
-								tBICPAR->blInPressKeyMode = 0;
-								return(cgReturnCode);
-							}
-						}
-						tBICPAR->blInPressKeyMode = 0;
-						continue;
+				else{
+					break;
+				}
+				if (bltime > 0){
+					if (PressAnyKey(env,attr,&timeS) == 27){
+						PrintSuccess(env,"Pressed double ESC key, stopped execute command");
+						return(cgReturnCode);
 					}
 				}
-				break;
-			}
+				else{
+					strPar1 = strPar2;
+					continue;
+				}
+				SplitPar1(&strPar1,&strPar3);
+			}while(strPar1.length() > 0);
 		}
 	}
 	else{
-		PrintDoRet(tBICPAR,"Set fail due to no COM connected");
+		PrintFail(env,"no COM connected");
 	}
 	return(cgReturnCode);
 }
 //------------------------------------------------------------------------------------------//
-int32 BIC_COM_RTS::Help(BICPAR *tBICPAR,int32 blDetail)const{
-	PrintHelpItem(tBICPAR,cgCommand,"Set RTS.");
-	if (blDetail == 0)
-		return(cgReturnCode);
-	PrintHelpItem(tBICPAR,"     [-H[t]]"	,"Set to High, t is time, unit is S.");
-	PrintHelpItem(tBICPAR,"     [-L[t]]"	,"Set to Low, t is time, unit is S.");
-	return(cgReturnCode);
-}
 //------------------------------------------------------------------------------------------//
-int32 BIC_COM_RTS::Command(BICPAR *tBICPAR,const std::string &par,std::string *ret)const{
-	std::string		strPrintData,strPar1,strPar2,strSub;
-	double			timeMs;
-	SYS_TIME_S		timeS;
+int32 BIC_COM_RTS::Command(BIC_ENV *env,const STDSTR &par,void *eda)const{
+	ExpandDeviceAttr* attr = static_cast<ExpandDeviceAttr*>(eda);
 	
-	*ret = "";
-	if ((tBICPAR->sdtApp->m_Device.cgDevType == DEVICE::DEVID_APICOM) && (tBICPAR->sdtApp->m_Device.CheckblConnect() != 0)){
+	STDSTR		strPar1,strPar2,strPar3;
+	SYS_TIME_S	timeS;
+	int32		bltime;
+	
+	if (attr->IsComOpened()){
 		if (par.length() == 0){
-			if (tBICPAR->sdtApp->m_Device.cgAPIECom->GetRTSStatus() == 0){
-				PrintStrN(tBICPAR," RTS is high.\n",RICH_LIN_clDefault);
-			}
-			else{
-				PrintStrN(tBICPAR," RTS is low.\n",RICH_LIN_clDefault);
-			}
+			PrintResult(env,selfName,"COM RTS is",((attr->ACom()->GetRTSStatus() != 0)?"high":"low"));
 		}
 		else{
-			strPar2 = par;
-			while(strPar2.length() > 0){
-				strPar1 = Str_Trim(Str_ReadSubItem(&strPar2, " "));
+			SplitPar1(strPar1, strPar3, par);
+			do{
+				bltime = 0;
+				SplitPar1(&strPar2,&strPar3);
+				if ((strPar2.length() > 0) && (strPar2 != "-H") && (strPar2 != "-L")){
+					SYS_Delay_SetTS(&timeS,atof(strPar2.c_str()) * 1000);
+					bltime = 1;
+				}
 				if (strPar1 == "-H"){
-					tBICPAR->sdtApp->m_Device.cgAPIECom->SetRTSToHigh();
-					strPrintData = SYS_MakeTimeNow();
-					strPrintData += " Set RTS to high\r\n";
-					if (tBICPAR->sdtApp->m_Device.cgODevList.cgOutput != nullptr){
-						tBICPAR->sdtApp->m_Device.cgODevList.cgOutput->Spin_InUse_set();
-						tBICPAR->sdtApp->m_Device.cgODevList.cgOutput->WriteDividingLine(RICH_CF_clMaroon,COLSTRING::COL_EP_YES);
-						tBICPAR->sdtApp->m_Device.cgODevList.cgOutput->WriteStrN(strPrintData,RICH_CF_clPurple,COLSTRING::COL_EP_YES);
-						tBICPAR->sdtApp->m_Device.cgODevList.cgOutput->WriteDividingLine(RICH_CF_clMaroon,COLSTRING::COL_EP_YES);
-						tBICPAR->sdtApp->m_Device.cgODevList.cgOutput->Spin_InUse_clr();
-					}
-					return(cgReturnCode);
+					attr->ACom()->SetRTS(1);
 				}
 				else if (strPar1 == "-L"){
-					tBICPAR->sdtApp->m_Device.cgAPIECom->SetRTSToLow();
-					strPrintData = SYS_MakeTimeNow();
-					strPrintData += " Set RTS to Low\r\n";
-					if (tBICPAR->sdtApp->m_Device.cgODevList.cgOutput != nullptr){
-						tBICPAR->sdtApp->m_Device.cgODevList.cgOutput->Spin_InUse_set();
-						tBICPAR->sdtApp->m_Device.cgODevList.cgOutput->WriteDividingLine(RICH_CF_clMaroon,COLSTRING::COL_EP_YES);
-						tBICPAR->sdtApp->m_Device.cgODevList.cgOutput->WriteStrN(strPrintData,RICH_CF_clPurple,COLSTRING::COL_EP_YES);
-						tBICPAR->sdtApp->m_Device.cgODevList.cgOutput->WriteDividingLine(RICH_CF_clMaroon,COLSTRING::COL_EP_YES);
-						tBICPAR->sdtApp->m_Device.cgODevList.cgOutput->Spin_InUse_clr();
-					}
-					return(cgReturnCode);
+					attr->ACom()->SetRTS(0);
 				}
-				else if(strPar1.length() > 2){
-					strSub = strPar1.substr(0,2);
-					if (strSub == "-H"){
-						strSub = strPar1.substr(2);
-						timeMs = atof(strSub.c_str());
-						tBICPAR->sdtApp->m_Device.cgAPIECom->SetRTSToHigh();
-						strPrintData = SYS_MakeTimeNow();
-						SYS_Delay_SetTS(&timeS,timeMs * 1000);
-						strPrintData += " Set RTS to high\r\n";
-						if (tBICPAR->sdtApp->m_Device.cgODevList.cgOutput != nullptr){
-							tBICPAR->sdtApp->m_Device.cgODevList.cgOutput->Spin_InUse_set();
-							tBICPAR->sdtApp->m_Device.cgODevList.cgOutput->WriteDividingLine(RICH_CF_clMaroon,COLSTRING::COL_EP_YES);
-							tBICPAR->sdtApp->m_Device.cgODevList.cgOutput->WriteStrN(strPrintData,RICH_CF_clPurple,COLSTRING::COL_EP_YES);
-							tBICPAR->sdtApp->m_Device.cgODevList.cgOutput->WriteDividingLine(RICH_CF_clMaroon,COLSTRING::COL_EP_YES);
-							tBICPAR->sdtApp->m_Device.cgODevList.cgOutput->Spin_InUse_clr();
-						}
-						while ((tBICPAR->blExit == 0) && (SYS_Delay_CheckTS(&timeS) == 0)){
-							tBICPAR->blInPressKeyMode = 1;
-							if (BI_ReadChar(tBICPAR,0) == 27){
-								PrintStrN(tBICPAR,"Pressed ESC, stop execute command.\r\n",RICH_LIN_clRed);
-								tBICPAR->blInPressKeyMode = 0;
-								return(cgReturnCode);
-							}
-						}
-						tBICPAR->blInPressKeyMode = 0;
-						continue;
-					}
-					else if (strSub == "-L"){
-						strSub = strPar1.substr(2);
-						timeMs = atof(strSub.c_str());
-						tBICPAR->sdtApp->m_Device.cgAPIECom->SetRTSToLow();
-						strPrintData = SYS_MakeTimeNow();
-						SYS_Delay_SetTS(&timeS,timeMs * 1000);
-						strPrintData += " Set RTS to Low\r\n";
-						if (tBICPAR->sdtApp->m_Device.cgODevList.cgOutput != nullptr){
-							tBICPAR->sdtApp->m_Device.cgODevList.cgOutput->Spin_InUse_set();
-							tBICPAR->sdtApp->m_Device.cgODevList.cgOutput->WriteDividingLine(RICH_CF_clMaroon,COLSTRING::COL_EP_YES);
-							tBICPAR->sdtApp->m_Device.cgODevList.cgOutput->WriteStrN(strPrintData,RICH_CF_clPurple,COLSTRING::COL_EP_YES);
-							tBICPAR->sdtApp->m_Device.cgODevList.cgOutput->WriteDividingLine(RICH_CF_clMaroon,COLSTRING::COL_EP_YES);
-							tBICPAR->sdtApp->m_Device.cgODevList.cgOutput->Spin_InUse_clr();
-						}
-						
-						while ((tBICPAR->blExit == 0) && (SYS_Delay_CheckTS(&timeS) == 0)){
-							tBICPAR->blInPressKeyMode = 1;
-							if (BI_ReadChar(tBICPAR,0) == 27){
-								PrintStrN(tBICPAR,"Pressed ESC, stop execute command.\r\n",RICH_LIN_clRed);
-								tBICPAR->blInPressKeyMode = 0;
-								return(cgReturnCode);
-							}
-						}
-						tBICPAR->blInPressKeyMode = 0;
-						continue;
+				else{
+					break;
+				}
+				if (bltime > 0){
+					if (PressAnyKey(env,attr,&timeS) == 27){
+						PrintSuccess(env,"Pressed double ESC key, stopped execute command");
+						return(cgReturnCode);
 					}
 				}
-				break;
-			}
+				else{
+					strPar1 = strPar2;
+					continue;
+				}
+				SplitPar1(&strPar1,&strPar3);
+			}while(strPar1.length() > 0);
 		}
 	}
 	else{
-		PrintDoRet(tBICPAR,"Set fail due to no COM connected");
+		PrintFail(env,"no COM connected");
 	}
 	return(cgReturnCode);
 }
 //------------------------------------------------------------------------------------------//
-int32 BIC_COM_MS::Help(BICPAR *tBICPAR,int32 blDetail)const{
-	PrintHelpItem(tBICPAR,cgCommand,"Modem status report");
-	
-	if (blDetail == 0)
-		return(cgReturnCode);
-	PrintHelpItem(tBICPAR,"     [on|off]"	,"Enable/disable modem status report.");
-	return(cgReturnCode);
-}
 //------------------------------------------------------------------------------------------//
-int32 BIC_COM_MS::Command(BICPAR *tBICPAR,const std::string &par,std::string *ret)const{
-	std::string		strPrintData;
-	*ret = "";
+int32 BIC_COM_MS::Command(BIC_ENV *env,const STDSTR &par,void *eda)const{
+	ExpandDeviceAttr* attr = static_cast<ExpandDeviceAttr*>(eda);
 	
-	if ((tBICPAR->sdtApp->m_Device.cgDevType == DEVICE::DEVID_APICOM) && (tBICPAR->sdtApp->m_Device.CheckblConnect() != 0)){
+	if (attr->IsComOpened()){
 		if (par == "on"){
-			B_SetFLAG64(tBICPAR->sdtApp->m_Device.cgODevList.cgODevFlagU64, ODEV_FLAG_EnMSReport);
-			PrintStrN(tBICPAR," enable modem status report.\n",RICH_LIN_clDefault);
+			B_SetFLAG64(*attr->envcfg, ODEV_FLAG_EnMSReport);
+			PrintResult(env,"Enable",Str_LowerCase(selfName),"modem status report");
 		}
 		else if (par == "off"){
-			B_ClrFLAG64(tBICPAR->sdtApp->m_Device.cgODevList.cgODevFlagU64, ODEV_FLAG_EnMSReport);
-			PrintStrN(tBICPAR," disable modem status report.\n",RICH_LIN_clDefault);
+			B_ClrFLAG64(*attr->envcfg, ODEV_FLAG_EnMSReport);
+			PrintResult(env,"Disable",Str_LowerCase(selfName),"modem status report");
 		}
 		else if (par.length() == 0){
-			if (tBICPAR->sdtApp->m_Device.cgAPIECom->GetDTRStatus() == 0){
-				strPrintData = " DTR=L,";
-			}
-			else{
-				strPrintData += " DTR=H,";
-			}
-			if (tBICPAR->sdtApp->m_Device.cgAPIECom->GetRTSStatus() == 0){
-				strPrintData += " RTS=L,";
-			}
-			else{
-				strPrintData += " RTS=H,";
-			}
-			strPrintData += (" CTS=" + tBICPAR->sdtApp->m_Device.cgAPIECom->GetCTSStatus() + ",");
-			strPrintData += (" DSR=" + tBICPAR->sdtApp->m_Device.cgAPIECom->GetDSRStatus() + ",");
-			strPrintData += (" RING=" + tBICPAR->sdtApp->m_Device.cgAPIECom->GetRINGStatus() + ",");
-			strPrintData += (" DCD=" + tBICPAR->sdtApp->m_Device.cgAPIECom->GetDCDStatus() + ",");
-			PrintStrN(tBICPAR,strPrintData + "\n",RICH_LIN_clDefault);
+			PrintResult(env,attr->ACom()->GetFullModemStatus());
 		}
 		else{
-			Help(tBICPAR);
+			Help(env);
 		}
 	}
 	else{
-		PrintDoRet(tBICPAR,"Set fail due to no COM connected");
+		PrintFail(env,"no COM connected");
 	}
 	return(cgReturnCode);
 }
 //------------------------------------------------------------------------------------------//
-int32 BIC_COM_LS::Help(BICPAR *tBICPAR,int32 blDetail)const{
-	PrintHelpItem(tBICPAR,cgCommand,"List valid COM.");
-	if (blDetail == 0)
-		return(cgReturnCode);
-	return(cgReturnCode);
-}
 //------------------------------------------------------------------------------------------//
-int32 BIC_COM_LS::Command(BICPAR *tBICPAR,const std::string &par,std::string *ret)const{
-	tBICPAR->validComList->Refresh();
-	PrintStrN(tBICPAR,DEV_LINE_START,RICH_LIN_clDefault);
-
-	tBICPAR->validComList->Spin_InUse_set();
-	RTREE_LChildRChain_Traversal_LINE_nolock(IPCOMNAME,tBICPAR->validComList,
+int32 BIC_COM_LS::Command(BIC_ENV *env,const STDSTR &par,void *p)const{
+	env->validComList->Refresh();
+	
+	PrintNL(env) << COL_DivStar_Default << COL_Result;
+	TREE_LChildRChain_Traversal_LINE(IPCOMNAME,env->validComList,
 		if ((operateNode_t->typeID == PublicDevice_DEVID_APICOM) && (operateNode_t->blAvailable != 0))
-			PrintStrN(tBICPAR,operateNode_t->strShowName + "\n",RICH_LIN_clCyan);
+			STDout(env) << operateNode_t->strShowName << "\n";
 	);
-	tBICPAR->validComList->Spin_InUse_clr();
-	PrintStrN(tBICPAR,DEV_LINE_START,RICH_LIN_clDefault);
+	STDout(env) << COL_DivStar_Default << Endl;
 	return(cgReturnCode);
 }
 //------------------------------------------------------------------------------------------//
+//------------------------------------------------------------------------------------------//
+int32 BIC_COM_OPEN::Command(BIC_ENV *env, const STDSTR &par,void *eda)const{
+	ExpandDeviceAttr* attr = static_cast<ExpandDeviceAttr*>(eda);
+
+	if (par.length() == 0){
+		if (attr->IsConnected() == 0){
+			attr->aCOM.type = CSType_COM;
+			attr->device->Open(attr->aCOM);
+		}
+		else{
+			BIC_COM::Command(env,"",eda);
+		}
+	}
+#ifdef CommonDefH_Unix
+	else if (par == "-v"){
+		if (attr->IsConnected() == 0){
+			attr->aCOM.type = CSType_COMV;
+			attr->device->Open(attr->aCOM);
+		}
+		else{
+			BIC_COM::Command(env,"",eda);
+		}
+	}
+#endif
+	return(cgReturnCode);
+}
+//------------------------------------------------------------------------------------------//
+//------------------------------------------------------------------------------------------//
+#endif

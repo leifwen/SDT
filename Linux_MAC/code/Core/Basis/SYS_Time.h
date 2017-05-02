@@ -19,46 +19,45 @@
 //------------------------------------------------------------------------------------------//
 #include "BasicDef.h"
 //------------------------------------------------------------------------------------------//
-enum G_UTC_VAILD{G_UTC_OFF = 0,G_UTC_ON};
+enum G_UTC{G_UTC_OFF = 0,G_UTC_ON};
 //------------------------------------------------------------------------------------------//
-class SYS_DateTime;
+class TIME;
 //------------------------------------------------------------------------------------------//
-std::string			SYS_MakeTimeNow		(void);
-std::string			SYS_MakeTime		(SYS_DateTime &tDateTime);
-const SYS_DateTime&	SYS_Now				(SYS_DateTime *tDateTime);	//UTC
-double				SYS_GetSec			(const SYS_DateTime &tDateTime);
+STDSTR		SYS_MakeTimeNow		(void);
+STDSTR		SYS_MakeTime		(TIME &tDateTime);
+const TIME&	SYS_Now				(TIME *tDateTime);	//UTC
+double		SYS_GetSec			(const TIME &tDateTime);
 
-const SYS_DateTime&	SYS_SetDateTime		(SYS_DateTime *tRetDateTime,const double &sec);
-const SYS_DateTime&	SYS_SetDateTime		(SYS_DateTime *tRetDateTime,const SYS_DateTime &tDateTime);
+const TIME&	SYS_SetDateTime		(TIME *tRetDateTime,const double &sec);
+const TIME&	SYS_SetDateTime		(TIME *tRetDateTime,const TIME &tDateTime);
 
-const SYS_DateTime&	SYS_MinusDateTime	(SYS_DateTime *tRetDateTime,const double &sec);
-const SYS_DateTime&	SYS_MinusDateTime	(SYS_DateTime *tRetDateTime,const SYS_DateTime &tDateTime);
-const SYS_DateTime&	SYS_MinusDateTime	(SYS_DateTime *tRetDateTime,const SYS_DateTime &tStrartDateTime,const SYS_DateTime &tEndDateTime);
+const TIME&	SYS_MinusDateTime	(TIME *tRetDateTime,const double &sec);
+const TIME&	SYS_MinusDateTime	(TIME *tRetDateTime,const TIME &tDateTime);
+const TIME&	SYS_MinusDateTime	(TIME *tRetDateTime,const TIME &tStrartDateTime,const TIME &tEndDateTime);
 
-const SYS_DateTime&	SYS_AddDateTime		(SYS_DateTime *tRetDateTime,const double &sec);
-const SYS_DateTime&	SYS_AddDateTime		(SYS_DateTime *tRetDateTime,const SYS_DateTime &tDateTime);
-const SYS_DateTime&	SYS_AddDateTime		(SYS_DateTime *tRetDateTime,const SYS_DateTime &tStrartDateTime,const SYS_DateTime &tEndDateTime);
+const TIME&	SYS_AddDateTime		(TIME *tRetDateTime,const double &sec);
+const TIME&	SYS_AddDateTime		(TIME *tRetDateTime,const TIME &tDateTime);
+const TIME&	SYS_AddDateTime		(TIME *tRetDateTime,const TIME &tStrartDateTime,const TIME &tEndDateTime);
 
-void				SYS_DecodeDate1970	(const SYS_DateTime &tDateTime,int32 *year,int32 *month,int32 *day,G_UTC_VAILD utc = G_UTC_OFF);
-void				SYS_DecodeTime1970	(const SYS_DateTime &tDateTime,int32 *hour,int32 *min,int32 *sec,int32 *msec,G_UTC_VAILD utc = G_UTC_OFF);
-const SYS_DateTime&	SYS_EncodeTime1970	(SYS_DateTime *tDateTime,std::string sTime,G_UTC_VAILD utc = G_UTC_OFF);//"YYYY/MM/DD,hh/mm/ss,zzz"
+void		SYS_DecodeDate1970	(const TIME &tDateTime,int32 *year,int32 *month,int32 *day,G_UTC utc = G_UTC_OFF);
+void		SYS_DecodeTime1970	(const TIME &tDateTime,int32 *hour,int32 *min,int32 *sec,int32 *msec,G_UTC utc = G_UTC_OFF);
+const TIME&	SYS_EncodeTime1970	(TIME *tDateTime,STDSTR sTime,G_UTC utc = G_UTC_OFF);//"YYYY/MM/DD,hh/mm/ss,zzz"
 
-void				SYS_DecodeTimeABS	(const SYS_DateTime &tDateTime,uint64 *hour,uint64 *min,uint64 *sec,uint64 *msec);
-const SYS_DateTime&	SYS_EncodeTimeABS	(SYS_DateTime *tDateTime,std::string sTime);
-const SYS_DateTime&	SYS_EncodeTimeABS	(SYS_DateTime *tDateTime,const uint32 &hour,const uint32 &min,const uint32 &sec,const uint32 &msec);
+void		SYS_DecodeTimeABS	(const TIME &tDateTime,uint64 *hour,uint64 *min,uint64 *sec,uint64 *msec);
+const TIME&	SYS_EncodeTimeABS	(TIME *tDateTime,STDSTR sTime);
+const TIME&	SYS_EncodeTimeABS	(TIME *tDateTime,const uint32 &hour,const uint32 &min,const uint32 &sec,const uint32 &msec);
 
-std::string	SYS_FormatDateTime		(const std::string &style,const uint32 &year,const uint32 &month,const uint32 &day
-										,const uint32 &hour,const uint32 &min,const uint32 &sec,const uint32 &msec);
-std::string	SYS_FormatDateTime1970	(const std::string &style,const SYS_DateTime &tDateTime,G_UTC_VAILD utc = G_UTC_OFF);
-std::string	SYS_FormatDateTime1900	(const std::string &style,SYS_DateTime tDateTime,G_UTC_VAILD utc = G_UTC_OFF);
-std::string	SYS_FormatTimeABS		(const std::string &style,const SYS_DateTime &tDateTime);
+STDSTR	SYS_FormatDateTime		(const STDSTR &style,const uint32 &year,const uint32 &month,const uint32 &day,const uint32 &hour,const uint32 &min,const uint32 &sec,const uint32 &msec);
+STDSTR	SYS_FormatDateTime1970	(const STDSTR &style,const TIME &tDateTime,G_UTC utc = G_UTC_OFF);
+STDSTR	SYS_FormatDateTime1900	(const STDSTR &style,TIME tDateTime,G_UTC utc = G_UTC_OFF);
+STDSTR	SYS_FormatTimeABS		(const STDSTR &style,const TIME &tDateTime);
 
-int32		SYS_CompareDateTime	(const SYS_DateTime &tStrartDateTime,const SYS_DateTime &tEndDateTime);
+int32		SYS_CompareDateTime	(const TIME &tStrartDateTime,const TIME &tEndDateTime);
 //------------------------------------------------------------------------------------------//
-class SYS_DateTime{
+class TIME{
 	public:
-				 SYS_DateTime	(void){Clear();};
-		virtual ~SYS_DateTime	(void){;};
+				 TIME	(void){Clear();};
+		virtual ~TIME	(void){;};
 	public:
 		static double	gCompensation;
 	public:
@@ -80,51 +79,52 @@ class SYS_DateTime{
 				gMsec = 0;
 			#endif
 		};
-inline	double	GetSec			(void)																	{return(SYS_GetSec(*this));};
-inline	void	Now				(void)																	{SYS_Now(this);};
-//inline	void	Date			(void)																	{SYS_Now(this);};
-inline	void	DecodeDate		(int32 *year,int32 *month,int32 *day,G_UTC_VAILD utc = G_UTC_OFF)		{SYS_DecodeDate1970(*this,year,month,day,utc);};
-inline	void	DecodeTime		(int32 *hour,int32 *min,int32 *sec,int32 *msec,G_UTC_VAILD utc = G_UTC_OFF)	{SYS_DecodeTime1970(*this,hour,min,sec,msec,utc);};
-inline	void	EncodeTime		(const std::string &sTime,G_UTC_VAILD utc = G_UTC_OFF)					{SYS_EncodeTime1970(this,sTime,utc);};
-inline	void	MinusDateTime	(const SYS_DateTime &tDateTime)											{SYS_MinusDateTime(this,tDateTime);};
-inline	void	AddDateTime		(const SYS_DateTime &tDateTime)											{SYS_AddDateTime(this,tDateTime);};
-inline	void	MinusDateTime	(const SYS_DateTime &tStrartDateTime,const SYS_DateTime &tEndDateTime)	{SYS_MinusDateTime(this,tStrartDateTime,tEndDateTime);};
-inline	void	AddDateTime		(const SYS_DateTime &tStrartDateTime,const SYS_DateTime &tEndDateTime)	{SYS_AddDateTime(this,tStrartDateTime,tEndDateTime);};
-inline	std::string	FormatDateTime	(const std::string &style,G_UTC_VAILD utc = G_UTC_OFF)				{return(SYS_FormatDateTime1970(style,*this,utc));};
+		inline	double	GetSec			(void)																	{return(SYS_GetSec(*this));};
+		inline	void	Now				(void)																	{SYS_Now(this);};
+		//inline	void	Date			(void)																	{SYS_Now(this);};
+		inline	void	DecodeDate		(int32 *year,int32 *month,int32 *day,G_UTC utc = G_UTC_OFF)				{SYS_DecodeDate1970(*this,year,month,day,utc);};
+		inline	void	DecodeTime		(int32 *hour,int32 *min,int32 *sec,int32 *msec,G_UTC utc = G_UTC_OFF)	{SYS_DecodeTime1970(*this,hour,min,sec,msec,utc);};
+		inline	void	EncodeTime		(const STDSTR &sTime,G_UTC utc = G_UTC_OFF)								{SYS_EncodeTime1970(this,sTime,utc);};
+		inline	void	MinusDateTime	(const TIME &tDateTime)													{SYS_MinusDateTime(this,tDateTime);};
+		inline	void	AddDateTime		(const TIME &tDateTime)													{SYS_AddDateTime(this,tDateTime);};
+		inline	void	MinusDateTime	(const TIME &tStrartDateTime,const TIME &tEndDateTime)					{SYS_MinusDateTime(this,tStrartDateTime,tEndDateTime);};
+		inline	void	AddDateTime		(const TIME &tStrartDateTime,const TIME &tEndDateTime)					{SYS_AddDateTime(this,tStrartDateTime,tEndDateTime);};
+		inline	STDSTR	FormatDateTime	(const STDSTR &style,G_UTC utc = G_UTC_OFF)								{return(SYS_FormatDateTime1970(style,*this,utc));};
 	public:
-		SYS_DateTime operator +(const SYS_DateTime &tDateTime){
-			SYS_DateTime ret;
+		TIME operator +(const TIME &tDateTime){
+			TIME ret;
 			return(SYS_AddDateTime(&ret,*this,tDateTime));
 		};
-		SYS_DateTime operator +(const double &sec){
-			SYS_DateTime ret;
+		TIME operator +(const double &sec){
+			TIME ret;
 			ret = sec;
 			return(SYS_AddDateTime(&ret,*this,ret));
 		};
-		const SYS_DateTime &operator +=(const SYS_DateTime &tDateTime)	{return(SYS_AddDateTime(this,tDateTime));};
-		const SYS_DateTime &operator +=(const double &sec)				{return(SYS_AddDateTime(this,sec));};
-		SYS_DateTime operator -(const SYS_DateTime &tDateTime){
-			SYS_DateTime ret;
+		const TIME &operator +=(const TIME &tDateTime)	{return(SYS_AddDateTime(this,tDateTime));};
+		const TIME &operator +=(const double &sec)		{return(SYS_AddDateTime(this,sec));};
+		TIME operator -(const TIME &tDateTime){
+			TIME ret;
 			return(SYS_MinusDateTime(&ret,*this,tDateTime));
 		};
-		SYS_DateTime operator -(const double &sec){
-			SYS_DateTime ret;
+		TIME operator -(const double &sec){
+			TIME ret;
 			ret = sec;
 			return(SYS_MinusDateTime(&ret,*this,ret));
 		};
-		const SYS_DateTime &operator -=(const SYS_DateTime &tDateTime)	{return(SYS_MinusDateTime(this,tDateTime));};
-		const SYS_DateTime &operator -=(const double &sec)				{return(SYS_MinusDateTime(this,sec));};
-		const SYS_DateTime &operator =(const SYS_DateTime &tDateTime)	{return(SYS_SetDateTime(this,tDateTime));};
-		const SYS_DateTime &operator =(const double &sec)				{return(SYS_SetDateTime(this,sec));};
+		const TIME &operator -=(const TIME &tDateTime)	{return(SYS_MinusDateTime(this,tDateTime));};
+		const TIME &operator -=(const double &sec)		{return(SYS_MinusDateTime(this,sec));};
+		const TIME &operator =(const TIME &tDateTime)	{return(SYS_SetDateTime(this,tDateTime));};
+		const TIME &operator =(const double &sec)		{return(SYS_SetDateTime(this,sec));};
 
-		bool operator ==(const SYS_DateTime& tDateTime){return(SYS_CompareDateTime(*this,tDateTime) == 0);};
-		bool operator !=(const SYS_DateTime& tDateTime){return(SYS_CompareDateTime(*this,tDateTime) != 0);};
-		bool operator > (const SYS_DateTime& tDateTime){return(SYS_CompareDateTime(*this,tDateTime) == 1);};
-		bool operator >=(const SYS_DateTime& tDateTime){return(SYS_CompareDateTime(*this,tDateTime) != -1);};
-		bool operator < (const SYS_DateTime& tDateTime){return(SYS_CompareDateTime(*this,tDateTime) == -1);};
-		bool operator <=(const SYS_DateTime& tDateTime){return(SYS_CompareDateTime(*this,tDateTime) != 1);};
+		bool operator ==(const TIME& tDateTime){return(SYS_CompareDateTime(*this,tDateTime) == 0);};
+		bool operator !=(const TIME& tDateTime){return(SYS_CompareDateTime(*this,tDateTime) != 0);};
+		bool operator > (const TIME& tDateTime){return(SYS_CompareDateTime(*this,tDateTime) == 1);};
+		bool operator >=(const TIME& tDateTime){return(SYS_CompareDateTime(*this,tDateTime) != -1);};
+		bool operator < (const TIME& tDateTime){return(SYS_CompareDateTime(*this,tDateTime) == -1);};
+		bool operator <=(const TIME& tDateTime){return(SYS_CompareDateTime(*this,tDateTime) != 1);};
 };
 //------------------------------------------------------------------------------------------//
+typedef  TIME TIME;
 //------------------------------------------------------------------------------------------//
 inline int32 SYS_SleepMS(int32 timeMS){
 #ifdef CommonDefH_Unix
@@ -141,7 +141,7 @@ inline int32 SYS_SleepMS(int32 timeMS){
 //------------------------------------------------------------------------------------------//
 inline int32 SYS_DelayMS(double timeMS,int32 *blExit = nullptr){
 #ifdef CommonDefH_Unix
-	SYS_DateTime	executeTime,nowTime;
+	TIME	executeTime,nowTime;
 	double	dfTim;
 	nowTime.Now();
 	do
@@ -156,7 +156,7 @@ inline int32 SYS_DelayMS(double timeMS,int32 *blExit = nullptr){
 #ifdef CommonDefH_VC
 	double	dfTim;
 	if (timeMS > 99){
-		SYS_DateTime	executeTime,nowTime;
+		TIME	executeTime,nowTime;
 		nowTime.Now();
 		do
 		{
@@ -189,10 +189,10 @@ inline int32 SYS_DelayMS(double timeMS,int32 *blExit = nullptr){
 }
 //------------------------------------------------------------------------------------------//
 struct SYS_TIME_S{
-	double 			timeMS;
-	int32			dfTim;
-	SYS_DateTime	DTime1;
-	SYS_DateTime	DTime2;
+	double 	timeMS;
+	int32	dfTim;
+	TIME	DTime1;
+	TIME	DTime2;
 #ifdef CommonDefH_VC
 	LARGE_INTEGER	litmp;
 	LONGLONG		QTime1;
@@ -223,6 +223,8 @@ inline void SYS_Delay_AddTS(SYS_TIME_S *timeS,double timeMS){
 }
 //------------------------------------------------------------------------------------------//
 inline int32 SYS_Delay_CheckTS(SYS_TIME_S *timeS){
+	if (timeS == nullptr)
+		return 0;
 #ifdef CommonDefH_Unix
 	timeS->DTime2.Now();
 	timeS->dfTim = (timeS->DTime2 >= timeS->DTime1);
@@ -241,11 +243,11 @@ inline int32 SYS_Delay_CheckTS(SYS_TIME_S *timeS){
 	return(timeS->dfTim);
 }
 //------------------------------------------------------------------------------------------//
-uint64		SYS_TimeToNTP		(const double &sec);
-double		SYS_NTPToTime		(const uint64 &ntp);
-uint64		SYS_CharToNTP		(const uint8 *buffer);
-void		SYS_NTPToChar		(uint64 ntp, uint8 *buffer);
-uint64		SYS_ASCIIStrToNTP	(std::string strInput);
-std::string SYS_NTPToHEXStr		(uint64 ntp);
+uint64	SYS_TimeToNTP		(const double &sec);
+double	SYS_NTPToTime		(const uint64 &ntp);
+uint64	SYS_CharToNTP		(const uint8 *buffer);
+void	SYS_NTPToChar		(uint64 ntp, uint8 *buffer);
+uint64	SYS_ASCIIStrToNTP	(STDSTR strIn);
+STDSTR	SYS_NTPToHEXStr		(uint64 ntp);
 //------------------------------------------------------------------------------------------//
 #endif
