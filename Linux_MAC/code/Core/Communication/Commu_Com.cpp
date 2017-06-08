@@ -445,12 +445,10 @@ STDSTR ACOM::GetCTSStatus(void){
 #ifdef CommonDefH_Unix
 	int status;
 	if (IsConnected() != 0){
-		ioctl(osHandle, TIOCMGET, &status);
-		if (status & TIOCM_CTS){
-			retStr = 'L';
-		}
-		else{
-			retStr = 'H';
+		retStr = 'H';
+		if (ioctl(osHandle, TIOCMGET, &status) == 0){
+			if (status & TIOCM_CTS)
+				retStr = 'L';
 		}
 	}
 #endif
@@ -477,12 +475,10 @@ STDSTR ACOM::GetDSRStatus(void){
 #ifdef CommonDefH_Unix
 	int status;
 	if (IsConnected() != 0){
-		ioctl(osHandle, TIOCMGET, &status);
-		if (status & TIOCM_DSR){
-			retStr = 'L';
-		}
-		else{
-			retStr = 'H';
+		retStr = 'H';
+		if (ioctl(osHandle, TIOCMGET, &status) == 0){
+			if (status & TIOCM_DSR)
+				retStr = 'L';
 		}
 	}
 #endif
@@ -509,12 +505,10 @@ STDSTR ACOM::GetRINGStatus(void){
 #ifdef CommonDefH_Unix
 	int status;
 	if (IsConnected() != 0){
-		ioctl(osHandle, TIOCMGET, &status);
-		if (status & TIOCM_RNG){
-			retStr = 'L';
-		}
-		else{
-			retStr = 'H';
+		retStr = 'H';
+		if (ioctl(osHandle, TIOCMGET, &status) == 0){
+			if (status & TIOCM_RNG)
+				retStr = 'L';
 		}
 	}
 #endif
@@ -541,12 +535,10 @@ STDSTR ACOM::GetDCDStatus(void){
 #ifdef CommonDefH_Unix
 	int status;
 	if (IsConnected() != 0){
-		ioctl(osHandle, TIOCMGET, &status);
-		if (status & TIOCM_CAR){
-			retStr = 'L';
-		}
-		else{
-			retStr = 'H';
+		retStr = 'H';
+		if (ioctl(osHandle, TIOCMGET, &status) == 0){
+			if (status & TIOCM_CAR)
+				retStr = 'L';
 		}
 	}
 #endif

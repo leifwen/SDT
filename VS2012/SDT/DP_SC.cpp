@@ -156,7 +156,7 @@ HTREEITEM CSCTree::CreateNodeL1(HTREEITEM hItem){
 		if (retItem != NULL)//next group
 			node = (SC_NODE*)(TREE_NODE::FindInLChildRChainByDRNodeID(m_SCList, GetItemData(retItem)));
 	}
-	newNode = m_SCList->GetNewNode();
+	newNode = (SC_NODE*)m_SCList->GetNewNode();
 	if (newNode != NULL){
 		retItem = AddNode(_T("//New group"),false,TVI_ROOT,hItem);
 		if (retItem == NULL){
@@ -183,7 +183,7 @@ HTREEITEM CSCTree::CreateNodeL2(HTREEITEM hItem){
 	newNode = NULL;
 	retItem = NULL;
 
-	newNode = m_SCList->GetNewNode();
+	newNode = (SC_NODE*)m_SCList->GetNewNode();
 	if (newNode != NULL){
 		if (CheckNodeLevel(hItem) == 1){
 			retItem = AddNode(_T("New single command"), true, hItem);

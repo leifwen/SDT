@@ -452,7 +452,7 @@ CMUXCOM *CMUXDriver::VCOMOpen(int32 dlci,const STDSTR &tCOMName,int32 baudrate){
 		return(nullptr);
 	tCMUXCOM = GetVCOM(dlci);
 	if (tCMUXCOM == nullptr){
-		tCMUXCOM = static_cast<CMUXCOM*>(GetNewNode(this));
+		tCMUXCOM = static_cast<CMUXCOM*>(GetNewNode());
 		if (tCMUXCOM != nullptr){
 			tCMUXCOM->cgPortID = dlci;
 			AddNode(tCMUXCOM);

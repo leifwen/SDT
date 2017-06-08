@@ -12,7 +12,13 @@
 //------------------------------------------------------------------------------------------//
 #include "Commu_RMS.h"
 #include "BIC.h"
+#include "License_Checker.h"
 //------------------------------------------------------------------------------------------//
+#if defined Commu_SSLSocketH && defined License_CheckerH
+#ifndef Terminal_LicenseH
+#define Terminal_LicenseH
+#endif
+#endif
 #ifdef Commu_RMSH
 #ifndef TerminalH
 #define TerminalH
@@ -20,7 +26,7 @@
 //------------------------------------------------------------------------------------------//
 class TerminalSocket : public RSSLSocket{
 	public:
-				 TerminalSocket(uint32 tSize,SDTAPP *sdtApp): RSSLSocket(tSize,nullptr){Init(sdtApp);SetGetDataByRead();SetSelfName("TerminalSocket");};
+				 TerminalSocket(uint32 tSize,SDTAPP *sdtApp): RSSLSocket(tSize,nullptr){Init(sdtApp);SetSelfName("TerminalSocket");};
 		virtual ~TerminalSocket(void){BICThread.RemoveSelf();};
 	protected:
 		BIC_ENV			cgBICenv;
@@ -53,12 +59,19 @@ class TerminalServer : public BSOCKETSERVER{
 //------------------------------------------------------------------------------------------//
 class RSTSocket : public TerminalSocket{
 	public:
-		enum{RFLAG_C = 3, RFLAG_S = TerminalSocket::RFLAG_S + TerminalSocket::RFLAG_C};
+		enum{RFLAG_C = 5, RFLAG_S = TerminalSocket::RFLAG_S + TerminalSocket::RFLAG_C};
 	private:
-		enum{blSetupTerminalY = RFLAG_CREATE(0),blSetupTerminalN = RFLAG_CREATE(1),blCloseTerminalY = RFLAG_CREATE(2),};
+		enum{blSetupTerminalY = RFLAG_CREATE(0),blSetupTerminalN = RFLAG_CREATE(1),blCloseTerminalY = RFLAG_CREATE(2)
+			,blApproveY = RFLAG_CREATE(3),blApproveN = RFLAG_CREATE(4),};
 	public:
 				 RSTSocket(uint32 tSize,SDTAPP *sdtApp): TerminalSocket(tSize,sdtApp){Init();SetblUseSSL();SetSelfName("RSTCilent");};
 		virtual ~RSTSocket(void){;};
+	private:
+#ifdef Terminal_LicenseH
+		Linense_Signature	gLS;
+		Reg_Signature		regS;
+		uint32				approveTime;
+#endif
 	private:
 				void	Init				(void);
 				int32	BICThreadFun		(void *p);
@@ -69,6 +82,9 @@ class RSTSocket : public TerminalSocket{
 				int32	SendRequestSetupTerminal	(void);
 				int32	SendRequestCloseTerminal	(void);
 				int32	CheckTerminalClosed			(void){return(CheckSFlag(blCloseTerminalY));};
+#ifdef Terminal_LicenseH
+				int32	SendApproveSDT				(uint32 approveH);
+#endif
 };
 //------------------------------------------------------------------------------------------//
 class RSTServer : public TerminalServer{

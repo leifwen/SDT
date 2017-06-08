@@ -523,7 +523,7 @@ IPCOMNAME *IPCOMLIST::AddWithCheck(IPCOMNAME *newIPComName,G_LOCK blLock){
 	TREE_LChildRChain_Find(IPCOMNAME,this,retNode,(NewNodeCheck(operateNode_t,newIPComName) != 0));
 	
 	if (retNode == nullptr){
-		retNode = (IPCOMNAME*)GetNewNode(this);
+		retNode = (IPCOMNAME*)GetNewNode();
 		if (retNode != nullptr){
 			IPCOMNAME::Copy(retNode,newIPComName,blLock);
 			AddNode(retNode);

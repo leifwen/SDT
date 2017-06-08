@@ -35,6 +35,18 @@ int32 CheckWSAStartup(void){
 }
 #endif
 //------------------------------------------------------------------------------------------//
+void CloseSocket(SOCKET sID){
+	if (sID != INVALID_SOCKET){
+		shutdown(sID,SD_BOTH);
+#ifdef CommonDefH_Unix
+		close(sID);
+#endif
+#ifdef CommonDefH_VC
+		closesocket(sID);
+#endif
+	}
+}
+//------------------------------------------------------------------------------------------//
 void ASOCKET::Init(void){
 	osHandle = INVALID_SOCKET;
 }
@@ -71,15 +83,7 @@ int32 ASOCKET::Socket_OpenDev(const STDSTR &tCDBufName,int32 tCDBufPar,CSType tC
 }
 //------------------------------------------------------------------------------------------//
 void ASOCKET::Socket_CloseDev(void){
-	if (osHandle != INVALID_SOCKET){
-		shutdown(osHandle,SD_BOTH);
-#ifdef CommonDefH_Unix
-		close(osHandle);
-#endif
-#ifdef CommonDefH_VC
-		closesocket(osHandle);
-#endif
-	}
+	CloseSocket(osHandle);
 	osHandle = INVALID_SOCKET;
 }
 //------------------------------------------------------------------------------------------//
@@ -378,16 +382,8 @@ int32 ASOCKETSERVER::OpenDev(const STDSTR &tCDBufName,int32 tCDBufPar,CSType tCS
 }
 //------------------------------------------------------------------------------------------//
 void ASOCKETSERVER::CloseDev(void){
-	if (listionSocket != INVALID_SOCKET){
-		shutdown(listionSocket,SD_BOTH);
-#ifdef CommonDefH_Unix
-		close(listionSocket);
-#endif
-#ifdef CommonDefH_VC
-		closesocket(listionSocket);
-#endif
-		listionSocket = INVALID_SOCKET;
-	}
+	CloseSocket(listionSocket);
+	listionSocket = INVALID_SOCKET;
 }
 //------------------------------------------------------------------------------------------//
 void ASOCKETSERVER::DoClose(void){
@@ -421,22 +417,24 @@ int32 ASOCKETSERVER::ListionTCP(void *p){
 	ELog(this << "ListionTCP()::Running");
 	addrlen = sizeof(ListionAddr);
 	while(listionThread.IsTerminated() == 0){
-		newSocket = static_cast<ASOCKET*>(GetNewSon());
+		newSocket = static_cast<ASOCKET*>(GetNewNode());
 		sID = accept(listionSocket,(struct sockaddr *)&ListionAddr,&addrlen);
 		if (sID != INVALID_SOCKET){
 			if (newSocket == nullptr){
-				shutdown(sID,SD_BOTH);
-				#ifdef CommonDefH_Unix
-					close(sID);
-				#endif
-				#ifdef CommonDefH_VC
-					closesocket(sID);
-				#endif
+				CloseSocket(sID);
 				PrintWarningMessage("No enough resource to create new socket");
 			}
-			else if ((OnOpenTCPSocket(newSocket) > 0) && (newSocket->Open(sID,ListionAddr,CSType_TCPS,CheckEcho()) > 0)){
-				SetblUpdate();
-				newSocket = nullptr;
+			else{
+				AddSon(newSocket);
+				if (OnOpenTCPSocket(newSocket) > 0){
+					if (newSocket->Open(sID,ListionAddr,CSType_TCPS,CheckEcho()) > 0){
+						SetblUpdate();
+						newSocket = nullptr;
+					}
+				}
+				else{
+					CloseSocket(sID);
+				}
 			}
 		}
 		ChildClose(newSocket);
@@ -461,7 +459,7 @@ int32 ASOCKETSERVER::ListionUDP(void *p){
 	
 	addrlen = sizeof(ListionAddr);
 	while(listionThread.IsTerminated() == 0){
-		newSocket = static_cast<ASOCKET*>(GetNewSon());
+		newSocket = static_cast<ASOCKET*>(GetNewNode());
 		bytesNum = (int32)recvfrom(listionSocket,(char*)databuf,cgBufMaxSize,0,(struct sockaddr *)&ListionAddr,&addrlen);
 		if ((bytesNum != SOCKET_ERROR) && (bytesNum > 0)){
 			strIP = inet_ntoa(ListionAddr.sin_addr);
@@ -474,10 +472,13 @@ int32 ASOCKETSERVER::ListionUDP(void *p){
 			else if (newSocket == nullptr){
 				PrintWarningMessage("No enough resource to create new socket");
 			}
-			else if ((OnOpenUDPSocket(newSocket) > 0) && (newSocket->Open(listionSocket,ListionAddr,CSType_UDPS,CheckEcho()) > 0)){
-				SetblUpdate();
-				newSocket->UDPS_ReadFromDevice(databuf,bytesNum);
-				newSocket = nullptr;
+			else {
+				AddSon(newSocket);
+				if ((OnOpenUDPSocket(newSocket) > 0) && (newSocket->Open(listionSocket,ListionAddr,CSType_UDPS,CheckEcho()) > 0)){
+					SetblUpdate();
+					newSocket->UDPS_ReadFromDevice(databuf,bytesNum);
+					newSocket = nullptr;
+				}
 			}
 		}
 		ChildClose(newSocket);

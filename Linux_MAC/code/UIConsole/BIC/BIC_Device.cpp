@@ -351,7 +351,7 @@ int32 BIC_SENDA::Command(BIC_ENV *env, const STDSTR &par,void *eda)const{
 		}
 		if (InPressKeyMode(env) > 0){
 			env->cSDTApp->m_Script.Stop();
-			PrintSuccess(env,"Pressed double ESC key, stopped script");
+			PrintSuccess(env,"Pressed ESC key, stopped script");
 		}
 		
 		if (blScriptAT != 0)

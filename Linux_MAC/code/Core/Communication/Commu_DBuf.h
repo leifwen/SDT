@@ -219,7 +219,7 @@ class COMMU_DBUF_FRAME_FW : public COMMU_DBUF_FRAME_LOG{
 	private:
 		virtual	int32	FwThreadFun		(void *p);
 	private:
-		static	uint32	ForwardToSelf	(COMMU_DBUF_FRAME_FW *commu,const FIFO8 &fifoIn,uint32 num,uint32 *outNum);
+		static	uint32	ForwardToSelf	(COMMU_DBUF_FRAME_FW *commu,const FIFO8 &fifoIn,uint32 num,uint32 *outNum,int32 blInit);
 	public:
 		const SBUF_LIST *GetFwSBufList	(void){return(rxFwSBufList);};
 		void	UseSelfFwSBufList		(void);

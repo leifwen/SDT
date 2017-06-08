@@ -60,7 +60,7 @@ int32 SBIC_Synchronous::Command(SBIC_ENV *env,const STDSTR &par,void *p)const{
 			msec = (int32)(T1 * 1000) % 1000;
 			SYS_EncodeTimeABS(&dT,0,0,(int32)T1,msec);
 			env->cgCommand->timeST0 += dT;
-			env->cgCommand->timeST0 -= 360000;
+			env->cgCommand->timeST0 -= (60 * 60 * 24 * 2);
 		}
 		dT = currentTime - env->cgCommand->timeST0;
 		
@@ -293,7 +293,8 @@ int32 SBIC_Wait::Command(SBIC_ENV *env,const STDSTR &par,void *p)const{
 //------------------------------------------------------------------------------------------//
 int32 SBIC_Lable::Command(SBIC_ENV *env,const STDSTR &par,void *retStr)const{
 	STDSTR *ret = static_cast<STDSTR*>(retStr);
-	*ret = (Str_Trim(par));
+	if (retStr != nullptr)
+		*ret = (Str_Trim(par));
 	return(cgReturnCode);
 }
 //------------------------------------------------------------------------------------------//
@@ -316,10 +317,10 @@ int32 SBIC_GOTO::Command(SBIC_ENV *env,const STDSTR &par,void *p)const{
 				PrintWithDividingLine(cOut,"Try to execute:",DelComment(env->cgCommand->StrCommand));
 			
 			blJump = 0;
-			cNode = (COMMAND_NODE*)(GetcgDown(env->cgCommand));
+			cNode = (COMMAND_NODE*)(GetcgDown(GetcgUp(env->cgCommand)));
 			while(cNode != nullptr){
 				if (cNode->blEnableSend != 0){
-					if (SBI_RETCODE_LABLE == cgSubC_Lable.Execute(env,DelComment(cNode->StrCommand),&retCMDLable)
+					if ((SBI_RETCODE_LABLE == cgSubC_Lable.Execute(env,DelComment(cNode->StrCommand),&retCMDLable))
 						&& (retCMDLable == strPar1)){
 						if ((CheckPrintSBICinfo(env) != 0) && (CheckCommandExplain(env) != 0))
 							PrintStr(cOut,"\n Goto Lable:", retCMDLable);

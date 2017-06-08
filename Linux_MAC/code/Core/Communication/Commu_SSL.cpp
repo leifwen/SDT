@@ -741,8 +741,9 @@ int32 CSSL_FR_T2::MessageProcessing(COMMU_DBUF_SSL *tCOMMU,const uint32 &mID,con
 	if ((blDo != 0) && (blRet == 0))
 		SetSFlag(blHandshakeN);
 	
-	if (CheckSFlag(blHandshakeN) || ((CheckSFlag(blHandshakeY) == 0) && (SYS_Delay_CheckTS(&Time_Handshake) != 0))){
+	if ((CheckSFlag(blHandshakeN) != 0) || ((CheckSFlag(blHandshakeY) == 0) && (SYS_Delay_CheckTS(&Time_Handshake) != 0))){
 		E2LogInMP("Handshake fail, disconnect socket");
+		SYS_Delay_SetTS(&Time_Handshake,HandshakeTime << 10);
 		SetSFlag(blHandshakeN);
 		SetSFlag(blClose);
 		tCOMMU->SelfClose();

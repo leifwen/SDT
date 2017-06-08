@@ -176,7 +176,7 @@ void SC_LIST::SetSCListV0_4(STDSTR *strIn){
 		if (strLine == "[singlecommand_end]")
 			break;
 		if (strLine == "[scnode]"){
-			node = GetNewNode();
+			node = (SC_NODE*)GetNewNode();
 			if (node != nullptr){
 				node->SetNodeV0_4(strIn);
 				AddNode(node);
@@ -194,7 +194,7 @@ void SC_LIST::SetSCListV0_2(STDSTR *strIn){
 	
 	while(strIn->length() > 0){
 		strResult = Str_ReadSubItem(strIn,"|");
-		node = GetNewNode();
+		node = (SC_NODE*)GetNewNode();
 		if (node != nullptr){
 			node->SetNodeV0_2(&strResult);
 			AddNode(node);

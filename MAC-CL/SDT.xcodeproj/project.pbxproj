@@ -715,10 +715,10 @@
 			children = (
 				298B49D11EACF3DF00C07823 /* Commu_EXE.h */,
 				298B49D01EACF3DF00C07823 /* Commu_EXE.cpp */,
-				298B49C51EACF2D600C07823 /* PL_Hotplug.cpp */,
 				298B49C61EACF2D600C07823 /* PL_Hotplug.h */,
-				298B49C71EACF2D600C07823 /* PL_Modem.cpp */,
+				298B49C51EACF2D600C07823 /* PL_Hotplug.cpp */,
 				298B49C81EACF2D600C07823 /* PL_Modem.h */,
+				298B49C71EACF2D600C07823 /* PL_Modem.cpp */,
 			);
 			path = Linux;
 			sourceTree = "<group>";

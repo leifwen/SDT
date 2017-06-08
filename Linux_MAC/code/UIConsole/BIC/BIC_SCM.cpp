@@ -130,6 +130,7 @@ int32 BIC_SCM_SET::Command(BIC_ENV *env, const STDSTR &par,void *p)const{
 	uint32		sID;
 	uint32		blCR;
 	SC_NODE		*selectNode;
+	int32		blupdate;
 	
 	blCR = 0;
 	
@@ -140,6 +141,7 @@ int32 BIC_SCM_SET::Command(BIC_ENV *env, const STDSTR &par,void *p)const{
 	PrintResult(env,Data(COL_clCyan,&SC_NODE::GetTitle(&strPrintData)));
 	
 	SplitPar1(strPar1, strPar2, par);
+	blupdate = 0;
 	while(strPar1.length() > 0){
 		if (strPar1 == "+cr"){
 			blCR = 1;
@@ -154,7 +156,7 @@ int32 BIC_SCM_SET::Command(BIC_ENV *env, const STDSTR &par,void *p)const{
 				operateNode_t->Spin_InUse_clr();
 				PrintResult(env,Data(COL_clBlue,&operateNode_t->Compose(&strPrintData)));
 			);
-			env->cSDTApp->m_SCList.SetblUpdate();
+			blupdate = 1;
 		}
 		else{
 			sID = (uint32)strtol(strPar1.c_str(),nullptr,10);
@@ -164,11 +166,13 @@ int32 BIC_SCM_SET::Command(BIC_ENV *env, const STDSTR &par,void *p)const{
 				selectNode->blEnableSendCR = blCR;
 				selectNode->Spin_InUse_clr();
 				PrintResult(env,Data(COL_clBlue,&selectNode->Compose(&strPrintData)));
-				env->cSDTApp->m_SCList.SetblUpdate();
+				blupdate = 1;
 			}
 		}
 		SplitPar1(&strPar1, &strPar2);
 	}
+	if (blupdate == 1)
+		env->cSDTApp->m_SCList.SetblUpdate();
 	PrintSuccess(env);
 	return(cgReturnCode);
 }
@@ -179,7 +183,7 @@ int32 BIC_SCM_CLONE::Command(BIC_ENV *env, const STDSTR &par,void *p)const{
 	uint32		sDID;
 	STDSTR		strPrintData;
 	
-	newNode = env->cSDTApp->m_SCList.GetNewNode();
+	newNode = (SC_NODE*)env->cSDTApp->m_SCList.GetNewNode();
 	if (newNode == nullptr){
 		PrintFail(env);
 		return(cgReturnCode);
@@ -193,10 +197,9 @@ int32 BIC_SCM_CLONE::Command(BIC_ENV *env, const STDSTR &par,void *p)const{
 			SC_NODE::Copy(newNode,nextNode);
 	}
 	env->cSDTApp->m_SCList.AddNode(newNode);
-	env->cSDTApp->m_SCList.SetblUpdate();
 	PrintResult(env,Data(COL_clBlue,&newNode->Compose(&strPrintData)));
+	env->cSDTApp->m_SCList.SetblUpdate();
 	PrintSuccess(env);
-	
 	return(cgReturnCode);
 }
 //------------------------------------------------------------------------------------------//
@@ -217,6 +220,7 @@ int32 BIC_SCM_DEL::Command(BIC_ENV *env, const STDSTR &par,void *p)const{
 		PrintResult(env,"Delete sID:",Str_ToString(sDID));
 		SplitPar1(&strPar1, &strPar2);
 	};
+	env->cSDTApp->m_SCList.SetblUpdate();
 	PrintSuccess(env);
 	return(cgReturnCode);
 }
@@ -286,8 +290,8 @@ int32 BIC_SCM_COMMAND::Command(BIC_ENV *env, const STDSTR &par,void *p)const{
 			nextNode->Spin_InUse_set();
 			nextNode->StrCommand = strPar2;
 			nextNode->Spin_InUse_clr();
-			env->cSDTApp->m_SCList.SetblUpdate();
 			PrintResult(env,Data(COL_clBlue,&nextNode->Compose(&strPrintData)));
+			env->cSDTApp->m_SCList.SetblUpdate();
 			PrintSuccess(env);
 			return(cgReturnCode);
 		}

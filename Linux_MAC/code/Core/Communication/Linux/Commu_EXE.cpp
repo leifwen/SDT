@@ -160,17 +160,7 @@ void AEXE::CloseDev(void){
 int32 AEXE::ReadFromDevice(uint32 *retNum,uint8 *buffer,uint32 length){
 	int64	retCode;
 	*retNum = 0;
-#ifdef CommonDefH_Linux
-	retCode = read(fd_pipeChildOut[0],buffer,length);
-	if (retCode == 0)
-		return -1;
-	if (retCode > 0){
-		*retNum = (uint32)retCode;
-		return 1;
-	}
-	return 0;
-#endif
-#ifdef CommonDefH_MAC
+
 	retCode = read(fd_pipeChildOut[0],buffer,length);
 	if (((retCode == -1) && (errno != EINTR) && (errno != EWOULDBLOCK) && (errno != EAGAIN)))
 		return -1;
@@ -179,7 +169,6 @@ int32 AEXE::ReadFromDevice(uint32 *retNum,uint8 *buffer,uint32 length){
 		return 1;
 	}
 	return 0;
-#endif
 }
 //------------------------------------------------------------------------------------------//
 int32 AEXE::SendToDevice(uint32 *retNum,const uint8 *buffer,uint32 length){

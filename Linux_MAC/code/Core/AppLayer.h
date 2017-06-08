@@ -50,7 +50,7 @@ class CON_CONSOLE : public CON_ReadInLine{
 class SDTAPP : public COMMU_DBUF_FRAME{
 	public:
 		virtual ~SDTAPP(void){;};
-				 SDTAPP(int32 tSize = G_MAXBUFFER_SIZE)
+				 SDTAPP(uint32 tSize = G_MAXBUFFER_SIZE)
 					: COMMU_DBUF_FRAME(0)
 				#ifdef ODEV_SystemH
 					,m_LogCache(1024 * 1024 * 32)

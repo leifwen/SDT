@@ -361,7 +361,7 @@ void COMMU_DBUF_FRAME_FW::RxDataShareTo(SBUFFER *tSBUF){
 	Spin_InUse_clr();
 }
 //------------------------------------------------------------------------------------------//
-uint32 COMMU_DBUF_FRAME_FW::ForwardToSelf(COMMU_DBUF_FRAME_FW *commu,const FIFO8 &fifoIn,uint32 num,uint32 *outNum){
+uint32 COMMU_DBUF_FRAME_FW::ForwardToSelf(COMMU_DBUF_FRAME_FW *commu,const FIFO8 &fifoIn,uint32 num,uint32 *outNum,int32 blInit){
 	uint32 sendNum;
 	
 	sendNum = 0;
@@ -374,7 +374,7 @@ uint32 COMMU_DBUF_FRAME_FW::ForwardToSelf(COMMU_DBUF_FRAME_FW *commu,const FIFO8
 				sendNum = commu->Send(fifoIn, num, commu->cgTxSBUF.cgAlreadyReadNum);
 				commu->cgTxSBUF.cgAlreadyReadNum += sendNum;
 			}
-			if (*outNum > commu->cgTxSBUF.cgAlreadyReadNum)
+			if ((blInit == 0) || (*outNum > commu->cgTxSBUF.cgAlreadyReadNum))
 				*outNum = commu->cgTxSBUF.cgAlreadyReadNum;
 			
 			commu->cgTxSBUF.cgAlreadyReadNum -= *outNum;
@@ -409,7 +409,8 @@ int32 COMMU_DBUF_FRAME_FW::FwThreadFun(void *p){
 				cgTxSBUF.cgAlreadyReadNum = 0;
 			}
 			else{
-				cgFwBytes += ForwardToSelf(this,cgRxSBUF.cgFIFO, recNum , &outNum);
+				cgFwBytes += ForwardToSelf(this,cgRxSBUF.cgFIFO, recNum , &outNum, 0);
+				cgTxSBUF.cgAlreadyReadNum += outNum;
 				outNum = cgTxSBUF.cgAlreadyReadNum;
 				blInit = 1;
 			}
@@ -438,7 +439,7 @@ int32 COMMU_DBUF_FRAME_FW::FwThreadFun(void *p){
 					}
 				);
 			}
-			ForwardToSelf((COMMU_DBUF_THREAD*)GetCoupleNode(this),cgRxSBUF.cgFIFO, recNum, &outNum);
+			ForwardToSelf((COMMU_DBUF_THREAD*)GetCoupleNode(this),cgRxSBUF.cgFIFO, recNum, &outNum, blInit);
 			if (CheckEcho() != 0)
 				cgTxSBUF.cgAlreadyReadNum -= outNum;
 			if (CheckEnableLog() != 0)
@@ -618,7 +619,11 @@ int32 COMMU_DBUF_SSL::ThreadsStart(void){
 		return 0;
 	if (CheckSFlag(cds_blUseSSL) == 0)
 		return 1;
-	return(cgSSLT2.Handshake(this));
+	if (cgSSLT2.Handshake(this) == 0){
+		SetSFlag(cds_blClose);
+		return 0;
+	}
+	return 1;
 }
 //------------------------------------------------------------------------------------------//
 void COMMU_DBUF_SSL::DoClose(void){

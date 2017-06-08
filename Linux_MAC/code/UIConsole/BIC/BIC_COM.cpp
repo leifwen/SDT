@@ -71,7 +71,7 @@ int32 BIC_COM_DTR::Command(BIC_ENV *env,const STDSTR &par,void *eda)const{
 				}
 				if (bltime > 0){
 					if (PressAnyKey(env,attr,&timeS) == 27){
-						PrintSuccess(env,"Pressed double ESC key, stopped execute command");
+						PrintSuccess(env,"Pressed ESC key, stopped execute command");
 						return(cgReturnCode);
 					}
 				}
@@ -121,7 +121,7 @@ int32 BIC_COM_RTS::Command(BIC_ENV *env,const STDSTR &par,void *eda)const{
 				}
 				if (bltime > 0){
 					if (PressAnyKey(env,attr,&timeS) == 27){
-						PrintSuccess(env,"Pressed double ESC key, stopped execute command");
+						PrintSuccess(env,"Pressed ESC key, stopped execute command");
 						return(cgReturnCode);
 					}
 				}

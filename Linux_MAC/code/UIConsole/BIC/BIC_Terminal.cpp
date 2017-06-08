@@ -404,6 +404,30 @@ int32 BIC_RST_LOGIN::OnlineModeExit(BIC_ENV *env)const{
 	return(env->cSDTApp->m_RSTCilent.CheckTerminalClosed());
 };
 //------------------------------------------------------------------------------------------//
+#ifdef Terminal_LicenseH
+int32 BIC_APPROVESDT::Command(BIC_ENV *env,const STDSTR &par,void *p)const{
+	STDSTR		strPar,strPar1,strPar2;
+	STDSTR		strReg,strContent;
+	
+	if (env->cSDTApp->m_RSTCilent.IsConnected() == 0){
+		PrintFail(env, "RST server control link was not setup");
+		return(cgReturnCode);
+	}
+	if (par.length() == 0){
+		PrintFail(env);
+		return(cgReturnCode);
+	}
+	
+	if (env->cSDTApp->m_RSTCilent.SendApproveSDT(atoi(strPar1.c_str())) > 0){
+		PrintSuccess(env);
+	}
+	else{
+		PrintFail(env);
+	}
+	return(cgReturnCode);
+}
+#endif
+//------------------------------------------------------------------------------------------//
 #endif
 #ifdef BIC_TSH
 //------------------------------------------------------------------------------------------//

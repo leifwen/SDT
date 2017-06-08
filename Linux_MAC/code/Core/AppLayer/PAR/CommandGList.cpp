@@ -854,7 +854,7 @@ STDSTR&	COMMAND_GROUP::Compose(STDSTR *retStr,uint32 flag){
 //------------------------------------------------------------------------------------------//
 void GC_LIST::Empty(void){
 	TREE_LChildRChain_Traversal_LINE(COMMAND_GROUP,this,operateNode_t->Empty());
-	CleanChild(this);
+	TREE_NODE::Empty();
 };
 //------------------------------------------------------------------------------------------//
 STDSTR &GC_LIST::CreateGroupListStrV0_6(STDSTR *retStr){
@@ -935,7 +935,7 @@ void GC_LIST::SetGroupListV0_6(STDSTR *strIn){
 		if (strLine == "[grouplist_end]")
 			break;
 		if (strLine == "[group]"){
-			group = GetNewNode();
+			group = (COMMAND_GROUP*)GetNewNode();
 			if (group != nullptr){
 				group->SetGroupV0_6(strIn);
 				AddNode(group);
@@ -960,7 +960,7 @@ void GC_LIST::SetGroupListV0_5(STDSTR *strIn){
 		if (strLine == "[grouplist_end]")
 			break;
 		if (strLine == "[group]"){
-			group = GetNewNode();
+			group = (COMMAND_GROUP*)GetNewNode();
 			if (group != nullptr){
 				group->SetGroupV0_5(strIn);
 				AddNode(group);
@@ -985,7 +985,7 @@ void GC_LIST::SetGroupListV0_4(STDSTR *strIn){
 		if (strLine == "[grouplist_end]")
 			break;
 		if (strLine == "[group]"){
-			group = GetNewNode();
+			group = (COMMAND_GROUP*)GetNewNode();
 			if (group != nullptr){
 				group->SetGroupV0_4(strIn);
 				AddNode(group);
@@ -1004,7 +1004,7 @@ void GC_LIST::SetGroupListV0_3(STDSTR *strIn){
 	
 	while(strIn->length() > 0){
 		strResult = Str_ReadSubItem(strIn,":");
-		group = GetNewNode();
+		group = (COMMAND_GROUP*)GetNewNode();
 		if (group != nullptr){
 			group->SetGroupV0_3(&strResult);
 			AddNode(group);
@@ -1022,7 +1022,7 @@ void GC_LIST::SetGroupListV0_2(STDSTR *strIn){
 	
 	while(strIn->length() > 0){
 		strResult = Str_ReadSubItem(strIn,":");
-		group = GetNewNode();
+		group = (COMMAND_GROUP*)GetNewNode();
 		if (group != nullptr){
 			group->SetGroupV0_2(&strResult);
 			AddNode(group);
@@ -1087,7 +1087,7 @@ void GC_LIST::CopyCOMMAND_GROUP_ENABLE(GC_LIST *tGroupList1,const GC_LIST *tGrou
 	TREE_LChildRChain_Traversal_LINE(COMMAND_GROUP, ((GC_LIST*)tGroupList2),
 		operateNode_t->Spin_InUse_set();
 		if (operateNode_t->blEnableAutoRun != 0){
-			newGroup = tGroupList1->GetNewNode();
+			newGroup = (COMMAND_GROUP*)tGroupList1->GetNewNode();
 			if (newGroup != nullptr){
 				COMMAND_GROUP::CopyCOMMAND_GROUP(newGroup,operateNode_t);
 				tGroupList1->AddNode(newGroup);

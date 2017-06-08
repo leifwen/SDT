@@ -32,6 +32,7 @@ void TerminalSocket::DoClose(void){
 }
 //------------------------------------------------------------------------------------------//
 int32 TerminalSocket::DoBICThreadFun(void *p){
+	SetGetDataByRead();
 	SDTAPP	*sdt = static_cast<SDTAPP*>(p);
 	CreateODev_G2Self();
 	GetG2DefSelf()->RegisterToCache(&sdt->m_LogCache, COLRECORD::CRD_G2);
@@ -43,6 +44,7 @@ int32 TerminalSocket::DoBICThreadFun(void *p){
 			break;
 	}
 	GetG2DefSelf()->RemoveSelf();
+	SetGetDataByShare();
 	return 1;
 }
 //------------------------------------------------------------------------------------------//
@@ -61,6 +63,12 @@ enum{
 	MESG_ANS_SetupTerminal,
 	MESG_REQ_CloseTerminal,
 	MESG_ANS_CloseTerminal,
+#ifdef Terminal_LicenseH
+	MESG_REQ_CreateLicense,
+	MESG_ANS_CreateLicense,
+	MESG_REQ_WriteLicense,
+	MESG_ANS_WriteLicense,
+#endif
 	MESG_NEXT_TSSL,
 };
 //------------------------------------------------------------------------------------------//
@@ -77,6 +85,12 @@ STDSTR RSTSocket::GetMesgText(uint32 mID){
 		case MESG_ANS_SetupTerminal		:retStr += "MESG_ANS_SetupTerminal ";break;
 		case MESG_REQ_CloseTerminal		:retStr += "MESG_REQ_CloseTerminal ";break;
 		case MESG_ANS_CloseTerminal		:retStr += "MESG_ANS_CloseTerminal ";break;
+#ifdef Terminal_LicenseH
+		case MESG_REQ_CreateLicense		:retStr += "MESG_REQ_CreateLicense ";break;
+		case MESG_ANS_CreateLicense		:retStr += "MESG_ANS_CreateLicense ";break;
+		case MESG_REQ_WriteLicense		:retStr += "MESG_REQ_WriteLicense ";break;
+		case MESG_ANS_WriteLicense		:retStr += "MESG_ANS_WriteLicense ";break;
+#endif
 		default							:retStr = "";break;
 	}
 #endif
@@ -86,6 +100,9 @@ STDSTR RSTSocket::GetMesgText(uint32 mID){
 void RSTSocket::Init(void){
 	BICThread.RemoveSelf();
 	ClrSFlag(blSetupTerminalY | blSetupTerminalN | blCloseTerminalY);
+#ifdef Terminal_LicenseH
+	approveTime = 0;
+#endif
 }
 //---------------------------------MessageProcessing---------------------------------------------------------//
 #define CHSendM(_mID,_strMesg,_blRet,_Title) \
@@ -105,7 +122,7 @@ void RSTSocket::ThreadsStop(void){
 	cgBICenv.blExit = -1;
 	BICThread.ThreadStop();
 	TerminalSocket::ThreadsStop();
-	ClrSFlag(blSetupTerminalY | blSetupTerminalN | blCloseTerminalY);
+	ClrSFlag(blSetupTerminalY | blSetupTerminalN | blCloseTerminalY | blApproveY | blApproveN);
 }
 //------------------------------------------------------------------------------------------//
 int32 RSTSocket::BICThreadFun(void *p){
@@ -151,6 +168,38 @@ int32 RSTSocket::MessageProcessing(const uint32 &mID,const STDSTR &strMesg){
 			CHRecInMP(mID);
 			SetSFlag(blCloseTerminalY);
 			break;
+#ifdef Terminal_LicenseH
+		case MESG_REQ_CreateLicense:
+			CHRecInMP(mID);
+			if (regS.Encode(&strMesgT,nullptr) > 0){
+				CHSendInMP(MESG_ANS_CreateLicense,strMesgT,blRet);
+			}
+			else{
+				E2LogInMP("Create Reg_Signature fail");
+			}
+			break;
+		case MESG_ANS_CreateLicense:
+			CHRecInMP(mID);
+			if (gLS.Encode(&strContent, strMesg, approveTime * 60 * 60) > 0){
+				CHSendInMP(MESG_REQ_WriteLicense,strContent,blRet);
+			}
+			else{
+				E2LogInMP("Create Linense_Signature fail");
+				SetSFlag(blApproveN);
+			}
+			approveTime = 0;
+			break;
+		case MESG_REQ_WriteLicense:
+			CHRecInMP(mID);
+			E2LogInMP("Write to License.key");
+			CFS_WriteFile("License.key", strMesg);
+			CHSendInMP(MESG_ANS_WriteLicense,"",blRet);
+			break;
+		case MESG_ANS_WriteLicense:
+			CHRecInMP(mID);
+			SetSFlag(blApproveY);
+			break;
+#endif
 		default:
 			blDo = 0;
 			break;
@@ -161,7 +210,7 @@ int32 RSTSocket::MessageProcessing(const uint32 &mID,const STDSTR &strMesg){
 int32 RSTSocket::SendRequestSetupTerminal(void){
 	int32	blRet;
 	ClrSFlag(blCloseTerminalY);
-	blRet = SendCHMesg(MESG_REQ_SetupTerminal,"",blSetupTerminalY,blSetupTerminalN,1);
+	blRet = SendCHMesg(MESG_REQ_SetupTerminal,"",blSetupTerminalY,blSetupTerminalN,CSSL_FR_T2::HandshakeTime);
 	if ((blRet == 1) || (blRet == -3))
 		return 1;
 	return 0;
@@ -169,11 +218,23 @@ int32 RSTSocket::SendRequestSetupTerminal(void){
 //------------------------------------------------------------------------------------------//
 int32 RSTSocket::SendRequestCloseTerminal(void){
 	int32	blRet;
-	blRet = SendCHMesg(MESG_REQ_CloseTerminal,"",blCloseTerminalY,blCloseTerminalY,1);
+	blRet = SendCHMesg(MESG_REQ_CloseTerminal,"",blCloseTerminalY,blCloseTerminalY,CSSL_FR_T2::HandshakeTime);
 	if ((blRet == 1) || (blRet == -3))
 		return 1;
 	return 0;
 }
+//------------------------------------------------------------------------------------------//
+#ifdef Terminal_LicenseH
+int32 RSTSocket::SendApproveSDT(uint32 approveH){
+	int32	blRet;
+	ClrSFlag(blApproveY);
+	approveTime = approveH;
+	blRet = SendCHMesg(MESG_REQ_CreateLicense,"",blApproveY,blApproveN,CSSL_FR_T2::HandshakeTime);
+	if ((blRet == 1) || (blRet == -3))
+		return 1;
+	return 0;
+}
+#endif
 //------------------------------------------------------------------------------------------//
 #endif
 

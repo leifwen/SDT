@@ -39,7 +39,7 @@
 	//#undef USE_OPENSSL
 #endif
 #ifdef CommonDefH_Linux
-	//#undef USE_OPENSSL
+	#undef USE_OPENSSL
 #endif
 //------------------------------------------------------------------------------------------//
 #ifndef CommonDefH_VC
@@ -48,11 +48,11 @@
 //------------------------------------------------------------------------------------------//
 #include <string>
 #include <iostream>
-//#include <stdio.h>
-//#include <stdlib.h>
-//#include <string.h>
 #ifdef CommonDefH_Unix
 #include <unistd.h>
+#endif
+#ifdef CommonDefH_Linux
+#include <string.h>
 #endif
 //------------------------------------------------------------------------------------------//
 typedef const 		char		char8;

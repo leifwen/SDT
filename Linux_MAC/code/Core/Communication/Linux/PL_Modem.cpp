@@ -13,42 +13,57 @@
  */
 //------------------------------------------------------------------------------------------//
 #include "PL_Modem.h"
-#include "ODEV_Include.h"
-#include "Commu_DBuf.h"
-#include "Commu_Com.h"
-#include "PL_Hotplug.h"
-#ifdef CommonDefH_Linux
+#include "Comm_File.h"
+#ifdef PL_ModemH
 //------------------------------------------------------------------------------------------//
-PL_MODEM::PL_MODEM(ODEV_LIST *tODEV_LIST,uint32 tSize) : ACOM(tODEV_LIST,tSize){
+PL_MODEM::PL_MODEM(uint32 tSize,const ODEV_SYSTEM *logSys) : ACOM(tSize,logSys){
 	cgHotplug = nullptr;
 
 	cgVendorM = "";
 	cgVendor = "";
 	usbport = 0;
 	comBR = 115200;
-	hotplugThread.ThreadInit(this,&PL_MODEM::hotplugThreadFun);
+	hotplugThread.ThreadInit(this,&PL_MODEM::hotplugThreadFun,"hotplugThread");
 }
 //------------------------------------------------------------------------------------------//
 PL_MODEM::~PL_MODEM(void){
-	Close(0);
+	hotplugThread.RemoveSelf();
 	hotplugThread.ThreadStop();
 }
 //------------------------------------------------------------------------------------------//
 int32 PL_MODEM::OpenPort(const STDSTR &strVerdorM,int32 comBaudRate){
-	
-	cgVendorM = strVerdorM;
-	comBR = comBaudRate;
-	
-	UpdateTTYUSBList_M();
-	return(Open(cgTTYUSB[usbport],comBR,CSType_COM,0));
+	int32 ret;
+	ret = 0;
+	if (InDoing_try() != 0){
+		cgVendorM = strVerdorM;
+		comBR = comBaudRate;
+		UpdateTTYUSBList_M();
+		ret = ACOM::OpenD(cgTTYUSB[usbport],comBR,CSType_COM,0,G_LOCK_OFF);
+		InDoing_clr();
+	}
+	return(ret);
 }
 //------------------------------------------------------------------------------------------//
 int32 PL_MODEM::ReOpenPort(void){
-	if (IsConnected() == 0){
-		UpdateTTYUSBList_M();
-		return(Open(cgTTYUSB[usbport],comBR,CSType_COM,0));
+	int32 ret;
+	ret = 0;
+	if (InDoing_try() != 0){
+		ret = 1;
+		if (IsConnected() == 0){
+			UpdateTTYUSBList_M();
+			ret = ACOM::OpenD(cgTTYUSB[usbport],comBR,CSType_COM,0,G_LOCK_OFF);
+		}
+		InDoing_clr();
 	}
-	return 1;
+	return(ret);
+}
+//------------------------------------------------------------------------------------------//
+void PL_MODEM::CloseDev(void){
+	int32 i;
+	i = 10;
+	while(i -- > 0)
+		cgTTYUSB[i] = "";
+	ACOM::CloseDev();
 }
 //------------------------------------------------------------------------------------------//
 int32 PL_MODEM::CheckTTYUSB(const STDSTR &ttyUSB)const{
@@ -61,22 +76,21 @@ int32 PL_MODEM::CheckTTYUSB(const STDSTR &ttyUSB)const{
 	return 0;
 }
 //------------------------------------------------------------------------------------------//
-int32 PL_MODEM::hotplugThreadFun(void){
+int32 PL_MODEM::hotplugThreadFun(void *p){
 	SBUFFER	hotplugBuffer;
 	STDSTR	strRecBuf,strSubMsg,sub0,strSubHead,strVendor,printData;
-	uint32	    byteNum;
-	int32		i;
+	uint32	byteNum;
 	hotplugBuffer.Init(1024 * 4);
 	TIME	dT;
 	
 	UpdateTTYUSBList_M();
 	if (cgHotplug != nullptr){
-		cgHotplug->rxFwSBufList->Add(&hotplugBuffer);
+		cgHotplug->RxDataShareTo(&hotplugBuffer);
 		byteNum = 0;
 		strRecBuf = "";
 		while(hotplugThread.IsTerminated() == 0){
 			if (hotplugBuffer.Used() > 0){
-				hotplugBuffer.ReadInASCII(&strRecBuf, G_NO_ESCAPE);
+				hotplugBuffer.Get(&strRecBuf, G_ESCAPE_OFF);
 				sub0 = '\0';
 				while(strRecBuf.length() > 0){
 					strSubMsg = Str_ReadSubItem(&strRecBuf,sub0);
@@ -87,8 +101,7 @@ int32 PL_MODEM::hotplugThreadFun(void){
 							GetUSBSerialVendor(strSubHead, &strVendor);
 							if (CheckVendor_M(strVendor) != 0){
 								dT.Now();
-								cgOutput->WriteStrN(strVendor + " " + strSubHead + " is added.\n",RICH_CF_clPurple,1);
-								//cgOutput->WriteStrN(dT.FormatDateTime("[hh:mm:ss.zzz] : ") + strVendor + " " + strSubHead + " is added.\n",RICH_CF_clPurple,1);
+								PrintNormalMessage(strVendor,strSubHead,"is added");
 								UpdateTTYUSBList_M();
 							}
 						}
@@ -97,25 +110,16 @@ int32 PL_MODEM::hotplugThreadFun(void){
 						strSubHead = Str_ReadSubItemR(&strSubMsg,"/ttyUSB");
 						if (strSubHead.length() > 0){
 							if (CheckTTYUSB("/dev/ttyUSB" + strSubHead) == 1){
-								Close(0);
-								if (cgOutput != nullptr){
-									dT.Now();
-									cgOutput->WriteStrN(cgVendor + " is removed.\r\nClose usbport " + cgTTYUSB[usbport] + ".\n",RICH_CF_clPurple,1);
-									//cgOutput->WriteStrN(dT.FormatDateTime("[hh:mm:ss.zzz] : ") + cgVendor + " is removed. Close usbport " + cgTTYUSB[usbport] + ".\n",RICH_CF_clPurple,1);
-								}
-								i = 10;
-								while(i -- > 0)
-									cgTTYUSB[i] = "";
+								PrintNormalMessage(strVendor,"is removed");
+								PrintNormalMessage("Close usbport",cgTTYUSB[usbport]);
+								SelfClose();
 							}
 						}
 					}
 				}
 			}
-			if ((IsConnected() == 0) && (ReOpenPort() != 0) && (cgOutput != nullptr)){
-				dT.Now();
-				cgOutput->WriteStrN("Reopen usbport " + cgTTYUSB[usbport] + ".\n",RICH_CF_clPurple,1);
-				//cgOutput->WriteStrN(dT.FormatDateTime("[hh:mm:ss.zzz] : ") + "Reopen usbport " + cgTTYUSB[usbport] + ".\n",RICH_CF_clPurple,1);
-			}
+			if ((IsConnected() == 0) && (ReOpenPort() != 0))
+				PrintNormalMessage("Reopen usbport",cgTTYUSB[usbport]);
 			SYS_SleepMS(10);
 		}
 	}
@@ -167,7 +171,7 @@ int32 PL_MODEM::UpdateTTYUSBList(const STDSTR &vendor){
 		cgTTYUSB[i] = "";
 	
 	i = 0;
-	if (FILES_ReadFile("/proc/tty/driver/usbserial",&strResult) > 0){
+	if (CFS_ReadFile(&strResult,"/proc/tty/driver/usbserial") > 0){
 		Str_ReadSubItem(&strResult, "\n");
 		while(strResult.length() > 0){
 			strSubline = Str_ReadSubItem(&strResult, "\n");
@@ -195,7 +199,7 @@ int32 PL_MODEM::GetUSBSerialVendor(const STDSTR &ttyUSB,STDSTR *retVendor){
 	
 	strResult = "";
 	*retVendor = "";
-	if (FILES_ReadFile("/proc/tty/driver/usbserial",&strResult) > 0){
+	if (CFS_ReadFile(&strResult,"/proc/tty/driver/usbserial") > 0){
 		Str_ReadSubItem(&strResult, "\n");
 		while(strResult.length() > 0){
 			strSubline = Str_ReadSubItem(&strResult, "\n");

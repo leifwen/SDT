@@ -13,8 +13,7 @@
  				use int32 to replace bool
  				use int32 to replace uint32
 */
-#ifndef PL_HotplugH
-#define PL_HotplugH
+//------------------------------------------------------------------------------------------//
 /*
  add@/devices/pci0000:00/0000:00:1d.0/usb2/2-1
  add@/devices/pci0000:00/0000:00:1d.0/usb2/2-1/2-1:1.0
@@ -65,26 +64,29 @@
  SEQNUM=1614\0
  */
 //------------------------------------------------------------------------------------------//
+#include "Commu_Socket.h"
+//------------------------------------------------------------------------------------------//
 #ifdef CommonDefH_Linux
+#ifndef PL_HotplugH
+#define PL_HotplugH
+#ifdef PL_HotplugH
 //------------------------------------------------------------------------------------------//
-class PL_HOTPLUG : public COMMU_DBUF{
+class PL_HOTPLUG : public ASOCKET{
 	public:
-	    enum{RFLAG_C = 0, RFLAG_S = COMMU_DBUF::RFLAG_S + COMMU_DBUF::RFLAG_C};
-	public:
-        		 PL_HOTPLUG(ODEV_LIST *tODEV_LIST,uint32 tSize) : COMMU_DBUF(tODEV_LIST,tSize){Init();};
-		virtual ~PL_HOTPLUG(void){Close();};
+				 PL_HOTPLUG(uint32 tSize,const ODEV_SYSTEM *logSys = nullptr) : ASOCKET(tSize,logSys){SetSelfName("PL_HOTPLUG");};
+		virtual ~PL_HOTPLUG(void){;};
 	protected:
-		int32	handle;
-	public:
+		int32	osHandle;
+	private:
 		void 	Init(void);
-		virtual	int32	ReadFromDevice	(uint8 *buffer,uint32 length,uint32 *retNum);
-	public:
-		virtual	int32		Open		(const STDSTR &tCDBufName,int32 tCDBufPar,CSType tCSType,int32 blEnEcho);
-		virtual	int32		Close		(int32 blClr = 1);
-				int32		Open		(void){return(Open("",0,CSType_COM,0));};
 	protected:
-		void	CloseSocket		(void);
+		virtual	int32	OpenDev				(const STDSTR &tCDBufName,int32 tCDBufPar,CSType tCSType,int32 blEnEcho);
+		virtual	void	CloseDev			(void);
+	public:
+				int32	Open				(void){return(OpenD("",0,CSType_None,0));};
 };
-#endif
 //------------------------------------------------------------------------------------------//
 #endif
+#endif
+#endif
+

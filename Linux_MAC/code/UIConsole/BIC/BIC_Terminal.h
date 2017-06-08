@@ -183,6 +183,23 @@ class BIC_RST_LOGIN : public BIC_Node{
 		virtual	int32	OnlineModeExit		(BIC_ENV *env)const;
 };
 //------------------------------------------------------------------------------------------//
+#ifdef Terminal_LicenseH
+class BIC_APPROVESDT : public BIC_Node{
+	public:
+				 BIC_APPROVESDT(void) : BIC_Node() {cgCommand = "approve";cgReturnCode = BI_RETCODE_APPROVESDT;};
+		virtual ~BIC_APPROVESDT(void){;};
+	public:
+		virtual	int32	Command (BIC_ENV *env,const STDSTR &par,void *p)const;
+		virtual	int32	Help	(BIC_ENV *env,int32 blDetail = 1)const{
+			PrintHelpItem(env,cgCommand,"Approve SDT");
+			if (blDetail == 0)
+				return(cgReturnCode);
+			PrintHelpSubItem(env,"<hours>"	,"720H = 1M,8760H = 1Y,867240H = 99Y");
+			return(cgReturnCode);
+		};
+};
+#endif
+//------------------------------------------------------------------------------------------//
 class BIC_RST : public BIC_Node_S{
 	public:
 				 BIC_RST(void) : BIC_Node_S() {cgCommand = "rst";cgTitle = cgCommand;cgReturnCode = BI_RETCODE_RST;Init();};
@@ -201,6 +218,9 @@ class BIC_RST : public BIC_Node_S{
 	private:
 		void	Init(void){
 			Add(cgSub_on) < cgSub_off < cgSub_link < cgSub_mapping < cgSub_login
+		#ifdef CommonDefH_MAC
+			< cgSub_ApproveSDT
+		#endif
 		#ifdef BIC_TSH
 			< cgC_TS;
 		#endif
@@ -211,6 +231,9 @@ class BIC_RST : public BIC_Node_S{
 		BIC_RST_LINK			cgSub_link;
 		BIC_RST_MAPPING			cgSub_mapping;
 		BIC_RST_LOGIN			cgSub_login;
+#ifdef CommonDefH_MAC
+		BIC_APPROVESDT			cgSub_ApproveSDT;
+#endif
 	#ifdef BIC_TSH
 		BIC_TERMINALSERVER		cgC_TS;
 	#endif

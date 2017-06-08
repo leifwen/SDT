@@ -189,7 +189,7 @@ class DBUFFER : public DBUFFER_FRAME{
 	private:
 		DBUFFER		*cgSelDB;
 	public:
-				DBUFFER*	GetNewSon	(void){return(AddSon(static_cast<DBUFFER*>(GetNewNode(this))));};
+				DBUFFER*	GetNewSon	(void){return(AddSon(static_cast<DBUFFER*>(GetNewNode())));};
 		inline	DBUFFER		*GetFDB		(void){return(static_cast<DBUFFER*>(GetcgUp(this)));};
 		inline	DBUFFER		*GetSelDB	(void){return(cgSelDB);};
 		virtual	void		RemoveSelf	(void);

@@ -32,7 +32,7 @@ class SBIC_CMD : public SBIC_Node{
 			#endif
 			#ifdef SBIC_ExpressionH
 			< cgSubC_Delay < cgSubC_Synchronous
-			< cgSubC_Wait < cgSubC_Lable <cgSubC_GOTO <cgSubC_STOP < cgSubC_BREAK
+			< cgSubC_Wait < cgSubC_Lable < cgSubC_GOTO < cgSubC_STOP < cgSubC_BREAK
 			#endif
 			#ifdef SBIC_RunEXEH
 			< cgSubC_RunEXE

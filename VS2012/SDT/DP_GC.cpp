@@ -328,7 +328,7 @@ HTREEITEM CGCTree::CreateNodeL1(HTREEITEM hItem){
 		if (retItem != NULL)
 			node = (COMMAND_GROUP*)(GetGroup(retItem));
 	}
-	newNode = m_GCList->GetNewNode();
+	newNode = (COMMAND_GROUP*)m_GCList->GetNewNode();
 	if (newNode != NULL){
 		retItem = AddNode(_T("//New group"),false,TVI_ROOT,hItem);
 		if (retItem == NULL){
@@ -354,7 +354,7 @@ HTREEITEM CGCTree::CreateNodeL2(HTREEITEM hItem){
 	newNode = NULL;
 	retItem = NULL;
 
-	newNode = m_GCList->GetNewNode();
+	newNode = (COMMAND_GROUP*)m_GCList->GetNewNode();
 	if (newNode != NULL){
 		if (CheckNodeLevel(hItem) == 1){
 			retItem = AddNode(_T("New command group"), false, hItem);

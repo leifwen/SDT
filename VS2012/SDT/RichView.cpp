@@ -151,10 +151,13 @@ void CMyRichView::RewriteCharFromEnd(int32 offset, const COLORREF &col,const STD
 	nStartChar -= offset;
 
 	GetRichEditCtrl().SetSel(nStartChar, nEndChar);
-	GetRichEditCtrl().ReplaceSel(Str_ANSIToUnicode(strIn).c_str());
-	GetRichEditCtrl().SetSel(nStartChar, -1);
-
 	GetRichEditCtrl().SetSelectionCharFormat(SetExPar(&cgCF, col));
+	GetRichEditCtrl().ReplaceSel(Str_ANSIToUnicode(strIn).c_str());
+	if (strIn.length() == 1){
+		GetRichEditCtrl().SetSel(nStartChar, nStartChar + 1);
+		GetRichEditCtrl().SetSelectionCharFormat(SetExPar(&cgCF, col));
+	}
+
 	GetRichEditCtrl().SetSel(-1, -1);
 	GetRichEditCtrl().HideSelection(FALSE, FALSE);
 	Spin_Print_Unlock();
@@ -170,10 +173,12 @@ void CMyRichView::InsterCharFromEnd(int32 offset, const COLORREF &col,const STDS
 	nStartChar -= offset;
 
 	GetRichEditCtrl().SetSel(nStartChar, nStartChar);
-	GetRichEditCtrl().ReplaceSel(Str_ANSIToUnicode(strIn).c_str());
-	GetRichEditCtrl().SetSel(nStartChar, nStartChar + strIn.length());
-
 	GetRichEditCtrl().SetSelectionCharFormat(SetExPar(&cgCF, col));
+	GetRichEditCtrl().ReplaceSel(Str_ANSIToUnicode(strIn).c_str());
+	if (strIn.length() == 1){
+		GetRichEditCtrl().SetSel(nStartChar, nStartChar + 1);
+		GetRichEditCtrl().SetSelectionCharFormat(SetExPar(&cgCF, col));
+	}
 	GetRichEditCtrl().SetSel(nStartChar + strIn.length(), nStartChar + strIn.length());
 	GetRichEditCtrl().HideSelection(FALSE, FALSE);
 	Spin_Print_Unlock();
@@ -184,18 +189,22 @@ void CMyRichView::AppendChar(const COLORREF &col, const STDSTR &strIn, G_LOCK bl
 	Spin_Print_Lock(blLock);
 	if (GetRichEditCtrl().GetTextLength() > ODEV_STDOUT::BUF_MAX_SIZE)
 		Clean(G_LOCK_OFF);
-	GetRichEditCtrl().HideSelection(TRUE, FALSE);
-	GetRichEditCtrl().SetSel(-1, -1);
-	GetRichEditCtrl().GetSel(nStartChar, nEndChar);
-
-	GetRichEditCtrl().SetSel(nStartChar, nStartChar);
-	GetRichEditCtrl().ReplaceSel(Str_ANSIToUnicode(strIn).c_str());
-	GetRichEditCtrl().SetSel(nStartChar, nStartChar + strIn.length());
-
-	GetRichEditCtrl().SetSelectionCharFormat(SetExPar(&cgCF, col));
-	GetRichEditCtrl().SetSel(nStartChar + strIn.length(), nStartChar + strIn.length());
-	GetRichEditCtrl().HideSelection(FALSE, FALSE);
-	GetRichEditCtrl().SetSel(-1, -1);
+	if (strIn.length() == 1){
+		GetRichEditCtrl().HideSelection(TRUE, FALSE);
+		GetRichEditCtrl().SetSel(-1, -1);
+		GetRichEditCtrl().GetSel(nStartChar, nEndChar);
+		GetRichEditCtrl().ReplaceSel(Str_ANSIToUnicode(strIn).c_str());
+		GetRichEditCtrl().SetSel(nStartChar, -1);
+		
+		GetRichEditCtrl().SetSelectionCharFormat(SetExPar(&cgCF, col));
+		GetRichEditCtrl().SetSel(-1, -1);
+		GetRichEditCtrl().HideSelection(FALSE, FALSE);
+	}
+	else{
+		GetRichEditCtrl().SetSel(-1, -1);
+		GetRichEditCtrl().SetSelectionCharFormat(SetExPar(&cgCF, col));
+		GetRichEditCtrl().ReplaceSel(Str_ANSIToUnicode(strIn).c_str());
+	}
 	Spin_Print_Unlock(blLock);
 }
 //------------------------------------------------------------------------------------------//

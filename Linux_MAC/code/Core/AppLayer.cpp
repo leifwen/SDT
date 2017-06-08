@@ -45,7 +45,7 @@ void SDTAPP::Init(void){
 	Add(m_Device) < m_Device2;
 	//-----------------------------------//
 #endif
-	m_LogCache.CreateG2_FILE(ODEV_FILE::CreateNewLOGFileName());
+	//m_LogCache.CreateG2_FILE(ODEV_FILE::CreateNewLOGFileName());
 #ifndef CommonDefH_VC
 	#ifdef ODEV_SystemH
 	m_LogCache.CreateG1_STDOUT(OUTPUT_NODE::COLType_COL);

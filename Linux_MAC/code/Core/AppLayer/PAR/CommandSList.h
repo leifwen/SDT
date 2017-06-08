@@ -53,7 +53,6 @@ class SC_LIST : public TREE_NODE{
 		inline	virtual	TNF*	CreateNode	(void){return(SetSubNodeSelfName(new SC_NODE));};
 	public:
 		inline	void		Empty		(void){CleanChild(this);};
-		inline	SC_NODE*	GetNewNode	(void){return((SC_NODE*)TREE_NODE::GetNewNode(this));};
 		STDSTR	&CreateSCListStrV0_2(STDSTR *retStr);
 		STDSTR	&CreateSCListStrV0_3(STDSTR *retStr){return(CreateSCListStrV0_2(retStr));};
 		STDSTR	&CreateSCListStrV0_4(STDSTR *retStr);

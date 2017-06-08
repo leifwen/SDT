@@ -128,7 +128,6 @@ class GC_LIST : public TREE_NODE{
 		inline	virtual	TNF*	CreateNode	(void){return(SetSubNodeSelfName(new COMMAND_GROUP));};
 	public:
 						void	Empty		(void);
-		inline	COMMAND_GROUP*	GetNewNode	(void){return((COMMAND_GROUP*)TREE_NODE::GetNewNode(this));};
 	public:
 		STDSTR	&CreateGroupListStrV0_2(STDSTR *retStr);
 		STDSTR	&CreateGroupListStrV0_3(STDSTR *retStr){return(CreateGroupListStrV0_2(retStr));};

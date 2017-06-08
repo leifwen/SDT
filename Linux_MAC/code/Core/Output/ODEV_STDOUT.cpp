@@ -246,8 +246,12 @@ void ODEV_STDOUT::DelCharFromEnd(int32 offset,int32 length){
 }
 //------------------------------------------------------------------------------------------//
 void ODEV_STDOUT::RewriteCharFromEnd(int32 offset,uint32 col,const STDSTR &strIn){
-	if (cgRichEdit != nullptr)
+	uint8 data;
+	if (cgRichEdit != nullptr){
 		cgRichEdit->RewriteCharFromEnd(offset, ColorConvert(col), strIn);
+		data = strIn[strIn.length() - 1];
+		UpdataLastStatus(&data, col);
+	}
 }
 //------------------------------------------------------------------------------------------//
 void ODEV_STDOUT::InsterCharFromEnd(int32 offset,uint32 col,const STDSTR &strIn){

@@ -45,7 +45,7 @@ int32 BIC_CMUX_ON::Command(BIC_ENV *env, const STDSTR &par,void *p)const{
 		}
 		
 		if (InPressKeyMode(env) > 0){
-			PrintFail(env,"Pressed double ESC key, stopped CMUX");
+			PrintFail(env,"Pressed ESC key, stopped CMUX");
 			return(cgReturnCode);
 		}
 		env->cSDTApp->m_CMUXDriver.Open(0,0);
@@ -160,7 +160,7 @@ int32 BIC_CMUX_DTR::Command(BIC_ENV *env, const STDSTR &par,void *p)const{
 		}
 		if (bltime > 0){
 			if (PressAnyKey(env,env->eda,&timeS) == 27){
-				PrintSuccess(env,"Pressed double ESC key, stopped execute command");
+				PrintSuccess(env,"Pressed ESC key, stopped execute command");
 				return(cgReturnCode);
 			}
 		}
@@ -218,7 +218,7 @@ int32 BIC_CMUX_RTS::Command(BIC_ENV *env, const STDSTR &par,void *p)const{
 		}
 		if (bltime > 0){
 			if (PressAnyKey(env,env->eda,&timeS) == 27){
-				PrintSuccess(env,"Pressed double ESC key, stopped execute command");
+				PrintSuccess(env,"Pressed ESC key, stopped execute command");
 				return(cgReturnCode);
 			}
 		}
