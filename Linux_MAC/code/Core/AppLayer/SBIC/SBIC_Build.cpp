@@ -110,6 +110,28 @@ int32 SBIC_RET::Command(SBIC_ENV *env,const STDSTR &par,void *retStr)const{
 }
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
+int32 SBIC_REPLACE::Command(SBIC_ENV *env,const STDSTR &par,void *retStr)const{
+	SBIC_RETSTR *ret = static_cast<SBIC_RETSTR*>(retStr);
+	
+	STDSTR	strDefine,strVar,strValue,strT;
+	
+	ret->result = par;
+	if (env != nullptr){
+		strDefine = env->cgDefine;
+		while(strDefine.length() > 0){
+			strT = Str_ReadSubItem(&strDefine,";");
+			if (strT.length() > 0){
+				SplitPar1(strVar,strValue,strT,"=");
+				ret->result = Str_Replace(ret->result, strVar, strValue);
+			}
+		}
+		ret->forPrint += ret->result;
+		ret->forSend += ret->result;
+	}
+	return(cgReturnCode);
+}
+//------------------------------------------------------------------------------------------//
+//------------------------------------------------------------------------------------------//
 int32 SBIC_STRING::Command(SBIC_ENV *env,const STDSTR &par,void *retStr)const{
 	SBIC_RETSTR *ret = static_cast<SBIC_RETSTR*>(retStr);
 	

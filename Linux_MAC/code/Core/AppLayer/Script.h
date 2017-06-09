@@ -57,6 +57,7 @@ class Script : public DEVICE_EXE_FRAME{
 	private:
 		SBIC_ENV		cgSBICENV;
 		SBIC_CMD		cgSBICCMD;
+		SBIC_REPLACE	cgSubC_REPLACE;
 		#ifdef SBIC_RunEXEH
 		AEXEPOOL		cgAExePool;
 		#endif

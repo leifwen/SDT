@@ -25,6 +25,7 @@ enum{
 	SBI_RETCODE_COMBINE_HEX,
 	SBI_RETCODE_COMBINE_TIME,
 	SBI_RETCODE_COMBINE_STRING,
+	SBI_RETCODE_COMBINE_REPLACE,
 	
 	SBI_RETCODE_COMBINE_CALC_MD5,
 	SBI_RETCODE_COMBINE_CALC_SHA1,
@@ -59,6 +60,7 @@ enum{
 	SBI_RETCODE_STOP,
 	SBI_RETCODE_BREAK,
 	SBI_RETCODE_SEARCH,
+	SBI_RETCODE_DEFINE,
 	
 	SBI_RETCODE_RECEIVE,
 	SBI_RETCODE_CTS,
@@ -91,6 +93,7 @@ struct SBIC_ENV{
 	//-----------------------//
 	STDSTR			cgFunRet;
 	STDSTR			cgSearchRet;
+	STDSTR			cgDefine;
 	
 	int32			blCMDRet;
 	COMMAND_NODE	*cgCommand;
@@ -109,6 +112,7 @@ inline	void SetDefAttr(SBIC_ENV *env){
 	
 	env->cgFunRet = "";
 	env->cgSearchRet = "";
+	env->cgDefine = "";
 	
 	env->blCMDRet = 0;
 	env->cgCommand = nullptr;

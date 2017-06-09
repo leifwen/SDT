@@ -124,6 +124,25 @@ class SBIC_RET : public SBIC_Node{
 		};
 };
 //------------------------------------------------------------------------------------------//
+class SBIC_REPLACE : public SBIC_Node{
+	public:
+		SBIC_REPLACE(void) : SBIC_Node() {
+			cgCommand = "rep,:/replace,:";
+			cgReturnCode = SBI_RETCODE_COMBINE_REPLACE;
+		};
+		virtual ~SBIC_REPLACE(void){;};
+	public:
+		virtual	int32	Command	(SBIC_ENV *env,const STDSTR &par,void *retStr)const;
+		virtual	int32	Help	(SBIC_ENV *env,int32 blDetail = 1)const{
+			PrintB(env,".CMD = rep:<PAR> -->Replace PAR which define in 'define command.");
+			PrintB(env,"  Command = <'rep:<PAR>>");
+			PrintP(env,"     eg:");
+			PrintP(env,"     If 'define: v1=Leif Wen;v2=+86-138-6062-4143;");
+			PrintP(env,"       Command = 'rep:Name: v1.MP: v2 //New \"Command\" is Name: Leif Wen.MP: +86-138-6062-4143");
+			return(cgReturnCode);
+		};
+};
+//------------------------------------------------------------------------------------------//
 class SBIC_STRING : public SBIC_Node{
 	public:
 		SBIC_STRING(void) : SBIC_Node() {
@@ -315,9 +334,9 @@ class SBIC_Combine : public SBIC_Node{
 		SBIC_Combine(void) : SBIC_Node() {
 			cgCommand = "Combine,=/build,=/send,=";
 			cgReturnCode = SBI_RETCODE_COMBINE;
-			Add(cgSubC_SQ) < cgSubC_VIEWHEX < cgSubC_HEX < cgSubC_Time < cgSubC_STRING
+			Add(cgSubC_SQ) < cgSubC_VIEWHEX < cgSubC_HEX < cgSubC_Time < cgSubC_STRING < cgSubC_REPLACE
 			#if (defined USE_OPENSSL) || (defined CommonDefH_MAC)
-				< cgSubC_CALC_MD5 < cgSubC_CALC_SHA1 < cgSubC_CALC_SHA224 <cgSubC_CALC_SHA256 <cgSubC_CALC_SHA384 < cgSubC_CALC_SHA512
+				< cgSubC_CALC_MD5 < cgSubC_CALC_SHA1 < cgSubC_CALC_SHA224 < cgSubC_CALC_SHA256 < cgSubC_CALC_SHA384 < cgSubC_CALC_SHA512
 			#endif
 			< cgSubC_CALC_BASE64
 			< cgSubC_RET;
@@ -350,6 +369,7 @@ class SBIC_Combine : public SBIC_Node{
 		SBIC_HEX		cgSubC_HEX;
 		SBIC_Time		cgSubC_Time;
 		SBIC_STRING		cgSubC_STRING;
+		SBIC_REPLACE	cgSubC_REPLACE;
 		#if (defined USE_OPENSSL) || (defined CommonDefH_MAC)
 			SBIC_CALC_MD5		cgSubC_CALC_MD5;
 			SBIC_CALC_SHA1		cgSubC_CALC_SHA1;

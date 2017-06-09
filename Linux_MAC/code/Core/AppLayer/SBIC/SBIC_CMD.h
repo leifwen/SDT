@@ -32,7 +32,7 @@ class SBIC_CMD : public SBIC_Node{
 			#endif
 			#ifdef SBIC_ExpressionH
 			< cgSubC_Delay < cgSubC_Synchronous
-			< cgSubC_Wait < cgSubC_Lable < cgSubC_GOTO < cgSubC_STOP < cgSubC_BREAK
+			< cgSubC_Wait < cgSubC_Lable < cgSubC_GOTO < cgSubC_STOP < cgSubC_BREAK < cgSubC_Define
 			#endif
 			#ifdef SBIC_RunEXEH
 			< cgSubC_RunEXE
@@ -71,6 +71,7 @@ class SBIC_CMD : public SBIC_Node{
 		SBIC_GOTO				cgSubC_GOTO;
 		SBIC_STOP				cgSubC_STOP;
 		SBIC_BREAK				cgSubC_BREAK;
+		SBIC_Define				cgSubC_Define;
 		#endif
 		#ifdef SBIC_RunEXEH
 			AEXEPOOL			cgAExePool;

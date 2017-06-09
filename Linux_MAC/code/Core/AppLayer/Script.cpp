@@ -170,7 +170,7 @@ int32 Script::ExecuteGroup(COMMAND_GROUP *tGroup,const int32 &runTotalTimes,int3
 				SBIC_CMD::DeviceUnlock(&cgSBICENV);
 			}
 		}
-		
+		cgSBICENV.cgDefine = "";
 		TREE_LChildRChain_Traversal_LINE_nolock(COMMAND_NODE,tGroup,
 			if (IsTerminated() != 0)
 				break;
@@ -217,6 +217,7 @@ int32 Script::ExecuteCommand(COMMAND_NODE *tCommand,int32 frameTimeout){
 	int32		eRetCode;
 	int32		blEnResend;	//check meet execute resend contidion
 	int32		maxCycle,i,timeout,ByteNum;
+	SBIC_RETSTR	retStr;
 	
 	//return(0)--->no execute due to blEnableSend == 0.
 	//return(1)--->execute BIC,no need to wait.
@@ -235,6 +236,11 @@ int32 Script::ExecuteCommand(COMMAND_NODE *tCommand,int32 frameTimeout){
 			maxCycle = atoi(tCommand->StrCycle.c_str());
 		i = 0;
 		strOCommand = SBIC_CMD::DelComment(tCommand->StrCommand);
+		retStr.result = "";
+		retStr.forPrint = "";
+		retStr.forSend = "";
+		if (SBI_RETCODE_COMBINE_REPLACE == cgSubC_REPLACE.Execute(&cgSBICENV, strOCommand, &retStr))
+			strOCommand = retStr.result;
 		while(((i++ < maxCycle) || (maxCycle == 0)) && (IsTerminated() == 0)){
 			eRetCode = cgSBICCMD.ExecuteTraversalChild(&cgSBICENV,strOCommand,nullptr);
 			if (eRetCode != SBI_RETCODE_NO)

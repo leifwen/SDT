@@ -109,6 +109,24 @@ class SBIC_Wait : public SBIC_Node{
 		SBIC_Expression	cgSubC_Expression;
 };
 //------------------------------------------------------------------------------------------//
+class SBIC_Define : public SBIC_Node{
+	public:
+		SBIC_Define(void) : SBIC_Node() {
+			cgCommand = "Define,:/Def,:";
+			cgReturnCode = SBI_RETCODE_DEFINE;
+		};
+		virtual ~SBIC_Define(void){;};
+	public:
+		virtual	int32	Command	(SBIC_ENV *env,const STDSTR &par,void *p)const;
+		virtual	int32	Help	(SBIC_ENV *env,int32 blDetail = 1)const{
+			PrintB(env,".CMD = Define:<PAR> -->Set a define string. No execution command, used with CMD Replace.");
+			PrintB(env,"  Command = <'Define:<PAR>>[//COMMENT]");
+			PrintP(env,"   eg:");
+			PrintP(env,"     Command = 'Define:v1=Leif Wen;v2=+86-138-6062-4143;      //used with CMD Replace");
+			return(cgReturnCode);
+		};
+};
+//------------------------------------------------------------------------------------------//
 class SBIC_Lable : public SBIC_Node{
 	public:
 		SBIC_Lable(void) : SBIC_Node() {

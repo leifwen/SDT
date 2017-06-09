@@ -299,6 +299,15 @@ int32 SBIC_Lable::Command(SBIC_ENV *env,const STDSTR &par,void *retStr)const{
 }
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
+int32 SBIC_Define::Command(SBIC_ENV *env,const STDSTR &par,void *p)const{
+	if (env != nullptr){
+		env->cgDefine += par;
+		env->cgDefine += ";";
+	}
+	return(cgReturnCode);
+}
+//------------------------------------------------------------------------------------------//
+//------------------------------------------------------------------------------------------//
 int32 SBIC_GOTO::Command(SBIC_ENV *env,const STDSTR &par,void *p)const{
 	STDSTR			strPar1,strPar2,retCMDLable;
 	COMMAND_NODE	*cNode;
