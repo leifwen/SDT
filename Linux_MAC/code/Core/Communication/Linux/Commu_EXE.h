@@ -78,10 +78,12 @@ class AEXEPOOL : public COMMU_DBUF_FRAME_FW{
 	public:
 		virtual	void	ChildClose	(COMMU_DBUF_FRAME *commu){COMMU_DBUF_FRAME_FW::ChildClose(commu);};
 				int32	ChildClose	(const STDSTR &tCDBufName,const STDSTR &cmd,int32 timeout);
+				int32	ChildClose	(const STDSTR &tCDBufName,int32 timeout);
 				AEXE*	Execute		(const STDSTR &tCDBufName,const STDSTR &cmd);
 				AEXE*	SH			(const STDSTR &tCDBufName,const STDSTR &cmd);
 				AEXE*	BASH		(const STDSTR &tCDBufName,const STDSTR &cmd);
 				AEXE*	Find		(const STDSTR &tCDBufName,const STDSTR &cmd);
+				AEXE*	Find		(const STDSTR &tCDBufName);
 };
 //------------------------------------------------------------------------------------------//
 #endif

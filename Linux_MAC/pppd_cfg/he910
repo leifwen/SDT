@@ -8,14 +8,14 @@ lcp-echo-interval 3
 # Comment this to get daemon mode pppd
 nodetach
 # The chat script (be sure to edit that file, too!)
-connect "./chat -v -f ./ppps_chat_WCDMA"
+connect "/usr/sbin/chat -v -f ./pppd_cfg/ppps_chat_WCDMA"
 # Serial Device to which the modem is connected
-/dev/ttyUSB1
+/dev/ttyACM3
 # Serial port line speed
 115200
 dump
 # The phone is not required to authenticate
-#noauth
+noauth
 user 
 #name <he910>
 password 

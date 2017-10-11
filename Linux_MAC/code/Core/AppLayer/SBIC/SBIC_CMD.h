@@ -35,8 +35,7 @@ class SBIC_CMD : public SBIC_Node{
 			< cgSubC_Wait < cgSubC_Lable < cgSubC_GOTO < cgSubC_STOP < cgSubC_BREAK < cgSubC_Define
 			#endif
 			#ifdef SBIC_RunEXEH
-			< cgSubC_RunEXE
-			< cgSubC_StopEXE
+			< cgSubC_RunEXE < cgSubC_StopEXE < cgSubC_WaitEXE < cgSubC_GetEXE
 			#endif
 			;
 		};
@@ -77,6 +76,8 @@ class SBIC_CMD : public SBIC_Node{
 			AEXEPOOL			cgAExePool;
 			SBIC_RunEXE			cgSubC_RunEXE;
 			SBIC_StopEXE		cgSubC_StopEXE;
+			SBIC_WaitEXE		cgSubC_WaitEXE;
+			SBIC_GetEXE			cgSubC_GetEXE;
 		#endif
 };
 //------------------------------------------------------------------------------------------//

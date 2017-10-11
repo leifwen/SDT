@@ -264,6 +264,13 @@ AEXE* AEXEPOOL::Find(const STDSTR &tCDBufName,const STDSTR &cmd){
 	return(retExe);
 }
 //------------------------------------------------------------------------------------------//
+AEXE* AEXEPOOL::Find(const STDSTR &tCDBufName){
+	AEXE	*retExe;
+	retExe = nullptr;
+	TREE_LChildRChain_Find(AEXE,this,retExe,(operateNode_t->GetBufName() == tCDBufName));
+	return(retExe);
+}
+//------------------------------------------------------------------------------------------//
 void AEXEPOOL::DoClose(void){
 	ELog(this << "AEXEPOOL::DoClose()");
 	COMMU_DBUF_FRAME_FW::DoClose();
@@ -276,6 +283,25 @@ int32 AEXEPOOL::ChildClose(const STDSTR &tCDBufName,const STDSTR &cmd,int32 time
 	SYS_TIME_S	timeS;
 	
 	retExe = Find(tCDBufName,cmd);
+	
+	if (retExe != nullptr){
+		SYS_Delay_SetTS(&timeS,timeout);
+		retExe->SelfClose();
+		while(SYS_Delay_CheckTS(&timeS) == 0){
+			SYS_SleepMS(2);
+			if (retExe->IsConnected() == 0)
+				return 1;
+		};
+		return 0;
+	}
+	return 1;
+}
+//------------------------------------------------------------------------------------------//
+int32 AEXEPOOL::ChildClose(const STDSTR &tCDBufName,int32 timeout){
+	AEXE		*retExe;
+	SYS_TIME_S	timeS;
+	
+	retExe = Find(tCDBufName);
 	
 	if (retExe != nullptr){
 		SYS_Delay_SetTS(&timeS,timeout);

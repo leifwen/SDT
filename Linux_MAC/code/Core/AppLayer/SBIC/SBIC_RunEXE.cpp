@@ -18,11 +18,61 @@
 //------------------------------------------------------------------------------------------//
 #ifdef SBIC_RunEXEH
 //------------------------------------------------------------------------------------------//
-int32 SBIC_RunEXE::Command(SBIC_ENV *env,const STDSTR &par,void *retTrue)const{
-	STDSTR		strPar1,strPar3,strContinue;
+int32 SBIC_RunEXE::Command(SBIC_ENV *env,const STDSTR &par,void *p)const{
+	STDSTR		strPar1,strPar2;
 	AEXE		*aexe;
+	
+	env->cgFunRet = 'F';
+	if (env != nullptr){
+		SplitPar1(strPar1, strPar2, par, ",");
+		
+		PrintExecute(env,"Exexture external command:",strPar1,"::",strPar2);
+		
+		if (strPar2.length() > 0){
+			aexe = env->cgAExePool->Execute(strPar1, strPar2);
+			if (aexe != nullptr)
+				env->cgFunRet = 'T';
+		}
+	}
+	return(cgReturnCode);
+}
+//------------------------------------------------------------------------------------------//
+//------------------------------------------------------------------------------------------//
+int32 SBIC_StopEXE::Command(SBIC_ENV *env,const STDSTR &par,void *p)const{
+	STDSTR		strPar1,strPar2;
+	int32		timeout;
+	AEXE		*aexe;
+	
+	env->cgFunRet = 'F';
+	if (env != nullptr){
+		SplitPar1(strPar1, strPar2, par, ",");
+		timeout = GetMS(strPar2);
+		aexe = env->cgAExePool->Find(strPar1);
+		if (aexe != nullptr){
+			PrintExecute(env,"Stop external command:",strPar1,"::",aexe->GetCommand());
+			if (env->cgAExePool->ChildClose(strPar1,timeout) != 0)
+				env->cgFunRet = 'T';
+		}
+	}
+	return(cgReturnCode);
+}
+//------------------------------------------------------------------------------------------//
+//------------------------------------------------------------------------------------------//
+void SBIC_WaitEXE::PrintLineWithTime(SBIC_ENV *env,STDSTR *strIn)const{
+	STDSTR	strT;
+	
+	do{
+		strT = Str_ReadSubItem(strIn,"\n",1);
+		if (strT.length() > 0)
+			PrintWithTime(env->cstdout,Data(COL_DB_RxText,&strT));
+	}while(strIn->length() > 0);
+}
+//------------------------------------------------------------------------------------------//
+int32 SBIC_WaitEXE::Command(SBIC_ENV *env,const STDSTR &par,void *p)const{
+	STDSTR		strPar1,strPar3,strPrint;
 	int32		timeout;
 	SYS_TIME_S	timeS;
+	AEXE		*aexe;
 	
 	env->cgFunRet = 'F';
 	if (env != nullptr){
@@ -30,34 +80,26 @@ int32 SBIC_RunEXE::Command(SBIC_ENV *env,const STDSTR &par,void *retTrue)const{
 		strPar1 = Str_RTrim(Str_ReadSubItem(&strPar3,","));
 		timeout = GetMS(Str_Trim(Str_ReadSubItem(&strPar3,",")));
 		Str_TrimSelf(strPar3);
-		strContinue = "";
-		if (env->cgCommand != nullptr)
-			strContinue = env->cgCommand->StrContinue;
-		
-		PrintExecute(env,"Exexture external command:\n"
-					 ," Command is " + strPar1 + ":" + strPar3 + "\n"
-					 ,"Timeout is",GetMSSTR(timeout)
-					 ,(strContinue.length() == 0)?"":"True condition is"
-					 ,(strContinue.length() == 0)?"":strContinue);
 		
 		SYS_Delay_SetTS(&timeS,timeout);
 		
-		if (strPar3.length() > 0){
-			aexe = env->cgAExePool->Execute(strPar1, strPar3);
-			if (aexe != nullptr){
-				env->cstdin_Str = "";
-				do{
-					timeout = SYS_Delay_CheckTS(&timeS);
-					aexe->Read(&env->cstdin_Str, G_ESCAPE_OFF);
-					if (cgSubC_Expression.Expression(env,strContinue) != 0)
+		aexe = env->cgAExePool->Find(strPar1);
+		if (aexe != nullptr){
+			env->cstdin_Str = "";
+			do{
+				timeout = SYS_Delay_CheckTS(&timeS);
+				strPrint = "";
+				aexe->Read(&strPrint, G_ESCAPE_OFF);
+				env->cstdin_Str += strPrint;
+				PrintLineWithTime(env,&strPrint);
+				if (cgSubC_Expression.Expression(env,strPar3) != 0)
+					env->cgFunRet = 'T';
+				if (aexe->IsConnected() == 0){
+					if (strPar3.length() == 0)
 						env->cgFunRet = 'T';
-					if (aexe->IsConnected() == 0){
-						if (strContinue.length() == 0)
-							env->cgFunRet = 'T';
-						break;
-					}
-				}while(env->blExit == 0 && timeout == 0 && (env->cgFunRet == "F"));
-			}
+					break;
+				}
+			}while(env->blExit == 0 && timeout == 0 && (env->cgFunRet == "F"));
 		}
 		if ((env->cgCommand != nullptr) && (env->cgFunRet == "F")){
 			env->cgCommand->StrCatch = "Fail";
@@ -67,19 +109,10 @@ int32 SBIC_RunEXE::Command(SBIC_ENV *env,const STDSTR &par,void *retTrue)const{
 	return(cgReturnCode);
 }
 //------------------------------------------------------------------------------------------//
-//------------------------------------------------------------------------------------------//
-int32 SBIC_StopEXE::Command(SBIC_ENV *env,const STDSTR &par,void *retTrue)const{
-	STDSTR		strPar1,strPar3;
-	int32		timeout;
+int32 SBIC_GetEXE::Command(SBIC_ENV *env,const STDSTR &par,void *p)const{
 	env->cgFunRet = 'F';
 	if (env != nullptr){
-		strPar3 = Str_Trim(par);
-		strPar1 = Str_RTrim(Str_ReadSubItem(&strPar3,","));
-		timeout = GetMS(Str_Trim(Str_ReadSubItem(&strPar3,",")));
-		Str_TrimSelf(strPar3);
-		
-		PrintExecute(env,"Stop external command:",strPar1,":",strPar3);
-		if (env->cgAExePool->ChildClose(strPar1,strPar3,timeout) != 0)
+		if (env->cgAExePool->Find(par) != nullptr)
 			env->cgFunRet = 'T';
 	}
 	return(cgReturnCode);

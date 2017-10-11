@@ -228,7 +228,7 @@ class PNODE_MESGx :public PROTOCOL_NODE{
 		void Init(const FIFO8 *tfifo,uint32 fObyeNumOfID = 1,uint32 fObyeNumOfMesg = 2,G_ENDIAN tEV = G_ENDIAN_LITTLE){
 			PROTOCOL_NODE::Init(FNT_MESSAGE,tfifo,0,tEV);
 			pn_Head.Init	(FNT_HEAD, tfifo);pn_Head.SetFixValue("\xF9");
-			pn_Trail.Init	(FNT_HEAD, tfifo);pn_Trail.SetFixValue("\xF9");
+			pn_Trail.Init	(FNT_TAIL, tfifo);pn_Trail.SetFixValue("\xF9");
 			
 			pn_MesgID.Init	(FNT_CTRL,tfifo,(fObyeNumOfID < 1 ? 1 : (fObyeNumOfID > 4 ? 4 : fObyeNumOfID)),tEV);
 			pnlc_Mesg.Init	(tfifo,(fObyeNumOfMesg < 1 ? 1 : (fObyeNumOfMesg > 4 ? 4 : fObyeNumOfMesg)),tEV);
