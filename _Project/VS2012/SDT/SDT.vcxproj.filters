@@ -1,0 +1,957 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Source Files\DockablePane">
+      <UniqueIdentifier>{541778ae-1d45-4979-bf65-c15ab58b1e04}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\ChildFrm">
+      <UniqueIdentifier>{153cf374-6368-4dfb-9d51-5a918f70b8f6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\InUse">
+      <UniqueIdentifier>{98757642-1c00-4aa0-ad55-8fee08c702a2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\View">
+      <UniqueIdentifier>{276cc1af-d276-4849-a76e-60bddfe8f24b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\Ribbon">
+      <UniqueIdentifier>{fb745334-d3f0-424c-8e14-e97cf4542283}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Dialog">
+      <UniqueIdentifier>{d8237d4c-39c5-4c01-bf86-7bb2d2f10727}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\MyMFCClass">
+      <UniqueIdentifier>{5f8361be-7b1a-4938-b98e-32f89a6b3c9f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="_LWBaseLib">
+      <UniqueIdentifier>{103480ea-742d-45c9-9dec-9fe5c421ebc7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="_LWBaseLib\inc">
+      <UniqueIdentifier>{f9e523f2-636b-4572-9a42-4c74f539384f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="_LWBaseLib\src">
+      <UniqueIdentifier>{48f8e0b6-4d55-4519-b0a5-cb74c663ac1b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="_LWBaseLib\inc\DataStructure">
+      <UniqueIdentifier>{02000afd-f350-40bd-9de2-3665b1d56952}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="_LWBaseLib\inc\SYS">
+      <UniqueIdentifier>{b98fadf8-0428-4bd6-b920-c56aaa454781}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="_LWBaseLib\inc\Algorithm">
+      <UniqueIdentifier>{0f5030be-711a-4c0a-a60c-9f1173d9b1d2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="_LWBaseLib\inc\AdvancedDS">
+      <UniqueIdentifier>{77f74075-caef-4d04-b94b-8a64e43d95f2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="_LWBaseLib\inc\Communication">
+      <UniqueIdentifier>{d2409214-89fb-4b90-be00-368b3dc56163}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="_LWBaseLib\inc\Device">
+      <UniqueIdentifier>{81403146-1e7c-4425-be20-dcceaad1b23c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="_LWBaseLib\inc\Output">
+      <UniqueIdentifier>{c29c5579-4855-4792-aca4-6ef4740df4ce}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="_LWBaseLib\inc\Input">
+      <UniqueIdentifier>{cf87ef8c-d2c0-46a5-beeb-7189817759b9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="_LWBaseLib\inc\Dict">
+      <UniqueIdentifier>{132409fe-1c4b-43e6-ae06-c56aa72e5dfa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="_LWBaseLib\src\AdvancedDS">
+      <UniqueIdentifier>{a72257e0-85d7-4db4-931c-4ccb4d6121ec}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="_LWBaseLib\src\Algorithm">
+      <UniqueIdentifier>{d91a7d7c-6adf-41d3-864c-40421a02826f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="_LWBaseLib\src\Communication">
+      <UniqueIdentifier>{8d55d1d5-cccb-419c-8bd0-c52d78837180}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="_LWBaseLib\src\DataStructure">
+      <UniqueIdentifier>{93399da5-1f65-4c7c-a0f1-8f46cc6d572f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="_LWBaseLib\src\Device">
+      <UniqueIdentifier>{26805ba9-a7a1-4a4e-b607-7085f9197972}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="_LWBaseLib\src\Dict">
+      <UniqueIdentifier>{96153b46-fcd5-4ce7-ac4e-939cb7a50ebb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="_LWBaseLib\src\Input">
+      <UniqueIdentifier>{b3427666-e8ce-4efc-848b-9270c40d160f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="_LWBaseLib\src\Output">
+      <UniqueIdentifier>{d61f1395-3665-4c8e-ab97-7f7b11ba5401}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="_LWBaseLib\src\SYS">
+      <UniqueIdentifier>{2d171e1f-a586-4801-a46e-663374450dea}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="_LWBaseLib\inc\Algorithm\Openssl">
+      <UniqueIdentifier>{fde97f62-48f7-44f1-9fca-84c80c9f7201}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="_LWBaseLib\inc\Communication\BIC">
+      <UniqueIdentifier>{878dea5e-29e7-4f62-b743-4621ef26785b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="_LWBaseLib\inc\Device\BIC">
+      <UniqueIdentifier>{a267458b-7e6d-4f92-a607-c24e548b0f0e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="_LWBaseLib\inc\Device\BIF">
+      <UniqueIdentifier>{77281a1f-c8e9-4218-bf26-9ef5ab7c96fc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="_LWBaseLib\inc\Input\BIC">
+      <UniqueIdentifier>{389bb62a-dc94-468e-bb99-f99193c2752e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="_LWBaseLib\inc\Input\BIF">
+      <UniqueIdentifier>{c74ba830-67c8-402a-93d7-3b9d5c6e7987}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="_LWBaseLib\src\Algorithm\Openssl">
+      <UniqueIdentifier>{e55f88e2-ec5d-489b-921d-ba7f954e9ac4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="_LWBaseLib\src\Communication\BIC">
+      <UniqueIdentifier>{460a6087-7742-46e4-bee5-f2cc28c5e11a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="_LWBaseLib\src\Device\BIC">
+      <UniqueIdentifier>{3376cd51-4702-4a09-9ca5-58688b505c2b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="_LWBaseLib\src\Device\BIF">
+      <UniqueIdentifier>{6a77dde5-0b30-401d-aebe-5b8636198f40}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="_LWBaseLib\src\Input\BIC">
+      <UniqueIdentifier>{3a38e773-76eb-4ab6-9e61-dbe094b0a8fe}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="_LWBaseLib\src\Input\BIF">
+      <UniqueIdentifier>{e061d801-5627-462c-a6f9-935eed75e2d8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="_kernel">
+      <UniqueIdentifier>{119d484b-2129-4b4f-86da-cf158b4ea288}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="_kernel\inc">
+      <UniqueIdentifier>{4a6cb19c-72f1-4e21-80a7-e2aab0d7dbee}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="_kernel\src">
+      <UniqueIdentifier>{8f0a512a-85a4-4c19-b985-9cb1d1c53e84}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\MainFrm">
+      <UniqueIdentifier>{268e946d-13d3-4fd9-8bc6-7ee4db6c9137}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="_LWBaseLib\inc\License">
+      <UniqueIdentifier>{72748ca2-4fc4-4bca-acf8-258b18faa7f0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="_LWBaseLib\inc\License\BIC">
+      <UniqueIdentifier>{f5d7fead-4fe0-4985-897f-054063ef9561}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="_LWBaseLib\src\License">
+      <UniqueIdentifier>{7d1ec5b4-8f61-4754-aeee-1e4bf0cf22e5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="_LWBaseLib\inc\Communication\MSG">
+      <UniqueIdentifier>{38cb7ea6-a2c2-45a0-b522-db4b41ad75fd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="_LWBaseLib\src\Communication\MSG">
+      <UniqueIdentifier>{b1e1060e-8577-41b2-a5ec-0076d40be6bb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="_LWBaseLib\src\License\BIC">
+      <UniqueIdentifier>{0c6d6e7b-a503-4855-9462-8afe02ac53e4}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="ReadMe.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Resource.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="stdafx.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\AdvancedDS\ADS_Buffer.h">
+      <Filter>_LWBaseLib\inc\AdvancedDS</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\AdvancedDS\ADS_Buffer.hpp">
+      <Filter>_LWBaseLib\inc\AdvancedDS</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\AdvancedDS\ADS_Crypto.h">
+      <Filter>_LWBaseLib\inc\AdvancedDS</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\AdvancedDS\ADS_Crypto.hpp">
+      <Filter>_LWBaseLib\inc\AdvancedDS</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\AdvancedDS\ADS_Protocol.h">
+      <Filter>_LWBaseLib\inc\AdvancedDS</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\AdvancedDS\ADS_Protocol.hpp">
+      <Filter>_LWBaseLib\inc\AdvancedDS</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Algorithm\ALG_BASE64.h">
+      <Filter>_LWBaseLib\inc\Algorithm</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Algorithm\ALG_CRC.h">
+      <Filter>_LWBaseLib\inc\Algorithm</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Algorithm\ALG_CRC.hpp">
+      <Filter>_LWBaseLib\inc\Algorithm</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Algorithm\ALG_zlib.h">
+      <Filter>_LWBaseLib\inc\Algorithm</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Algorithm\Openssl\ALG_AES.h">
+      <Filter>_LWBaseLib\inc\Algorithm\Openssl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Algorithm\Openssl\ALG_Digest.h">
+      <Filter>_LWBaseLib\inc\Algorithm\Openssl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Algorithm\Openssl\ALG_Digest.hpp">
+      <Filter>_LWBaseLib\inc\Algorithm\Openssl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Algorithm\Openssl\ALG_RSA.h">
+      <Filter>_LWBaseLib\inc\Algorithm\Openssl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Algorithm\Openssl\ALG_RSA.hpp">
+      <Filter>_LWBaseLib\inc\Algorithm\Openssl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Communication\Commu_AEXE.h">
+      <Filter>_LWBaseLib\inc\Communication</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Communication\Commu_Com.h">
+      <Filter>_LWBaseLib\inc\Communication</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Communication\Commu_ComEnum.h">
+      <Filter>_LWBaseLib\inc\Communication</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Communication\Commu_DBuf.h">
+      <Filter>_LWBaseLib\inc\Communication</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Communication\Commu_DBuf.hpp">
+      <Filter>_LWBaseLib\inc\Communication</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Communication\Commu_NTPServer.h">
+      <Filter>_LWBaseLib\inc\Communication</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Communication\Commu_Socket.h">
+      <Filter>_LWBaseLib\inc\Communication</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Communication\BIC\BIC_Commu.h">
+      <Filter>_LWBaseLib\inc\Communication\BIC</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Communication\BIC\BIC_EXE.h">
+      <Filter>_LWBaseLib\inc\Communication\BIC</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Communication\BIC\BIC_NTP.h">
+      <Filter>_LWBaseLib\inc\Communication\BIC</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\DataStructure\DS_ARRAY.h">
+      <Filter>_LWBaseLib\inc\DataStructure</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\DataStructure\DS_ARRAY.hpp">
+      <Filter>_LWBaseLib\inc\DataStructure</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\DataStructure\DS_BaseClass.h">
+      <Filter>_LWBaseLib\inc\DataStructure</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\DataStructure\DS_Lock.h">
+      <Filter>_LWBaseLib\inc\DataStructure</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\DataStructure\DS_STRING.h">
+      <Filter>_LWBaseLib\inc\DataStructure</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\DataStructure\DS_STRING.hpp">
+      <Filter>_LWBaseLib\inc\DataStructure</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\DataStructure\DS_Transform.h">
+      <Filter>_LWBaseLib\inc\DataStructure</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\DataStructure\DS_Transform.hpp">
+      <Filter>_LWBaseLib\inc\DataStructure</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\DataStructure\DS_Tree.h">
+      <Filter>_LWBaseLib\inc\DataStructure</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\DataStructure\DS_Tree.hpp">
+      <Filter>_LWBaseLib\inc\DataStructure</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\DataStructure\DS_UVar.h">
+      <Filter>_LWBaseLib\inc\DataStructure</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\DataStructure\DS_UVar.hpp">
+      <Filter>_LWBaseLib\inc\DataStructure</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Device\CMUX.h">
+      <Filter>_LWBaseLib\inc\Device</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Device\Device.h">
+      <Filter>_LWBaseLib\inc\Device</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Device\Script.h">
+      <Filter>_LWBaseLib\inc\Device</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Device\SendFile.h">
+      <Filter>_LWBaseLib\inc\Device</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Device\BIC\BIC_CMUX.h">
+      <Filter>_LWBaseLib\inc\Device\BIC</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Device\BIC\BIC_COM.h">
+      <Filter>_LWBaseLib\inc\Device\BIC</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Device\BIC\BIC_Dev.h">
+      <Filter>_LWBaseLib\inc\Device\BIC</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Device\BIC\BIC_Device.h">
+      <Filter>_LWBaseLib\inc\Device\BIC</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Device\BIC\BIC_Socket.h">
+      <Filter>_LWBaseLib\inc\Device\BIC</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Device\BIF\BIF_CMD.h">
+      <Filter>_LWBaseLib\inc\Device\BIF</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Device\BIF\BIF_Dev.h">
+      <Filter>_LWBaseLib\inc\Device\BIF</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Device\BIF\BIF_EXE.h">
+      <Filter>_LWBaseLib\inc\Device\BIF</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Dict\BIC_Dict.h">
+      <Filter>_LWBaseLib\inc\Dict</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Dict\Dict.h">
+      <Filter>_LWBaseLib\inc\Dict</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Dict\HTML.h">
+      <Filter>_LWBaseLib\inc\Dict</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Input\CMD.h">
+      <Filter>_LWBaseLib\inc\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Input\CMD.hpp">
+      <Filter>_LWBaseLib\inc\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Input\Console.h">
+      <Filter>_LWBaseLib\inc\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Input\GList.h">
+      <Filter>_LWBaseLib\inc\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Input\SList.h">
+      <Filter>_LWBaseLib\inc\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Input\BIC\BIC_Calc.h">
+      <Filter>_LWBaseLib\inc\Input\BIC</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Input\BIC\BIC_Define.h">
+      <Filter>_LWBaseLib\inc\Input\BIC</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Input\BIC\BIC_Define.hpp">
+      <Filter>_LWBaseLib\inc\Input\BIC</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Input\BIC\BIC_GCM.h">
+      <Filter>_LWBaseLib\inc\Input\BIC</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Input\BIC\BIC_SCM.h">
+      <Filter>_LWBaseLib\inc\Input\BIC</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Input\BIF\BIF_Control.h">
+      <Filter>_LWBaseLib\inc\Input\BIF</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Input\BIF\BIF_Define.h">
+      <Filter>_LWBaseLib\inc\Input\BIF</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Input\BIF\BIF_Define.hpp">
+      <Filter>_LWBaseLib\inc\Input\BIF</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Input\BIF\BIF_Expression.h">
+      <Filter>_LWBaseLib\inc\Input\BIF</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Input\BIF\BIF_Transform.h">
+      <Filter>_LWBaseLib\inc\Input\BIF</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Output\ColorRecord.h">
+      <Filter>_LWBaseLib\inc\Output</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Output\ColorRecord.hpp">
+      <Filter>_LWBaseLib\inc\Output</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Output\ODEV_FILE.h">
+      <Filter>_LWBaseLib\inc\Output</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Output\ODEV_FILE.hpp">
+      <Filter>_LWBaseLib\inc\Output</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Output\ODEV_Include.h">
+      <Filter>_LWBaseLib\inc\Output</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Output\ODEV_STDOUT.h">
+      <Filter>_LWBaseLib\inc\Output</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Output\ODEV_STDOUT.hpp">
+      <Filter>_LWBaseLib\inc\Output</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Output\ODEV_System.h">
+      <Filter>_LWBaseLib\inc\Output</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Output\ODEV_System.hpp">
+      <Filter>_LWBaseLib\inc\Output</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Output\Output.h">
+      <Filter>_LWBaseLib\inc\Output</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Output\Output.hpp">
+      <Filter>_LWBaseLib\inc\Output</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\SYS\SYS_File.h">
+      <Filter>_LWBaseLib\inc\SYS</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\SYS\SYS_Log.h">
+      <Filter>_LWBaseLib\inc\SYS</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\SYS\SYS_Thread.h">
+      <Filter>_LWBaseLib\inc\SYS</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\SYS\SYS_Thread.hpp">
+      <Filter>_LWBaseLib\inc\SYS</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\SYS\SYS_Time.h">
+      <Filter>_LWBaseLib\inc\SYS</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\SYS\SYS_Time.hpp">
+      <Filter>_LWBaseLib\inc\SYS</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\BasicDefine.h">
+      <Filter>_LWBaseLib\inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Config.h">
+      <Filter>_LWBaseLib\inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Code\kernel\inc\AppLayer.h">
+      <Filter>_kernel\inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Code\kernel\inc\BIC_CONSOLE.h">
+      <Filter>_kernel\inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Code\kernel\inc\Global.h">
+      <Filter>_kernel\inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Code\kernel\inc\GlobalDef.h">
+      <Filter>_kernel\inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Code\kernel\inc\ParRecord.h">
+      <Filter>_kernel\inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Code\UI\Windows\MyMFCClass\COM_ViewList.h">
+      <Filter>Source Files\MyMFCClass</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Code\UI\Windows\MyMFCClass\COM_ViewTree.h">
+      <Filter>Source Files\MyMFCClass</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Code\UI\Windows\MyMFCClass\COM_ToolBar.h">
+      <Filter>Source Files\MyMFCClass</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Code\UI\Windows\ChildFrm\RichView.h">
+      <Filter>Source Files\ChildFrm</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Code\UI\Windows\SDT.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Code\UI\Windows\MainFrm\MainFrm.h">
+      <Filter>Source Files\MainFrm</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Code\UI\Windows\MainFrm\MainFrm_Aux.hpp">
+      <Filter>Source Files\MainFrm</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Code\UI\Windows\MainFrm\MainFrm_CHK.hpp">
+      <Filter>Source Files\MainFrm</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Code\UI\Windows\MainFrm\MainFrm_CMUX.hpp">
+      <Filter>Source Files\MainFrm</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Code\UI\Windows\MainFrm\MainFrm_Main.hpp">
+      <Filter>Source Files\MainFrm</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Code\UI\Windows\MainFrm\MainFrm_ON.hpp">
+      <Filter>Source Files\MainFrm</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Code\UI\Windows\MainFrm\MainFrm_SBAR.hpp">
+      <Filter>Source Files\MainFrm</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Code\UI\Windows\MainFrm\RibbonStatusBar.h">
+      <Filter>Source Files\MainFrm</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Code\UI\Windows\DockablePane\DP_Calculator.h">
+      <Filter>Source Files\DockablePane</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Code\UI\Windows\DockablePane\DP_GC.h">
+      <Filter>Source Files\DockablePane</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Code\UI\Windows\DockablePane\DP_GCCommand.h">
+      <Filter>Source Files\DockablePane</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Code\UI\Windows\DockablePane\DP_GCProperties.h">
+      <Filter>Source Files\DockablePane</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Code\UI\Windows\DockablePane\DP_SC.h">
+      <Filter>Source Files\DockablePane</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Code\UI\Windows\DockablePane\DP_Send.h">
+      <Filter>Source Files\DockablePane</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Code\UI\Windows\DockablePane\DP_SocketList.h">
+      <Filter>Source Files\DockablePane</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Code\UI\Windows\Dialog\DLG_DevList.h">
+      <Filter>Source Files\Dialog</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Code\UI\Windows\ChildFrm\ChildFrm.h">
+      <Filter>Source Files\ChildFrm</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Code\UI\Windows\ChildFrm\CMUXView.h">
+      <Filter>Source Files\ChildFrm</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\License\License_Checker.h">
+      <Filter>_LWBaseLib\inc\License</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\License\PatchCode.h">
+      <Filter>_LWBaseLib\inc\License</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\License\BIC\BIC_License.h">
+      <Filter>_LWBaseLib\inc\License\BIC</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\AdvancedDS\ADS_SMC.h">
+      <Filter>_LWBaseLib\inc\AdvancedDS</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Communication\MSG\MSG_Center.h">
+      <Filter>_LWBaseLib\inc\Communication\MSG</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Communication\MSG\MSG_Handshake.h">
+      <Filter>_LWBaseLib\inc\Communication\MSG</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Communication\MSG\MSG_ID.h">
+      <Filter>_LWBaseLib\inc\Communication\MSG</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Communication\MSG\MSG_RMS.h">
+      <Filter>_LWBaseLib\inc\Communication\MSG</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Communication\MSG\MSG_RST.h">
+      <Filter>_LWBaseLib\inc\Communication\MSG</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Communication\MSG\MSG_Terminal.h">
+      <Filter>_LWBaseLib\inc\Communication\MSG</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Communication\Commu_RST.h">
+      <Filter>_LWBaseLib\inc\Communication</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Communication\Commu_Socket.hpp">
+      <Filter>_LWBaseLib\inc\Communication</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Communication\Commu_Terminal.h">
+      <Filter>_LWBaseLib\inc\Communication</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Communication\Commu_Terminal.hpp">
+      <Filter>_LWBaseLib\inc\Communication</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\AdvancedDS\ADS_SSL.h">
+      <Filter>_LWBaseLib\inc\AdvancedDS</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Communication\BIC\BIC_RST.h">
+      <Filter>_LWBaseLib\inc\Communication\BIC</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Communication\MSG\MSG_Register.h">
+      <Filter>_LWBaseLib\inc\Communication\MSG</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\License\SystemInfo.h">
+      <Filter>_LWBaseLib\inc\License</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\LW_BaseLib\src\AdvancedDS\ADS_Buffer.cpp">
+      <Filter>_LWBaseLib\src\AdvancedDS</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\LW_BaseLib\src\AdvancedDS\ADS_Crypto.cpp">
+      <Filter>_LWBaseLib\src\AdvancedDS</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\LW_BaseLib\src\AdvancedDS\ADS_Protocol.cpp">
+      <Filter>_LWBaseLib\src\AdvancedDS</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Algorithm\ALG_BASE64.cpp">
+      <Filter>_LWBaseLib\src\Algorithm</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Algorithm\ALG_CRC.cpp">
+      <Filter>_LWBaseLib\src\Algorithm</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Algorithm\ALG_zlib.cpp">
+      <Filter>_LWBaseLib\src\Algorithm</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Algorithm\Openssl\ALG_AES.cpp">
+      <Filter>_LWBaseLib\src\Algorithm\Openssl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Algorithm\Openssl\ALG_Digest.cpp">
+      <Filter>_LWBaseLib\src\Algorithm\Openssl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Algorithm\Openssl\ALG_RSA.cpp">
+      <Filter>_LWBaseLib\src\Algorithm\Openssl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Communication\Commu_AEXE.cpp">
+      <Filter>_LWBaseLib\src\Communication</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Communication\Commu_Com.cpp">
+      <Filter>_LWBaseLib\src\Communication</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Communication\Commu_ComEnum.cpp">
+      <Filter>_LWBaseLib\src\Communication</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Communication\Commu_DBuf.cpp">
+      <Filter>_LWBaseLib\src\Communication</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Communication\Commu_NTPServer.cpp">
+      <Filter>_LWBaseLib\src\Communication</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\LW_BaseLib\src\DataStructure\DS_ARRAY.cpp">
+      <Filter>_LWBaseLib\src\DataStructure</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\LW_BaseLib\src\DataStructure\DS_STRING.cpp">
+      <Filter>_LWBaseLib\src\DataStructure</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\LW_BaseLib\src\DataStructure\DS_Transform.cpp">
+      <Filter>_LWBaseLib\src\DataStructure</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\LW_BaseLib\src\DataStructure\DS_Tree.cpp">
+      <Filter>_LWBaseLib\src\DataStructure</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Device\CMUX.cpp">
+      <Filter>_LWBaseLib\src\Device</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Device\Device.cpp">
+      <Filter>_LWBaseLib\src\Device</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Device\Script.cpp">
+      <Filter>_LWBaseLib\src\Device</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Device\SendFile.cpp">
+      <Filter>_LWBaseLib\src\Device</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Device\BIC\BIC_CMUX.cpp">
+      <Filter>_LWBaseLib\src\Device\BIC</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Device\BIC\BIC_COM.cpp">
+      <Filter>_LWBaseLib\src\Device\BIC</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Device\BIC\BIC_Dev.cpp">
+      <Filter>_LWBaseLib\src\Device\BIC</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Device\BIC\BIC_Device.cpp">
+      <Filter>_LWBaseLib\src\Device\BIC</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Device\BIC\BIC_Socket.cpp">
+      <Filter>_LWBaseLib\src\Device\BIC</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Dict\BIC_Dict.cpp">
+      <Filter>_LWBaseLib\src\Dict</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Dict\Dict.cpp">
+      <Filter>_LWBaseLib\src\Dict</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Dict\HTML.cpp">
+      <Filter>_LWBaseLib\src\Dict</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Input\CMD.cpp">
+      <Filter>_LWBaseLib\src\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Input\Console.cpp">
+      <Filter>_LWBaseLib\src\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Input\GList.cpp">
+      <Filter>_LWBaseLib\src\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Input\SList.cpp">
+      <Filter>_LWBaseLib\src\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Input\BIC\BIC_Calc.cpp">
+      <Filter>_LWBaseLib\src\Input\BIC</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Input\BIC\BIC_Define.cpp">
+      <Filter>_LWBaseLib\src\Input\BIC</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Input\BIC\BIC_GCM.cpp">
+      <Filter>_LWBaseLib\src\Input\BIC</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Input\BIC\BIC_SCM.cpp">
+      <Filter>_LWBaseLib\src\Input\BIC</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Input\BIF\BIF_Control.cpp">
+      <Filter>_LWBaseLib\src\Input\BIF</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Input\BIF\BIF_Expression.cpp">
+      <Filter>_LWBaseLib\src\Input\BIF</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Input\BIF\BIF_Transform.cpp">
+      <Filter>_LWBaseLib\src\Input\BIF</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\LW_BaseLib\src\SYS\SYS_File.cpp">
+      <Filter>_LWBaseLib\src\SYS</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\LW_BaseLib\src\SYS\SYS_Log.cpp">
+      <Filter>_LWBaseLib\src\SYS</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\LW_BaseLib\src\SYS\SYS_Thread.cpp">
+      <Filter>_LWBaseLib\src\SYS</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\LW_BaseLib\src\SYS\SYS_Time.cpp">
+      <Filter>_LWBaseLib\src\SYS</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Output\ColorRecord.cpp">
+      <Filter>_LWBaseLib\src\Output</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Output\ODEV_FILE.cpp">
+      <Filter>_LWBaseLib\src\Output</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Output\ODEV_STDOUT.cpp">
+      <Filter>_LWBaseLib\src\Output</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Output\ODEV_System.cpp">
+      <Filter>_LWBaseLib\src\Output</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Output\Output.cpp">
+      <Filter>_LWBaseLib\src\Output</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Device\BIF\BIF_CMD.cpp">
+      <Filter>_LWBaseLib\src\Device\BIF</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Device\BIF\BIF_Dev.cpp">
+      <Filter>_LWBaseLib\src\Device\BIF</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Device\BIF\BIF_EXE.cpp">
+      <Filter>_LWBaseLib\src\Device\BIF</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Communication\BIC\BIC_Commu.cpp">
+      <Filter>_LWBaseLib\src\Communication\BIC</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Communication\BIC\BIC_EXE.cpp">
+      <Filter>_LWBaseLib\src\Communication\BIC</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Communication\BIC\BIC_NTP.cpp">
+      <Filter>_LWBaseLib\src\Communication\BIC</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Code\kernel\src\AppLayer.cpp">
+      <Filter>_kernel\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Code\kernel\src\BIC_CONSOLE.cpp">
+      <Filter>_kernel\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Code\kernel\src\ParRecord.cpp">
+      <Filter>_kernel\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Code\UI\Windows\MyMFCClass\COM_ViewList.cpp">
+      <Filter>Source Files\MyMFCClass</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Code\UI\Windows\MyMFCClass\COM_ViewTree.cpp">
+      <Filter>Source Files\MyMFCClass</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Code\UI\Windows\MyMFCClass\COM_ToolBar.cpp">
+      <Filter>Source Files\MyMFCClass</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Code\UI\Windows\ChildFrm\RichView.cpp">
+      <Filter>Source Files\ChildFrm</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Code\UI\Windows\SDT.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Code\UI\Windows\MainFrm\MainFrm.cpp">
+      <Filter>Source Files\MainFrm</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Code\UI\Windows\MainFrm\RibbonStatusBar.cpp">
+      <Filter>Source Files\MainFrm</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Code\UI\Windows\DockablePane\DP_Calculator.cpp">
+      <Filter>Source Files\DockablePane</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Code\UI\Windows\DockablePane\DP_GC.cpp">
+      <Filter>Source Files\DockablePane</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Code\UI\Windows\DockablePane\DP_GCCommand.cpp">
+      <Filter>Source Files\DockablePane</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Code\UI\Windows\DockablePane\DP_GCProperties.cpp">
+      <Filter>Source Files\DockablePane</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Code\UI\Windows\DockablePane\DP_SC.cpp">
+      <Filter>Source Files\DockablePane</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Code\UI\Windows\DockablePane\DP_Send.cpp">
+      <Filter>Source Files\DockablePane</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Code\UI\Windows\DockablePane\DP_SocketList.cpp">
+      <Filter>Source Files\DockablePane</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Code\UI\Windows\Dialog\DLG_DevList.cpp">
+      <Filter>Source Files\Dialog</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Code\UI\Windows\ChildFrm\ChildFrm.cpp">
+      <Filter>Source Files\ChildFrm</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Code\UI\Windows\ChildFrm\CMUXView.cpp">
+      <Filter>Source Files\ChildFrm</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\LW_BaseLib\inc\AdvancedDS\ADS_SMC.cpp">
+      <Filter>_LWBaseLib\inc\AdvancedDS</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\LW_BaseLib\src\License\License_Checker.cpp">
+      <Filter>_LWBaseLib\src\License</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\LW_BaseLib\src\License\PatchCode.cpp">
+      <Filter>_LWBaseLib\src\License</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Communication\MSG\MSG_Center.cpp">
+      <Filter>_LWBaseLib\src\Communication\MSG</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Communication\MSG\MSG_Handshake.cpp">
+      <Filter>_LWBaseLib\src\Communication\MSG</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Communication\MSG\MSG_ID.cpp">
+      <Filter>_LWBaseLib\src\Communication\MSG</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Communication\MSG\MSG_RMS.cpp">
+      <Filter>_LWBaseLib\src\Communication\MSG</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Communication\MSG\MSG_RST.cpp">
+      <Filter>_LWBaseLib\src\Communication\MSG</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Communication\MSG\MSG_Terminal.cpp">
+      <Filter>_LWBaseLib\src\Communication\MSG</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\LW_BaseLib\src\AdvancedDS\ADS_SSL.cpp">
+      <Filter>_LWBaseLib\src\AdvancedDS</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Communication\BIC\BIC_RST.cpp">
+      <Filter>_LWBaseLib\src\Communication\BIC</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Communication\MSG\MSG_Register.cpp">
+      <Filter>_LWBaseLib\src\Communication\MSG</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\LW_BaseLib\src\License\BIC\BIC_License.cpp">
+      <Filter>_LWBaseLib\src\License\BIC</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\LW_BaseLib\src\License\SystemInfo.cpp">
+      <Filter>_LWBaseLib\src\License</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="SDT.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="res\menuimages.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\Toolbar.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\Toolbar256.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\InUse\menuimages_hc.bmp">
+      <Filter>Resource Files\InUse</Filter>
+    </Image>
+    <Image Include="res\InUse\GCPWnd.ico">
+      <Filter>Resource Files\View</Filter>
+    </Image>
+    <Image Include="res\InUse\GCViewBarButton.bmp">
+      <Filter>Resource Files\View</Filter>
+    </Image>
+    <Image Include="res\InUse\GCViewBarButton_hc.bmp">
+      <Filter>Resource Files\View</Filter>
+    </Image>
+    <Image Include="res\InUse\GCWnd.ico">
+      <Filter>Resource Files\View</Filter>
+    </Image>
+    <Image Include="res\InUse\SCViewBarButton_hc.bmp">
+      <Filter>Resource Files\View</Filter>
+    </Image>
+    <Image Include="res\InUse\SCViewBarButton.bmp">
+      <Filter>Resource Files\View</Filter>
+    </Image>
+    <Image Include="res\InUse\SCWND.ico">
+      <Filter>Resource Files\View</Filter>
+    </Image>
+    <Image Include="res\InUse\RILarge.bmp">
+      <Filter>Resource Files\Ribbon</Filter>
+    </Image>
+    <Image Include="res\InUse\properties_hc.bmp">
+      <Filter>Resource Files\View</Filter>
+    </Image>
+    <Image Include="res\InUse\properties.bmp">
+      <Filter>Resource Files\View</Filter>
+    </Image>
+    <Image Include="res\InUse\buttons.bmp">
+      <Filter>Resource Files\Ribbon</Filter>
+    </Image>
+    <Image Include="res\InUse\RISmall.bmp">
+      <Filter>Resource Files\Ribbon</Filter>
+    </Image>
+    <Image Include="res\InUse\DLBarButton.bmp">
+      <Filter>Resource Files\InUse</Filter>
+    </Image>
+    <Image Include="res\InUse\DLBarButton_hc.bmp">
+      <Filter>Resource Files\InUse</Filter>
+    </Image>
+    <Image Include="res\InUse\GCCommandWnd.ico">
+      <Filter>Resource Files\View</Filter>
+    </Image>
+    <Image Include="res\InUse\SocketDisconnect.bmp">
+      <Filter>Resource Files\View</Filter>
+    </Image>
+    <Image Include="res\InUse\SocketDisconnect_HC.bmp">
+      <Filter>Resource Files\View</Filter>
+    </Image>
+    <Image Include="res\inuse\SDT-1.ico">
+      <Filter>Resource Files\InUse</Filter>
+    </Image>
+    <Image Include="res\InUse\Calculator.ico">
+      <Filter>Resource Files\View</Filter>
+    </Image>
+    <Image Include="res\InUse\Send.ico">
+      <Filter>Resource Files\View</Filter>
+    </Image>
+    <Image Include="res\MCFrm.ico">
+      <Filter>Resource Files\InUse</Filter>
+    </Image>
+    <Image Include="res\SocketFrm.ico">
+      <Filter>Resource Files\InUse</Filter>
+    </Image>
+    <Image Include="res\SDTDoc.ico">
+      <Filter>Resource Files\InUse</Filter>
+    </Image>
+    <Image Include="res\main.bmp">
+      <Filter>Resource Files\InUse</Filter>
+    </Image>
+    <Image Include="res\InUse\RISmallCMUX.bmp">
+      <Filter>Resource Files\Ribbon</Filter>
+    </Image>
+    <Image Include="res\InUse\RILargeCMUX.bmp">
+      <Filter>Resource Files\Ribbon</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="res\SDT.rc2">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\inuse\ribbon.mfcribbon-ms">
+      <Filter>Resource Files\Ribbon</Filter>
+    </None>
+    <None Include="res\inuse\ribbon1.mfcribbon-ms">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="ClassDiagram.cd" />
+  </ItemGroup>
+</Project>

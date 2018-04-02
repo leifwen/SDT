@@ -1,0 +1,408 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{480EFAA7-D8BB-4C6C-B902-D7910E2C09DD}</ProjectGuid>
+    <RootNamespace>SDT</RootNamespace>
+    <Keyword>MFCProj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v120_xp</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+    <UseOfMfc>Dynamic</UseOfMfc>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v120_xp</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+    <UseOfMfc>Static</UseOfMfc>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)..\..\ExtraLib\Openssl\1.0.1f\Win32\include;$(SolutionDir)..\..\ExtraLib\zlib\1.2.11\Win32\include</IncludePath>
+    <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(SolutionDir)..\..\ExtraLib\Openssl\1.0.1f\Win32\lib;$(SolutionDir)..\..\ExtraLib\zlib\1.2.11\Win32\lib</LibraryPath>
+    <LibraryWPath>$(WindowsSDK_MetadataPath);</LibraryWPath>
+    <ExecutablePath>$(VC_ExecutablePath_x86);$(WindowsSDK_ExecutablePath);$(VS_ExecutablePath);$(MSBuild_ExecutablePath);$(SystemRoot)\SysWow64;$(FxCopDir);$(PATH);</ExecutablePath>
+    <ExcludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(MSBuild_ExecutablePath);$(VC_LibraryPath_x86);</ExcludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)..\..\ExtraLib\Openssl\1.0.2o\include\;$(SolutionDir)..\..\ExtraLib\zlib\1.2.11\include</IncludePath>
+    <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(SolutionDir)..\..\ExtraLib\Openssl\1.0.2o\lib\Win32;$(SolutionDir)..\..\ExtraLib\zlib\1.2.11\lib\Win32</LibraryPath>
+    <LibraryWPath>$(WindowsSDK_MetadataPath);</LibraryWPath>
+    <ExecutablePath>$(VC_ExecutablePath_x86);$(WindowsSDK_ExecutablePath);$(VS_ExecutablePath);$(MSBuild_ExecutablePath);$(SystemRoot)\SysWow64;$(FxCopDir);$(PATH);</ExecutablePath>
+    <ExcludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(MSBuild_ExecutablePath);$(VC_LibraryPath_x86);</ExcludePath>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>$(SolutionDir).\SDT;$(SolutionDir)..\..\LW_BaseLib\inc;$(SolutionDir)..\..\LW_BaseLib\inc\DataStructure;$(SolutionDir)..\..\LW_BaseLib\inc\SYS;$(SolutionDir)..\..\LW_BaseLib\inc\Algorithm;$(SolutionDir)..\..\LW_BaseLib\inc\Algorithm\Openssl;$(SolutionDir)..\..\LW_BaseLib\inc\AdvancedDS;$(SolutionDir)..\..\LW_BaseLib\inc\Output;$(SolutionDir)..\..\LW_BaseLib\inc\Input;$(SolutionDir)..\..\LW_BaseLib\inc\Input\BIC;$(SolutionDir)..\..\LW_BaseLib\inc\Input\BIF;$(SolutionDir)..\..\LW_BaseLib\inc\License;$(SolutionDir)..\..\LW_BaseLib\inc\License\BIC;$(SolutionDir)..\..\LW_BaseLib\inc\Dict;$(SolutionDir)..\..\LW_BaseLib\inc\Communication;$(SolutionDir)..\..\LW_BaseLib\inc\Communication\MSG;$(SolutionDir)..\..\LW_BaseLib\inc\Communication\BIC;$(SolutionDir)..\..\LW_BaseLib\inc\Device;$(SolutionDir)..\..\LW_BaseLib\inc\Device\BIC;$(SolutionDir)..\..\LW_BaseLib\inc\Device\BIF;$(SolutionDir)..\..\Code\kernel\inc;$(SolutionDir)..\..\Code\UI\Windows\MyMFCClass;$(SolutionDir)..\..\Code\UI\Windows\ChildFrm;$(SolutionDir)..\..\Code\UI\Windows\DockablePane;$(SolutionDir)..\..\Code\UI\Windows\Dialog;$(SolutionDir)..\..\Code\UI\Windows\MainFrm;$(SolutionDir)..\..\Code\UI\Windows\</AdditionalIncludeDirectories>
+      <ExceptionHandling>Async</ExceptionHandling>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <BrowseInformation>true</BrowseInformation>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>mbnapi_uuid.lib</AdditionalDependencies>
+    </Link>
+    <Midl>
+      <MkTypLibCompatible>false</MkTypLibCompatible>
+      <ValidateAllParameters>true</ValidateAllParameters>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </Midl>
+    <ResourceCompile>
+      <Culture>0x0409</Culture>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Bscmake>
+      <PreserveSbr>true</PreserveSbr>
+    </Bscmake>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>$(SolutionDir).\SDT;$(SolutionDir)..\..\LW_BaseLib\inc;$(SolutionDir)..\..\LW_BaseLib\inc\DataStructure;$(SolutionDir)..\..\LW_BaseLib\inc\SYS;$(SolutionDir)..\..\LW_BaseLib\inc\Algorithm;$(SolutionDir)..\..\LW_BaseLib\inc\Algorithm\Openssl;$(SolutionDir)..\..\LW_BaseLib\inc\AdvancedDS;$(SolutionDir)..\..\LW_BaseLib\inc\Output;$(SolutionDir)..\..\LW_BaseLib\inc\Input;$(SolutionDir)..\..\LW_BaseLib\inc\Input\BIC;$(SolutionDir)..\..\LW_BaseLib\inc\Input\BIF;$(SolutionDir)..\..\LW_BaseLib\inc\License;$(SolutionDir)..\..\LW_BaseLib\inc\License\BIC;$(SolutionDir)..\..\LW_BaseLib\inc\Dict;$(SolutionDir)..\..\LW_BaseLib\inc\Communication;$(SolutionDir)..\..\LW_BaseLib\inc\Communication\MSG;$(SolutionDir)..\..\LW_BaseLib\inc\Communication\BIC;$(SolutionDir)..\..\LW_BaseLib\inc\Device;$(SolutionDir)..\..\LW_BaseLib\inc\Device\BIC;$(SolutionDir)..\..\LW_BaseLib\inc\Device\BIF;$(SolutionDir)..\..\Code\kernel\inc;$(SolutionDir)..\..\Code\UI\Windows\MyMFCClass;$(SolutionDir)..\..\Code\UI\Windows\ChildFrm;$(SolutionDir)..\..\Code\UI\Windows\DockablePane;$(SolutionDir)..\..\Code\UI\Windows\Dialog;$(SolutionDir)..\..\Code\UI\Windows\MainFrm;$(SolutionDir)..\..\Code\UI\Windows\</AdditionalIncludeDirectories>
+      <ExceptionHandling>Async</ExceptionHandling>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>mbnapi_uuid.lib</AdditionalDependencies>
+      <ImageHasSafeExceptionHandlers>true</ImageHasSafeExceptionHandlers>
+    </Link>
+    <Midl>
+      <MkTypLibCompatible>false</MkTypLibCompatible>
+      <ValidateAllParameters>true</ValidateAllParameters>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </Midl>
+    <ResourceCompile>
+      <Culture>0x0409</Culture>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <Text Include="ReadMe.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\Code\kernel\inc\AppLayer.h" />
+    <ClInclude Include="..\..\..\Code\kernel\inc\BIC_CONSOLE.h" />
+    <ClInclude Include="..\..\..\Code\kernel\inc\Global.h" />
+    <ClInclude Include="..\..\..\Code\kernel\inc\GlobalDef.h" />
+    <ClInclude Include="..\..\..\Code\kernel\inc\ParRecord.h" />
+    <ClInclude Include="..\..\..\Code\UI\Windows\ChildFrm\ChildFrm.h" />
+    <ClInclude Include="..\..\..\Code\UI\Windows\ChildFrm\CMUXView.h" />
+    <ClInclude Include="..\..\..\Code\UI\Windows\ChildFrm\RichView.h" />
+    <ClInclude Include="..\..\..\Code\UI\Windows\Dialog\DLG_DevList.h" />
+    <ClInclude Include="..\..\..\Code\UI\Windows\DockablePane\DP_Calculator.h" />
+    <ClInclude Include="..\..\..\Code\UI\Windows\DockablePane\DP_GC.h" />
+    <ClInclude Include="..\..\..\Code\UI\Windows\DockablePane\DP_GCCommand.h" />
+    <ClInclude Include="..\..\..\Code\UI\Windows\DockablePane\DP_GCProperties.h" />
+    <ClInclude Include="..\..\..\Code\UI\Windows\DockablePane\DP_SC.h" />
+    <ClInclude Include="..\..\..\Code\UI\Windows\DockablePane\DP_Send.h" />
+    <ClInclude Include="..\..\..\Code\UI\Windows\DockablePane\DP_SocketList.h" />
+    <ClInclude Include="..\..\..\Code\UI\Windows\MainFrm\MainFrm.h" />
+    <ClInclude Include="..\..\..\Code\UI\Windows\MainFrm\MainFrm_Aux.hpp" />
+    <ClInclude Include="..\..\..\Code\UI\Windows\MainFrm\MainFrm_CHK.hpp" />
+    <ClInclude Include="..\..\..\Code\UI\Windows\MainFrm\MainFrm_CMUX.hpp" />
+    <ClInclude Include="..\..\..\Code\UI\Windows\MainFrm\MainFrm_Main.hpp" />
+    <ClInclude Include="..\..\..\Code\UI\Windows\MainFrm\MainFrm_ON.hpp" />
+    <ClInclude Include="..\..\..\Code\UI\Windows\MainFrm\MainFrm_SBAR.hpp" />
+    <ClInclude Include="..\..\..\Code\UI\Windows\MainFrm\RibbonStatusBar.h" />
+    <ClInclude Include="..\..\..\Code\UI\Windows\MyMFCClass\COM_ToolBar.h" />
+    <ClInclude Include="..\..\..\Code\UI\Windows\MyMFCClass\COM_ViewList.h" />
+    <ClInclude Include="..\..\..\Code\UI\Windows\MyMFCClass\COM_ViewTree.h" />
+    <ClInclude Include="..\..\..\Code\UI\Windows\SDT.h" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\AdvancedDS\ADS_Buffer.h" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\AdvancedDS\ADS_Buffer.hpp" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\AdvancedDS\ADS_Crypto.h" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\AdvancedDS\ADS_Crypto.hpp" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\AdvancedDS\ADS_Protocol.h" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\AdvancedDS\ADS_Protocol.hpp" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\AdvancedDS\ADS_SMC.h" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\AdvancedDS\ADS_SSL.h" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Algorithm\ALG_BASE64.h" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Algorithm\ALG_CRC.h" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Algorithm\ALG_CRC.hpp" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Algorithm\ALG_zlib.h" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Algorithm\Openssl\ALG_AES.h" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Algorithm\Openssl\ALG_Digest.h" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Algorithm\Openssl\ALG_Digest.hpp" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Algorithm\Openssl\ALG_RSA.h" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Algorithm\Openssl\ALG_RSA.hpp" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\BasicDefine.h" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Communication\BIC\BIC_Commu.h" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Communication\BIC\BIC_EXE.h" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Communication\BIC\BIC_NTP.h" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Communication\BIC\BIC_RST.h" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Communication\Commu_AEXE.h" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Communication\Commu_Com.h" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Communication\Commu_ComEnum.h" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Communication\Commu_DBuf.h" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Communication\Commu_DBuf.hpp" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Communication\Commu_NTPServer.h" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Communication\Commu_RST.h" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Communication\Commu_Socket.h" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Communication\Commu_Socket.hpp" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Communication\Commu_Terminal.h" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Communication\Commu_Terminal.hpp" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Communication\MSG\MSG_Center.h" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Communication\MSG\MSG_Handshake.h" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Communication\MSG\MSG_ID.h" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Communication\MSG\MSG_Register.h" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Communication\MSG\MSG_RMS.h" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Communication\MSG\MSG_RST.h" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Communication\MSG\MSG_Terminal.h" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Config.h" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\DataStructure\DS_ARRAY.h" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\DataStructure\DS_ARRAY.hpp" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\DataStructure\DS_BaseClass.h" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\DataStructure\DS_Lock.h" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\DataStructure\DS_STRING.h" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\DataStructure\DS_STRING.hpp" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\DataStructure\DS_Transform.h" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\DataStructure\DS_Transform.hpp" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\DataStructure\DS_Tree.h" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\DataStructure\DS_Tree.hpp" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\DataStructure\DS_UVar.h" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\DataStructure\DS_UVar.hpp" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Device\BIC\BIC_CMUX.h" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Device\BIC\BIC_COM.h" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Device\BIC\BIC_Dev.h" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Device\BIC\BIC_Device.h" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Device\BIC\BIC_Socket.h" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Device\BIF\BIF_CMD.h" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Device\BIF\BIF_Dev.h" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Device\BIF\BIF_EXE.h" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Device\CMUX.h" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Device\Device.h" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Device\Script.h" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Device\SendFile.h" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Dict\BIC_Dict.h" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Dict\Dict.h" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Dict\HTML.h" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Input\BIC\BIC_Calc.h" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Input\BIC\BIC_Define.h" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Input\BIC\BIC_Define.hpp" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Input\BIC\BIC_GCM.h" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Input\BIC\BIC_SCM.h" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Input\BIF\BIF_Control.h" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Input\BIF\BIF_Define.h" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Input\BIF\BIF_Define.hpp" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Input\BIF\BIF_Expression.h" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Input\BIF\BIF_Transform.h" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Input\CMD.h" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Input\CMD.hpp" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Input\Console.h" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Input\GList.h" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Input\SList.h" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\License\BIC\BIC_License.h" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\License\License_Checker.h" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\License\PatchCode.h" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\License\SystemInfo.h" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Output\ColorRecord.h" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Output\ColorRecord.hpp" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Output\ODEV_FILE.h" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Output\ODEV_FILE.hpp" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Output\ODEV_Include.h" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Output\ODEV_STDOUT.h" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Output\ODEV_STDOUT.hpp" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Output\ODEV_System.h" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Output\ODEV_System.hpp" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Output\Output.h" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Output\Output.hpp" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\SYS\SYS_File.h" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\SYS\SYS_Log.h" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\SYS\SYS_Thread.h" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\SYS\SYS_Thread.hpp" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\SYS\SYS_Time.h" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\SYS\SYS_Time.hpp" />
+    <ClInclude Include="Resource.h" />
+    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="targetver.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\..\Code\kernel\src\AppLayer.cpp" />
+    <ClCompile Include="..\..\..\Code\kernel\src\BIC_CONSOLE.cpp" />
+    <ClCompile Include="..\..\..\Code\kernel\src\ParRecord.cpp" />
+    <ClCompile Include="..\..\..\Code\UI\Windows\ChildFrm\ChildFrm.cpp" />
+    <ClCompile Include="..\..\..\Code\UI\Windows\ChildFrm\CMUXView.cpp" />
+    <ClCompile Include="..\..\..\Code\UI\Windows\ChildFrm\RichView.cpp" />
+    <ClCompile Include="..\..\..\Code\UI\Windows\Dialog\DLG_DevList.cpp" />
+    <ClCompile Include="..\..\..\Code\UI\Windows\DockablePane\DP_Calculator.cpp" />
+    <ClCompile Include="..\..\..\Code\UI\Windows\DockablePane\DP_GC.cpp" />
+    <ClCompile Include="..\..\..\Code\UI\Windows\DockablePane\DP_GCCommand.cpp" />
+    <ClCompile Include="..\..\..\Code\UI\Windows\DockablePane\DP_GCProperties.cpp" />
+    <ClCompile Include="..\..\..\Code\UI\Windows\DockablePane\DP_SC.cpp" />
+    <ClCompile Include="..\..\..\Code\UI\Windows\DockablePane\DP_Send.cpp" />
+    <ClCompile Include="..\..\..\Code\UI\Windows\DockablePane\DP_SocketList.cpp" />
+    <ClCompile Include="..\..\..\Code\UI\Windows\MainFrm\MainFrm.cpp" />
+    <ClCompile Include="..\..\..\Code\UI\Windows\MainFrm\RibbonStatusBar.cpp" />
+    <ClCompile Include="..\..\..\Code\UI\Windows\MyMFCClass\COM_ToolBar.cpp" />
+    <ClCompile Include="..\..\..\Code\UI\Windows\MyMFCClass\COM_ViewList.cpp" />
+    <ClCompile Include="..\..\..\Code\UI\Windows\MyMFCClass\COM_ViewTree.cpp" />
+    <ClCompile Include="..\..\..\Code\UI\Windows\SDT.cpp" />
+    <ClCompile Include="..\..\..\LW_BaseLib\inc\AdvancedDS\ADS_SMC.cpp" />
+    <ClCompile Include="..\..\..\LW_BaseLib\src\AdvancedDS\ADS_Buffer.cpp" />
+    <ClCompile Include="..\..\..\LW_BaseLib\src\AdvancedDS\ADS_Crypto.cpp" />
+    <ClCompile Include="..\..\..\LW_BaseLib\src\AdvancedDS\ADS_Protocol.cpp" />
+    <ClCompile Include="..\..\..\LW_BaseLib\src\AdvancedDS\ADS_SSL.cpp" />
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Algorithm\ALG_BASE64.cpp" />
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Algorithm\ALG_CRC.cpp" />
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Algorithm\ALG_zlib.cpp" />
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Algorithm\Openssl\ALG_AES.cpp" />
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Algorithm\Openssl\ALG_Digest.cpp" />
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Algorithm\Openssl\ALG_RSA.cpp" />
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Communication\BIC\BIC_Commu.cpp" />
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Communication\BIC\BIC_EXE.cpp" />
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Communication\BIC\BIC_NTP.cpp" />
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Communication\BIC\BIC_RST.cpp" />
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Communication\Commu_AEXE.cpp" />
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Communication\Commu_Com.cpp" />
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Communication\Commu_ComEnum.cpp" />
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Communication\Commu_DBuf.cpp" />
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Communication\Commu_NTPServer.cpp" />
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Communication\MSG\MSG_Center.cpp" />
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Communication\MSG\MSG_Handshake.cpp" />
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Communication\MSG\MSG_ID.cpp" />
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Communication\MSG\MSG_Register.cpp" />
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Communication\MSG\MSG_RMS.cpp" />
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Communication\MSG\MSG_RST.cpp" />
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Communication\MSG\MSG_Terminal.cpp" />
+    <ClCompile Include="..\..\..\LW_BaseLib\src\DataStructure\DS_ARRAY.cpp" />
+    <ClCompile Include="..\..\..\LW_BaseLib\src\DataStructure\DS_STRING.cpp" />
+    <ClCompile Include="..\..\..\LW_BaseLib\src\DataStructure\DS_Transform.cpp" />
+    <ClCompile Include="..\..\..\LW_BaseLib\src\DataStructure\DS_Tree.cpp" />
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Device\BIC\BIC_CMUX.cpp" />
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Device\BIC\BIC_COM.cpp" />
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Device\BIC\BIC_Dev.cpp" />
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Device\BIC\BIC_Device.cpp" />
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Device\BIC\BIC_Socket.cpp" />
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Device\BIF\BIF_CMD.cpp" />
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Device\BIF\BIF_Dev.cpp" />
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Device\BIF\BIF_EXE.cpp" />
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Device\CMUX.cpp" />
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Device\Device.cpp" />
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Device\Script.cpp" />
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Device\SendFile.cpp" />
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Dict\BIC_Dict.cpp" />
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Dict\Dict.cpp" />
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Dict\HTML.cpp" />
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Input\BIC\BIC_Calc.cpp" />
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Input\BIC\BIC_Define.cpp" />
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Input\BIC\BIC_GCM.cpp" />
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Input\BIC\BIC_SCM.cpp" />
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Input\BIF\BIF_Control.cpp" />
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Input\BIF\BIF_Expression.cpp" />
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Input\BIF\BIF_Transform.cpp" />
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Input\CMD.cpp" />
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Input\Console.cpp" />
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Input\GList.cpp" />
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Input\SList.cpp" />
+    <ClCompile Include="..\..\..\LW_BaseLib\src\License\BIC\BIC_License.cpp" />
+    <ClCompile Include="..\..\..\LW_BaseLib\src\License\License_Checker.cpp" />
+    <ClCompile Include="..\..\..\LW_BaseLib\src\License\PatchCode.cpp" />
+    <ClCompile Include="..\..\..\LW_BaseLib\src\License\SystemInfo.cpp" />
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Output\ColorRecord.cpp" />
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Output\ODEV_FILE.cpp" />
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Output\ODEV_STDOUT.cpp" />
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Output\ODEV_System.cpp" />
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Output\Output.cpp" />
+    <ClCompile Include="..\..\..\LW_BaseLib\src\SYS\SYS_File.cpp" />
+    <ClCompile Include="..\..\..\LW_BaseLib\src\SYS\SYS_Log.cpp" />
+    <ClCompile Include="..\..\..\LW_BaseLib\src\SYS\SYS_Thread.cpp" />
+    <ClCompile Include="..\..\..\LW_BaseLib\src\SYS\SYS_Time.cpp" />
+    <ClCompile Include="stdafx.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="SDT.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="res\InUse\Calculator.ico" />
+    <Image Include="res\InUse\buttons.bmp" />
+    <Image Include="res\InUse\DLBarButton.bmp" />
+    <Image Include="res\InUse\DLBarButton_hc.bmp" />
+    <Image Include="res\InUse\GCCommandWnd.ico" />
+    <Image Include="res\InUse\GCPWnd.ico" />
+    <Image Include="res\InUse\GCViewBarButton.bmp" />
+    <Image Include="res\InUse\GCViewBarButton_hc.bmp" />
+    <Image Include="res\InUse\GCWnd.ico" />
+    <Image Include="res\InUse\menuimages_hc.bmp" />
+    <Image Include="res\InUse\properties.bmp" />
+    <Image Include="res\InUse\properties_hc.bmp" />
+    <Image Include="res\InUse\RILarge.bmp" />
+    <Image Include="res\InUse\RILargeCMUX.bmp" />
+    <Image Include="res\InUse\RISmall.bmp" />
+    <Image Include="res\InUse\RISmallCMUX.bmp" />
+    <Image Include="res\InUse\SCViewBarButton.bmp" />
+    <Image Include="res\InUse\SCViewBarButton_hc.bmp" />
+    <Image Include="res\InUse\SCWND.ico" />
+    <Image Include="res\inuse\SDT-1.ico" />
+    <Image Include="res\InUse\Send.ico" />
+    <Image Include="res\InUse\SocketDisconnect.bmp" />
+    <Image Include="res\InUse\SocketDisconnect_HC.bmp" />
+    <Image Include="res\main.bmp" />
+    <Image Include="res\MCFrm.ico" />
+    <Image Include="res\menuimages.bmp" />
+    <Image Include="res\SDTDoc.ico" />
+    <Image Include="res\SocketFrm.ico" />
+    <Image Include="res\Toolbar.bmp" />
+    <Image Include="res\Toolbar256.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ClassDiagram.cd" />
+    <None Include="res\inuse\ribbon.mfcribbon-ms" />
+    <None Include="res\inuse\ribbon1.mfcribbon-ms" />
+    <None Include="res\SDT.rc2" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+  <ProjectExtensions>
+    <VisualStudio>
+      <UserProperties RESOURCE_FILE="SDT.rc" />
+    </VisualStudio>
+  </ProjectExtensions>
+</Project>
