@@ -119,8 +119,8 @@ void COMMU_FRAME::DoClose(void){
 	if (IsOpened())
 		PushSend(100);
 	
-	ClrSFlag(CF_blConnected);
 	CloseDev();
+	ClrSFlag(CF_blConnected);
 	
 	ELog0(this << "COMMU_FRAME::DoClose()::Call ThreadsStop()");
 	ThreadsStop();

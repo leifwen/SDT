@@ -124,7 +124,6 @@ class TREE_NODE_FRAME_POOL : public TNF{
 		inline	virtual	TNF*	CreateNode			(void);
 };
 //------------------------------------------------------------------------------------------//
-struct TRASH{;};
 //------------------------------------------------------------------------------------------//
 class TREE_NODE : public TNFP{
 	protected:

@@ -281,10 +281,10 @@
     <ClCompile Include="..\..\..\Code\UI\Windows\MyMFCClass\COM_ViewList.cpp" />
     <ClCompile Include="..\..\..\Code\UI\Windows\MyMFCClass\COM_ViewTree.cpp" />
     <ClCompile Include="..\..\..\Code\UI\Windows\SDT.cpp" />
-    <ClCompile Include="..\..\..\LW_BaseLib\inc\AdvancedDS\ADS_SMC.cpp" />
     <ClCompile Include="..\..\..\LW_BaseLib\src\AdvancedDS\ADS_Buffer.cpp" />
     <ClCompile Include="..\..\..\LW_BaseLib\src\AdvancedDS\ADS_Crypto.cpp" />
     <ClCompile Include="..\..\..\LW_BaseLib\src\AdvancedDS\ADS_Protocol.cpp" />
+    <ClCompile Include="..\..\..\LW_BaseLib\src\AdvancedDS\ADS_SMC.cpp" />
     <ClCompile Include="..\..\..\LW_BaseLib\src\AdvancedDS\ADS_SSL.cpp" />
     <ClCompile Include="..\..\..\LW_BaseLib\src\Algorithm\ALG_BASE64.cpp" />
     <ClCompile Include="..\..\..\LW_BaseLib\src\Algorithm\ALG_CRC.cpp" />

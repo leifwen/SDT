@@ -1008,6 +1008,10 @@ void CONSOLE::StartWithBIC(CMD_ENV* env,BIC_BASE_S* bic){
 #endif
 }
 //------------------------------------------------------------------------------------------//
+void CONSOLE::ExecBIC(const STDSTR& cmd){
+	cgCMDSBUF.Put(nullptr, cmd + "\n");
+}
+//------------------------------------------------------------------------------------------//
 void CONSOLE::Stop(void){
 #ifdef CMD_h
 	CMD_BASE::SetblExit(cgBICENV);

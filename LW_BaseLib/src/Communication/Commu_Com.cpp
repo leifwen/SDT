@@ -448,14 +448,14 @@ bool32 ACOM::ModemStatusThreadFun(void* commu){
 }
 //------------------------------------------------------------------------------------------//
 STDSTR ACOM::GetModemStatus(void){
-	return("CTS=" + GetCTSStatus() + " ,DSR="+ GetDSRStatus() + " ,RING=" + GetDCDStatus() + " ,DCD=" + GetRINGStatus());
+	return("CTS=" + GetCTSStatus() + " ,DSR="+ GetDSRStatus() + " ,RING=" + GetRINGStatus() + " ,DCD=" + GetDCDStatus());
 }
 //------------------------------------------------------------------------------------------//
 STDSTR ACOM::GetFullModemStatus(void){
 	return("CTS=" + GetCTSStatus()
 		   + " ,DSR="+ GetDSRStatus()
-		   + " ,RING=" + GetDCDStatus()
-		   + " ,DCD=" + GetRINGStatus()
+		   + " ,RING=" + GetRINGStatus()
+		   + " ,DCD=" + GetDCDStatus()
 		   + (GetDTRStatus() == 0 ? ", DTR=L" : ", DTR=H")
 		   + (GetRTSStatus() == 0 ? ", RTS=L" : ", RTS=H"));
 }

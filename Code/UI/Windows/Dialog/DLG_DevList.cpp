@@ -171,6 +171,7 @@ void CDevListCtrl::LoadData(IPCOMLIST *tIPCOMLIST){
 //------------------------------------------------------------------------------------------//
 int CDevListCtrl::CreateNode(int node){
 	IPCOMNAME	*newNode;
+	TNF			*lNode;
 	if (node < 0)
 		node = GetItemCount() - 1;
 
@@ -183,7 +184,13 @@ int CDevListCtrl::CreateNode(int node){
 		newNode->TCPTypeOrFriendlyName = "Socket Client";
 		newNode->strUserDefineName = "";
 		newNode->CreateShowName();
-		TREE_NODE::InsertAfter(TREE_NODE::FindInLChildRChainByDRNodeID(m_IPCOMLIST, GetItemData(node)), newNode);
+		lNode = TREE_NODE::FindInLChildRChainByDRNodeID(m_IPCOMLIST, GetItemData(node));
+		if (lNode != nullptr){
+			TREE_NODE::InsertAfter(lNode, newNode);
+		}
+		else{
+			m_IPCOMLIST->AddNode(newNode);
+		}
 
 		InsertItem(node + 1,_T("TCP"));
 		SetItemText(node + 1,1,_T("127.0.0.1"));

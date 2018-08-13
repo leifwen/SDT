@@ -192,9 +192,11 @@ bool32 SDTAPP::ExecBIC(const STDSTR& cmd){
 	CHK_CheckTime();
 #endif
 #ifdef BIC_CONSOLE_h
-	return(m_BIC.Command(&m_env,cmd,nullptr));
+	m_Console.ExecBIC(cmd);
+	return G_TRUE;
+#else
+	return G_FALSE;
 #endif
-	return -1;
 };
 //------------------------------------------------------------------------------------------//
 void SDTAPP::Exit(const STDSTR& fileName){

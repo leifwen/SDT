@@ -178,6 +178,7 @@ class CONSOLE : public BASE_FLAG{
 	public:
 					CONSOLE&	Init					(const ODEV_STDOUT* oDevSTDOUT);
 					void		StartWithBIC			(CMD_ENV* env,BIC_BASE_S* bic);
+					void		ExecBIC					(const STDSTR& cmd);
 					void		Stop					(void);
 };
 //------------------------------------------------------------------------------------------//

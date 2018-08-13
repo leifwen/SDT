@@ -436,7 +436,7 @@ STDSTR DEVICE::MakeSendTitle(uint32 num){
 //------------------------------------------------------------------------------------------//
 void DEVICE::PrintSendCommand(uint32 num,const STDSTR& strForPrint){
 	if (num > 0)
-		PrintSendCommand(MakeSendTitle(num)," ",strForPrint);
+		PrintSendCommand(MakeSendTitle(num),"",strForPrint);
 }
 //------------------------------------------------------------------------------------------//
 STDSTR& DEVICE::PrintSendCommand(STDSTR* retForSend,const STDSTR& cmd,CMD_TAIL tail,G_ESCAPE blEscape){

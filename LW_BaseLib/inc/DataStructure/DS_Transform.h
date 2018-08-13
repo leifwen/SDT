@@ -123,7 +123,7 @@ class DS_TRANSFORM_FRAME : public DS_IO_NODE{
 			_dstf._Startup(sp.ios,sp.uvOut);
 			return(_dstf);
 		};
-		template <typename T_DSTF> inline friend T_DSTF& operator << (T_DSTF& _dstf,const _FinishF& _fun){
+		template <typename T_DSTF> inline	friend	T_DSTF& operator << (T_DSTF& _dstf,const _FinishF& _fun){
 			_dstf.Final(_dstf.cgStartup.ios,_dstf.cgStartup.uvOut);
 			return(_dstf);
 		};

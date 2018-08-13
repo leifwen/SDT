@@ -802,9 +802,6 @@
     <ClCompile Include="..\..\..\Code\UI\Windows\ChildFrm\CMUXView.cpp">
       <Filter>Source Files\ChildFrm</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\LW_BaseLib\inc\AdvancedDS\ADS_SMC.cpp">
-      <Filter>_LWBaseLib\inc\AdvancedDS</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\LW_BaseLib\src\License\License_Checker.cpp">
       <Filter>_LWBaseLib\src\License</Filter>
     </ClCompile>
@@ -843,6 +840,9 @@
     </ClCompile>
     <ClCompile Include="..\..\..\LW_BaseLib\src\License\SystemInfo.cpp">
       <Filter>_LWBaseLib\src\License</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\LW_BaseLib\src\AdvancedDS\ADS_SMC.cpp">
+      <Filter>_LWBaseLib\src\AdvancedDS</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

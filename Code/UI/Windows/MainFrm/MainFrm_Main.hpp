@@ -346,7 +346,8 @@ void CMainFrame::OnButtonClickConnect(void){
 			m_wndSocket.ShowPane(FALSE,FALSE,TRUE);
 		}
 		else{
-			theApp.GSDTApp.ExecBIC("main c");
+			theApp.GSDTApp.ExecBIC("m");
+			theApp.GSDTApp.ExecBIC("c");
 		}
 		return;
 	}

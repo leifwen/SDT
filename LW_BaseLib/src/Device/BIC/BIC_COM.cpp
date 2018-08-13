@@ -16,7 +16,7 @@ CMDID BIC_COM::Help(CMD_ENV* env,uint32 flag)const{
 	PrintHelpItem(env,cgCommand,"Set as COM mode");
 	if (B_ChkFLAG32(flag, CMD_blPrintSimple))
 		return(cgCommandID);
-	PrintHelpSubItem(env,"[name][br]",selfName,"COM name and baudrate");
+	PrintHelpSubItem(env,"[name][br]","COM name and baudrate");
 	return(cgCommandID);
 };
 //------------------------------------------------------------------------------------------//
