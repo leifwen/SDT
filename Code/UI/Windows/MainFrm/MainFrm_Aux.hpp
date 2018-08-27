@@ -19,38 +19,38 @@ void CMainFrame::OnRiComboAuxbr(void){
 }
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnUpdateRiComboAuxcom(CCmdUI *pCmdUI){
-	pCmdUI->Enable(theApp.GSDTApp.m_Device2.IsOpened() == 0);
+	pCmdUI->Enable(theApp.GSDTApp.m_DeviceA.IsOpened() == 0);
 }
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnUpdateRiComboAuxbr(CCmdUI *pCmdUI){
-	pCmdUI->Enable(theApp.GSDTApp.m_Device2.IsOpened() == 0);
+	pCmdUI->Enable(theApp.GSDTApp.m_DeviceA.IsOpened() == 0);
 }
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnRiCheckAuxescape(void){
-	if (B_ChkFLAG64(*theApp.GSDTApp.m_Device2.cgEDA.envcfg, ODEV_FLAG_EnEscape) == 0){
-		B_SetFLAG64(*theApp.GSDTApp.m_Device2.cgEDA.envcfg, ODEV_FLAG_EnEscape);
-		B_ClrFLAG64(*theApp.GSDTApp.m_Device2.cgEDA.envcfg, ODEV_FLAG_EnHEXViewMode);
+	if (B_ChkFLAG64(*theApp.GSDTApp.m_DeviceA.cgEDA.envcfg, ODEV_FLAG_EnEscape) == 0){
+		B_SetFLAG64(*theApp.GSDTApp.m_DeviceA.cgEDA.envcfg, ODEV_FLAG_EnEscape);
+		B_ClrFLAG64(*theApp.GSDTApp.m_DeviceA.cgEDA.envcfg, ODEV_FLAG_EnHEXViewMode);
 	}
 	else{
-		B_ClrFLAG64(*theApp.GSDTApp.m_Device2.cgEDA.envcfg, ODEV_FLAG_EnEscape);
+		B_ClrFLAG64(*theApp.GSDTApp.m_DeviceA.cgEDA.envcfg, ODEV_FLAG_EnEscape);
 	}
 }
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnRiCheckAuxhex(void){
-	B_ClrFLAG64(*theApp.GSDTApp.m_Device2.cgEDA.envcfg, ODEV_FLAG_EnEscape);
-	B_SetFLAG64(*theApp.GSDTApp.m_Device2.cgEDA.envcfg, ODEV_FLAG_EnHEXViewMode);
+	B_ClrFLAG64(*theApp.GSDTApp.m_DeviceA.cgEDA.envcfg, ODEV_FLAG_EnEscape);
+	B_SetFLAG64(*theApp.GSDTApp.m_DeviceA.cgEDA.envcfg, ODEV_FLAG_EnHEXViewMode);
 }
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnRiCheckAuxascii(void){
-	B_ClrFLAG64(*theApp.GSDTApp.m_Device2.cgEDA.envcfg, ODEV_FLAG_EnHEXViewMode);
+	B_ClrFLAG64(*theApp.GSDTApp.m_DeviceA.cgEDA.envcfg, ODEV_FLAG_EnHEXViewMode);
 }
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnRiButtonAuxopen(void){
-	if (theApp.GSDTApp.m_Device2.IsOpened() == 0){
+	if (theApp.GSDTApp.m_DeviceA.IsOpened() == 0){
 		if (DoAuxopen())
 			return;
 	}
-	theApp.GSDTApp.m_Device2.Close();
+	theApp.GSDTApp.m_DeviceA.Close();
 }
 //------------------------------------------------------------------------------------------//
 BOOL CMainFrame::DoAuxopen(void){
@@ -69,63 +69,63 @@ BOOL CMainFrame::DoAuxopen(void){
 	baudrate = atoi(Str_UnicodeToANSI(sstrBR.GetBuffer(0)).c_str());
 
 #ifdef	SWVERSION_AUXDEVICE
-	return(theApp.GSDTApp.m_Device2.Open(SetOpenPar(type,result, baudrate, theApp.GSDTApp.m_Device2.CheckEcho())) != 0);
+	return(theApp.GSDTApp.m_DeviceA.Open(SetOpenPar(type,result, baudrate, theApp.GSDTApp.m_DeviceA.CheckEcho())) != 0);
 #endif
 	return(FALSE);
 }
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnRiCheckAuxdsr(void){
-	if ((theApp.GSDTApp.m_Device2.cgEDA.IsComOpened() != 0)){
+	if ((theApp.GSDTApp.m_DeviceA.cgEDA.IsComOpened() != 0)){
 		m_blAuxDSRFlow = !m_blAuxDSRFlow;
-		theApp.GSDTApp.m_Device2.ACom()->SetDSRFlow(m_blAuxDSRFlow);
+		theApp.GSDTApp.m_DeviceA.ACom()->SetDSRFlow(m_blAuxDSRFlow);
 	}
 }
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnRiCheckAuxdtrh(void){
-	if ((theApp.GSDTApp.m_Device2.cgEDA.IsComOpened() != 0))
-		theApp.GSDTApp.m_Device2.ACom()->SetDTR(1);
+	if ((theApp.GSDTApp.m_DeviceA.cgEDA.IsComOpened() != 0))
+		theApp.GSDTApp.m_DeviceA.ACom()->SetDTR(1);
 }
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnRiCheckAuxdtrl(void){
-	if ((theApp.GSDTApp.m_Device2.cgEDA.IsComOpened() != 0))
-		theApp.GSDTApp.m_Device2.ACom()->SetDTR(0);
+	if ((theApp.GSDTApp.m_DeviceA.cgEDA.IsComOpened() != 0))
+		theApp.GSDTApp.m_DeviceA.ACom()->SetDTR(0);
 }
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnRiCheckAuxcts(void){
-	if ((theApp.GSDTApp.m_Device2.cgEDA.IsComOpened() != 0)){
+	if ((theApp.GSDTApp.m_DeviceA.cgEDA.IsComOpened() != 0)){
 		m_blAuxCTSFlow = !m_blAuxCTSFlow;
-		theApp.GSDTApp.m_Device2.ACom()->SetCTSFlow(m_blAuxCTSFlow);
+		theApp.GSDTApp.m_DeviceA.ACom()->SetCTSFlow(m_blAuxCTSFlow);
 	}
 }
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnRiCheckAuxrtsh(void){
-	if ((theApp.GSDTApp.m_Device2.cgEDA.IsComOpened() != 0))
-		theApp.GSDTApp.m_Device2.ACom()->SetRTS(1);
+	if ((theApp.GSDTApp.m_DeviceA.cgEDA.IsComOpened() != 0))
+		theApp.GSDTApp.m_DeviceA.ACom()->SetRTS(1);
 }
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnRiCheckAuxrtsl(void){
-	if ((theApp.GSDTApp.m_Device2.cgEDA.IsComOpened() != 0))
-		theApp.GSDTApp.m_Device2.ACom()->SetRTS(0);
+	if ((theApp.GSDTApp.m_DeviceA.cgEDA.IsComOpened() != 0))
+		theApp.GSDTApp.m_DeviceA.ACom()->SetRTS(0);
 }
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnUpdateRiCheckAuxescape(CCmdUI *pCmdUI){
-	pCmdUI->SetCheck(B_ChkFLAG64(*theApp.GSDTApp.m_Device2.cgEDA.envcfg, ODEV_FLAG_EnEscape) != 0);
+	pCmdUI->SetCheck(B_ChkFLAG64(*theApp.GSDTApp.m_DeviceA.cgEDA.envcfg, ODEV_FLAG_EnEscape) != 0);
 }
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnUpdateRiCheckAuxhex(CCmdUI *pCmdUI){
-	pCmdUI->SetCheck(B_ChkFLAG64(*theApp.GSDTApp.m_Device2.cgEDA.envcfg, ODEV_FLAG_EnHEXViewMode) != 0);
+	pCmdUI->SetCheck(B_ChkFLAG64(*theApp.GSDTApp.m_DeviceA.cgEDA.envcfg, ODEV_FLAG_EnHEXViewMode) != 0);
 }
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnUpdateRiCheckAuxascii(CCmdUI *pCmdUI){
-	pCmdUI->SetCheck(B_ChkFLAG64(*theApp.GSDTApp.m_Device2.cgEDA.envcfg, ODEV_FLAG_EnHEXViewMode) == 0);
+	pCmdUI->SetCheck(B_ChkFLAG64(*theApp.GSDTApp.m_DeviceA.cgEDA.envcfg, ODEV_FLAG_EnHEXViewMode) == 0);
 }
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnUpdateRiButtonAuxopen(CCmdUI *pCmdUI){
-	pCmdUI->SetCheck(theApp.GSDTApp.m_Device2.IsOpened() != 0);
+	pCmdUI->SetCheck(theApp.GSDTApp.m_DeviceA.IsOpened() != 0);
 }
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnUpdateRiCheckAuxdsr(CCmdUI *pCmdUI){
-	if (theApp.GSDTApp.m_Device2.cgEDA.IsComOpened()){
+	if (theApp.GSDTApp.m_DeviceA.cgEDA.IsComOpened()){
 		pCmdUI->Enable();
 		pCmdUI->SetCheck(m_blAuxDSRFlow);
 	}
@@ -136,9 +136,9 @@ void CMainFrame::OnUpdateRiCheckAuxdsr(CCmdUI *pCmdUI){
 }
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnUpdateRiCheckAuxdtrh(CCmdUI *pCmdUI){
-	if (theApp.GSDTApp.m_Device2.cgEDA.IsComOpened()){
+	if (theApp.GSDTApp.m_DeviceA.cgEDA.IsComOpened()){
 		pCmdUI->Enable();
-		pCmdUI->SetCheck(theApp.GSDTApp.m_Device2.ACom()->GetDTRStatus() != 0);
+		pCmdUI->SetCheck(theApp.GSDTApp.m_DeviceA.ACom()->GetDTRStatus() != 0);
 	}
 	else{
 		pCmdUI->SetCheck(FALSE);
@@ -147,9 +147,9 @@ void CMainFrame::OnUpdateRiCheckAuxdtrh(CCmdUI *pCmdUI){
 }
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnUpdateRiCheckAuxdtrl(CCmdUI *pCmdUI){
-	if (theApp.GSDTApp.m_Device2.cgEDA.IsComOpened()){
+	if (theApp.GSDTApp.m_DeviceA.cgEDA.IsComOpened()){
 		pCmdUI->Enable();
-		pCmdUI->SetCheck(theApp.GSDTApp.m_Device2.ACom()->GetDTRStatus() == 0);
+		pCmdUI->SetCheck(theApp.GSDTApp.m_DeviceA.ACom()->GetDTRStatus() == 0);
 	}
 	else{
 		pCmdUI->SetCheck(TRUE);
@@ -158,7 +158,7 @@ void CMainFrame::OnUpdateRiCheckAuxdtrl(CCmdUI *pCmdUI){
 }
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnUpdateRiCheckAuxcts(CCmdUI *pCmdUI){
-	if (theApp.GSDTApp.m_Device2.cgEDA.IsComOpened()){
+	if (theApp.GSDTApp.m_DeviceA.cgEDA.IsComOpened()){
 		pCmdUI->Enable();
 		pCmdUI->SetCheck(m_blAuxCTSFlow);
 	}
@@ -169,9 +169,9 @@ void CMainFrame::OnUpdateRiCheckAuxcts(CCmdUI *pCmdUI){
 }
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnUpdateRiCheckAuxrtsh(CCmdUI *pCmdUI){
-	if (theApp.GSDTApp.m_Device2.cgEDA.IsComOpened()){
+	if (theApp.GSDTApp.m_DeviceA.cgEDA.IsComOpened()){
 		pCmdUI->Enable();
-		pCmdUI->SetCheck(theApp.GSDTApp.m_Device2.ACom()->GetRTSStatus() != 0);
+		pCmdUI->SetCheck(theApp.GSDTApp.m_DeviceA.ACom()->GetRTSStatus() != 0);
 	}
 	else{
 		pCmdUI->SetCheck(FALSE);
@@ -180,9 +180,9 @@ void CMainFrame::OnUpdateRiCheckAuxrtsh(CCmdUI *pCmdUI){
 }
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnUpdateRiCheckAuxrtsl(CCmdUI *pCmdUI){
-	if (theApp.GSDTApp.m_Device2.cgEDA.IsComOpened()){
+	if (theApp.GSDTApp.m_DeviceA.cgEDA.IsComOpened()){
 		pCmdUI->Enable();
-		pCmdUI->SetCheck(theApp.GSDTApp.m_Device2.ACom()->GetRTSStatus() == 0);
+		pCmdUI->SetCheck(theApp.GSDTApp.m_DeviceA.ACom()->GetRTSStatus() == 0);
 	}
 	else{
 		pCmdUI->SetCheck(TRUE);

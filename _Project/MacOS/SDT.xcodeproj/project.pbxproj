@@ -31,6 +31,7 @@
 		292ECF21205D7211004AAC81 /* SystemInfo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 292ECF20205D7211004AAC81 /* SystemInfo.cpp */; };
 		292FB400211C13D600B2D75A /* ADS_SMC.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 292FB3FF211C13D600B2D75A /* ADS_SMC.cpp */; };
 		2948F8612012381200CED05E /* DS_ARRAY.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2948F8602012381200CED05E /* DS_ARRAY.cpp */; };
+		29682D872133C836005E42B4 /* Test.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 29682D862133C836005E42B4 /* Test.cpp */; };
 		2981B5822020AA5A00257BB9 /* ColorRecord.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2981B5812020AA5A00257BB9 /* ColorRecord.cpp */; };
 		298D31892057778000707622 /* PatchCode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 298D31882057778000707622 /* PatchCode.cpp */; };
 		298D318B2057984900707622 /* License_Checker.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 298D318A2057984900707622 /* License_Checker.cpp */; };
@@ -171,6 +172,7 @@
 		2948F85F2012380B00CED05E /* DS_ARRAY.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = DS_ARRAY.hpp; sourceTree = "<group>"; };
 		2948F8602012381200CED05E /* DS_ARRAY.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DS_ARRAY.cpp; sourceTree = "<group>"; };
 		2948F88020157B6300CED05E /* ALG_AES.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ALG_AES.h; sourceTree = "<group>"; };
+		29682D862133C836005E42B4 /* Test.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Test.cpp; sourceTree = "<group>"; };
 		2981B57F2020AA4F00257BB9 /* ColorRecord.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ColorRecord.h; sourceTree = "<group>"; };
 		2981B5802020AA4F00257BB9 /* ColorRecord.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = ColorRecord.hpp; sourceTree = "<group>"; };
 		2981B5812020AA5A00257BB9 /* ColorRecord.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ColorRecord.cpp; sourceTree = "<group>"; };
@@ -550,6 +552,7 @@
 		2927C88A20458F7D00A24894 /* src */ = {
 			isa = PBXGroup;
 			children = (
+				29682D862133C836005E42B4 /* Test.cpp */,
 				2927C88C20458F7D00A24894 /* ParRecord.cpp */,
 				2927C88D20458F7D00A24894 /* BIC_CONSOLE.cpp */,
 				2927C88B20458F7D00A24894 /* AppLayer.cpp */,
@@ -1038,6 +1041,7 @@
 				298D318B2057984900707622 /* License_Checker.cpp in Sources */,
 				299D7DB220411ED70069200D /* BIC_EXE.cpp in Sources */,
 				29D974AC205CD9F5004260CE /* MSG_RST.cpp in Sources */,
+				29682D872133C836005E42B4 /* Test.cpp in Sources */,
 				29E4A69F202213C100603FEA /* ODEV_System.cpp in Sources */,
 				292C16E920163AC50037BE62 /* ALG_BASE64.cpp in Sources */,
 				2909B39720120656007F7525 /* DS_Tree.cpp in Sources */,

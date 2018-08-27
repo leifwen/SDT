@@ -94,6 +94,10 @@ class AppBIC : public BIC_BASE_S{
 #ifdef BIC_License_h
 		BIC_BIN				cgSub_bin;
 #endif
+		BIC_SELFNAME		cgSub_selfname;
+#ifdef CommonDefH_Unix
+		BIC_DAEMON			cgSub_daemon;
+#endif
 };
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//

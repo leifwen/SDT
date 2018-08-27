@@ -81,7 +81,7 @@ bool32 COMMU_FRAME::DoOpen(const OPEN_PAR& par){
 	
 	if (err > G_FALSE){
 		DisableEcho();
-		if (B_ChkFLAG32(cgOpenPar.cfg, CFG_blEnableEcho))
+		if (B_ChkFLAG32(par.cfg, CFG_blEnableEcho))
 			EnableEcho();
 		ClrSFlag(CF_blPushSend | CF_blCloseDueToOS);
 		SetSFlag(CF_blOpened | CF_blConnected | CF_blEnableSelfClose);

@@ -41,11 +41,13 @@ bool32 SMC_BLOCK::Init(uint8* offset,uint32 codeSize){
 }
 //------------------------------------------------------------------------------------------//
 bool32 SMC_BLOCK::Decrypt(void){
-	bool32	blRet;
+	bool32	blRet = G_FALSE;
+#ifdef SMC_YESH
 	uint32	cyCodeNo;
 	STDSTR	runCode;
 	
 	blRet = G_FALSE;
+
 	if (blInit){
 		cyCodeNo = Str_CharToUint16((uint8*)cgOldMemCode.c_str());
 		if (CHK_GetSMC(&runCode,cyCodeNo)){
@@ -62,6 +64,7 @@ bool32 SMC_BLOCK::Decrypt(void){
 			}
 		}
 	}
+#endif
 	return(blRet);
 }
 //------------------------------------------------------------------------------------------//
@@ -69,6 +72,7 @@ bool32 SMC_BLOCK::Resume(void){
 	bool32	blRet;
 	
 	blRet = G_FALSE;
+#ifdef SMC_YESH
 	if (blInit){
 		try{
 #ifdef CommonDefH_VC
@@ -80,6 +84,7 @@ bool32 SMC_BLOCK::Resume(void){
 			blRet = -1;
 		}
 	}
+#endif
 	return(blRet);
 }
 //------------------------------------------------------------------------------------------//

@@ -252,7 +252,7 @@ CChildFrame* CMainFrame::MainCFrmCreate(void){
 		m_MCFrm->InitConsole(&theApp.GSDTApp.m_Console);
 		
 		theApp.GSDTApp.InitSTDOUT(&m_MCFrm->m_stdout);
-		theApp.GSDTApp.Run();
+		theApp.GSDTApp.Run("");
 	}
 	return (m_MCFrm);
 }

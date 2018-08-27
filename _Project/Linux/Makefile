@@ -9,20 +9,27 @@
 
 .PHONY = all install clean
 
+#compile option
+ISSTATIC		?= no
+
 #global directory defined
 TOPDIR			= $(shell pwd)/../..
 SRCDIR			= $(TOPDIR)
 LW_LibSRCDIR	= $(SRCDIR)/LW_BaseLib/src
 LW_LibINCDIR	= $(SRCDIR)/LW_BaseLib/inc
+LW_ExLibINCDIR	= $(SRCDIR)/ExtraLib/zlib/1.2.11/include
+LW_ExLibINCDIR	+= $(SRCDIR)/ExtraLib/Openssl/1.0.2o/include
 kernelSRCDIR	= $(SRCDIR)/Code/kernel/src
 kernelINCDIR	= $(SRCDIR)/Code/kernel/inc
 UISRCDIR		= $(SRCDIR)/Code/UI/MacOS
 UIINCDIR		= $(SRCDIR)/Code/UI/MacOS
-LIBDIR			= $(SRCDIR)/ExtraLib
+LW_ExLIBDIR1	= $(SRCDIR)/ExtraLib/Openssl/1.0.2o/lib/Linux_3.18.118
+LW_ExLIBDIR2	= $(SRCDIR)/ExtraLib/zlib/1.2.11/lib/Linux_3.18.118
 OBJECTDIR		= $(shell pwd)/build
 
 #cross compile tools defined 
-CROSS_COMPILE ?= 
+ARCH			?= 
+CROSS_COMPILE	?= 
 AS		= $(CROSS_COMPILE)as
 LD		= $(CROSS_COMPILE)ld
 CC		= $(CROSS_COMPILE)g++
@@ -46,15 +53,15 @@ TARGETLIBS	= libmk.a
 TARGETSLIBS	= libmk.so
 
 #FILE' INFOMATION COLLECT
-LW_LibSRCPATCH	= $(shell ls -AxR $(LW_LibSRCDIR)|grep ":"|grep -v "\.svn"|tr -d ':')
-LW_LibINCPATCH	= $(shell ls -AxR $(LW_LibINCDIR)|grep ":"|grep -v "\.svn"|tr -d ':')
-kernelSRCPATCH	= $(shell ls -AxR $(kernelSRCDIR)|grep ":"|grep -v "\.svn"|tr -d ':')
-kernelINCPATCH	= $(shell ls -AxR $(kernelINCDIR)|grep ":"|grep -v "\.svn"|tr -d ':')
-UISRCPATCH		= $(shell ls -AxR $(UISRCDIR)|grep ":"|grep -v "\.svn"|tr -d ':')
-UIINCPATCH		= $(shell ls -AxR $(UIINCDIR)|grep ":"|grep -v "\.svn"|tr -d ':')
+LW_LibSRCPATCH		= $(shell ls -AxR $(LW_LibSRCDIR)|grep ":"|grep -v "\.svn"|tr -d ':')
+LW_LibINCPATCH		= $(shell ls -AxR $(LW_LibINCDIR)|grep ":"|grep -v "\.svn"|tr -d ':')
+kernelSRCPATCH		= $(shell ls -AxR $(kernelSRCDIR)|grep ":"|grep -v "\.svn"|tr -d ':')
+kernelINCPATCH		= $(shell ls -AxR $(kernelINCDIR)|grep ":"|grep -v "\.svn"|tr -d ':')
+UISRCPATCH			= $(shell ls -AxR $(UISRCDIR)|grep ":"|grep -v "\.svn"|tr -d ':')
+UIINCPATCH			= $(shell ls -AxR $(UIINCDIR)|grep ":"|grep -v "\.svn"|tr -d ':')
 
 SOURCEDIRS	= $(LW_LibSRCPATCH) + $(kernelSRCPATCH) + $(UISRCPATCH)
-INCLUDEDIRS	= $(LW_LibINCPATCH) + $(kernelINCPATCH) + $(UIINCPATCH)
+INCLUDEDIRS	= $(LW_LibINCPATCH) + $(kernelINCPATCH) + $(UIINCPATCH) + $(LW_ExLibINCDIR)
 
 #search source file in the current dir
 SOURCES		= $(foreach subdir,$(SOURCEDIRS),$(wildcard $(subdir)/*.cpp))
@@ -71,11 +78,27 @@ CFLAGS	+=
 
 #c file compile parameters and linked libraries
 CPPFLAGS	= -Wall -std=c++0x -ggdb
-#CPPFLAGS	+= -static
-LDFLAGS		= -lpthread
-LDFLAGS		+= -lssl -lcrypto -lz
+
+ifeq ($(ISSTATIC), yes)
+CPPFLAGS	+= -static
+endif
+
+LDFLAGS	= -lssl -lcrypto -ldl -lz
+ifeq ($(ARCH), arm)
+CPPFLAGS	+= -Wl,--whole-archive -lpthread -Wl,--no-whole-archive -lc
+else
+LDFLAGS		+= -lpthread
+endif
+
+ifeq ($(ARCH), arm)
+LDFLAGS		+= -latomic
+endif
 XLDFLAGS	= -Xlinker "-(" $(LDFLAGS) -Xlinker "-)"
-LDLIBS		+= -L $(LIBDIR) 
+ifeq ($(ARCH), arm)
+LDLIBS		= -L $(LW_ExLIBDIR1) -L $(LW_ExLIBDIR2) 
+else
+LDLIBS		?=
+endif
 
 #defaut target:compile the currrent dir file and sub dir 
 all:  $(TARGETMAIN)

@@ -19,22 +19,22 @@ inline	void	CMD_ENV::SetEnvFlag		(const uint64& rStatus)			{SetSFlag(rStatus);};
 inline	void	CMD_ENV::ClrEnvFlag		(const uint64& rStatus)			{ClrSFlag(rStatus);};
 inline	bool32	CMD_ENV::CheckEnvFlag	(const uint64& rStatus)const 	{return(CheckSFlag(rStatus));};
 //------------------------------------------------------------------------------------------//
-inline	void	CMD_ENV::SetblExitForce	(void)		{SetSFlag(ENV_blExit | ENV_blExitLock);};
-inline	void	CMD_ENV::SetblExit		(void)		{if (CheckSFlag(ENV_blExitLock) == G_FALSE) SetSFlag(ENV_blExit);};
-inline	void	CMD_ENV::ClrblExit		(void)		{if (CheckSFlag(ENV_blExitLock) == G_FALSE) ClrSFlag(ENV_blExit);};
-inline	bool32	CMD_ENV::ChkblExit		(void)const	{return(CheckSFlag(ENV_blExitLock) || CheckSFlag(ENV_blExit));};
-//------------------------------------------------------------------------------------------//
-inline uint32 CMD_ENV::GetQuantity(void){
-	return(CMD_ENV::CMD_VID_NEXT);
-};
+inline	void	CMD_ENV::SetblExitForce	(void)			{SetSFlag(ENV_blExit | ENV_blExitLock);};
+inline	void	CMD_ENV::SetblExit		(void)			{if (CheckSFlag(ENV_blExitLock) == G_FALSE) SetSFlag(ENV_blExit);};
+inline	void	CMD_ENV::ClrblExit		(void)			{if (CheckSFlag(ENV_blExitLock) == G_FALSE) ClrSFlag(ENV_blExit);};
+inline	bool32	CMD_ENV::ChkblExit		(void)const		{return(CheckSFlag(ENV_blExitLock) || CheckSFlag(ENV_blExit));};
+inline	void	CMD_ENV::Init			(CMD_ENV* env)	{env->ClearEnvAllFlag();};
 //------------------------------------------------------------------------------------------//
 inline void CMD_ENV::SetVar(CMD_ENV* env,uint32 vid,void* var){
-	if (env != nullptr)
+	if (env != nullptr){
+		if (vid >= env->bufferSize)
+			env->InitQuantity(vid + 1);
 		env->buffer[vid] = var;
+	}
 };
 //------------------------------------------------------------------------------------------//
 template<typename VART> inline VART* CMD_ENV::GetVar(CMD_ENV* env,uint32 vid,VART* varnullptr){
-	if (env != nullptr)
+	if ((env != nullptr) && (vid < env->bufferSize))
 		//return(static_cast<VART*>(env->buffer[vid]));
 		return((VART*)(env->buffer[vid]));
 	return(nullptr);
@@ -46,7 +46,7 @@ template<typename VART>	inline void CMD_ENV::NewVar(CMD_ENV* env,uint32 vid,VART
 };
 //------------------------------------------------------------------------------------------//
 template<typename VART>	inline void CMD_ENV::DelVar(CMD_ENV* env,uint32 vid,VART* varnullptr){
-	if (env != nullptr){
+	if ((env != nullptr) && (vid < env->bufferSize)){
 		delete GetVar(env,vid,varnullptr);
 		SetVar(env, vid, nullptr);
 	}

@@ -12,10 +12,10 @@
 #define AppLayer_h
 #ifdef AppLayer_h
 //------------------------------------------------------------------------------------------//
-class SDTAPP : public COMMU_FRAME{
+class KERNEL : public COMMU_FRAME{
 	public:
-				 SDTAPP(uint32 size);
-		virtual ~SDTAPP(void);
+				 KERNEL(uint32 sizeCache,uint32 sizeBuffer);
+		virtual ~KERNEL(void);
 	public:
 #ifdef ODEV_System_h
 		ODEV_CACHE		m_Cache;
@@ -30,8 +30,9 @@ class SDTAPP : public COMMU_FRAME{
 		GC_LIST			m_GCList;
 #endif
 #ifdef Device_h
-		DEVICE			m_Device1;		//Main
-		DEVICE			m_Device2;		//Aux
+		DEVICE			m_DeviceM;		//Main
+		DEVICE			m_DeviceA;		//Aux
+		DEVICE			m_DeviceS;		//Second
 #endif
 #ifdef Commu_AEXE_h
 		AEXEPOOL		m_AExePool;
@@ -73,7 +74,7 @@ class SDTAPP : public COMMU_FRAME{
 	public:
 		virtual	void	CloseChild		(COMMU_FRAME* commu);
 				void	Init			(const STDSTR& fileName);
-				void	Run				(void);
+				void	Run				(const STDSTR& cmd);
 				void	Exit			(const STDSTR& fileName);
 				bool32	ExecBIC			(const STDSTR& cmd);
 	public:

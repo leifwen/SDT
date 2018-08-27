@@ -767,7 +767,7 @@ void CGCTree::OnLButtonDblClk(UINT nFlags, CPoint point){
 			CMyCTreeCtrl::OnLButtonDblClk(nFlags,point);
 			break;
 		case 2:
-			if (theApp.GSDTApp.m_Script.Execute(&theApp.GSDTApp.m_Device1, group = GetGroup(hItem)) == 0){
+			if (theApp.GSDTApp.m_Script.Execute(&theApp.GSDTApp.m_DeviceM, group = GetGroup(hItem)) == 0){
 				AfxMessageBox(_T("Script is running!"));
 			}
 			else{
@@ -781,11 +781,11 @@ void CGCTree::OnLButtonDblClk(UINT nFlags, CPoint point){
 				COMMAND_NODE::CopyCOMMAND_NODE(&m_CommandNode, command);
 				if (nFlags & MK_CONTROL){
 					m_CommandNode.blEnableSend = 1;
-					if (theApp.GSDTApp.m_Script.Execute(&theApp.GSDTApp.m_Device1, &m_CommandNode) == 0)
+					if (theApp.GSDTApp.m_Script.Execute(&theApp.GSDTApp.m_DeviceM, &m_CommandNode) == 0)
 						AfxMessageBox(_T("Script is running!"));
 				}
 				else{
-					theApp.GSDTApp.m_Device1.SendCommandWithPrint(m_CommandNode.StrCommand, (CMD_TAIL)m_CommandNode.cmdTail,G_ESCAPE_ON);
+					theApp.GSDTApp.m_DeviceM.SendCommandWithPrint(m_CommandNode.StrCommand, (CMD_TAIL)m_CommandNode.cmdTail,G_ESCAPE_ON);
 				}
 			}
 			break;
@@ -1196,7 +1196,7 @@ void CGCViewDP::OnButtonClickGC_STOP(void){
 }
 //------------------------------------------------------------------------------------------//
 void CGCViewDP::OnButtonClickGC_Run(void){
-	if (theApp.GSDTApp.m_Script.Execute(&theApp.GSDTApp.m_Device1, &theApp.GSDTApp.m_GCList) == 0){
+	if (theApp.GSDTApp.m_Script.Execute(&theApp.GSDTApp.m_DeviceM, &theApp.GSDTApp.m_GCList) == 0){
 		AfxMessageBox(_T("Script is running!"));
 	}
 	else{

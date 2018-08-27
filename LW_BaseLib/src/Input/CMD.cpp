@@ -12,6 +12,15 @@
 #ifdef CMD_h
 #include "SYS_Time.h"
 //------------------------------------------------------------------------------------------//
+void** CreateBuffer(uint32 num){
+	void** buffer;
+	buffer = new void*[num];
+	do{
+		buffer[--num] = nullptr;
+	}while(num > 0);
+	return(buffer);
+};
+//------------------------------------------------------------------------------------------//
 CMD_ENV::CMD_ENV(void) : BASE_FLAG(){
 	buffer = nullptr;
 	bufferSize = 0;
@@ -26,23 +35,34 @@ void CMD_ENV::UnInitQuantity(void){
 		if (buffer != nullptr)
 			delete []buffer;
 		bufferSize = 0;
+		buffer = nullptr;
 	}
 	catch(...){};
 }
 //------------------------------------------------------------------------------------------//
 void CMD_ENV::InitQuantity(uint32 num){
-	bufferSize = num;
-	buffer = new void*[num];
-	do{
-		buffer[--num] = nullptr;
-	}while(num > 0);
+	if (buffer == nullptr){
+		bufferSize = num;
+		buffer = CreateBuffer(num);
+	}
+	else if (bufferSize < num){
+		uint32 i = bufferSize;
+		void** newBuffer = CreateBuffer(num);
+		
+		while(i-- > 0){
+			newBuffer[i] = buffer[i];
+		};
+		UnInitQuantity();
+		bufferSize = num;
+		buffer = newBuffer;
+	}
 };
 //------------------------------------------------------------------------------------------//
 void CMD_ENV::CopyInit(const CMD_ENV* env){
 	uint32 num;
 	UnInitQuantity();
 	InitQuantity(env->bufferSize);
-	num = bufferSize;
+	num = env->bufferSize;
 	while(num-- > 0){
 		buffer[num] = env->buffer[num];
 	};

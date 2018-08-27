@@ -49,11 +49,17 @@ AppBIC::AppBIC(void) : BIC_BASE_S(){
 	cgSub_EXIT.ClrHidenHelp();
 	cgSub_VERSION.ClrHidenHelp();
 	cgSub_DISPLAY.ClrHidenHelp();
-#ifdef	BIC_EXE_h
+	cgSub_DISPLAY.RemoveSelf();
+	
+#ifdef BIC_EXE_h
 	cgSub_Default = &cgSub_exebash;
 #endif
-	*this
-#ifdef	BIC_EXE_h
+	
+	*this < cgSub_selfname
+#ifdef CommonDefH_Unix
+	< cgSub_daemon
+#endif
+#ifdef BIC_EXE_h
 	< cgSub_exec
 	< cgSub_exebash
 	< cgSub_exesh
@@ -61,9 +67,7 @@ AppBIC::AppBIC(void) : BIC_BASE_S(){
 #ifdef ODEV_System_h
 	< cgSub_newrecord
 #endif
-	;
-	cgSub_DISPLAY.RemoveSelf();
-	*this < cgSub_DISPLAY
+	< cgSub_DISPLAY
 #ifdef BIC_License_h
 	< cgSub_bin
 #endif

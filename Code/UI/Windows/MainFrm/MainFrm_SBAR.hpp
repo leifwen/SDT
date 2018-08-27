@@ -1,10 +1,10 @@
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnUpdateSBAR_RX(CCmdUI *pCmdUI){
 	CString	cText;
-	if (theApp.GSDTApp.m_Device1.IsOpened() != 0){
+	if (theApp.GSDTApp.m_DeviceM.IsOpened() != 0){
 		pCmdUI->Enable();
 		cText = _T("Received Bytes:  ");
-		cText += Str_ANSIToUnicode(Str_ToStr(theApp.GSDTApp.m_Device1.SRxBytes())).c_str();
+		cText += Str_ANSIToUnicode(Str_ToStr(theApp.GSDTApp.m_DeviceM.SRxBytes())).c_str();
 		pCmdUI->SetText(cText);
 	}
 	else{
@@ -14,10 +14,10 @@ void CMainFrame::OnUpdateSBAR_RX(CCmdUI *pCmdUI){
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnUpdateSBAR_TX(CCmdUI *pCmdUI){
 	CString	cText;
-	if (theApp.GSDTApp.m_Device1.IsOpened() != 0){
+	if (theApp.GSDTApp.m_DeviceM.IsOpened() != 0){
 		pCmdUI->Enable();
 		cText = _T("Send Bytes:  ");
-		cText += Str_ANSIToUnicode(Str_ToStr(theApp.GSDTApp.m_Device1.STxBytes())).c_str();
+		cText += Str_ANSIToUnicode(Str_ToStr(theApp.GSDTApp.m_DeviceM.STxBytes())).c_str();
 		pCmdUI->SetText(cText);
 	}
 	else{
@@ -28,10 +28,10 @@ void CMainFrame::OnUpdateSBAR_TX(CCmdUI *pCmdUI){
 void CMainFrame::OnUpdateSBAR_CTS(CCmdUI *pCmdUI){
 	CString	cText;
 	cText = "";
-	if (theApp.GSDTApp.m_Device1.cgEDA.IsComOpened() != 0){
+	if (theApp.GSDTApp.m_DeviceM.cgEDA.IsComOpened() != 0){
 		pCmdUI->Enable();
 		cText = _T("CTS = ");
-		cText += Str_ANSIToUnicode(theApp.GSDTApp.m_Device1.ACom()->GetCTSStatus()).c_str();
+		cText += Str_ANSIToUnicode(theApp.GSDTApp.m_DeviceM.ACom()->GetCTSStatus()).c_str();
 	}
 	else{
 		pCmdUI->Enable(FALSE);
@@ -42,10 +42,10 @@ void CMainFrame::OnUpdateSBAR_CTS(CCmdUI *pCmdUI){
 void CMainFrame::OnUpdateSBAR_DSR(CCmdUI *pCmdUI){
 	CString	cText;
 	cText = "";
-	if (theApp.GSDTApp.m_Device1.cgEDA.IsComOpened() != 0){
+	if (theApp.GSDTApp.m_DeviceM.cgEDA.IsComOpened() != 0){
 		pCmdUI->Enable();
 		cText = _T("DSR = ");
-		cText += Str_ANSIToUnicode(theApp.GSDTApp.m_Device1.ACom()->GetDSRStatus()).c_str();
+		cText += Str_ANSIToUnicode(theApp.GSDTApp.m_DeviceM.ACom()->GetDSRStatus()).c_str();
 	}
 	else{
 		pCmdUI->Enable(FALSE);
@@ -56,10 +56,10 @@ void CMainFrame::OnUpdateSBAR_DSR(CCmdUI *pCmdUI){
 void CMainFrame::OnUpdateSBAR_RING(CCmdUI *pCmdUI){
 	CString	cText;
 	cText = "";
-	if (theApp.GSDTApp.m_Device1.cgEDA.IsComOpened() != 0){
+	if (theApp.GSDTApp.m_DeviceM.cgEDA.IsComOpened() != 0){
 		pCmdUI->Enable();
 		cText = _T("RING = ");
-		cText += Str_ANSIToUnicode(theApp.GSDTApp.m_Device1.ACom()->GetRINGStatus()).c_str();
+		cText += Str_ANSIToUnicode(theApp.GSDTApp.m_DeviceM.ACom()->GetRINGStatus()).c_str();
 	}
 	else{
 		pCmdUI->Enable(FALSE);
@@ -70,10 +70,10 @@ void CMainFrame::OnUpdateSBAR_RING(CCmdUI *pCmdUI){
 void CMainFrame::OnUpdateSBAR_DCD(CCmdUI *pCmdUI){
 	CString	cText;
 	cText = "";
-	if (theApp.GSDTApp.m_Device1.cgEDA.IsComOpened() != 0){
+	if (theApp.GSDTApp.m_DeviceM.cgEDA.IsComOpened() != 0){
 		pCmdUI->Enable();
 		cText = _T("DCD = ");
-		cText += Str_ANSIToUnicode(theApp.GSDTApp.m_Device1.ACom()->GetDCDStatus()).c_str();
+		cText += Str_ANSIToUnicode(theApp.GSDTApp.m_DeviceM.ACom()->GetDCDStatus()).c_str();
 	}
 	else{
 		pCmdUI->Enable(FALSE);

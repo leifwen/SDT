@@ -368,6 +368,10 @@ bool32 CONSOLE::LoadDefault(const STDSTR& filename){
 	STDSTR			strResult;
 	std::fstream	fileStream;
 	
+	cgCInput.Init();
+	cgHistoryMain.Init();
+	cgHistoryAux.Init();
+	
 	if (CFS_CheckFile(filename) < 1)
 		return G_FALSE;
 	
@@ -996,6 +1000,7 @@ bool32 CONSOLE::BICThreadFun(void* p){
 //------------------------------------------------------------------------------------------//
 void CONSOLE::StartWithBIC(CMD_ENV* env,BIC_BASE_S* bic){
 #ifdef BIC_Define_h
+	ClearAllFlag();
 	BIC_ENV::SetConsole(env,this);
 	BIC_ENV::SetSTDIN(env,&cgCMDSBUF);
 	

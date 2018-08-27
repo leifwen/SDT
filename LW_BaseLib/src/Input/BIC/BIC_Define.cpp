@@ -192,6 +192,113 @@ CMDID BIC_NEWRECORD::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 }
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
+CMDID BIC_SELFNAME::Help(CMD_ENV* env,uint32 flag)const{
+	PrintHelpItem(env,cgCommand,"Set self name");
+	return(cgCommandID);
+};
+//------------------------------------------------------------------------------------------//
+CMDID BIC_SELFNAME::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
+	BIC_ENV::SelfName(env) = msg;
+	if (msg.length() > 0)
+		BIC_ENV::SelfName(env) += ".";
+	return(cgCommandID);
+}
+//------------------------------------------------------------------------------------------//
+//------------------------------------------------------------------------------------------//
+#ifdef CommonDefH_Unix
+#include <fcntl.h>
+#include <signal.h>
+#include <termios.h>
+#ifdef CommonDefH_Linux
+#include <sys/types.h>
+#include <sys/wait.h>
+#endif
+//------------------------------------------------------------------------------------------//
+CMDID BIC_DAEMON::Help(CMD_ENV* env,uint32 flag)const{
+	PrintHelpItem(env,cgCommand,"Change to daemon");
+	if (B_ChkFLAG32(flag, CMD_blPrintSimple))
+		return(cgCommandID);
+	PrintHelpSubItem(env,"[BIC]","Build-in command, default is rst ts");
+	return(cgCommandID);
+};
+//------------------------------------------------------------------------------------------//
+bool32 DeamonExecuteCommand(const STDSTR& cmd){
+	char	**argv;
+	STDSTR	strCMD,strArg;
+	int32	num,ret;
+	
+	num = 0;
+	strCMD = cmd;
+	do{
+		Str_TrimSelf(strCMD);
+		strArg = Str_ReadSubItem(&strCMD, " ");
+		if (strArg.length() > 0)
+			++ num;
+	}while(strCMD.length() > 0);
+	
+	if (num > 0){
+		argv = new char*[num + 1];
+		argv[num] = (char*)nullptr;
+		
+		num = 0;
+		strCMD = cmd;
+		do{
+			Str_TrimSelf(strCMD);
+			strArg = Str_ReadSubItem(&strCMD, " ");
+			if (strArg.length() > 0){
+				argv[num] = new char[strArg.length() + 1];
+				memcpy(argv[num],strArg.c_str(),strArg.length());
+				argv[num][strArg.length()] = 0;
+				++ num;
+			}
+		}while(strCMD.length() > 0);
+		ret = execvp(argv[0],argv);
+		delete []argv;
+		return(ret);
+	}
+	return G_FALSE;
+}
+//------------------------------------------------------------------------------------------//
+CMDID BIC_DAEMON::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
+	int		status,fd_Child;
+	pid_t	childpid;
+	STDSTR	strCMD = "";
+#ifdef CommonDefH_Linux
+	char strProcessPath[1024] = {0};
+	readlink("/proc/self/exe", strProcessPath,1024);
+	strCMD = strProcessPath;
+#endif
+#ifdef CommonDefH_MAC
+	strCMD = "./SDT";
+#endif
+	childpid = fork();
+	if (childpid == 0){				//enter to child process.
+		status = 0;
+		fd_Child = open("/dev/null",O_RDWR);
+		dup2(fd_Child,0);	//redirect standard input to read pipe.
+		dup2(fd_Child,1);	//redirect write pipe to standard output.
+		dup2(fd_Child,2);	//redirect write pipe to standard output.
+		
+		strCMD += " -bic selfname_daemon";
+		if (msg.length() == 0)
+			strCMD += " rst_ts";
+		
+		status = DeamonExecuteCommand(strCMD);
+		
+		exit(status);
+	}
+	else if (childpid > 0){			//enter to fater process.
+		PrintSuccess(env);
+		env->SetblExit();
+	}
+	else{
+		PrintFail(env,"fork() failed");
+	}
+	return(cgCommandID);
+}
+//------------------------------------------------------------------------------------------//
+#endif
+//------------------------------------------------------------------------------------------//
 
 
 
@@ -228,7 +335,10 @@ BIC_BASE_S* BIC_BASE_S::AddNode(TNF* tnfNode){
 //------------------------------------------------------------------------------------------//
 void BIC_BASE_S::PrintConsoleName(CMD_ENV* env)const{
 	STDSTR	consoleName;
-	consoleName = fatherName + ((fatherName.length() > 0) ? "/" : "") + Str_UpperCase((cgConsoleName.length() > 0)?cgConsoleName:cgCommand) + ">";
+	
+	consoleName = BIC_ENV::SelfName(env)
+				+ fatherName + ((fatherName.length() > 0) ? "/" : "") + Str_UpperCase((cgConsoleName.length() > 0) ? cgConsoleName : cgCommand)
+				+ ">";
 	PrintStr(env, COLOR(COL_clDefault,consoleName));
 };
 //------------------------------------------------------------------------------------------//

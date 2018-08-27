@@ -31,7 +31,7 @@ class CSDTApp : public CWinAppEx{
 		UINT	m_nAppLook;
 		BOOL	m_bHiColorIcons;
 		BOOL	m_bCanClose;
-		SDTAPP	GSDTApp;
+		KERNEL	GSDTApp;
 	public:
 		virtual void PreLoadState	(void);
 		virtual void LoadCustomState(void);

@@ -22,8 +22,17 @@ inline void BIC_ENV::InitQuantity(CMD_ENV* env){
 		env->InitQuantity(CMD_VID_NEXT);
 };
 //------------------------------------------------------------------------------------------//
-inline void BIC_ENV::Init(CMD_ENV* env)		{;};
-inline void BIC_ENV::DeInit(CMD_ENV* env)	{;};
+inline void BIC_ENV::Init(CMD_ENV* env){
+	CMD_ENV::Init(env);
+	if (env != nullptr){
+		CMD_ENV::NewVar(env,CMD_VID_SELFNAME,(STDSTR*)nullptr);
+		SelfName(env) = "";
+	}
+};
+//------------------------------------------------------------------------------------------//
+inline void BIC_ENV::DeInit(CMD_ENV* env){
+	CMD_ENV::DelVar(env,CMD_VID_SELFNAME,(STDSTR*)nullptr);
+};
 //------------------------------------------------------------------------------------------//
 inline SBUF* BIC_ENV::GetSTDIN(CMD_ENV* env){
 #ifdef Console_h

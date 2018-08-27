@@ -32,7 +32,7 @@ BEGIN_MESSAGE_MAP(CSDTApp, CWinAppEx)
 	//ON_COMMAND(ID_FILE_OPEN, &CWinAppEx::OnFileOpen)
 END_MESSAGE_MAP()
 //------------------------------------------------------------------------------------------//
-CSDTApp::CSDTApp(void) : GSDTApp(1024 * 128){
+CSDTApp::CSDTApp(void) : GSDTApp(1024 * 1024 * 32, 1024 * 128){
 	m_bHiColorIcons = TRUE;
 
 	// support Restart Manager

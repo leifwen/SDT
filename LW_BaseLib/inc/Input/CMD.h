@@ -48,8 +48,8 @@ class CMD_ENV : public BASE_FLAG{
 		uint32			bufferSize;
 	public:
 												void			InitQuantity(uint32	num);
+								static	inline  void			Init		(CMD_ENV* env);
 												void			CopyInit	(const CMD_ENV* env);
-										inline	uint32			GetQuantity	(void);
 								static	inline	void			SetVar		(CMD_ENV* env,uint32 vid,void* var);
 		template<typename VART> static	inline	VART*			GetVar		(CMD_ENV* env,uint32 vid,VART* varnullptr);
 		template<typename VART> static	inline	void			NewVar		(CMD_ENV* env,uint32 vid,VART* varnullptr);

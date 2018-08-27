@@ -40,17 +40,25 @@ ExpandDeviceAttr* BIC_ENV_DEV::GetEDA(CMD_ENV* env){
 #endif
 };
 //------------------------------------------------------------------------------------------//
-ExpandDeviceAttr* BIC_ENV_DEV::GetEDA1(CMD_ENV* env){
+ExpandDeviceAttr* BIC_ENV_DEV::GetEDA_M(CMD_ENV* env){
 #ifdef Device_h
-	return(CMD_ENV::GetVar(env,CMD_VID_EDA1,(ExpandDeviceAttr*)nullptr));
+	return(CMD_ENV::GetVar(env,CMD_VID_EDA_M,(ExpandDeviceAttr*)nullptr));
 #else
 	return(nullptr);
 #endif
 };
 //------------------------------------------------------------------------------------------//
-ExpandDeviceAttr* BIC_ENV_DEV::GetEDA2(CMD_ENV* env){
+ExpandDeviceAttr* BIC_ENV_DEV::GetEDA_A(CMD_ENV* env){
 #ifdef Device_h
-	return(CMD_ENV::GetVar(env,CMD_VID_EDA2,(ExpandDeviceAttr*)nullptr));
+	return(CMD_ENV::GetVar(env,CMD_VID_EDA_A,(ExpandDeviceAttr*)nullptr));
+#else
+	return(nullptr);
+#endif
+};
+//------------------------------------------------------------------------------------------//
+ExpandDeviceAttr* BIC_ENV_DEV::GetEDA_S(CMD_ENV* env){
+#ifdef Device_h
+	return(CMD_ENV::GetVar(env,CMD_VID_EDA_S,(ExpandDeviceAttr*)nullptr));
 #else
 	return(nullptr);
 #endif
@@ -105,7 +113,7 @@ CMDID BIC_MAIN::Help(CMD_ENV* env,uint32 flag)const{
 };
 //------------------------------------------------------------------------------------------//
 CMDID BIC_MAIN::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
-	BIC_ENV_DEV::SetEDA(env, BIC_ENV_DEV::GetEDA1(env));
+	BIC_ENV_DEV::SetEDA(env, BIC_ENV_DEV::GetEDA_M(env));
 	BIC_ENV_DEV::GetEDA(env)->name = "M";
 	return(cgCommandID);
 }
@@ -117,8 +125,20 @@ CMDID BIC_AUX::Help(CMD_ENV* env,uint32 flag)const{
 };
 //------------------------------------------------------------------------------------------//
 CMDID BIC_AUX::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
-	BIC_ENV_DEV::SetEDA(env, BIC_ENV_DEV::GetEDA2(env));
+	BIC_ENV_DEV::SetEDA(env, BIC_ENV_DEV::GetEDA_A(env));
 	BIC_ENV_DEV::GetEDA(env)->name = "A";
+	return(cgCommandID);
+}
+//------------------------------------------------------------------------------------------//
+//------------------------------------------------------------------------------------------//
+CMDID BIC_SECOND::Help(CMD_ENV* env,uint32 flag)const{
+	PrintHelpItem(env,cgCommand,"Switch to second connection");
+	return(cgCommandID);
+};
+//------------------------------------------------------------------------------------------//
+CMDID BIC_SECOND::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
+	BIC_ENV_DEV::SetEDA(env, BIC_ENV_DEV::GetEDA_S(env));
+	BIC_ENV_DEV::GetEDA(env)->name = "S";
 	return(cgCommandID);
 }
 //------------------------------------------------------------------------------------------//
@@ -289,7 +309,7 @@ bool32 BIC_CONNECT::OnlineMode(CMD_ENV* env,ExpandDeviceAttr* attr,CMD_TAIL tail
 		if ((chKey >= 32) && (chKey <= 126)){
 			sendData += chKey;
 		}
-		else if (chKey == '\n'){
+		else if ((chKey == '\r') || (chKey == '\n')){
 			PrintEnable(env);
 			PrintStr(env,"\n");
 			attr->device->PrintSendStrWOG1(sendData + strTail + "\n");//for log
@@ -304,6 +324,7 @@ bool32 BIC_CONNECT::OnlineMode(CMD_ENV* env,ExpandDeviceAttr* attr,CMD_TAIL tail
 			if (chKey == 0x80)
 				chKey = 27;
 			if ((chKey > 0) && (chKey <= 31)){
+				PrintEnable(env);
 				STDSTR strT;
 				strT = '^';
 				strT += (chKey + 0x40);
@@ -322,7 +343,7 @@ bool32 BIC_CONNECT::OnlineMode(CMD_ENV* env,ExpandDeviceAttr* attr,CMD_TAIL tail
 void BIC_CONNECT::PrintTitle(CMD_ENV* env,ExpandDeviceAttr* eda,bool32 blPrintTail){
 	if (GetSTDOUT(env) != nullptr){
 		*GetSTDOUT(env) << Begin() << NL()
-		<< eda->name << ":";
+		<< BIC_ENV::SelfName(env) << eda->name << ":";
 		switch(eda->openType){
 			case OPEN_COM:
 			case OPEN_COMV:

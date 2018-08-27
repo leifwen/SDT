@@ -57,6 +57,7 @@ class BIC_CONN : public BIC_BASE_S{
 		virtual	CMDID	MessageProcessing	(CMD_ENV* env,const uint32& mID,const STDSTR& msg,void* p)const;
 	private:
 		BIC_MAIN		cgC_MAIN;
+		BIC_SECOND		cgC_SECOND;
 #ifdef SWVERSION_AUXDEVICE
 		BIC_AUX			cgC_AUX;
 #endif

@@ -28,7 +28,7 @@ CMDID BIC_EXEC::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 		aexe = ExecuteCMD(env,msg);
 		
 		if (aexe == nullptr){
-			PrintFail(env);
+			PrintFail(env,"fork() failed");
 			return(cgCommandID);
 		}
 		

@@ -823,10 +823,10 @@ bool32 CMUXDriver::Open(bool32 blInitAT,bool32 blInitUseThread){
 }
 //------------------------------------------------------------------------------------------//
 void CMUXDriver::CloseDev(void){
-	if (cgDevice->IsOpened() && IsOpened())
+	if ((cgDevice != nullptr) && cgDevice->IsOpened() && IsOpened())
 		CMUXCloseCT();
 	commandThread.ThreadStop();
-	if (cgDevice->ACom() != nullptr)
+	if ((cgDevice != nullptr) && (cgDevice->ACom() != nullptr))
 		cgDevice->ACom()->EnableLog();
 }
 //------------------------------------------------------------------------------------------//

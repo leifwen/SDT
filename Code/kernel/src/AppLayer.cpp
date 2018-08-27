@@ -11,42 +11,43 @@
 #ifdef AppLayer_h
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
-SDTAPP::SDTAPP(uint32 size) : COMMU_FRAME(size)
+KERNEL::KERNEL(uint32 sizeCache,uint32 sizeBuffer) : COMMU_FRAME(sizeBuffer)
 #ifdef ODEV_System_h
-			,m_Cache(1024 * 1024 * 32)
+			,m_Cache(sizeCache)
 #endif
 #ifdef Device_h
-			,m_Device1(size,&m_Cache)
-			,m_Device2(size,&m_Cache)
+			,m_DeviceM(sizeBuffer,&m_Cache)
+			,m_DeviceA(sizeBuffer,&m_Cache)
+			,m_DeviceS(sizeBuffer,&m_Cache)
 #endif
 #ifdef Commu_AEXE_h
-			,m_AExePool(1024 * 8,nullptr)
+			,m_AExePool(sizeBuffer < 1024 * 8 ? sizeBuffer : 1024 * 8,nullptr)
 #endif
 #ifdef Commu_Terminal_h
-			,m_TS(size,&m_env,&m_BIC)
+			,m_TS(sizeBuffer,&m_env,&m_BIC)
 #endif
 #ifdef Commu_RST_h
-			,m_RSTServer(size,&m_env,&m_BIC)
-			,m_RSTClient(size,nullptr,&m_BIC)
+			,m_RSTServer(sizeBuffer,&m_env,&m_BIC)
+			,m_RSTClient(sizeBuffer,nullptr,&m_BIC)
 #endif
 #ifdef Console_h
-			,m_Console(1024 * 8)
+			,m_Console(sizeBuffer < 1024 * 8 ? sizeBuffer : 1024 * 8)
 #endif
 #ifdef SWVERSION_SCRIPT
-			,m_Script(1024 * 16)
+			,m_Script(sizeBuffer < 1024 * 16 ? sizeBuffer : 1024 * 16)
 #endif
 #ifdef SWVERSION_CMUX
-			,m_CMUXDriver(size,nullptr)
+			,m_CMUXDriver(sizeBuffer,nullptr)
 #endif
 {
 	SetSFlag(CF_blNoInitSize);
 	SetSelfName("SDT");
 };
 //------------------------------------------------------------------------------------------//
-SDTAPP::~SDTAPP(void){
+KERNEL::~KERNEL(void){
 #ifdef Device_h
-	m_Device1.RemoveSelf();
-	m_Device2.RemoveSelf();
+	m_DeviceM.RemoveSelf();
+	m_DeviceA.RemoveSelf();
 #endif
 #ifdef USE_OPENSSL
 	CRYPTO_cleanup_all_ex_data();
@@ -54,7 +55,7 @@ SDTAPP::~SDTAPP(void){
 #endif
 };
 //------------------------------------------------------------------------------------------//
-void SDTAPP::Init(const STDSTR& fileName){
+void KERNEL::Init(const STDSTR& fileName){
 #ifdef USE_OPENSSL
 	CY_Init();
 #endif
@@ -65,26 +66,30 @@ void SDTAPP::Init(const STDSTR& fileName){
 	ParRecordLoad(fileName);
 #endif
 #ifdef BIC_Device_h
-	m_Device1.SetSelfName("Device1");
-	B_SetFLAG64(m_Device1.GetLogSystem()->envcfg, 0 | ODEV_FLAG_EnView | ODEV_FLAG_EnOSPMsgLine | ODEV_FLAG_EnMSReport);
-	B_ClrFLAG64(m_Device1.GetLogSystem()->envcfg, 0 | ODEV_FLAG_EnHEXViewMode | ODEV_FLAG_EnRecMsg | ODEV_FLAG_EnEscape);
+	m_DeviceM.SetSelfName("DeviceM");
+	B_SetFLAG64(m_DeviceM.GetLogSystem()->envcfg, 0 | ODEV_FLAG_EnView | ODEV_FLAG_EnOSPMsgLine | ODEV_FLAG_EnMSReport);
+	B_ClrFLAG64(m_DeviceM.GetLogSystem()->envcfg, 0 | ODEV_FLAG_EnHEXViewMode | ODEV_FLAG_EnRecMsg | ODEV_FLAG_EnEscape);
 	
-	m_Device2.SetSelfName("Device2");
-	B_SetFLAG64(m_Device2.GetLogSystem()->envcfg, 0 | ODEV_FLAG_EnView | ODEV_FLAG_EnRecMsg | ODEV_FLAG_EnEscape);
-	B_ClrFLAG64(m_Device2.GetLogSystem()->envcfg, 0 | ODEV_FLAG_EnHEXViewMode | ODEV_FLAG_EnOSPMsgLine | ODEV_FLAG_EnMSReport);
-	m_Device2.cgEDA.aCOM.name = "/dev/ttySDT";
+	m_DeviceA.SetSelfName("DeviceA");
+	B_SetFLAG64(m_DeviceA.GetLogSystem()->envcfg, 0 | ODEV_FLAG_EnView | ODEV_FLAG_EnRecMsg | ODEV_FLAG_EnEscape);
+	B_ClrFLAG64(m_DeviceA.GetLogSystem()->envcfg, 0 | ODEV_FLAG_EnHEXViewMode | ODEV_FLAG_EnOSPMsgLine | ODEV_FLAG_EnMSReport);
+	m_DeviceA.cgEDA.aCOM.name = "/dev/ttySDT";
 	
-	m_Device1.LinkCoupleNode(&m_Device2);
+	m_DeviceM.LinkCoupleNode(&m_DeviceA);
 	
-	Add(m_Device1) < m_Device2;
+	Add(m_DeviceM) < m_DeviceA;
+	
+	m_DeviceS.SetSelfName("DeviceS");
+	B_SetFLAG64(m_DeviceS.GetLogSystem()->envcfg, 0 | ODEV_FLAG_EnView | ODEV_FLAG_EnOSPMsgLine | ODEV_FLAG_EnMSReport);
+	B_ClrFLAG64(m_DeviceS.GetLogSystem()->envcfg, 0 | ODEV_FLAG_EnHEXViewMode | ODEV_FLAG_EnRecMsg | ODEV_FLAG_EnEscape);
+
 #endif
 #if defined	SWVERSION_CMUX && defined BIC_Device_h
-	m_CMUXDriver.Init(&m_Device1);
+	m_CMUXDriver.Init(&m_DeviceM);
 #endif
 #ifndef CommonDefH_VC
 	#ifdef ODEV_System_h
 	m_Cache.CreateG1_STDOUT(OUTPUT_NODE::COLType_COL);
-	m_Cache.Start();										//call in MFC timer thread
 	#ifdef Console_h
 		m_Console.Init(m_Cache.GetG1_STDOUT());
 	#endif
@@ -140,9 +145,10 @@ void SDTAPP::Init(const STDSTR& fileName){
 #endif
 #ifdef BIC_Dev_h
 	#ifdef Device_h
-	BIC_ENV_DEV::SetEDA			(&m_env,&m_Device1.cgEDA);
-	BIC_ENV_DEV::SetEDA1		(&m_env,&m_Device1.cgEDA);
-	BIC_ENV_DEV::SetEDA2		(&m_env,&m_Device2.cgEDA);
+	BIC_ENV_DEV::SetEDA			(&m_env,&m_DeviceM.cgEDA);
+	BIC_ENV_DEV::SetEDA_M		(&m_env,&m_DeviceM.cgEDA);
+	BIC_ENV_DEV::SetEDA_A		(&m_env,&m_DeviceA.cgEDA);
+	BIC_ENV_DEV::SetEDA_S		(&m_env,&m_DeviceS.cgEDA);
 	#endif
 
 	#ifdef Commu_ComEnum_h
@@ -165,7 +171,7 @@ void SDTAPP::Init(const STDSTR& fileName){
 //------------------------------------------------------------------------------------------//
 #ifdef CommonDefH_VC
 //------------------------------------------------------------------------------------------//
-void SDTAPP::InitSTDOUT(ODEV_STDOUT* oDevSTDOUT){
+void KERNEL::InitSTDOUT(ODEV_STDOUT* oDevSTDOUT){
 #ifdef ODEV_System_h
 		m_Cache.AddG1_STDOUT(oDevSTDOUT);
 	#ifdef Console_h
@@ -179,15 +185,22 @@ void SDTAPP::InitSTDOUT(ODEV_STDOUT* oDevSTDOUT){
 //------------------------------------------------------------------------------------------//
 #endif
 //------------------------------------------------------------------------------------------//
-void SDTAPP::Run(void){
+void KERNEL::Run(const STDSTR& cmd){
+#ifndef CommonDefH_VC
+	#ifdef ODEV_System_h
+		m_Cache.Start();	//call in MFC timer thread
+	#endif
+#endif
 #if defined Console_h && defined BIC_CONSOLE_h
 	m_BIC.Dispose(&m_env,"main",nullptr);
 	m_Console.LoadDefault("console.ini");
+	if (cmd.length() > 0)
+		m_Console.ExecBIC(cmd);
 	m_Console.StartWithBIC(&m_env,&m_BIC);
 #endif
 }
 //------------------------------------------------------------------------------------------//
-bool32 SDTAPP::ExecBIC(const STDSTR& cmd){
+bool32 KERNEL::ExecBIC(const STDSTR& cmd){
 #ifdef CommonDefH_VC
 	CHK_CheckTime();
 #endif
@@ -199,7 +212,7 @@ bool32 SDTAPP::ExecBIC(const STDSTR& cmd){
 #endif
 };
 //------------------------------------------------------------------------------------------//
-void SDTAPP::Exit(const STDSTR& fileName){
+void KERNEL::Exit(const STDSTR& fileName){
 #ifdef Commu_AEXE_h
 	m_AExePool.Close();
 #endif
@@ -223,11 +236,12 @@ void SDTAPP::Exit(const STDSTR& fileName){
 	m_CMUXDriver.Close();
 #endif
 #ifdef BIC_Dev_h
-	m_Device2.RemoveSelf();
-	m_Device1.RemoveSelf();
-	m_Device2.Close();
-	m_Device1.Close();
-	m_Device1.UnlinkCoupleNode();
+	m_DeviceA.RemoveSelf();
+	m_DeviceM.RemoveSelf();
+	m_DeviceA.Close();
+	m_DeviceM.Close();
+	m_DeviceM.UnlinkCoupleNode();
+	m_DeviceS.Close();
 #endif
 #ifdef ODEV_System_h
 	m_Cache.Stop();
@@ -267,7 +281,7 @@ void SDTAPP::Exit(const STDSTR& fileName){
 #endif
 }
 //------------------------------------------------------------------------------------------//
-void SDTAPP::CloseChild(COMMU_FRAME* commu){
+void KERNEL::CloseChild(COMMU_FRAME* commu){
 	commu->Close();
 #ifdef SWVERSION_SCRIPT
 	if (m_Script.IsServiceTo((DEVICE*)commu))
@@ -279,7 +293,7 @@ void SDTAPP::CloseChild(COMMU_FRAME* commu){
 #endif
 };
 //------------------------------------------------------------------------------------------//
-void SDTAPP::ParRecordLoad(const STDSTR& fileName){
+void KERNEL::ParRecordLoad(const STDSTR& fileName){
 #ifdef SWVERSION_SCRIPT
 #ifdef ParRecord_h
 	uint32		cfg;
@@ -294,7 +308,7 @@ void SDTAPP::ParRecordLoad(const STDSTR& fileName){
 #endif
 }
 //------------------------------------------------------------------------------------------//
-void SDTAPP::ParRecordSave(const STDSTR& fileName){
+void KERNEL::ParRecordSave(const STDSTR& fileName){
 #ifdef SWVERSION_SCRIPT
 #ifdef ParRecord_h
 	uint32		cfg;

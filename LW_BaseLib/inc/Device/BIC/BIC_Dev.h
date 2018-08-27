@@ -21,8 +21,9 @@ class CMUXDriver;
 //------------------------------------------------------------------------------------------//
 namespace BIC_ENV_DEV {
 	enum	{CMD_VID_EDA = BIC_ENV_COMMU::CMD_VID_NEXT
-			,CMD_VID_EDA1
-			,CMD_VID_EDA2
+			,CMD_VID_EDA_M
+			,CMD_VID_EDA_A
+			,CMD_VID_EDA_S
 			,CMD_VID_VALIDCOMLIST
 			,CMD_VID_SCRIPT
 			,CMD_VID_FILESEND
@@ -34,16 +35,18 @@ namespace BIC_ENV_DEV {
 	void				DeInit			(CMD_ENV* env);
 	
 	ExpandDeviceAttr*	GetEDA			(CMD_ENV* env);
-	ExpandDeviceAttr*	GetEDA1			(CMD_ENV* env);
-	ExpandDeviceAttr*	GetEDA2			(CMD_ENV* env);
+	ExpandDeviceAttr*	GetEDA_M		(CMD_ENV* env);
+	ExpandDeviceAttr*	GetEDA_A		(CMD_ENV* env);
+	ExpandDeviceAttr*	GetEDA_S		(CMD_ENV* env);
 	IPCOMLIST*			GetValidComList	(CMD_ENV* env);
 	SCRIPT*				GetScript		(CMD_ENV* env);
 	TFileSend*			GetFileSend		(CMD_ENV* env);
 	CMUXDriver*			GetCMUX			(CMD_ENV* env);
 	
 	CMD_SETVAR(SetEDA,			CMD_VID_EDA,			ExpandDeviceAttr*);
-	CMD_SETVAR(SetEDA1,			CMD_VID_EDA1,			ExpandDeviceAttr*);
-	CMD_SETVAR(SetEDA2,			CMD_VID_EDA2,			ExpandDeviceAttr*);
+	CMD_SETVAR(SetEDA_M,		CMD_VID_EDA_M,			ExpandDeviceAttr*);
+	CMD_SETVAR(SetEDA_A,		CMD_VID_EDA_A,			ExpandDeviceAttr*);
+	CMD_SETVAR(SetEDA_S,		CMD_VID_EDA_S,			ExpandDeviceAttr*);
 	CMD_SETVAR(SetValidComList,	CMD_VID_VALIDCOMLIST,	IPCOMLIST*);
 	CMD_SETVAR(SetScript,		CMD_VID_SCRIPT,			SCRIPT*);
 	CMD_SETVAR(SetFileSend,		CMD_VID_FILESEND,		TFileSend*);
@@ -71,6 +74,7 @@ class BIC_CONNECT : public BIC_BASE{
 //------------------------------------------------------------------------------------------//
 BIC_CLASSTYPE			(MAIN,			"main/m");
 BIC_CLASSTYPE			(AUX,			"aux/a");
+BIC_CLASSTYPE			(SECOND,		"second/s");
 BIC_CLASSTYPE_CONNECT	(ONLINE,		"o/online");
 BIC_CLASSTYPE			(DISCONNECT,	"d/disconnect");
 BIC_CLASSTYPE			(CR,			"cr");

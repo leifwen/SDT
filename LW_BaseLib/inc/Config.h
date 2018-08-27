@@ -49,7 +49,7 @@
 	#define	SWVERSION_SHORTNAME		"LW_BASELib"
 #endif
 #ifndef SWVERSION_VER
-	#define	SWVERSION_VER			"V0.6.1"
+	#define	SWVERSION_VER			"V0.6.2"
 #endif
 //------------------------------------------------------------------------------------------//
 #define LOGPRINT

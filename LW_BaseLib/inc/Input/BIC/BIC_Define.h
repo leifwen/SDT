@@ -24,6 +24,8 @@ enum{
 	BIC_ID_RETURN,
 	BIC_ID_DISPLAY,
 	BIC_ID_NEWRECORD,
+	BIC_ID_SELFNAME,
+	BIC_ID_DAEMON,
 	
 	BIC_ID_CALC,
 	BIC_ID_CALC_HEX2DEC,
@@ -91,6 +93,7 @@ enum{
 
 	BIC_ID_MAIN,
 	BIC_ID_AUX,
+	BIC_ID_SECOND,
 	BIC_ID_CONNECT,
 	BIC_ID_ONLINE,
 	BIC_ID_DISCONNECT,
@@ -164,7 +167,8 @@ class GC_LIST;
 class ODEV_CACHE;
 //------------------------------------------------------------------------------------------//
 namespace BIC_ENV {
-	enum	{CMD_VID_STDIN = CMD_ENV::CMD_VID_NEXT
+	enum	{CMD_VID_SELFNAME = CMD_ENV::CMD_VID_NEXT
+			,CMD_VID_STDIN
 			,CMD_VID_CACHE
 			,CMD_VID_CONSOLE
 			,CMD_VID_SCLIST
@@ -175,17 +179,19 @@ namespace BIC_ENV {
 	static	inline  void		Init		(CMD_ENV* env);
 	static	inline  void		DeInit		(CMD_ENV* env);
 
-	CMD_SETVAR(SetSTDIN,	CMD_VID_STDIN,	SBUF*);
-	CMD_SETVAR(SetCache,	CMD_VID_CACHE,	ODEV_CACHE*);
-	CMD_SETVAR(SetConsole,	CMD_VID_CONSOLE,CONSOLE*);
-	CMD_SETVAR(SetSCList,	CMD_VID_SCLIST,	SC_LIST*);
-	CMD_SETVAR(SetGCList,	CMD_VID_GCLIST,	GC_LIST*);
+	CMD_VAR		(SelfName,	CMD_VID_SELFNAME,STDSTR);
+	CMD_SETVAR	(SetSTDIN,	CMD_VID_STDIN,	SBUF*);
+	CMD_SETVAR	(SetCache,	CMD_VID_CACHE,	ODEV_CACHE*);
+	CMD_SETVAR	(SetConsole,CMD_VID_CONSOLE,CONSOLE*);
+	CMD_SETVAR	(SetSCList,	CMD_VID_SCLIST,	SC_LIST*);
+	CMD_SETVAR	(SetGCList,	CMD_VID_GCLIST,	GC_LIST*);
 
 	static	inline	SBUF*		GetSTDIN	(CMD_ENV* env);
 	static	inline	ODEV_CACHE*	GetCache	(CMD_ENV* env);
 	static	inline	CONSOLE*	GetConsole	(CMD_ENV* env);
 	static	inline	SC_LIST*	GetSCList	(CMD_ENV* env);
 	static	inline	GC_LIST*	GetGCList	(CMD_ENV* env);
+	
 };
 //------------------------------------------------------------------------------------------//
 class BIC_BASE : public CMD_NODE{
@@ -236,6 +242,10 @@ BIC_CLASSTYPE(EXIT,		"exit");
 BIC_CLASSTYPE(RETURN,	"r/return");
 BIC_CLASSTYPE(DISPLAY,	"display");
 BIC_CLASSTYPE(NEWRECORD,"nr/newrecord");
+BIC_CLASSTYPE(SELFNAME,	"selfname");
+#ifdef CommonDefH_Unix
+BIC_CLASSTYPE(DAEMON,	"daemon");
+#endif
 //------------------------------------------------------------------------------------------//
 class BIC_BASE_S : public BIC_BASE{
 	public:

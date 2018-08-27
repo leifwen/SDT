@@ -368,7 +368,7 @@ BIC_CONN::BIC_CONN(void) : BIC_BASE_S() {
 	cgConsoleName = cgCommand;
 	cgHelpName = "Connection";
 	
-	Add(cgC_MAIN)
+	Add(cgC_MAIN) < cgC_SECOND
 #ifdef SWVERSION_AUXDEVICE
 	< cgC_AUX
 #endif
