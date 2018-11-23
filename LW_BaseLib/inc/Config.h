@@ -10,8 +10,8 @@
 #define Config_h
 //------------------------------------------------------------------------------------------//
 //#define CommonDefH_VC2013
-//#define CommonDefH_Linux
-#define CommonDefH_MAC
+#define CommonDefH_Linux
+//#define CommonDefH_MAC
 //------------------------------------------------------------------------------------------//
 #ifdef CommonDefH_VC2013
 	#define CommonDefH_VC
@@ -49,7 +49,7 @@
 	#define	SWVERSION_SHORTNAME		"LW_BASELib"
 #endif
 #ifndef SWVERSION_VER
-	#define	SWVERSION_VER			"V0.6.2"
+	#define	SWVERSION_VER			"V0.6.3"
 #endif
 //------------------------------------------------------------------------------------------//
 #define LOGPRINT

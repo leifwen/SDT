@@ -50,14 +50,15 @@ CMDID BIC_CMUX_ON::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 		}
 		
 		if (InPressKeyMode(env) > 0){
+			BIC_ENV_DEV::GetScript(env)->Stop();
 			PrintFail(env,"Pressed ESC key, stopped CMUX");
 			return(cgCommandID);
 		}
-		drv->Open(0,0);
+		drv->Open("");
 #endif
 	}
 	else{
-		drv->Open(1,0);
+		drv->Open(CMUX_DEFATCMDS);
 	}
 	return(cgCommandID);
 }
@@ -374,6 +375,30 @@ CMDID BIC_CMUX_DLCI::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 	return(cgCommandID);
 }
 //------------------------------------------------------------------------------------------//
+//------------------------------------------------------------------------------------------//
+CMDID BIC_CMUX_LEN::Help(CMD_ENV* env,uint32 flag)const{
+	PrintHelpItem(env,cgCommand,"Set maximum information frame size");
+	if (B_ChkFLAG32(flag, CMD_blPrintSimple))
+		return(cgCommandID);
+	PrintHelpSubItem(env,"[size]"		,"Frame size,default is 121");
+	return(cgCommandID);
+};
+//------------------------------------------------------------------------------------------//
+CMDID BIC_CMUX_LEN::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
+	int32	num;
+
+	PrintEnable(env);
+	if (msg.length() == 0){
+		PrintResult(env,"Max information frame size is",Str_ToStr(CMUX::UIH_FRAME::GetInfoSizeMax()));
+	}
+	else{
+		num = atoi(msg.c_str());
+		CMUX::UIH_FRAME::GetInfoSizeMax() = num;
+		PrintSuccess(env,"Max information frame size was set to",Str_ToStr(CMUX::UIH_FRAME::GetInfoSizeMax()));
+	}
+	return(cgCommandID);
+}
+//------------------------------------------------------------------------------------------//
 
 
 
@@ -398,7 +423,7 @@ BIC_CMUX::BIC_CMUX(void) : BIC_BASE_S(){
 	cgConsoleName = cgCommand;
 	cgHelpName = "CMUX";
 	
-	Add(cgSub_on) < cgSub_off < cgSub_cld < cgSub_psc < cgSub_fc < cgSub_dtr < cgSub_rts < cgSub_dlci;
+	Add(cgSub_on) < cgSub_off < cgSub_cld < cgSub_psc < cgSub_fc < cgSub_dtr < cgSub_rts < cgSub_dlci < cgSub_len;
 };
 //------------------------------------------------------------------------------------------//
 #endif /* BIC_CMUX_h */

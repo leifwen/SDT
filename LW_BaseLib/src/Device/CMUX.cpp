@@ -120,6 +120,11 @@ UIH_FRAME::UIH_FRAME(void) : PNFB_SHELL() {
 	< pn_Len < pn_Info;
 };
 //------------------------------------------------------------------------------------------//
+uint32& UIH_FRAME::GetInfoSizeMax(void){
+	static	uint32 infoSizeMax = INFO_SIZE_MAX;
+	return(infoSizeMax);
+};
+//------------------------------------------------------------------------------------------//
 void UIH_FRAME::InitPN(const ARRAY* _out,const ARRAY* _in){
 	//("F9 01 F9 05 EF 27 0D 0A 30 37 2E 30 32 2E 35 30 34 0D 0A 0D 0A 4F 4B 0D 0A 80 F9");
 	if (_out == nullptr)
@@ -210,8 +215,8 @@ UIH_FRAME& UIH_FRAME::AddUIHFrame(uint32* sendNum,STDSTR* retHexFrame,uint8 vPor
 	pn_Addr.Write(nullptr,(vPort << 2) | crBit | EA_BIT);	//1:Address field
 	pn_Ctrl.Write(nullptr,CTRL_UIH & (~PF_BIT));			//2:Ctrl field,Poll/Final BIT always 1
 	
-	if (num > INFO_SIZE_MAX)
-		num = INFO_SIZE_MAX;
+	if (num > GetInfoSizeMax())
+		num = GetInfoSizeMax();
 	if (num < FRAME_SIZE_TWOBYTES){
 		pn_Len.WriteByte1(nullptr,(num << 1) | EA_BIT);			//3:Length indicator
 	}
@@ -250,7 +255,7 @@ UIH_FRAME& UIH_FRAME::SetUIHFrame(uint32* sendNum,STDSTR* retHexFrame,uint8 vPor
 	uint32 snum,total;
 	snum = 0;
 	total = 0;
-	while((num > 0) && (cgPosWR.array->Unused() > FRAME_SIZE_MAX)){
+	while((num > 0) && (cgPosWR.array->Unused() > GetInfoSizeMax() * 2)){
 		AddUIHFrame(&snum,retHexFrame,vPort,data,num,crBit);
 		data += snum;
 		total += snum;
@@ -678,7 +683,22 @@ const STDSTR& VCOM::DlciStatus(STDSTR* retStr){
 
 
 
-
+//------------------------------------------------------------------------------------------//
+//waittime/dlytime/check/response/AT
+const STDSTR CMUX_DEFATCMDS ="\
+1000\n 100\n T\n OK\n AT\r\
+1000\n 100\n T\n OK\n AT\r\
+1000\n 100\n T\n OK\n AT\r\
+1000\n 100\n T\n OK\n AT+IPR=115200\r\
+1000\n 100\n T\n OK\n ATE0V1&K3&D2\r\
+1000\n 100\n T\n OK\n AT+CMEE=2\r\
+1000\n 100\n T\n OK\n AT+CGMI\r\
+1000\n 100\n T\n OK\n AT+CGMM\r\
+1000\n 100\n T\n OK\n AT+CGMR\r\
+1000\n 100\n F\n OK\n AT#SELINT=2\r\
+1000\n 100\n F\n OK\n AT#CMUXMODE=1\r\
+1000\n 300\n T\n OK\n AT+CMUX=0\r\
+";
 using namespace CMUX;
 //------------------------------------------------------------------------------------------//
 CMUXDriver::CMUXDriver(uint32 size,const DEVICE* dev) : COMMU_THREAD(size,nullptr){
@@ -687,8 +707,9 @@ CMUXDriver::CMUXDriver(uint32 size,const DEVICE* dev) : COMMU_THREAD(size,nullpt
 	cgTxUIH.InitPN(&cgTxSBUF.cgArray, &cgTxSBUF.cgArray);
 	cgRxUIH.InitPN(&cgRxSBUF.cgArray, &cgRxSBUF.cgArray);
 	
-	SetSFlag(blStartWithAT);
-	ClrSFlag(blInitWithThread);
+	cgCMDsInit = "";
+	
+	ClrSFlag(CMUX_blInitInThread);
 
 	TNFP::SetSelfName("CMUXDriver");
 	SetSelfName(selfName);
@@ -788,33 +809,23 @@ bool32 CMUXDriver::OpenDev(const OPEN_PAR& par){
 bool32 CMUXDriver::DoOpen(const OPEN_PAR& par){
 	ELog(this << "CMUXDriver::DoOpen()");
 	if (COMMU_THREAD::DoOpen(par)){
-		if (CheckSFlag(blInitWithThread)){
-			if (CheckSFlag(blStartWithAT)){
-				CMUXStartWithAT();
-			}
-			else{
-				CMUXStart();
-			}
+		if (CheckSFlag(CMUX_blInitInThread)){
+			CMUXStart();
 			return G_TRUE;
 		}
-		if (CheckSFlag(blStartWithAT) == 0)
-			return(CMUXStartCT());
-		if (CMUXInitAT() > 0)
-			return(CMUXStartCT());
+		return(CMUXInit(cgCMDsInit));
 	}
 	return G_FALSE;
 }
 //------------------------------------------------------------------------------------------//
-bool32 CMUXDriver::Open(bool32 blInitAT,bool32 blInitUseThread){
+bool32 CMUXDriver::Open(const STDSTR& cmdsInit,uint64 blInitInThread){
 	bool32	ret;
 	ret = 0;
 	if (InDoing_try()){
 		if (cgDevice->cgEDA.IsComOpened()){
-			ClrSFlag(blStartWithAT | blInitWithThread);
-			if (blInitAT)
-				SetSFlag(blStartWithAT);
-			if (blInitUseThread)
-				SetSFlag(blInitWithThread);
+			cgCMDsInit = cmdsInit;
+			ClrSFlag(CMUX_blInitInThread);
+			SetSFlag(blInitInThread & CMUX_blInitInThread);
 			ret = COMMU_THREAD::Open(SetOpenPar(OPEN_None,"CMUX",999,0),G_LOCK_OFF);
 		}
 		InDoing_clr();
@@ -824,7 +835,7 @@ bool32 CMUXDriver::Open(bool32 blInitAT,bool32 blInitUseThread){
 //------------------------------------------------------------------------------------------//
 void CMUXDriver::CloseDev(void){
 	if ((cgDevice != nullptr) && cgDevice->IsOpened() && IsOpened())
-		CMUXCloseCT();
+		CMUXClose();
 	commandThread.ThreadStop();
 	if ((cgDevice != nullptr) && (cgDevice->ACom() != nullptr))
 		cgDevice->ACom()->EnableLog();
@@ -1067,64 +1078,76 @@ const STDSTR& CMUXDriver::UpdateModemStatus(STDSTR* strForPrint,uint32 cMSCDlci,
 	return(*strForPrint);
 }
 //------------------------------------------------------------------------------------------//
-bool32 CMUXDriver::CMUXInitAT(void){
-	bool32	blOK;
-	SBUF	cBuffer;
-	cBuffer.InitSize(128);
-	cBuffer.Empty();
-	cgDevice->RxDataShareTo(&cBuffer);
-	blOK = G_FALSE;
-	B_ClrFLAG64(cgDevice->GetLogSystem()->envcfg, ODEV_FLAG_EnHEXViewMode);
-	do{
-		if (SendATCMD(" ","AT"			,"OK",&cBuffer,1000,100) == G_FALSE) break;
-		if (SendATCMD(" ","AT"			,"OK",&cBuffer,1000,100) == G_FALSE) break;
-		if (SendATCMD(" ","AT"			,"OK",&cBuffer,1000,100) == G_FALSE) break;
-		if (SendATCMD(" ","AT+IPR=115200","OK",&cBuffer,1000,100) == G_FALSE) break;
-		if (SendATCMD(" ","ATE0V1&K3&D2","OK",&cBuffer,1000,100) == G_FALSE) break;
-		if (SendATCMD(" ","AT+CMEE=2"	,"OK",&cBuffer,1000,100) == G_FALSE) break;
-		if (SendATCMD(" ","AT+CGMI"		,"OK",&cBuffer,1000,100) == G_FALSE) break;
-		if (SendATCMD(" ","AT+CGMM"		,"OK",&cBuffer,1000,100) == G_FALSE) break;
-		if (SendATCMD(" ","AT+CGMR"		,"OK",&cBuffer,1000,100) == G_FALSE) break;
-		SendATCMD(" ","AT#SELINT=2"		,"OK",&cBuffer,1000,100);
-		SendATCMD(" ","AT#CMUXMODE=1"	,"OK",&cBuffer,1000,100);
-		blOK = G_TRUE;
-	}while(0);
-	PrintWithDividingLine("CMUXDriver::Finish the external initialization");
-	cBuffer.RemoveSelf();
-	return(blOK);
+void CMDAnalysis(STDSTR& cmds,uint32& waitTime,uint32& dlyTime,STDSTR& check,STDSTR& atResponse,STDSTR& atCMD){
+	atCMD = Str_ReadSubItem(&cmds,"\r");
+	
+	check = Str_ReadSubItem(&atCMD,"\n");
+	Str_TrimSelf(check);
+	waitTime = atoi(check.c_str());
+	
+	check = Str_ReadSubItem(&atCMD,"\n");
+	Str_TrimSelf(check);
+	dlyTime = atoi(check.c_str());
+	
+	check = Str_ReadSubItem(&atCMD,"\n");
+	Str_TrimSelf(check);
+	Str_UpperCaseSelf(check);
+	
+	atResponse = Str_ReadSubItem(&atCMD,"\n");
+	Str_TrimSelf(atResponse);
+	
+	Str_TrimSelf(atCMD);
 }
 //------------------------------------------------------------------------------------------//
-bool32 CMUXDriver::CMUXStartCT(void){
-	bool32	blOK;
-	STDSTR	strCMD;
+bool32 CMUXDriver::CMUXInit(STDSTR cmdsInit){
+	bool32	blOK,blInit;
 	SBUF	cBuffer;
+	STDSTR	atCMD,atResponse,check,hexCMD;;
+	uint32	waitTime,dlyTime;
+	
 	cBuffer.InitSize(128);
 	cBuffer.Empty();
 	cgDevice->RxDataShareTo(&cBuffer);
 	blOK = G_FALSE;
+	blInit = cmdsInit.length() > 0;
 	B_ClrFLAG64(cgDevice->GetLogSystem()->envcfg, ODEV_FLAG_EnHEXViewMode);
-	if (SendATCMD(" ","AT+CMUX=0","OK",&cBuffer,1000,300) > 0){
+	while(cmdsInit.length() > 0){
+		CMDAnalysis(cmdsInit,waitTime,dlyTime,check,atResponse,atCMD);
+		blOK = SendATCMD(" ",atCMD,atResponse,&cBuffer,waitTime,dlyTime);
+		if ((blOK == G_FALSE) && (check == "T"))
+			break;
+	};
+	
+	do{
+		if (blInit != G_FALSE){
+			PrintWithDividingLine("CMUXDriver::Finish the AT commands initialization");
+			if (blOK == G_FALSE)
+				break;
+		}
+
+		blOK = G_FALSE;
 		cgDevice->ACom()->DisableLog();
 		B_SetFLAG64(cgDevice->GetLogSystem()->envcfg, ODEV_FLAG_EnHEXViewMode);
 		do{
-			if (SendCMUXCMD("SABM Frame. Enable DLCI 0.\n",				cgTxUIH.CreateSABMFrameD0(&strCMD), "!'nullptr", &cBuffer, 2000, 100) == 0) break;
-			if (SendCMUXCMD("SABM Frame. Enable DLCI 1.\n",				cgTxUIH.CreateSABMFrameV1(&strCMD), "!'nullptr", &cBuffer, 2000, 100) == 0) break;
-			if (SendCMUXCMD("MSCCmd. Set DTR=0 & RTS=0 on DLCI=1.\n", 	cgTxUIH.CreateDefaultMSV1(&strCMD), "!'nullptr", &cBuffer, 2000, 100) == 0) break;
-			if (SendCMUXCMD("SABM Frame. Enable DLCI 2.\n",				cgTxUIH.CreateSABMFrameV2(&strCMD), "!'nullptr", &cBuffer, 2000, 100) == 0) break;
-			if (SendCMUXCMD("MSCCmd. Set DTR=0 & RTS=0 on DLCI=2.\n", 	cgTxUIH.CreateDefaultMSV2(&strCMD), "!'nullptr", &cBuffer, 2000, 100) == 0) break;
-			if (SendCMUXCMD("SABM Frame. Enable DLCI 3.\n",				cgTxUIH.CreateSABMFrameV3(&strCMD), "!'nullptr", &cBuffer, 2000, 100) == 0) break;
-			if (SendCMUXCMD("MSCCmd. Set DTR=0 & RTS=0 on DLCI=3.\n",	cgTxUIH.CreateDefaultMSV3(&strCMD), "!'nullptr", &cBuffer, 2000, 100) == 0) break;
-			if (SendCMUXCMD("SABM Frame. Enable DLCI 4.\n",				cgTxUIH.CreateSABMFrameV4(&strCMD), "!'nullptr", &cBuffer, 2000, 100) == 0) break;
-			if (SendCMUXCMD("MSCCmd. Set DTR=0 & RTS=0 on DLCI=4.\n",	cgTxUIH.CreateDefaultMSV4(&strCMD), "!'nullptr", &cBuffer, 2000, 100) == 0) break;
+			if (SendCMUXCMD("SABM Frame. Enable DLCI 0.\n",				cgTxUIH.CreateSABMFrameD0(&hexCMD), "!'nullptr", &cBuffer, 2000, 100) == 0) break;
+			if (SendCMUXCMD("SABM Frame. Enable DLCI 1.\n",				cgTxUIH.CreateSABMFrameV1(&hexCMD), "!'nullptr", &cBuffer, 2000, 100) == 0) break;
+			if (SendCMUXCMD("MSCCmd. Set DTR=0 & RTS=0 on DLCI=1.\n", 	cgTxUIH.CreateDefaultMSV1(&hexCMD), "!'nullptr", &cBuffer, 2000, 100) == 0) break;
+			if (SendCMUXCMD("SABM Frame. Enable DLCI 2.\n",				cgTxUIH.CreateSABMFrameV2(&hexCMD), "!'nullptr", &cBuffer, 2000, 100) == 0) break;
+			if (SendCMUXCMD("MSCCmd. Set DTR=0 & RTS=0 on DLCI=2.\n", 	cgTxUIH.CreateDefaultMSV2(&hexCMD), "!'nullptr", &cBuffer, 2000, 100) == 0) break;
+			if (SendCMUXCMD("SABM Frame. Enable DLCI 3.\n",				cgTxUIH.CreateSABMFrameV3(&hexCMD), "!'nullptr", &cBuffer, 2000, 100) == 0) break;
+			if (SendCMUXCMD("MSCCmd. Set DTR=0 & RTS=0 on DLCI=3.\n",	cgTxUIH.CreateDefaultMSV3(&hexCMD), "!'nullptr", &cBuffer, 2000, 100) == 0) break;
+			if (SendCMUXCMD("SABM Frame. Enable DLCI 4.\n",				cgTxUIH.CreateSABMFrameV4(&hexCMD), "!'nullptr", &cBuffer, 2000, 100) == 0) break;
+			if (SendCMUXCMD("MSCCmd. Set DTR=0 & RTS=0 on DLCI=4.\n",	cgTxUIH.CreateDefaultMSV4(&hexCMD), "!'nullptr", &cBuffer, 2000, 100) == 0) break;
 			blOK = G_TRUE;
 		} while (0);
-	}
-	PrintWithDividingLine("CMUXDriver::Finish the CMXU initialization");
+		
+		PrintWithDividingLine("CMUXDriver::Finish the CMUX initialization");
+	}while(0);
 	cBuffer.RemoveSelf();
 	return(blOK);
 }
 //------------------------------------------------------------------------------------------//
-void CMUXDriver::CMUXCloseCT(void){
+void CMUXDriver::CMUXClose(void){
 	STDSTR	strCMD;
 	SBUF	cBuffer;
 	cBuffer.InitSize(128);
@@ -1143,7 +1166,7 @@ void CMUXDriver::CMUXCloseCT(void){
 	cgDevice->ACom()->EnableLog();
 }
 //------------------------------------------------------------------------------------------//
-void CMUXDriver::CMUXCLDCT(void){
+void CMUXDriver::SendCLD(void){
 	STDSTR	strCMD;
 	SBUF	cBuffer;
 	cBuffer.InitSize(128);
@@ -1156,7 +1179,7 @@ void CMUXDriver::CMUXCLDCT(void){
 	cgDevice->ACom()->EnableLog();
 }
 //------------------------------------------------------------------------------------------//
-void CMUXDriver::CMUXStdPSCCT(uint8 cmode){
+void CMUXDriver::SendStdPSC(uint8 cmode){
 	STDSTR	strCMD;
 	SBUF	cBuffer;
 	cBuffer.InitSize(128);
@@ -1172,7 +1195,7 @@ void CMUXDriver::CMUXStdPSCCT(uint8 cmode){
 	cBuffer.RemoveSelf();
 }
 //------------------------------------------------------------------------------------------//
-void CMUXDriver::CMUXFCCCT(bool32 blIsOn){
+void CMUXDriver::SendFCC(bool32 blIsOn){
 	STDSTR	strCMD;
 	SBUF	cBuffer;
 	cBuffer.InitSize(128);
@@ -1188,7 +1211,7 @@ void CMUXDriver::CMUXFCCCT(bool32 blIsOn){
 	cBuffer.RemoveSelf();
 }
 //------------------------------------------------------------------------------------------//
-void CMUXDriver::CMUXMSCCT(int32 dlci,bool32 blDTR,bool32 blRTS){
+void CMUXDriver::SendMSC(int32 dlci,bool32 blDTR,bool32 blRTS){
 	VCOM	*vcom;
 	STDSTR	strCMD,strTitle;
 	uint8	modemStatus;
@@ -1230,52 +1253,6 @@ void CMUXDriver::CMUXMSCCT(int32 dlci,bool32 blDTR,bool32 blRTS){
 	
 	SendCMUXCMD(strTitle,cgTxUIH.CreateMSCCmd(&strCMD,dlci,modemStatus,CR_BIT,CR_BIT),"!'nullptr",&cBuffer,2000,300);
 	cBuffer.RemoveSelf();
-}
-//------------------------------------------------------------------------------------------//
-void CMUXDriver::SendCLD	(void)									{CMUXCLDCT();};
-void CMUXDriver::SendStdPSC	(uint8 cmode)							{CMUXStdPSCCT(cmode);};
-void CMUXDriver::SendFCC	(int32 blIsOn)							{CMUXFCCCT(blIsOn);};
-void CMUXDriver::SendMSC	(int32 dlci,int32 blDTR,int32 blRTS)	{CMUXMSCCT(dlci,blDTR,blRTS);};
-//------------------------------------------------------------------------------------------//
-bool32 CMUXDriver::CmuxStartWithATThreadFun(void* p){
-	if (CMUXInitAT() && CMUXStartCT())
-		return G_TRUE;
-	DoSelfClose();
-	return G_TRUE;
-};
-//------------------------------------------------------------------------------------------//
-bool32 CMUXDriver::CmuxStartThreadFun(void* p){
-	CMUXStartCT();
-	return G_TRUE;
-};
-//------------------------------------------------------------------------------------------//
-bool32 CMUXDriver::CmuxStopThreadFun(void* p){
-	CMUXCloseCT();
-	return G_TRUE;
-};
-//------------------------------------------------------------------------------------------//
-void CMUXDriver::CMUXStartWithAT(void){
-	commandThread.InUse_set();
-	commandThread.ThreadStop();
-	commandThread.ThreadInit(this,&CMUXDriver::CmuxStartWithATThreadFun,"CMUXStartWithAT");
-	commandThread.ThreadRun();
-	commandThread.InUse_clr();
-}
-//------------------------------------------------------------------------------------------//
-void CMUXDriver::CMUXStart(void){
-	commandThread.InUse_set();
-	commandThread.ThreadStop();
-	commandThread.ThreadInit(this,&CMUXDriver::CmuxStartThreadFun,"CMUXStart");
-	commandThread.ThreadRun();
-	commandThread.InUse_clr();
-}
-//------------------------------------------------------------------------------------------//
-void CMUXDriver::CMUXStop(void){
-	commandThread.InUse_set();
-	commandThread.ThreadStop();
-	commandThread.ThreadInit(this,&CMUXDriver::CmuxStopThreadFun,"CMUXStop");
-	commandThread.ThreadRun();
-	commandThread.InUse_clr();
 }
 //------------------------------------------------------------------------------------------//
 bool32 CMUXDriver::SendATCMD(const STDSTR& strTitle,const STDSTR& strCMD,const STDSTR& strCondition,SBUF* cSBUF,uint32 waitMS,uint32 delyMS){
@@ -1321,6 +1298,33 @@ void CMUXDriver::Send3Pluse(VCOM* vcom){
 //------------------------------------------------------------------------------------------//
 DEVICE* CMUXDriver::GetDevice(void){
 	return(cgDevice);
+}
+//------------------------------------------------------------------------------------------//
+bool32 CMUXDriver::CmuxStartThreadFun(void* p){
+	if (CMUXInit(cgCMDsInit) == G_FALSE)
+		DoSelfClose();
+	return G_TRUE;
+};
+//------------------------------------------------------------------------------------------//
+bool32 CMUXDriver::CmuxStopThreadFun(void* p){
+	CMUXClose();
+	return G_TRUE;
+};
+//------------------------------------------------------------------------------------------//
+void CMUXDriver::CMUXStart(void){
+	commandThread.InUse_set();
+	commandThread.ThreadStop();
+	commandThread.ThreadInit(this,&CMUXDriver::CmuxStartThreadFun,"CMUXStart");
+	commandThread.ThreadRun();
+	commandThread.InUse_clr();
+}
+//------------------------------------------------------------------------------------------//
+void CMUXDriver::CMUXStop(void){
+	commandThread.InUse_set();
+	commandThread.ThreadStop();
+	commandThread.ThreadInit(this,&CMUXDriver::CmuxStopThreadFun,"CMUXStop");
+	commandThread.ThreadRun();
+	commandThread.InUse_clr();
 }
 //------------------------------------------------------------------------------------------//
 #endif /* CMUX_h */

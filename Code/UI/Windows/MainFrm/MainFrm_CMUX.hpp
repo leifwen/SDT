@@ -20,7 +20,7 @@ void CMainFrame::OnCMUXStart(void){
 
 	if (theApp.GSDTApp.m_CMUXDriver.GetDevice()->cgEDA.IsComOpened() == 0)
 		return;
-	theApp.GSDTApp.m_CMUXDriver.Open(1,1);
+	theApp.GSDTApp.m_CMUXDriver.Open(CMUX_DEFATCMDS, CMUXDriver::CMUX_blInitInThread);
 	CMUXCFrmCreate();
 	m_MCFrm->MDIActivate();
 }
@@ -34,7 +34,7 @@ void CMainFrame::OnCMUXStart1(void){//without AT
 	if (theApp.GSDTApp.m_CMUXDriver.GetDevice()->cgEDA.IsComOpened() == 0)
 		return;
 
-	theApp.GSDTApp.m_CMUXDriver.Open(0,1);
+	theApp.GSDTApp.m_CMUXDriver.Open("1000\n 300\n T\n OK\n AT+CMUX=0\r",CMUXDriver::CMUX_blInitInThread);
 	CMUXCFrmCreate();
 	m_MCFrm->MDIActivate();
 }

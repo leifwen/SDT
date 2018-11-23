@@ -478,7 +478,7 @@ CMDID BIC_ECHO::Help(CMD_ENV* env,uint32 flag)const{
 	PrintHelpItem(env,cgCommand,"Enable/disable echo");
 	if (B_ChkFLAG32(flag, CMD_blPrintSimple))
 		return(cgCommandID);
-	PrintHelpSubItem(env,"[on|off]","");
+	PrintHelpSubItem(env,"[on|off]","ON/OFF");
 	return(cgCommandID);
 };
 //------------------------------------------------------------------------------------------//

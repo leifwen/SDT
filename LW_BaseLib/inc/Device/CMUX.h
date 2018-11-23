@@ -62,9 +62,8 @@ namespace CMUX {
 		DLCI4		= 4,	// VP4
 	};
 	enum{// Various constants
-		INFO_SIZE_MAX			= 127,					// Max number of Information Field bytes
+		INFO_SIZE_MAX			= 121,					// Max number of Information Field bytes
 		FRAME_SIZE_MIN			= 4,					// Min number of frame bytes
-		FRAME_SIZE_MAX			= INFO_SIZE_MAX * 2,	// It is the MAX frame bytes
 		FRAME_SIZE_TWOBYTES		= 128,
 	};
 	// modem Status
@@ -130,6 +129,7 @@ class UIH_FRAME : public PNFB_SHELL{
 				void		InitPN				(const ARRAY* _out,const ARRAY* _in);
 		virtual bool32		ChecksumResult		(void)const;
 		virtual	void		SetChecksum			(void);
+		static	uint32& 	GetInfoSizeMax		(void);
 	public:
 	
 				UIH_FRAME&	AddUIHFrame			(uint32* sendNum,STDSTR* retHexFrame,uint8 vPort,const uint8* data,uint32 num,uint8 crBit);
@@ -240,9 +240,10 @@ class VCOM : public ACOM{
 //------------------------------------------------------------------------------------------//
 class CMUXDriver : public COMMU_THREAD{
 	protected:
-		enum	{RFLAG_C = 2, RFLAG_S = COMMU_THREAD::RFLAG_S + COMMU_THREAD::RFLAG_C};
+		enum	{RFLAG_C = 1, RFLAG_S = COMMU_THREAD::RFLAG_S + COMMU_THREAD::RFLAG_C};
 		enum	{Max_CMUXCOM = CMUX::DLCI_MAX};
-		enum	{blStartWithAT = RFLAG_CREATE(0),blInitWithThread = RFLAG_CREATE(1),};
+	public:
+		enum	{CMUX_blInitInThread = RFLAG_CREATE(0)};
 	public:
 				 CMUXDriver(uint32 size,const DEVICE* dev);
 		virtual ~CMUXDriver(void);
@@ -265,6 +266,7 @@ class CMUXDriver : public COMMU_THREAD{
 		DEVICE*				cgDevice;
 		CMUX::UIH_FRAME		cgTxUIH;
 		CMUX::UIH_FRAME		cgRxUIH;
+		STDSTR				cgCMDsInit;
 	private:
 		virtual	bool32		RxThreadFun			(void* commu);
 		virtual	bool32		TxThreadFun			(void* commu);
@@ -276,29 +278,17 @@ class CMUXDriver : public COMMU_THREAD{
 												 ,uint32 waitMS = 1000,uint32 delyMS = 300);
 				bool32		SendCMUXCMD			(const STDSTR& strTitle,const STDSTR& strCMD,const STDSTR& strCondition,SBUF* cSBUF
 												 ,uint32 waitMS = 1000,uint32 delyMS = 300);
-				bool32		CMUXInitAT			(void);
-				bool32		CMUXStartCT			(void);
-				void		CMUXCloseCT			(void);
-				void		CMUXCLDCT			(void);
-				void		CMUXStdPSCCT		(uint8 cmode);
-				void		CMUXFCCCT			(bool32 blIsOn);
-				void		CMUXMSCCT			(bool32 dlci,bool32 blDTR,bool32 blRTS);
+				bool32		CMUXInit			(STDSTR cmdsInit);
+				void		CMUXClose			(void);
 	private:
 		SYS_Thread<CMUXDriver>	commandThread;
 	private:
-				bool32		CmuxStartWithATThreadFun(void* p);
 				bool32		CmuxStartThreadFun		(void* p);
 				bool32		CmuxStopThreadFun		(void* p);
-	public:
 				void		CMUXStart				(void);
-				void		CMUXStartWithAT			(void);
 				void		CMUXStop				(void);
-				void		SendCLD					(void);
-				void		SendStdPSC				(uint8 cmode);
-				void		SendFCC					(bool32 blIsOn);
-				void		SendMSC					(int32 dlci,bool32 blDTR,bool32 blRTS);
 	public:
-				bool32		Open					(bool32 blInitAT = G_TRUE,bool32 blInitWihtThread = G_FALSE);
+				bool32		Open					(const STDSTR& cmdsInit,uint64 blInitInThread = 0);
 	public:
 				void		Init					(const DEVICE* dev);
 				VCOM* 		GetVCOM					(int32 dlci);
@@ -306,6 +296,10 @@ class CMUXDriver : public COMMU_THREAD{
 				void		CloseVCOM				(int32 dlci);
 				uint32		Send					(VCOM* vcom,const ARRAY& _in);
 				void		Send3Pluse				(VCOM* vcom);
+				void		SendCLD					(void);
+				void		SendStdPSC				(uint8 cmode);
+				void		SendFCC					(bool32 blIsOn);
+				void		SendMSC					(int32 dlci,bool32 blDTR,bool32 blRTS);
 				DEVICE*		GetDevice				(void);
 };
 //------------------------------------------------------------------------------------------//
@@ -342,6 +336,7 @@ template<typename... Args> inline void CMUXDriver::PrintFrame(const _ColData& st
 #endif
 }
 //------------------------------------------------------------------------------------------//
+extern const STDSTR CMUX_DEFATCMDS;
 //------------------------------------------------------------------------------------------//
 #else
 #undef SWVERSION_CMUX

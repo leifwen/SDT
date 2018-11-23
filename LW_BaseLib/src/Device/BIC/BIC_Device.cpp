@@ -231,8 +231,8 @@ CMDID BIC_RUN::Help(CMD_ENV* env,uint32 flag)const{
 	PrintHelpItem(env,cgCommand,"Execute group command script");
 	if (B_ChkFLAG32(flag, CMD_blPrintSimple))
 		return(cgCommandID);
-	PrintHelpSubItem(env,"[gID [ct]]"	,"Execute group by gID");
-	PrintHelpSubItem(env,""				,"ct: Cycle times");
+	PrintHelpSubItem(env,"[gID"		,"Execute group by gID");
+	PrintHelpSubItem(env," [ct]]"	,"ct: Cycle times");
 	return(cgCommandID);
 };
 //------------------------------------------------------------------------------------------//

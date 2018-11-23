@@ -637,10 +637,12 @@ COMMU_THREAD::~COMMU_THREAD(void){
 //------------------------------------------------------------------------------------------//
 void COMMU_THREAD::EnableLog(void){
 	logThread.Enable();
+	logThread.ThreadRun();
 };
 //------------------------------------------------------------------------------------------//
 void COMMU_THREAD::DisableLog(void){
 	logThread.Disable();
+	logThread.ThreadStop();
 };
 //------------------------------------------------------------------------------------------//
 bool32 COMMU_THREAD::RxThreadFun(void* commu){

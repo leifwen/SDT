@@ -32,6 +32,7 @@ BIC_CLASSTYPE(CMUX_FC,		"fc");
 BIC_CLASSTYPE(CMUX_DTR,		"dtr");
 BIC_CLASSTYPE(CMUX_RTS,		"rts");
 BIC_CLASSTYPE(CMUX_DLCI,	"dlci");
+BIC_CLASSTYPE(CMUX_LEN,		"len");
 //------------------------------------------------------------------------------------------//
 class BIC_CMUX : public BIC_BASE_S{
 	public:
@@ -46,6 +47,7 @@ class BIC_CMUX : public BIC_BASE_S{
 		BIC_CMUX_DTR	cgSub_dtr;
 		BIC_CMUX_RTS	cgSub_rts;
 		BIC_CMUX_DLCI	cgSub_dlci;
+		BIC_CMUX_LEN	cgSub_len;
 };
 //------------------------------------------------------------------------------------------//
 #endif /* BIC_CMUX_h */
