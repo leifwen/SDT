@@ -179,7 +179,7 @@ bool32 SCRIPT::ExecuteGroup(COMMAND_GROUP* tGroup,const int32& runTotalTimes,boo
 	do{
 		++ cycleTimes;
 		if ((runTimes != 1) || ((runTimes == 1) && (blType == 0))){
-			if (CheckPrintSBICinfo() != 0){
+			if (CheckPrintSBICinfo() != G_FALSE){
 				*CMD_ENV::GetSTDOUT(&cgENV) << Begin() << NL()
 				<< COL_DivLine_Maroon
 				<< COL_NormalMessage << "Loop: " << Str_ToStr(runTotalTimes) << "::" << tGroup->name << "::Cycle: " << Str_ToStr(cycleTimes)
@@ -209,10 +209,10 @@ bool32 SCRIPT::ExecuteGroup(COMMAND_GROUP* tGroup,const int32& runTotalTimes,boo
 			if (exitType == 2)//continue
 				SYS_Delay_SetTS(&timeS,frameTimeout);
 				if (exitType > 1)
-					while((SYS_Delay_CheckTS(&timeS) == 0) && (IsTerminated() == 0));
+					while((SYS_Delay_CheckTS(&timeS) == G_FALSE) && (IsTerminated() == G_FALSE));
 												);
 		if ((runTimes != 1) || ((runTimes == 1) && (blType == G_FALSE))){
-			if (CheckPrintSBICinfo() != 0){
+			if (CheckPrintSBICinfo() != G_FALSE){
 				*CMD_ENV::GetSTDOUT(&cgENV) << Begin() << NL()
 				<< COL_DivLine_Maroon
 				<< COL_NormalMessage << "Loop: " << Str_ToStr(runTotalTimes) << "::" << tGroup->name << "::Cycle: " << Str_ToStr(cycleTimes)
@@ -222,7 +222,7 @@ bool32 SCRIPT::ExecuteGroup(COMMAND_GROUP* tGroup,const int32& runTotalTimes,boo
 		}
 		if (exitType == 6)//stop
 			return G_TRUE;
-	}while((blRun || (cycleTimes < runTimes)) && (IsTerminated() == 0));
+	}while((blRun || (cycleTimes < runTimes)) && (IsTerminated() == G_FALSE));
 	return G_TRUE;
 }
 //------------------------------------------------------------------------------------------//
@@ -275,7 +275,7 @@ bool32 SCRIPT::ExecuteCommand(COMMAND_NODE* tCommand,int32 frameTimeout){
 			
 			blEnResend = G_FALSE;
 			BIF_ENV::STDIN(&cgENV) = "";
-			while(timeout == 0 && IsTerminated() == 0){
+			while(timeout == 0 && IsTerminated() == G_FALSE){
 				cgSBUF.Get(nullptr, &BIF_ENV::STDIN(&cgENV), -1);
 				if ((tCommand->StrCatch.length() > 0) && (BIF_Expression(&cgENV,tCommand->StrCatch)))
 					++ tCommand->catchTimes;

@@ -230,7 +230,7 @@ bool32 MSG_CENTER::T0ThreadFun(void* p){
 	
 	ETLogThreadStart(t0Thread);
 	
-	while(t0Thread.IsTerminated() == 0){
+	while(t0Thread.IsTerminated() == G_FALSE){
 		
 		cgT0.Delivery();
 		
@@ -246,7 +246,7 @@ bool32 MSG_CENTER::T1CtrlRxThreadFun(void* commu){
 	uint32		mID;
 	
 	ETLogThreadStart(t1CtrlRxThread);
-	while(t1CtrlRxThread.IsTerminated() == 0){
+	while(t1CtrlRxThread.IsTerminated() == G_FALSE){
 		IOSTATUS_Clr(&ios);
 		if (Read(&ios,&mID,_EMPTY(&strMesg)) > 0){
 			ELog(ELogThread(t1CtrlRxThread,"ios:in/out=" << ios.total_in << "/" << ios.total_out <<"\r\n"));
@@ -265,7 +265,7 @@ bool32 MSG_CENTER::T1DataRxThreadFun(void* commu){
 	
 	ETLogThreadStart(t1DataRxThread);
 	
-	while(t1DataRxThread.IsTerminated() == 0){
+	while(t1DataRxThread.IsTerminated() == G_FALSE){
 		IOSTATUS_Clr(&ios);
 		if (Read(&ios,&cgRxOut->GetArray()) > 0){
 			ELog(ELogThread(t1DataRxThread,"ios:in/out=" << ios.total_in << "/" << ios.total_out <<"\r\n"));
@@ -282,7 +282,7 @@ bool32 MSG_CENTER::T1DataTxThreadFun(void* commu){
 	
 	ETLogThreadStart(t1DataTxThread);
 	
-	while(t1DataTxThread.IsTerminated() == 0){
+	while(t1DataTxThread.IsTerminated() == G_FALSE){
 		IOSTATUS_Clr(&ios);
 		if (cgTxIn->Used() > 0){
 			if (Send(&ios,IUD(cgTxIn->GetArray())) > 0){
@@ -391,7 +391,7 @@ bool32 MSG_NODE::Send(CMD_ENV* env,uint32 mID,const UVIn& _in,const uint64& flag
 //------------------------------------------------------------------------------------------//
 bool32 MSG_NODE::Check(CMD_ENV* env,const uint64& flagY,const uint64& flagN,SYS_TIME_S& timedly){
 	
-	while((CheckSFlag(flagY | flagN) == 0) && (CMD_NODE::ChkblExit(env) == G_FALSE) && (SYS_Delay_CheckTS(&timedly) == 0))
+	while((CheckSFlag(flagY | flagN) == G_FALSE) && (CMD_NODE::ChkblExit(env) == G_FALSE) && (SYS_Delay_CheckTS(&timedly) == G_FALSE))
 		SYS_SleepMS(2);
 	if (CheckSFlag(flagY) > 0){
 		return G_TRUE;

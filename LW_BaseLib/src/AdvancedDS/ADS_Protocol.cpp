@@ -16,21 +16,21 @@ ADS_FIFO::ADS_FIFO(void) : DSTF(){
 	POS_Reset(&cgPosRE);
 };
 //------------------------------------------------------------------------------------------//
-ADS_FIFO& ADS_FIFO::_Begin(IOSTATUS* _ios){
+ioss ADS_FIFO::_Begin(IOSTATUS* _ios){
 	SetSFlag(DSTF_blStart);
 	cgStartup.ios = (IOSTATUS*)_ios;
 	cgStartup.uvOut = &cgPosWR.uvOut;
 	cgPosWR.uvOut = cgPosWR.array;
 	POS_Hold(&cgPosWR);
-	return(*this);
+	return IOS_OK;
 };
 //------------------------------------------------------------------------------------------//
-ADS_FIFO& ADS_FIFO::_Endl(void){
+ioss ADS_FIFO::_Endl(void){
 	Final(cgStartup.ios);
 	if (cgPosWR.array->IsNoMEM())
 		cgPosWR.array->Prepare_Giveup();
 	cgPosWR.array->Prepare_Clr();
-	return(*this);
+	return(cgPosWR.array->IsNoMEM() ? IOS_OK : IOS_NOMEM);
 };
 //------------------------------------------------------------------------------------------//
 
@@ -44,20 +44,18 @@ ADS_FIFO& ADS_FIFO::_Endl(void){
 
 
 //------------------------------------------------------------------------------------------//
-bool32 DS_IO_PNF::DoConvert(DSIO* ioNode,IOSTATUS* _ios,const UVOut& _out,const UVIn& _in){
+ioss DS_IO_PNF::DoConvert(DSIO* ioNode,IOSTATUS* _ios,const UVOut& _out,const UVIn& _in){
 	if (_in.uvid != DSIO_PNF_UVID)
-		return G_FALSE;
+		return IOS_NOCONVERT;
 	PNF	*pnf = (PNF*)_in.uvp;
-	ArrayConvert(ioNode,_ios,_out,pnf->GetDefArrayRE(),-1,0);
-	return G_TRUE;
+	return(ArrayConvert(ioNode,_ios,_out,pnf->GetDefArrayRE(),-1,0));
 };
 //------------------------------------------------------------------------------------------//
-bool32 DS_IO_PNF::DoSave(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length){
+ioss DS_IO_PNF::DoSave(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length){
 	if (_out.uvid != DSIO_PNF_UVID)
-		return G_FALSE;
+		return IOS_NOCONVERT;
 	PNF	*pnf = (PNF*)_out.uvp;
-	pnf->Write(_ios, IUD(data,length));
-	return G_TRUE;
+	return(pnf->Write(_ios, IUD(data,length)));
 };
 //------------------------------------------------------------------------------------------//
 
@@ -115,13 +113,13 @@ PNF_VAR::PNF_VAR(void) : PNF(){
 	cgMovebit = 0;
 };
 //------------------------------------------------------------------------------------------//
-void PNF_VAR::SetByte4(IOSTATUS* _ios,uint32 data){
-	uint8	buf[4];
-	if (CheckSFlag(PNF_blEndianBig)){
+uint8* CreateByte(uint8* buf,uint32 data,uint32 bytes,bool32 blEndianBig){
+	if (blEndianBig){
 		buf[0] = (uint8)(data >> 24);
 		buf[1] = (uint8)(data >> 16);
 		buf[2] = (uint8)(data >> 8);
 		buf[3] = (uint8)(data);
+		buf += (4 - bytes);
 	}
 	else{
 		buf[0] = (uint8)(data);
@@ -129,69 +127,73 @@ void PNF_VAR::SetByte4(IOSTATUS* _ios,uint32 data){
 		buf[2] = (uint8)(data >> 16);
 		buf[3] = (uint8)(data >> 24);
 	}
-	Save(_ios, cgPosWR.uvOut, buf, 4);
-	cgPosWR.length = 4;
+	return(buf);
 };
 //------------------------------------------------------------------------------------------//
-void PNF_VAR::SetByte3(IOSTATUS* _ios,uint32 data){
-	uint8	buf[3];
-	if (CheckSFlag(PNF_blEndianBig)){
-		buf[0] = (uint8)(data >> 16);
-		buf[1] = (uint8)(data >> 8);
-		buf[2] = (uint8)(data);
-	}
-	else{
-		buf[0] = (uint8)(data);
-		buf[1] = (uint8)(data >> 8);
-		buf[2] = (uint8)(data >> 16);
-	}
-	Save(_ios, cgPosWR.uvOut, buf, 3);
-	cgPosWR.length = 3;
-};
-//------------------------------------------------------------------------------------------//
-void PNF_VAR::SetByte2(IOSTATUS* _ios,uint32 data){
-	uint8	buf[2];
-	if (CheckSFlag(PNF_blEndianBig)){
-		buf[0] = (uint8)(data >> 8);
-		buf[1] = (uint8)(data);
-	}
-	else{
-		buf[0] = (uint8)(data);
-		buf[1] = (uint8)(data >> 8);
-	}
-	Save(_ios, cgPosWR.uvOut, buf, 2);
-	cgPosWR.length = 2;
-};
-//------------------------------------------------------------------------------------------//
-void PNF_VAR::SetByte1(IOSTATUS* _ios,uint32 data){
-	uint8 	tData;
-	tData = (uint8)(data);
-	Save(_ios, cgPosWR.uvOut, &tData, 1);
-	cgPosWR.length = 1;
-};
-//------------------------------------------------------------------------------------------//
-void PNF_VAR::SetByte(IOSTATUS* _ios,uint32 data){
+ioss PNF_VAR::SetByte4(IOSTATUS* _ios,uint32 data){
+	uint8		buf[4];
 	IOSTATUS	ios;
-	IOSTATUS_Clr(&ios);
+
+	cgPosWR.length = 4;
+	Save(IOSTATUS_Clr(&ios), cgPosWR.uvOut, CreateByte(buf,data,cgPosWR.length,CheckSFlag(PNF_blEndianBig)), cgPosWR.length);
+	ios.total_in = 0;
+	IOSTATUS_Add(_ios, ios);
+	return(ios.status);
+};
+//------------------------------------------------------------------------------------------//
+ioss PNF_VAR::SetByte3(IOSTATUS* _ios,uint32 data){
+	uint8		buf[4];
+	IOSTATUS	ios;
+	
+	cgPosWR.length = 3;
+	Save(IOSTATUS_Clr(&ios), cgPosWR.uvOut, CreateByte(buf,data,cgPosWR.length,CheckSFlag(PNF_blEndianBig)), cgPosWR.length);
+	ios.total_in = 0;
+	IOSTATUS_Add(_ios, ios);
+	return(ios.status);
+};
+//------------------------------------------------------------------------------------------//
+ioss PNF_VAR::SetByte2(IOSTATUS* _ios,uint32 data){
+	uint8		buf[4];
+	IOSTATUS	ios;
+	
+	cgPosWR.length = 2;
+	Save(IOSTATUS_Clr(&ios), cgPosWR.uvOut, CreateByte(buf,data,cgPosWR.length,CheckSFlag(PNF_blEndianBig)), cgPosWR.length);
+	ios.total_in = 0;
+	IOSTATUS_Add(_ios, ios);
+	return(ios.status);
+};
+//------------------------------------------------------------------------------------------//
+ioss PNF_VAR::SetByte1(IOSTATUS* _ios,uint32 data){
+	uint8		buf[4];
+	IOSTATUS	ios;
+	
+	cgPosWR.length = 1;
+	Save(IOSTATUS_Clr(&ios), cgPosWR.uvOut, CreateByte(buf,data,cgPosWR.length,CheckSFlag(PNF_blEndianBig)), cgPosWR.length);
+	ios.total_in = 0;
+	IOSTATUS_Add(_ios, ios);
+	return(ios.status);
+};
+//------------------------------------------------------------------------------------------//
+ioss PNF_VAR::SetByte(IOSTATUS* _ios,uint32 data){
+	ioss iossta;
 	switch(cgFixedByte){
 		case 1:;
-			SetByte1(&ios,data);
+			iossta = SetByte1(_ios,data);
 			break;
 		case 2:;
-			SetByte2(&ios,data);
+			iossta = SetByte2(_ios,data);
 			break;
 		case 3:;
-			SetByte3(&ios,data);
+			iossta = SetByte3(_ios,data);
 			break;
 		case 4:;
 		default:
-			SetByte4(&ios,data);break;
+			iossta = SetByte4(_ios,data);break;
 	}
-	ios.total_in = 0;
-	IOSTATUS_Add(_ios, ios);
+	return(iossta);
 };
 //------------------------------------------------------------------------------------------//
-void PNF_VAR::UpdateByte4(uint32 data){
+ioss PNF_VAR::UpdateByte4(uint32 data){
 	uint8	buf[4];
 	if (CheckSFlag(PNF_blEndianBig)){
 		buf[0] = (uint8)(data >> 24);
@@ -205,10 +207,10 @@ void PNF_VAR::UpdateByte4(uint32 data){
 		buf[2] = (uint8)(data >> 16);
 		buf[3] = (uint8)(data >> 24);
 	}
-	cgPosWR.array->UpdateByOffsetIn(buf, 4, cgPosWR.offset);
+	return(cgPosWR.array->UpdateByOffsetIn(buf, 4, cgPosWR.offset) == 4);
 };
 //------------------------------------------------------------------------------------------//
-void PNF_VAR::UpdateByte3(uint32 data){
+ioss PNF_VAR::UpdateByte3(uint32 data){
 	uint8	buf[3];
 	if (CheckSFlag(PNF_blEndianBig)){
 		buf[0] = (uint8)(data >> 16);
@@ -220,10 +222,10 @@ void PNF_VAR::UpdateByte3(uint32 data){
 		buf[1] = (uint8)(data >> 8);
 		buf[2] = (uint8)(data >> 16);
 	}
-	cgPosWR.array->UpdateByOffsetIn(buf, 3, cgPosWR.offset);
+	return(cgPosWR.array->UpdateByOffsetIn(buf, 3, cgPosWR.offset) == 3);
 };
 //------------------------------------------------------------------------------------------//
-void PNF_VAR::UpdateByte2(uint32 data){
+ioss PNF_VAR::UpdateByte2(uint32 data){
 	uint8	buf[2];
 	if (CheckSFlag(PNF_blEndianBig)){
 		buf[0] = (uint8)(data >> 8);
@@ -233,27 +235,29 @@ void PNF_VAR::UpdateByte2(uint32 data){
 		buf[0] = (uint8)(data);
 		buf[1] = (uint8)(data >> 8);
 	}
-	cgPosWR.array->UpdateByOffsetIn(buf, 2, cgPosWR.offset);
+	return(cgPosWR.array->UpdateByOffsetIn(buf, 2, cgPosWR.offset) == 2);
 };
 //------------------------------------------------------------------------------------------//
-void PNF_VAR::UpdateByte1(uint32 data){
+ioss PNF_VAR::UpdateByte1(uint32 data){
 	uint8 	tData;
 	tData = (uint8)(data);
-	cgPosWR.array->UpdateByOffsetIn(&tData, 1, cgPosWR.offset);
+	return(cgPosWR.array->UpdateByOffsetIn(&tData, 1, cgPosWR.offset) == 1);
 };
 //------------------------------------------------------------------------------------------//
-void PNF_VAR::UpdateByte(uint32 data){
+ioss PNF_VAR::UpdateByte(uint32 data){
+	ioss	iossta;
 	switch(cgFixedByte){
 		case 1:
-			UpdateByte1(data);break;
+			iossta = UpdateByte1(data);break;
 		case 2:
-			UpdateByte2(data);break;
+			iossta = UpdateByte2(data);break;
 		case 3:
-			UpdateByte3(data);break;
+			iossta = UpdateByte3(data);break;
 		case 4:
 		default:
-			UpdateByte4(data);break;
+			iossta = UpdateByte4(data);break;
 	}
+	return(iossta);
 };
 //------------------------------------------------------------------------------------------//
 uint32 PNF_VAR::GetOValueRE(void)const{
@@ -348,12 +352,13 @@ void PNF_MASK::FillMaskFieldWR(void){
 	);
 }
 //------------------------------------------------------------------------------------------//
-PNF_MASK& PNF_MASK::Write(IOSTATUS* _ios,uint32 data){
+ioss PNF_MASK::Write(IOSTATUS* _ios,uint32 data){
+	ioss iossta;
 	_Begin(_ios);
 	SetByte(_ios,data);
-	_Endl();
+	iossta = _Endl();
 	FillMaskFieldWR();
-	return(*this);
+	return(iossta);
 };
 //------------------------------------------------------------------------------------------//
 bool32 PNF_MASK::Analysis(uint32 startOffset){
@@ -510,18 +515,16 @@ PNFB_LC::PNFB_LC(void) : PNF_BLOCK(){
 	Add(pnlc_Len) < pnlc_Text;
 };
 //------------------------------------------------------------------------------------------//
-PNFB_LC& PNFB_LC::_Begin(IOSTATUS* _ios){
+ioss PNFB_LC::_Begin(IOSTATUS* _ios){
 	PNF_BLOCK::_Begin	(_ios);
 	pnlc_Len.Write		(_ios,-1);
-	pnlc_Text._Begin	(_ios);
-	return(*this);
+	return(pnlc_Text._Begin(_ios));
 };
 //------------------------------------------------------------------------------------------//
-PNFB_LC& PNFB_LC::_Endl(void){
+ioss PNFB_LC::_Endl(void){
 	pnlc_Text._Endl();
 	pnlc_Len.Update(pnlc_Text.GetLengthWR());
-	PNF_BLOCK::_Endl();
-	return(*this);
+	return(PNF_BLOCK::_Endl());
 };
 //------------------------------------------------------------------------------------------//
 
@@ -655,7 +658,7 @@ int32 PNF_SC::Analysis(uint32 startOffset){
 			
 			cgL2 = (cgEA == 2) ? (len >> 2) : (0xffffff >> 2);
 			pnsc_LC[2].pnlc_Text.SetFixedByte(cgL2);
-			pnsc_LC[1].pnlc_Text.ResetPosRE();
+			pnsc_LC[2].pnlc_Text.ResetPosRE();
 			if (pnsc_LC[2].pnlc_Text.Analysis(cgPosRE.offset + getNum) != PNF_RET_OK)
 				return PNF_RET_NoEnoughDataInArray;
 			getNum += pnsc_LC[2].pnlc_Text.GetLengthRE();
@@ -680,7 +683,7 @@ int32 PNF_SC::Analysis(uint32 startOffset){
 	return PNF_RET_OK;
 }
 //------------------------------------------------------------------------------------------//
-PNF_SC& PNF_SC::DoTransform(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length){
+ioss PNF_SC::DoTransform(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length){
 	uint32	ret;
 	uint64  num = length;
 	
@@ -721,10 +724,10 @@ PNF_SC& PNF_SC::DoTransform(IOSTATUS* _ios,const UVOut& _out,const uint8* data,c
 			break;
 	}
 	POS_Update(&cgPosWR);
-	return(*this);
+	return IOS_OK;
 }
 //------------------------------------------------------------------------------------------//
-PNF_SC& PNF_SC::DoFinal(IOSTATUS* _ios,const UVOut& _out){
+ioss PNF_SC::DoFinal(IOSTATUS* _ios,const UVOut& _out){
 	uint32 len;
 DOAGAIN:
 	switch (cgEA) {
@@ -781,7 +784,7 @@ DOAGAIN:
 		default:;
 			break;
 	}
-	return(*this);
+	return IOS_OK;
 }
 //------------------------------------------------------------------------------------------//
 
@@ -815,26 +818,24 @@ void PNFB_SHELL::InitPN(const ARRAY* _out,const ARRAY* _in,uint32 byteCRC,G_ENDI
 		DisableCRC();
 }
 //------------------------------------------------------------------------------------------//
-PNFB_SHELL& PNFB_SHELL::_Begin(IOSTATUS* _ios){
+ioss PNFB_SHELL::_Begin(IOSTATUS* _ios){
 	PNF_BLOCK::_Begin	(_ios);
 	pns_Head.Write		(_ios);
-	pns_Block._Begin	(_ios);
-	return(*this);
+	return(pns_Block._Begin(_ios));
 };
 //------------------------------------------------------------------------------------------//
-PNFB_SHELL& PNFB_SHELL::_Endl(void){
+ioss PNFB_SHELL::_Endl(void){
 	pns_Block._Endl();
 	if (CheckSFlag(PNF_blEnCRC))
 		SetChecksum();
 	pns_Tail.Write(cgStartup.ios);
-	PNF_BLOCK::_Endl();
-	return(*this);
+	return(PNF_BLOCK::_Endl());
 };
 //------------------------------------------------------------------------------------------//
-bool32 PNFB_SHELL::Read(IOSTATUS* _ios,const UVOut& _out){
+ioss PNFB_SHELL::Read(IOSTATUS* _ios,const UVOut& _out){
 	if (ChecksumResult())
 		return(PNF_BLOCK::Read(_ios,_out));
-	return G_FALSE;
+	return IOS_ERR;
 };
 //------------------------------------------------------------------------------------------//
 bool32 PNFB_SHELL::AnalysisR1(uint32 startOffset){

@@ -27,7 +27,7 @@ static inline	_UVBASE		OUD_HEXs	(STDSTR* 	p)							{return{p		,UVID_STRHEXs};};
 
 static inline	_UVBASE		OUD			(const UVOut&	uv)						{return{uv.uvp	,uv.uvid};};
 
-static inline	_UVV_CHARS	OUD_CHARS	(uint8*	p,const uint64& num)			{return{{(void*)p,num}			,UVID_CHARS};};
+static inline	_UVV_CHARS	OUD_CHARS	(uint8*	p,uint64 num,uint64 offset)		{return{{(void*)p,num,offset}	,UVID_CHARS};};
 static inline	_UVV_FILE	OUD_FILEADD	(const STDSTR&	name)					{return{{(STDSTR*)&name,0,0,0}	,UVID_FILE_ADD};};
 static inline	_UVV_FILE	OUD_FILEWR	(const STDSTR&	name)					{return{{(STDSTR*)&name,0,0,1}	,UVID_FILE_WR};};
 

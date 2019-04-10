@@ -16,11 +16,11 @@
 //------------------------------------------------------------------------------------------//
 BIF_CLASSTYPE(DELAY,		"delay,=");
 BIF_CLASSTYPE(WAIT,			"wait,=");
-BIF_CLASSTYPE(SYNCHRONOUS,	"Synchronous,=/Sync,=");
-BIF_CLASSTYPE(LABLE,		"Lable,=");
-BIF_CLASSTYPE(GOTO,			"Goto,=");
-BIF_CLASSTYPE(STOP,			"Stop,=");
-BIF_CLASSTYPE(BREAK,		"Break,=");
+BIF_CLASSTYPE(SYNCHRONOUS,	"synchronous,=/sync,=");
+BIF_CLASSTYPE(LABLE,		"lable,=");
+BIF_CLASSTYPE(GOTO,			"goto,=");
+BIF_CLASSTYPE(STOP,			"stop,=");
+BIF_CLASSTYPE(BREAK,		"break,=");
 //------------------------------------------------------------------------------------------//
 #endif /* BIF_Control_h */
 #endif /* BIF_Control_h */

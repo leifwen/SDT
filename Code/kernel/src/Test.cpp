@@ -18,6 +18,7 @@
 //#define TEST4
 //#define TEST5
 //#define TEST6
+//#define TEST7
 void TestFun	(void);
 /***************************************************************************************/
 /***************************************************************************************/
@@ -93,15 +94,15 @@ void TestFun6(void){
 
 	console.Init(cache.GetG1_STDOUT());
 	
-	ASOCKETSSL			asocket(1024 * 16,&sys);
-	ASOCKETSERVERSSL	server (1024 * 16,&sys);
+	ASOCKETSSL			asocket(1024 * 2,&sys);
+	ASOCKETSERVERSSL	server (1024 * 2,&sys);
 	
 
 	SYS_SleepMS(500);
 	port = 9539;
-	server.Open(SetOpenPar(OPEN_TCPS,"127.0.0.1", port,ASOCKET::CFG_blDisableEcho | COMMU_SSL::CFG_blEnableSSL));
+	server.Open(SetOpenPar(OPEN_TCPS,"127.0.0.1", port,ASOCKET::CFG_blDisableEcho ));//| COMMU_SSL::CFG_blEnableSSL));
 
-	asocket.Open(SetOpenPar(OPEN_TCP,"127.0.0.1", port,ASOCKET::CFG_blDisableEcho | COMMU_SSL::CFG_blEnableSSL));
+	asocket.Open(SetOpenPar(OPEN_TCP,"127.0.0.1", port,ASOCKET::CFG_blDisableEcho ));//| COMMU_SSL::CFG_blEnableSSL));
 
 	SYS_SleepMS(1000);
 
@@ -115,19 +116,30 @@ void TestFun6(void){
 	strIn += strOut;
 	strIn += strOut;
 	
+	printf("\r\nstrIn:%d\r\n",strIn.length());
+	//printf("%s ok\r\n",strIn.c_str());
 	//asocket.Empty();
 	//server.Empty();
 
-	asocket.cgMsgCenter.Send(IOSTATUS_Clr(&ios),MESG_ID_TEST,strIn);
+	asocket.Send(strIn);
+	SYS_SleepMS(1000);
+	printf("\r\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\r\n",strIn.length());
 	
-	SYS_SleepMS(500);
+	asocket.Send(strIn);
+	SYS_SleepMS(1000);
+	printf("\r\n<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\r\n",strIn.length());
+	
+	SYS_SleepMS(1000);
+	printf("\r\n|||||||||||||||||||||||||||||||||||||||\r\n",strIn.length());
 	asocket.Close();
+	SYS_SleepMS(1000);
+	//asocket.cgMsgCenter.Send(IOSTATUS_Clr(&ios),MESG_ID_TEST,strIn);
 	
-	SYS_SleepMS(500);
+	
+	//console.ReceiveKey();
+	
+	
 	//asocket.Open(SetOpenPar("127.0.0.1", port, OPEN_UDP, ASOCKET::CFG_blDisableEcho | ASOCKET::CFG_blEnableSSL));
-
-	
-	console.ReceiveKey();
 	
 	asocket.Close();
 	server.Close();
@@ -136,77 +148,6 @@ void TestFun6(void){
 /***************************************************************************************/
 void TestFun5(void){
 #ifdef TEST5
-	STDSTR		strOut,strIn,key;
-	bool32		retbl;
-	IOSTATUS	ios;
-	
-	key = "01234567890123456789012345678901234567890123456789";
-	
-	GetTestData(&strIn);
-
-	CSSL_SSL	ssl_A,ssl_B;
-	ARRAY		aTx_bRx,aRx_bTx;
-	SBUF		rx,tx,rx1,tx1;
-	uint32 		num;
-	uint8		databuf[100];
-	
-	num = 1000;
-	do{
-		Str_Uint32ToChar(databuf,rand());
-		Str_CharToStr(&strIn,databuf,4,G_ASCII,G_SPACE_OFF,G_ESCAPE_OFF);
-	}while(--num > 0);
-
-	CSSL_T0	t0A,t0B;
-	
-	aTx_bRx.InitSize(1024*1024);
-	aRx_bTx.InitSize(1024*1024);
-	rx.InitSize(1024*1024);
-	rx1.InitSize(1024*1024);
-	tx.InitSize(1024*1024);
-	tx1.InitSize(1024*1024);
-
-
-	//str = "12345678901234567890";
-	//t0A.InitPN(&aTx_bRx, &aTx_bRx);
-	//t0B.InitPN(&aTx_bRx, &aTx_bRx);
-	//t0A.SetConfig(ALG_AES::CFG_AES128, "123");
-	//t0B.SetConfig(ALG_AES::CFG_AES128, "123");
-	//t0A.Send(nullptr, 12, str);
-	//t0B.Analysis(0);
-	//t0B.Read(nullptr, &retStr);
-	//t0A.Delivery();
-	
-	ssl_A.Init(&aTx_bRx, &aRx_bTx,&rx,&tx);
-	ssl_B.Init(&aRx_bTx, &aTx_bRx,&rx1,&tx1);
-	
-	ssl_A.SetSelfName("A");
-	ssl_B.SetSelfName("B");
-	
-	ssl_A.SetTxBlock();
-	ssl_B.SetTxBlock();
-	ssl_A.ThreadRun();
-	ssl_B.ThreadRun();
-	
-	SYS_SleepMS(500);
-	
-
-	ssl_A.Send(nullptr, strIn);
-	
-	SYS_SleepMS(1000);
-	strIn = "1111111111111111111111111111111111111111111test-------test\r\n";
-	//ssl_B.Send(nullptr,strIn);
-	
-	SYS_SleepMS(1000);
-	strIn = "1111111111111111111111111111111111111111111test-------test\r\n";
-	//ssl_A.Send(nullptr,strIn);
-	
-	SYS_SleepMS(1000);
-	while (1);
-#endif
-}
-/***************************************************************************************/
-void TestFun4(void){
-#ifdef TEST4
 	STDSTR		strOut,strIn,key;
 	bool32		retbl;
 	IOSTATUS	ios;
@@ -276,10 +217,9 @@ void TestFun4(void){
 #endif
 }
 /***************************************************************************************/
-void TestFun3(void){
-#ifdef TEST3
+void TestFun4(void){
+#ifdef TEST4
 	STDSTR		strOut,strIn,key;
-	bool32		retbl;
 	IOSTATUS	ios;
 	uint32		num;
 	ARRAY		array;
@@ -342,8 +282,8 @@ void TestFun3(void){
 #endif
 }
 /***************************************************************************************/
-void TestFun2(void){
-#ifdef TEST2
+void TestFun3(void){
+#ifdef TEST3
 	STDSTR		strOut,strIn,key;
 	bool32		retbl;
 	IOSTATUS	ios;
@@ -518,10 +458,9 @@ void TestFun2(void){
 #endif
 }
 /***************************************************************************************/
-void TestFun1(void){
-#ifdef TEST1
+void TestFun2(void){
+#ifdef TEST2
 	STDSTR		strOut,strIn,key;
-	bool32		retbl;
 	IOSTATUS	ios;
 	uint32		num;
 	
@@ -537,25 +476,31 @@ void TestFun1(void){
 	crc8.InitCFG(CRC8ID::eMAXIM).Calc(IOSTATUS_Clr(&ios), &strOut, strIn);
 	printf("%s\n",Str_DecToHex(crc8.GetCRCReasult()).c_str());
 	
-	crc8.InitCFG(CRC8ID::eMAXIM).Transform(IOSTATUS_Clr(&ios), &strOut, strIn).Final(&ios, &strOut);
+	crc8.InitCFG(CRC8ID::eMAXIM);
+	crc8.Transform(IOSTATUS_Clr(&ios), &strOut, strIn);
+	crc8.Final(&ios, &strOut);
 	printf("%s\n",Str_DecToHex(crc8.GetCRCReasult()).c_str());
 
 
 	crc16.InitCFG(CRC16ID::eXMODEM).Calc(IOSTATUS_Clr(&ios), &strOut, strIn);
 	printf("%s\n",Str_DecToHex(crc16.GetCRCReasult()).c_str());
 
-	crc16.InitCFG(CRC16ID::eXMODEM).Transform(IOSTATUS_Clr(&ios), &strOut, strIn).Final(&ios, &strOut);
+	crc16.InitCFG(CRC16ID::eXMODEM);
+	crc16.Transform(IOSTATUS_Clr(&ios), &strOut, strIn);
+	crc16.Final(&ios, &strOut);
 	printf("%s\n",Str_DecToHex(crc16.GetCRCReasult()).c_str());
 	
 	crc32.InitCFG(CRC32ID::eMPEG2).Calc(IOSTATUS_Clr(&ios), &strOut, strIn);
 	printf("%s\n",Str_DecToHex(crc32.GetCRCReasult()).c_str());
-	crc32.InitCFG(CRC32ID::eMPEG2).Transform(IOSTATUS_Clr(&ios), &strOut, strIn).Final(&ios, &strOut);
+	crc32.InitCFG(CRC32ID::eMPEG2);
+	crc32.Transform(IOSTATUS_Clr(&ios), &strOut, strIn);
+	crc32.Final(&ios, &strOut);
 	printf("%s\n",Str_DecToHex(crc32.GetCRCReasult()).c_str());
 #endif
 }
 /***************************************************************************************/
-void TestFun0(void){
-#ifdef TEST0
+void TestFun1(void){
+#ifdef TEST1
 	STDSTR		strOut,strIn,key;
 	bool32		retbl;
 	IOSTATUS	ios;
@@ -585,6 +530,46 @@ void TestFun0(void){
 	delete []zlib;
 	delete []aes;
 	delete []aeszlib;
+#endif
+}
+/***************************************************************************************/
+void TestFun0(void){
+#ifdef TEST0
+	ARRAY		cgArray;
+	IOSTATUS	ios;
+	STDSTR		inData,strIn,key;
+	DS_IO_NODE	tran;
+	uint8		out[2048];
+	
+	inData = "1024 * (2-2/2)";
+
+	
+	PNF_SC			pn_Text;
+	
+	cgArray.InitSize(1024*1024*2);
+	
+	pn_Text.InitPN	(&cgArray,&cgArray);
+	
+	strIn = "01234567890abcdefghijklmnopqrstuvwxzyABCDEFGHIJKLMNOPQRSTUVWXYZ~";
+	strIn +=strIn;
+	strIn +=strIn;
+	strIn +=strIn;
+	strIn +=strIn;
+	strIn +=strIn;
+	strIn +=strIn;
+	strIn +=strIn;
+	strIn +=strIn;
+	strIn += "01234567890abcdefghijklmnopqrstuvwxzyABCDEFGHIJKLMNOPQRSTUVWXYZ~";
+	
+	
+	pn_Text.Write(IOSTATUS_Clr(&ios), strIn);
+	
+	inData ="";
+	pn_Text.Analysis(0);
+	pn_Text.Read(IOSTATUS_Clr(&ios), OUD(&inData));
+	
+	strIn = "01234567890abcdefghijklmnopqrstuvwxzyABCDEFGHIJKLMNOPQRSTUVWX";
+
 #endif
 }
 /***************************************************************************************/

@@ -83,7 +83,7 @@ bool32 ALG_Zlib_Update(ALG_ZLIB_CTX* ctx,uint8* _out,const uint64& outSize,const
 	
 	ctx->next_in	= (uint8*)(data + ios.total_in);
 	ctx->next_out	= (uint8*)(_out + ios.total_out);
-	return 1;
+	return ZLIB_OK;
 #else
 	bool32 err;
 
@@ -129,7 +129,7 @@ bool32 ALG_Zlib_Final(ALG_ZLIB_CTX* ctx,uint8* _out,const uint64& outSize){
 	
 	ctx->next_in	= nullptr;
 	ctx->next_out	= _out;
-	return 2;
+	return ZLIB_FINISH;
 #else
 	bool32 err;
 	

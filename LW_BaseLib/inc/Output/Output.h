@@ -46,7 +46,7 @@ class OUTPUT_CACHE : public CRDC{
 						uint32			AssignAddress		(uint32 group);
 						uint32			AssignMask			(uint32 group)const;
 	protected:
-				virtual	OUTPUT_CACHE&	DoTransform			(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length);
+				virtual	ioss			DoTransform			(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length);
 	public:
 						void			Delivery			(void);
 		inline			void			Start				(void);

@@ -75,10 +75,8 @@ BOOL CMainFrame::DoAuxopen(void){
 }
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnRiCheckAuxdsr(void){
-	if ((theApp.GSDTApp.m_DeviceA.cgEDA.IsComOpened() != 0)){
-		m_blAuxDSRFlow = !m_blAuxDSRFlow;
-		theApp.GSDTApp.m_DeviceA.ACom()->SetDSRFlow(m_blAuxDSRFlow);
-	}
+	if ((theApp.GSDTApp.m_DeviceA.cgEDA.IsComOpened() != 0))
+		theApp.GSDTApp.m_DeviceA.ACom()->SetDSRFlow(!theApp.GSDTApp.m_DeviceA.ACom()->GetDSRFlowStatus());
 }
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnRiCheckAuxdtrh(void){
@@ -92,10 +90,8 @@ void CMainFrame::OnRiCheckAuxdtrl(void){
 }
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnRiCheckAuxcts(void){
-	if ((theApp.GSDTApp.m_DeviceA.cgEDA.IsComOpened() != 0)){
-		m_blAuxCTSFlow = !m_blAuxCTSFlow;
-		theApp.GSDTApp.m_DeviceA.ACom()->SetCTSFlow(m_blAuxCTSFlow);
-	}
+	if ((theApp.GSDTApp.m_DeviceA.cgEDA.IsComOpened() != 0))
+		theApp.GSDTApp.m_DeviceA.ACom()->SetCTSFlow(!theApp.GSDTApp.m_DeviceA.ACom()->GetCTSFlowStatus());
 }
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnRiCheckAuxrtsh(void){
@@ -127,7 +123,7 @@ void CMainFrame::OnUpdateRiButtonAuxopen(CCmdUI *pCmdUI){
 void CMainFrame::OnUpdateRiCheckAuxdsr(CCmdUI *pCmdUI){
 	if (theApp.GSDTApp.m_DeviceA.cgEDA.IsComOpened()){
 		pCmdUI->Enable();
-		pCmdUI->SetCheck(m_blAuxDSRFlow);
+		pCmdUI->SetCheck(theApp.GSDTApp.m_DeviceA.ACom()->GetDSRFlowStatus() != 0);
 	}
 	else{
 		pCmdUI->SetCheck(FALSE);
@@ -138,7 +134,7 @@ void CMainFrame::OnUpdateRiCheckAuxdsr(CCmdUI *pCmdUI){
 void CMainFrame::OnUpdateRiCheckAuxdtrh(CCmdUI *pCmdUI){
 	if (theApp.GSDTApp.m_DeviceA.cgEDA.IsComOpened()){
 		pCmdUI->Enable();
-		pCmdUI->SetCheck(theApp.GSDTApp.m_DeviceA.ACom()->GetDTRStatus() != 0);
+		pCmdUI->SetCheck(theApp.GSDTApp.m_DeviceA.ACom()->GetDTRStatus() != 0); 
 	}
 	else{
 		pCmdUI->SetCheck(FALSE);
@@ -160,7 +156,7 @@ void CMainFrame::OnUpdateRiCheckAuxdtrl(CCmdUI *pCmdUI){
 void CMainFrame::OnUpdateRiCheckAuxcts(CCmdUI *pCmdUI){
 	if (theApp.GSDTApp.m_DeviceA.cgEDA.IsComOpened()){
 		pCmdUI->Enable();
-		pCmdUI->SetCheck(m_blAuxCTSFlow);
+		pCmdUI->SetCheck(theApp.GSDTApp.m_DeviceA.ACom()->GetCTSFlowStatus() != 0);
 	}
 	else{
 		pCmdUI->SetCheck(FALSE);

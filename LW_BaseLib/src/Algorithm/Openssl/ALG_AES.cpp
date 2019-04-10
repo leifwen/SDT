@@ -177,7 +177,6 @@ bool32 ALG_AES_Update(ALG_AES_CTX* ctx,uint8* _out,const uint64& outSize,const u
 	
 	ctx->next_in	= (uint8*)(data + ios.total_in);
 	ctx->next_out	= (uint8*)(_out + ios.total_out);
-	return 1;
 #else
 	const int32 package = 1024 * 16;
 	DATA_LEN	total_out = 0,avail_in;
@@ -228,7 +227,6 @@ bool32 ALG_AES_Final(ALG_AES_CTX* ctx,uint8* _out,const uint64& outSize){
 	
 	ctx->next_in	= nullptr;
 	ctx->next_out	= _out;
-	return 2;
 #else
 
 	DATA_LEN	total_out = 0;
@@ -254,8 +252,8 @@ bool32 ALG_AES_Final(ALG_AES_CTX* ctx,uint8* _out,const uint64& outSize){
 #endif
 	ctx->total_out += total_out;
 	ctx->avail_out -= total_out;
-	return AES_FINISH;
 #endif
+	return AES_FINISH;
 }
 //------------------------------------------------------------------------------------------//
 bool32 ALG_AES_Release(ALG_AES_CTX* ctx){

@@ -222,7 +222,7 @@ void COMMU_FRAME::PushSend(uint32 timeMS){
 	SYS_TIME_S		Timedly;
 	SYS_Delay_SetTS(&Timedly, timeMS);
 	SetSFlag(CF_blPushSend);
-	while(ChkblPushSend() && (SYS_Delay_CheckTS(&Timedly) == 0))
+	while(ChkblPushSend() && (SYS_Delay_CheckTS(&Timedly) == G_FALSE))
 		SYS_DelayMS(2);
 };
 //------------------------------------------------------------------------------------------//
@@ -319,7 +319,7 @@ bool32 COMMU_FRAME_FW::FwThreadFun(void* commu){
 	}
 	InUse_clr();
 	
-	while(fwThread.IsTerminated() == 0){
+	while(fwThread.IsTerminated() == G_FALSE){
 		SYS_SleepMS(2);
 		if (IsConnected() && (UnreadBytes() > 0)){
 			blInit = G_FALSE;
@@ -361,7 +361,7 @@ bool32 COMMU_FRAME_FW::FwThreadFun(void* commu){
 	uint32	recNum;
 	
 	ETLogThreadStart(fwThread);
-	while(fwThread.IsTerminated() == 0){
+	while(fwThread.IsTerminated() == G_FALSE){
 		SYS_SleepMS(2);
 		if (IsConnected() && (UnreadBytes() > 0)){
 			recNum = UnreadBytes();
@@ -647,14 +647,14 @@ void COMMU_THREAD::DisableLog(void){
 //------------------------------------------------------------------------------------------//
 bool32 COMMU_THREAD::RxThreadFun(void* commu){
 	uint32	length,offset,num;
-	bool32	err;
+	bool32	err = 0;
 	
 	ETLogThreadStart(rxThread);
-	while(rxThread.IsTerminated() == 0){
+	while(rxThread.IsTerminated() == G_FALSE){
 		if (IsConnected()){
 			offset = 0;
 			length = 0;
-
+			num = 0;
 			cgArrayIn->CalcInCapacity(length, offset);
 			err = ReadFromDevice(&num,cgArrayIn->GetPointer(offset),length);
 			cgArrayIn->In(num);
@@ -669,32 +669,33 @@ bool32 COMMU_THREAD::RxThreadFun(void* commu){
 				break;
 			}
 		}
-		SYS_SleepMS(2);
+		if ((err == G_FALSE) || cgArrayIn->IsFull() || cgArrayIn->IsEmpty())
+			SYS_SleepMS(2);
 	}
 	ETLogThreadStop(rxThread);
 	return G_TRUE;
 }
 //------------------------------------------------------------------------------------------//
 bool32 COMMU_THREAD::TxThreadFun(void* commu){
-	bool32	err;
 	uint32	length,offset,num;
+	bool32	err = 0;
 	
 	ETLogThreadStart(txThread);
-	while(txThread.IsTerminated() == 0){
+	while(txThread.IsTerminated() == G_FALSE){
 		if (ChkblPushSend() || (IsConnected() && (cgArrayOut->Used() > 0))){
 			do{
 				offset = 0;
+				num = 0;
 				cgArrayOut->CalcOutCapacity(length,offset);
+				if (length > cgArrayOut->MaxSize() / 4)
+					length = cgArrayOut->MaxSize() / 4 - 1;
 				err = SendToDevice(&num,cgArrayOut->GetPointer(offset),length);
 				cgArrayOut->Out(num);
-				if (err == -1)
+				cgTxBytes += num;
+				if (err == G_FALSE)
 					break;
-				if ((err > 0) && (num > 0))
-					cgTxBytes += num;
 			}while((length > 0) && IsConnected());
 			ClrblPushSend();
-			if (err == -1)
-				break;
 		}
 		SYS_SleepMS(2);
 	}
@@ -711,7 +712,7 @@ bool32 COMMU_THREAD::LogThreadFun(void* commu){
 	cgLogSBUF.InitSize(PACKAGE_MAX_SIZE);
 	cgInternalFwSBufList.AddNode(&cgLogSBUF);
 	ETLogThreadStart(logThread);
-	while(logThread.IsTerminated() == 0){
+	while(logThread.IsTerminated() == G_FALSE){
 		if (cgLogSBUF.Used() > 0){
 			byteNum = cgLogSBUF.Used();
 			strPrintdata = "";
@@ -803,7 +804,7 @@ void COMMU_THREAD::PrintRecData(const STDSTR& strData, uint32 byteNum, bool32 bl
 			}
 		}
 		if ((GetOpenPar().cfg == OPEN_TCPS) || (GetOpenPar().cfg == OPEN_UDPS)){
-			if (CheckSelected() == 0)
+			if (CheckSelected() == G_FALSE)
 				*GetVG3D() << ClrGroup(COLRECORD::CRD_G1);
 		}
 		*GetVG3D() << strData << Endl();
@@ -914,7 +915,7 @@ void COMMU_SSL::DoClose(void){
 };
 //------------------------------------------------------------------------------------------//
 void COMMU_SSL::AfterReadFromDevice(void){
-	if (B_ChkFLAG32(cgOpenPar.cfg,CFG_blEnableSSL) == 0){
+	if (B_ChkFLAG32(cgOpenPar.cfg,CFG_blEnableSSL) == G_FALSE){
 		COMMU_THREAD::AfterReadFromDevice();
 	}
 	else{

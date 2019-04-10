@@ -196,7 +196,7 @@ CMDID MSG_HANDSHAKE::MessageProcessing(CMD_ENV* env,const uint32& mID,const STDS
 			}
 		case MESG_ANS_Test:
 			ELogMP("MESG_REQ_Test success");
-			if (CheckSFlag(HS_blHandshakeY | HS_blHandshakeN) == 0){
+			if (CheckSFlag(HS_blHandshakeY | HS_blHandshakeN) == G_FALSE){
 				SetSFlag(HS_blHandshakeY);
 				cgMsgCenter->SetblREQHS();
 				ELogMP("Handshake success");

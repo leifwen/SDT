@@ -197,7 +197,7 @@ void LicenseBServer::ApproveRegistration(const uint32& approveHours){
 //------------------------------------------------------------------------------------------//
 const STDSTR& LicenseBServer::RequestSocketInfo(STDSTR* strPrint){
 	*strPrint  = SYS_MakeTimeNow();
-	*strPrint += "Receive registration request from ";
+	*strPrint += " Receive registration request from ";
 	*strPrint += cgRequestSocket->GetDevName();
 	return(*strPrint);
 }

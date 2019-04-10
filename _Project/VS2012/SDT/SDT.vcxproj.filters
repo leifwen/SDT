@@ -569,6 +569,9 @@
     <ClInclude Include="..\..\..\LW_BaseLib\inc\License\SystemInfo.h">
       <Filter>_LWBaseLib\inc\License</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Algorithm\ALG_Math.h">
+      <Filter>_LWBaseLib\inc\Algorithm</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -843,6 +846,9 @@
     </ClCompile>
     <ClCompile Include="..\..\..\LW_BaseLib\src\AdvancedDS\ADS_SMC.cpp">
       <Filter>_LWBaseLib\src\AdvancedDS</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Algorithm\ALG_Math.cpp">
+      <Filter>_LWBaseLib\src\Algorithm</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

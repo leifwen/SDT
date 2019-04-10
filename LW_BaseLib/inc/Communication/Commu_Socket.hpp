@@ -53,7 +53,7 @@ template <typename T_COMMU> bool32 COMMU_SOCKET<T_COMMU>::Socket_OpenDev(const O
 	
 	lpHostEnt = gethostbyname(par.name.c_str());
 	if (lpHostEnt == nullptr)
-		return 0;
+		return G_FALSE;
 	
 	tcpaddr.sin_addr = *((struct in_addr *)lpHostEnt->h_addr);
 	tcpaddr.sin_family = AF_INET;
@@ -66,12 +66,12 @@ template <typename T_COMMU> bool32 COMMU_SOCKET<T_COMMU>::Socket_OpenDev(const O
 		osHandle = socket(AF_INET,SOCK_DGRAM,IPPROTO_UDP);
 	}
 	if (osHandle == INVALID_SOCKET)
-		return 0;
+		return G_FALSE;
 	
 	SetSocketBufferSize();
 	
-	if (connect(osHandle,(struct sockaddr *)&tcpaddr, sizeof(tcpaddr)) == SOCKET_ERROR)
-		return 0;
+	if (connect(osHandle,(struct sockaddr *)&tcpaddr, sizeof(tcpaddr)) < 0)
+		return G_FALSE;
 	this->rxThread.Enable();
 	return G_TRUE;
 }
@@ -119,7 +119,7 @@ template <typename T_COMMU> bool32 COMMU_SOCKET<T_COMMU>::OpenDev(const OPEN_PAR
 			return(Server_OpenDev(par));
 		default:;
 	};
-	return 0;
+	return G_FALSE;
 }
 //------------------------------------------------------------------------------------------//
 template <typename T_COMMU> bool32 COMMU_SOCKET<T_COMMU>::OpenD(const SOCKET& sID,const sockaddr_in& addr,uint32 type,uint32 cfg){
@@ -152,6 +152,7 @@ template <typename T_COMMU> void COMMU_SOCKET<T_COMMU>::CloseDev(void){
 }
 //------------------------------------------------------------------------------------------//
 template <typename T_COMMU> void COMMU_SOCKET<T_COMMU>::SetSocketBufferSize(void){
+	/*
 #ifdef CommonDefH_Unix
 	typedef socklen_t SizeT;
 #endif
@@ -171,60 +172,64 @@ template <typename T_COMMU> void COMMU_SOCKET<T_COMMU>::SetSocketBufferSize(void
 			rcvbuf = (int32)this->cgTxSBUF.MaxSize();//PACKAGE_MAX_SIZE;
 		setsockopt(osHandle,SOL_SOCKET,SO_SNDBUF,(char*)&rcvbuf,rcvbufsize);
 	}
+	 */
 }
 //------------------------------------------------------------------------------------------//
 template <typename T_COMMU> bool32 COMMU_SOCKET<T_COMMU>::ReadFromDevice(uint32* retNum,uint8* buffer,uint32 length){
 	int64	retCode;
 	*retNum = 0;
 	
-	retCode = recv(osHandle,(char*)buffer,length,0);
-	if ((this->GetOpenPar().type == OPEN_TCP) || (this->GetOpenPar().type == OPEN_TCPS)){
-		if (((retCode == SOCKET_ERROR) && (errno != EINTR) && (errno != EWOULDBLOCK) && (errno != EAGAIN))
-			|| ((retCode == 0) && (errno != EINTR))){
-			return -1;
+	do{
+		retCode = recv(osHandle,(char*)buffer,length,0);
+		if ((this->GetOpenPar().type == OPEN_TCP) || (this->GetOpenPar().type == OPEN_TCPS)){
+			if ((retCode < 0) && ((errno == EINTR) || (errno == EWOULDBLOCK) || (errno = EAGAIN)))
+				break;
+			if ((retCode == 0) && (errno == EINTR)){
+				break;
+			}
 		}
-	}
-	if (retCode > 0){
-		*retNum = (uint32)retCode;
-		return G_TRUE;
-	}
+		if ((retCode == 0) && (length == 0))
+			break;
+		if (retCode > 0){
+			*retNum = (uint32)retCode;
+			return G_TRUE;
+		}
+		return -1;
+	}while(0);
 	return G_FALSE;
 }
 //------------------------------------------------------------------------------------------//
 template <typename T_COMMU> bool32 COMMU_SOCKET<T_COMMU>::SendToDevice(uint32* retNum,const uint8* buffer,uint32 length){
-	int64		retCode;
-	uint32		i;
+	int64		retCode = 0;
+	uint32		alreadySend;
+	
 	if (this->GetOpenPar().type == OPEN_UDPS)
 		return(UDPS_SendToDevice(retNum,buffer,length));
 	
-	i = 0;
-	while((i < length) && this->IsConnected()){
-		retCode = send(osHandle,(char*)&buffer[i],length - i,0);
-		if (retCode == SOCKET_ERROR){
-			*retNum = i;
-			return -1;
-		}
-		i += (uint32)retCode;
+	alreadySend = 0;
+	while((alreadySend < length) && this->IsConnected()){
+		retCode = send(osHandle,(char*)&buffer[alreadySend],length - alreadySend,0);
+		if (retCode < 0)
+			break;
+		alreadySend += (uint32)retCode;
 	}
-	*retNum = i;
-	return 1;
+	*retNum = alreadySend;
+	return(!((alreadySend < length) || retCode));
 }
 //------------------------------------------------------------------------------------------//
 template <typename T_COMMU> bool32 COMMU_SOCKET<T_COMMU>::UDPS_SendToDevice(uint32* retNum,const uint8* buffer,uint32 length){
-	int64		retCode;
-	uint32		i;
+	int64		retCode = 0;
+	uint32		alreadySend;
 	
-	i = 0;
-	while((i < length) && this->IsConnected()){
-		retCode = sendto(osHandle,(char*)&buffer[i],length - i,0,(struct sockaddr *)&cgUDPS_RemoteAddr,sizeof(cgUDPS_RemoteAddr));
-		if (retCode == SOCKET_ERROR){
-			*retNum = i;
-			return -1;
-		}
-		i += (uint32)retCode;
+	alreadySend = 0;
+	while((alreadySend < length) && this->IsConnected()){
+		retCode = sendto(osHandle,(char*)&buffer[alreadySend],length - alreadySend,0,(struct sockaddr *)&cgUDPS_RemoteAddr,sizeof(cgUDPS_RemoteAddr));
+		if (retCode < 0)
+			break;
+		alreadySend += (uint32)retCode;
 	}
-	*retNum = i;
-	return 1;
+	*retNum = alreadySend;
+	return(!((alreadySend < length) || retCode));
 }
 //------------------------------------------------------------------------------------------//
 template <typename T_COMMU> void COMMU_SOCKET<T_COMMU>::UDPS_ReadFromDevice(const uint8* buffer,uint32 num){
@@ -378,14 +383,14 @@ template <typename T_COMMU> bool32 COMMU_SOCKETSERVER<T_COMMU>::OpenDev(const OP
 	if (listionSocket == INVALID_SOCKET)
 		return G_FALSE;
 #ifdef CommonDefH_Unix
-	if(bind(listionSocket,(struct sockaddr *)&serviceAddr,sizeof(serviceAddr)) == SOCKET_ERROR)
+	if(bind(listionSocket,(struct sockaddr *)&serviceAddr,sizeof(serviceAddr)) < 0)
 		return G_FALSE;
 #endif
 #ifdef CommonDefH_VC
-	if(bind(listionSocket,(LPSOCKADDR)&serviceAddr,sizeof(serviceAddr)) == SOCKET_ERROR)
+	if(bind(listionSocket,(LPSOCKADDR)&serviceAddr,sizeof(serviceAddr)) < 0)
 		return G_FALSE;
 #endif
-	if ((par.type == OPEN_TCPS) && (listen(listionSocket,10) == SOCKET_ERROR))
+	if ((par.type == OPEN_TCPS) && (listen(listionSocket,10) < 0))
 		return G_FALSE;
 	return G_TRUE;
 }
@@ -426,7 +431,7 @@ template <typename T_COMMU> bool32 COMMU_SOCKETSERVER<T_COMMU>::ListionTCP(void*
 	
 //	ETLogThreadStart(listionThread);
 	addrlen = sizeof(ListionAddr);
-	while(listionThread.IsTerminated() == 0){
+	while(listionThread.IsTerminated() == G_FALSE){
 		newSocket = static_cast<T_COMMU*>(GetNewNode());
 		sID = accept(listionSocket,(struct sockaddr *)&ListionAddr,&addrlen);
 		if (sID != INVALID_SOCKET){
@@ -468,10 +473,10 @@ template <typename T_COMMU> bool32 COMMU_SOCKETSERVER<T_COMMU>::ListionUDP(void*
 	databuf = cgRxSBUF.GetArray().GetPointer(0);
 	
 	addrlen = sizeof(ListionAddr);
-	while(listionThread.IsTerminated() == 0){
+	while(listionThread.IsTerminated() == G_FALSE){
 		newSocket = nullptr;
 		bytesNum = (int32)recvfrom(listionSocket,(char*)databuf,cgMaxSize,0,(struct sockaddr *)&ListionAddr,&addrlen);
-		if ((bytesNum != SOCKET_ERROR) && (bytesNum > 0)){
+		if (bytesNum > 0){
 			strIP = inet_ntoa(ListionAddr.sin_addr);
 			port = ntohs(ListionAddr.sin_port);
 			

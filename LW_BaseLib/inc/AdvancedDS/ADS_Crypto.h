@@ -65,11 +65,11 @@ template <typename T_DIR> class PNFSC_DIR : public PNF_SC{
 	public:
 		inline	virtual	PNFSC_DIR&	InitCFG			(uint32 cfg,const void* par);
 	protected:
-				virtual	PNFSC_DIR&	DoTransform		(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length);
-				virtual	PNFSC_DIR&	DoFinal			(IOSTATUS* _ios,const UVOut& _out);
+				virtual	ioss		DoTransform		(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length);
+				virtual	ioss		DoFinal			(IOSTATUS* _ios,const UVOut& _out);
 	public:
-		inline	virtual	PNFSC_DIR&	_Begin			(IOSTATUS* _ios);
-				virtual	bool32		Read			(IOSTATUS* _ios,const UVOut& _out);
+		inline	virtual	ioss		_Begin			(IOSTATUS* _ios);
+				virtual	ioss		Read			(IOSTATUS* _ios,const UVOut& _out);
 	
 		inline	const	PNFSC_DIR&	operator =		(const UVIn& _in);
 };
@@ -144,12 +144,12 @@ template <typename T_DIGEST> class PNFS_MAIL : public PNFB_SHELL{
 						void			InitPN			(const ARRAY* _out,const ARRAY* _in);
 		inline	virtual	PNFS_MAIL&		InitCFG			(uint32 cfg,const void* _rsa = nullptr);
 	protected:
-				virtual	PNFS_MAIL&		DoTransform		(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length);
+				virtual	ioss			DoTransform		(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length);
 	public:
-				virtual	PNFS_MAIL&		_Begin			(IOSTATUS* _ios);
-				virtual	PNFS_MAIL&		_Endl			(void);
+				virtual	ioss			_Begin			(IOSTATUS* _ios);
+				virtual	ioss			_Endl			(void);
 	public:
-				virtual	bool32			Read			(IOSTATUS* _ios,const UVOut& _out);
+				virtual	ioss			Read			(IOSTATUS* _ios,const UVOut& _out);
 		inline	const	PNFS_MAIL&		operator =		(const UVIn& _in);
 };
 //------------------------------------------------------------------------------------------//
@@ -192,7 +192,7 @@ template <typename T_DIGEST> class MAIL : protected PNFS_MAIL<T_DIGEST>{
 		inline			MAIL&			Init			(uint32 size,uint32 cfg = CFG_AES256 | CFG_AES_CFB8);
 	public:
 				const	ARRAY&			Write			(					const RSA* rsa_puk,const UVIn& _in);
-						bool32			Decode			(const UVOut& _out,	const RSA* rsa_prk,const UVIn& _in);
+						ioss			Decode			(const UVOut& _out,	const RSA* rsa_prk,const UVIn& _in);
 };
 //------------------------------------------------------------------------------------------//
 typedef MAIL<ALG_SHA1>		MAIL_SHA1;
@@ -220,12 +220,12 @@ template <typename T_DIGEST> class PNFB_AESHASH : public PNF_BLOCK{
 						void			InitPN			(const ARRAY* _out,const ARRAY* _in);
 		inline	virtual	PNFB_AESHASH&	InitCFG			(uint32 cfg,const void* par);
 	protected:
-				virtual	PNFB_AESHASH&	DoTransform		(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length);
+				virtual	ioss			DoTransform		(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length);
 	public:
-				virtual	PNFB_AESHASH&	_Begin			(IOSTATUS* _ios);
-				virtual	PNFB_AESHASH&	_Endl			(void);
+				virtual	ioss			_Begin			(IOSTATUS* _ios);
+				virtual	ioss			_Endl			(void);
 	public:
-				virtual	bool32			Read			(IOSTATUS* _ios,const UVOut& _out);
+				virtual	ioss			Read			(IOSTATUS* _ios,const UVOut& _out);
 };
 //------------------------------------------------------------------------------------------//
 typedef PNFB_AESHASH<ALG_SHA1>		AES_SHA1;
@@ -258,13 +258,13 @@ template <typename T_DIGEST> class PNFB_AESMK_PNFSC: public PNF_BLOCK{
 						void				InitPN			(const ARRAY* _out,const ARRAY* _in);
 		inline	virtual	PNFB_AESMK_PNFSC&	InitCFG			(uint32 cfg,const void* mKey);
 	public:
-				virtual	PNFB_AESMK_PNFSC&	_Begin			(IOSTATUS* _ios);
-				virtual	PNFB_AESMK_PNFSC&	_Endl			(void);
+				virtual	ioss				_Begin			(IOSTATUS* _ios);
+				virtual	ioss				_Endl			(void);
 	public:
-				virtual	PNFB_AESMK_PNFSC&	Write			(IOSTATUS* _ios,const UVIn&  _in);
+				virtual	ioss				Write			(IOSTATUS* _ios,const UVIn&  _in);
 				virtual	bool32				Read			(IOSTATUS* _ios,const UVOut& _out);
-						PNFB_AESMK_PNFSC&	Write			(IOSTATUS* _ios,					const STDSTR& mulitKey,const UVIn&  _in);
-						bool32				Read			(IOSTATUS* _ios,const UVOut& _out,	const STDSTR& mulitKey);
+						ioss				Write			(IOSTATUS* _ios,					const STDSTR& mulitKey,const UVIn&  _in);
+						ioss				Read			(IOSTATUS* _ios,const UVOut& _out,	const STDSTR& mulitKey);
 };
 //------------------------------------------------------------------------------------------//
 typedef PNFB_AESMK_PNFSC<ALG_SHA1>		AESMK_SHA1;

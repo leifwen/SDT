@@ -63,18 +63,18 @@ class ADS_FIFO : public DSTF{
 		inline			ARRAY*	GetDefArrayWR	(void)const;
 		inline			ARRAY*	GetDefArrayRE	(void)const;
 	protected:
-		inline	virtual	ADSF&	DoTransform		(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length);
-		inline	virtual	ADSF&	DoFinal			(IOSTATUS* _ios,const UVOut& _out);
+		inline	virtual	ioss	DoTransform		(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length);
+		inline	virtual	ioss	DoFinal			(IOSTATUS* _ios,const UVOut& _out);
 	public:
-		inline			ADSF&	Transform		(IOSTATUS* _ios,const UVIn& _in);
-		inline			ADSF&	Transform		(IOSTATUS* _ios,const uint8* data,const uint64& length);
-		inline			ADSF&	Final			(IOSTATUS* _ios);
+		inline			ioss	Transform		(IOSTATUS* _ios,const UVIn& _in);
+		inline			ioss	Transform		(IOSTATUS* _ios,const uint8* data,const uint64& length);
+		inline			ioss	Final			(IOSTATUS* _ios);
 	public:
-				virtual	ADSF&	_Begin			(IOSTATUS* _ios);
-				virtual	ADSF&	_Endl			(void);
+				virtual	ioss	_Begin			(IOSTATUS* _ios);
+				virtual	ioss	_Endl			(void);
 	public:
-		inline			ADSF&	AllIn			(IOSTATUS* _ios,const UVIn&  _in);
-		inline			ADSF&	AllOut			(IOSTATUS* _ios,const UVOut& _out);
+		inline			ioss	AllIn			(IOSTATUS* _ios,const UVIn&  _in);
+		inline			ioss	AllOut			(IOSTATUS* _ios,const UVOut& _out);
 	public:
 		template <typename T_DSTF> inline friend T_DSTF& operator << (T_DSTF& _dstf,T_DSTF& (*fun)(T_DSTF&));
 		template <typename T_DSTF> inline friend T_DSTF& operator << (T_DSTF& _dstf,const _BeginIOS& _sios);
@@ -94,8 +94,8 @@ class DS_IO_PNF : public DS_IO_NODE{
 				 DS_IO_PNF(void) : DS_IO_NODE(){;};
 		virtual ~DS_IO_PNF(void){;};
 	public:
-		virtual	bool32	DoConvert	(DSIO* ioNode,	IOSTATUS* _ios,const UVOut& _out,const UVIn& _in);
-		virtual	bool32	DoSave		(				IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length);
+		virtual	ioss	DoConvert	(DSIO* ioNode,	IOSTATUS* _ios,const UVOut& _out,const UVIn& _in);
+		virtual	ioss	DoSave		(				IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length);
 };
 //------------------------------------------------------------------------------------------//
 class 	PROTOCOL_NODE_FRAME;
@@ -128,11 +128,11 @@ class PROTOCOL_NODE_FRAME : public ADS_FIFO{
 		inline	virtual	void		ResetPosWR		(void);
 		inline	virtual	void		ResetPosRE		(void);
 				virtual	bool32		Analysis		(uint32 startOffset);
-		inline	virtual	bool32		Read			(IOSTATUS* _ios,const UVOut& _out);
-		inline	virtual	PNF&		Write			(IOSTATUS* _ios,const UVIn&  _in);
-		inline	virtual	PNF&		WriteNone		(void);
-		inline	virtual	PNF&		CleanWR			(void);
-		inline	virtual	PNF&		CleanRE			(void);
+		inline	virtual	ioss		Read			(IOSTATUS* _ios,const UVOut& _out);
+		inline	virtual	ioss		Write			(IOSTATUS* _ios,const UVIn&  _in);
+		inline	virtual	ioss		WriteNone		(void);
+		inline	virtual	void		CleanWR			(void);
+		inline	virtual	void		CleanRE			(void);
 };
 static inline		_UVBASE		OUDMesg			(PNF* p);
 static inline		_UVBASE		IUDMesg			(PNF* p);
@@ -162,21 +162,21 @@ class PNF_VAR : public PNF{
 		inline			uint32	GetValueCalcWR	(void)const;
 		inline			uint32	GetValueCalcRE	(void)const;
 	protected:
-						void	SetByte1		(IOSTATUS* _ios,uint32 data);
-						void	SetByte2		(IOSTATUS* _ios,uint32 data);
-						void	SetByte3		(IOSTATUS* _ios,uint32 data);
-						void	SetByte4		(IOSTATUS* _ios,uint32 data);
+						ioss	SetByte1		(IOSTATUS* _ios,uint32 data);
+						ioss	SetByte2		(IOSTATUS* _ios,uint32 data);
+						ioss	SetByte3		(IOSTATUS* _ios,uint32 data);
+						ioss	SetByte4		(IOSTATUS* _ios,uint32 data);
 	protected:
-						void	UpdateByte1		(uint32 data);
-						void	UpdateByte2		(uint32 data);
-						void	UpdateByte3		(uint32 data);
-						void	UpdateByte4		(uint32 data);
+						ioss	UpdateByte1		(uint32 data);
+						ioss	UpdateByte2		(uint32 data);
+						ioss	UpdateByte3		(uint32 data);
+						ioss	UpdateByte4		(uint32 data);
 	protected:
-						void	SetByte			(IOSTATUS* _ios,uint32 data);
-						void	UpdateByte		(uint32 data);
+						ioss	SetByte			(IOSTATUS* _ios,uint32 data);
+						ioss	UpdateByte		(uint32 data);
 	public:
-		inline	const	PNF_VAR& Update			(uint32 data);
-		inline			PNF_VAR& Write			(IOSTATUS* _ios,uint32 data);
+		inline			ioss	Update			(uint32 data);
+		inline			ioss	Write			(IOSTATUS* _ios,uint32 data);
 		inline	const	PNF_VAR& operator =		(uint32 data);
 };
 //------------------------------------------------------------------------------------------//
@@ -189,7 +189,7 @@ class PNF_MASK : public PNF_VAR{
 				void	FillMaskFieldWR	(void);
 	public:
 				virtual	bool32		Analysis		(uint32 startOffset);
-						PNF_MASK&	Write			(IOSTATUS* _ios,uint32 data);
+						ioss		Write			(IOSTATUS* _ios,uint32 data);
 };
 //------------------------------------------------------------------------------------------//
 typedef PNF_VAR PNF_ADDR;
@@ -209,7 +209,7 @@ class PNF_FIXED : public PNF{
 						bool32		CheckFixedStr	(void)const;
 	public:
 				virtual	bool32		Analysis		(uint32 startOffset);
-		inline			PNF_FIXED&	Write			(IOSTATUS* _ios);
+		inline			ioss		Write			(IOSTATUS* _ios);
 };
 //------------------------------------------------------------------------------------------//
 typedef PNF_FIXED PNF_HEAD;
@@ -245,11 +245,11 @@ class PNF_BLOCK : public PNF{
 		inline			void		InitPN			(const ARRAY* _out,const ARRAY* _in,const PNF* pn = nullptr);
 		inline			void		SetBlockPoint	(const PNF* pn);
 	protected:
-		inline	virtual	PNF_BLOCK&	DoTransform		(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length);
+		inline	virtual	ioss		DoTransform		(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length);
 		inline	virtual bool32		ChecksumResult	(void)const;
 	public:
 				virtual	bool32		Analysis		(uint32 startOffset);
-		inline	virtual	bool32		Read			(IOSTATUS* _ios,const UVOut& _out);
+		inline	virtual	ioss		Read			(IOSTATUS* _ios,const UVOut& _out);
 };
 //------------------------------------------------------------------------------------------//
 class PNFB_LC : public PNF_BLOCK{
@@ -268,8 +268,8 @@ class PNFB_LC : public PNF_BLOCK{
 		inline	const	uint32&		GetContentOffsetOut	(void)const;
 		inline	const	uint32&		GetContentLengthOut	(void)const;
 	public:
-				virtual PNFB_LC&	_Begin				(IOSTATUS* _ios);
-				virtual	PNFB_LC&	_Endl				(void);
+				virtual ioss		_Begin				(IOSTATUS* _ios);
+				virtual	ioss		_Endl				(void);
 };
 //------------------------------------------------------------------------------------------//
 class PNF_SCC : public PNFB_LC{//only used for PNF_SC
@@ -285,8 +285,8 @@ class PNF_SCC : public PNFB_LC{//only used for PNF_SC
 				virtual	void		ResetPosWR		(void);
 				virtual	void		ResetPosRE		(void);
 	
-				virtual	PNF_SCC&	_Begin			(IOSTATUS* _ios);
-				virtual	PNF_SCC&	_Endl			(void);
+				virtual	ioss		_Begin			(IOSTATUS* _ios);
+				virtual	ioss		_Endl			(void);
 						uint32		Write			(IOSTATUS* _ios,const uint8* data,uint32 num);
 };
 //------------------------------------------------------------------------------------------//
@@ -300,15 +300,15 @@ class PNF_SC : public PNF{
 	public:
 						void	InitPN		(const ARRAY* _out,const ARRAY* _in);
 	protected:
-				virtual	PNF_SC&	DoTransform	(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length);
-				virtual	PNF_SC&	DoFinal		(IOSTATUS* _ios,const UVOut& _out);
+				virtual	ioss	DoTransform	(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length);
+				virtual	ioss	DoFinal		(IOSTATUS* _ios,const UVOut& _out);
 				virtual	void	ResetPosWR	(void);
 				virtual	void	ResetPosRE	(void);
 	public:
-		inline	virtual	PNF_SC&	_Begin		(IOSTATUS* _ios);
+		inline	virtual	ioss	_Begin		(IOSTATUS* _ios);
 	public:
 				virtual	bool32	Analysis	(uint32 startOffset);
-		inline	virtual	bool32	Read		(IOSTATUS* _ios,const UVOut& _out);
+		inline	virtual	ioss	Read		(IOSTATUS* _ios,const UVOut& _out);
 	
 		inline	const	PNF_SC&	operator =	(const UVIn& _in);
 };
@@ -330,9 +330,9 @@ class PNFB_SHELL : public PNF_BLOCK{
 		inline	virtual	void		DisableCRC		(void);
 		inline			PNF_BLOCK&	AddBlockSubPN	(PNF& subPN);
 	
-				virtual	PNFB_SHELL&	_Begin			(IOSTATUS* _ios);
-				virtual	PNFB_SHELL&	_Endl			(void);
-				virtual	bool32		Read			(IOSTATUS* _ios,const UVOut& _out);
+				virtual	ioss		_Begin			(IOSTATUS* _ios);
+				virtual	ioss		_Endl			(void);
+				virtual	ioss		Read			(IOSTATUS* _ios,const UVOut& _out);
 	protected:
 		inline	virtual	void		SetChecksum		(void);
 						bool32		AnalysisR1		(uint32 startOffset);
@@ -358,16 +358,16 @@ template <typename T_PNF> class PNFB_LIST : public PNF_BLOCK{
 								void		InitPN			(const ARRAY* _out,const ARRAY* _in);
 		inline	virtual			PNFB_LIST&	InitCFG			(uint32 cfg,const void* par);
 	protected:
-				virtual			PNFB_LIST&	DoTransform		(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length);
+				virtual			ioss		DoTransform		(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length);
 	public:
 				virtual			bool32		Analysis		(uint32 startOffset);
-				virtual			PNFB_LIST&	_Begin			(IOSTATUS* _ios);
-				virtual			PNFB_LIST&	_Endl			(void);
+				virtual			ioss		_Begin			(IOSTATUS* _ios);
+				virtual			ioss		_Endl			(void);
 	public:
 								PNFB_LIST&	NewText			(void);
-	template <typename... Args> PNFB_LIST&	Write			(IOSTATUS* _ios,const Args&... args);
+	template <typename... Args> ioss		Write			(IOSTATUS* _ios,const Args&... args);
 								uint32		ReadQty			(void)const;
-								bool32		Read			(IOSTATUS* _ios,const UVOut& _out,uint32 order);
+								ioss		Read			(IOSTATUS* _ios,const UVOut& _out,uint32 order);
 };
 //------------------------------------------------------------------------------------------//
 typedef PNFB_LIST<PNFB_LC>	LIST_LC;
@@ -391,12 +391,12 @@ template <typename T_PNF> class PNFS_MESG : public PNFB_SHELL{
 						void 	InitPN			(const ARRAY* _out,const ARRAY* _in,uint32 byteID = 1,uint32 byteCRC = 0,G_ENDIAN endian = G_ENDIAN_LITTLE);
 		inline	virtual	PNFM&	InitCFG			(uint32 cfg,const void* par);
 	public:
-				virtual	PNFM&	_Begin			(IOSTATUS* _ios);
-				virtual	PNFM&	_Endl			(void);
+				virtual	ioss	_Begin			(IOSTATUS* _ios);
+				virtual	ioss	_Endl			(void);
 		inline	friend	PNFM&	operator << 	(PNFM& _pn,const _mID& mID)	{_pn.pnm_ID.Update(mID.value);return(_pn);};
 	public:
 		inline			uint32	ReadID			(void)const;
-		inline			PNFM&	Write			(IOSTATUS* _ios,uint32 mID,const UVIn& _in);
+		inline			ioss	Write			(IOSTATUS* _ios,uint32 mID,const UVIn& _in);
 };
 //------------------------------------------------------------------------------------------//
 #ifdef ALG_CRC_h

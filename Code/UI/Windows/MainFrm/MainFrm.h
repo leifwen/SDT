@@ -69,10 +69,6 @@ class CMainFrame : public CMDIFrameWndEx{
 		INT32						m_blConnect;
 		INT32						m_blAuxComConnect;
 		INT32						m_blStop;
-		BOOL						m_blDSRFlow;
-		BOOL						m_blCTSFlow;
-		BOOL						m_blAuxDSRFlow;
-		BOOL						m_blAuxCTSFlow;
 		BOOL						m_blCMUXFC;
 		CString						m_localIP;
 	protected:

@@ -13,16 +13,16 @@
 #include "DS_STRING.h"
 //------------------------------------------------------------------------------------------//
 CMDID BIF_RECEIVE::Help(CMD_ENV* env,uint32 flag)const{
-	PrintB(env,".CMD = receive==<par> -->Check recevie buffer status.");
-	PrintB(env,"  Command = <'receive==<par>>");
+	PrintB(env,".CMD = Receive==<par> -->Check recevie buffer status.");
+	PrintB(env,"  Command = <'Receive==<par>>");
 	PrintP(env,"  Notes:1.support * and ?.");
 	PrintP(env,"        2.Expression Operators is +.");
 	PrintP(env,"        3.Can use \"\" set string. Use \\\", \\+ to escape \", +.");
 	PrintP(env,"        4.Support \\0xhh, \\0Xhh, \\a, \\b, \\f, \\n, \\r, \\t, \\v, \\\\, \\', \\\", \\0, \\/, \\*, \\?.");
 	PrintP(env,"        5.support sub command :same as 'combine.");
 	PrintP(env,"   eg:");
-	PrintP(env,"     Condition Expression = 'receive== OK   //Expression is true if receive buffer contain OK");
-	PrintP(env,"     Condition Expression = 'receive== O+K  //Expression is true if receive buffer contain OK");
+	PrintP(env,"     Condition Expression = 'Receive== OK   //Expression is true if receive buffer contain OK");
+	PrintP(env,"     Condition Expression = 'Receive== O+K  //Expression is true if receive buffer contain OK");
 	return(cgCommandID);
 };
 //------------------------------------------------------------------------------------------//
@@ -65,10 +65,10 @@ CMDID BIF_TIMEOUT::Command(CMD_ENV* env,const STDSTR& msg,void* retTrue)const{
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIF_NULLPTR::Help(CMD_ENV* env,uint32 flag)const{
-	PrintB(env,".CMD = nullptr -->Check receive buffer status.Used as sub-command in Condition Expression.");
-	PrintB(env,"  Command = <'nullptr>");
+	PrintB(env,".CMD = Nullptr -->Check receive buffer status.Used as sub-command in Condition Expression.");
+	PrintB(env,"  Command = <'Nullptr>");
 	PrintP(env,"   eg:");
-	PrintP(env,"     Condition Expression = 'nullptr  //Expression is true if nothing received");
+	PrintP(env,"     Condition Expression = 'Nullptr  //Expression is true if nothing received");
 	return(cgCommandID);
 };
 //------------------------------------------------------------------------------------------//
@@ -137,13 +137,13 @@ CMDID BIF_RX_EQUAL::Command(CMD_ENV* env,const STDSTR& msg,void* retTrue)const{
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIF_LCS::Help(CMD_ENV* env,uint32 flag)const{
-	PrintB(env,".CMD = lcs==<T|F> -->Check last command execution status.");
-	PrintB(env,"  Command = <'lcs==<T|F>>");
+	PrintB(env,".CMD = LCS==<T|F> -->Check last command execution status.");
+	PrintB(env,"  Command = <'LCS==<T|F>>");
 	PrintP(env,"  Notes:1.T is true,F is false.");
 	PrintP(env,"        2.support command,'Search, 'Open, 'Close, 'RunEXE, 'StopEXE, 'WaitEXE, 'GetEXE.");
 	PrintP(env,"   eg:");
 	PrintP(env,"     Last command is 'Open and execute successful.");
-	PrintP(env,"     Condition Expression = 'lcs==T  //Expression is true if Open execute successful");
+	PrintP(env,"     Condition Expression = 'LCS==T  //Expression is true if Open execute successful");
 	return(cgCommandID);
 };
 //------------------------------------------------------------------------------------------//

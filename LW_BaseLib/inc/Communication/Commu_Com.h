@@ -19,9 +19,18 @@ class ACOM : public COMMU_THREAD{
 		typedef	int32	HANDLE;
 #endif
 	protected:
-		enum	{RFLAG_C = 2, RFLAG_S = COMMU_THREAD::RFLAG_S + COMMU_THREAD::RFLAG_C};
+		enum	{RFLAG_C = 8, RFLAG_S = COMMU_THREAD::RFLAG_S + COMMU_THREAD::RFLAG_C};
+		enum	{ACOM_blDSR		= RFLAG_CREATE(0)
+				,ACOM_blCTS		= RFLAG_CREATE(1)
+				,ACOM_blDCD		= RFLAG_CREATE(2)
+				,ACOM_blRING	= RFLAG_CREATE(3)
+				,ACOM_blDTR		= RFLAG_CREATE(4)
+				,ACOM_blRTS		= RFLAG_CREATE(5)
+				,ACOM_blCTSFlow	= RFLAG_CREATE(6)
+				,ACOM_blDSRFlow	= RFLAG_CREATE(7)
+		};
 	private:
-		enum	{blDTR = RFLAG_CREATE(0),blRTS = RFLAG_CREATE(1),};
+		enum	{OSTXBUF_MAX_SIZE = 1024 * 8};
 	public:
 				 ACOM(uint32 size,const ODEV_SYSTEM* logSys);
 		virtual ~ACOM(void);
@@ -56,6 +65,8 @@ class ACOM : public COMMU_THREAD{
 				STDSTR		GetDCDStatus			(void);
 				bool32		GetDTRStatus			(void);
 				bool32		GetRTSStatus			(void);
+				bool32		GetDSRFlowStatus		(void);
+				bool32		GetCTSFlowStatus		(void);
 	public:
 				void		SetDTRToHigh			(void);
 				void		SetDTRToLow				(void);

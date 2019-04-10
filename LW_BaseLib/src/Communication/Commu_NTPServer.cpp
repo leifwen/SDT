@@ -35,7 +35,7 @@ bool32 NTPServer::ListionUDP(void* commu){
 	addrlen = sizeof(ListionAddr);
 	dTR.Now();
 	
-	while(listionThread.IsTerminated() == 0){
+	while(listionThread.IsTerminated() == G_FALSE){
 		bytesNum = (int32)recvfrom(listionSocket, (char*)buffer, 48, 0, (struct sockaddr *)&ListionAddr, &addrlen);
 		if ((bytesNum != SOCKET_ERROR) && (bytesNum == 48)){
 			dT2.Now();

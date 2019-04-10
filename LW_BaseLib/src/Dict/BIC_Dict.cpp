@@ -119,7 +119,7 @@ CMDID BIC_DICT_READ::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 					PrintStr(env, COL_clRed, par1);
 					par1 = "";
 				}
-			}while(dictThread.IsTerminated() == 0);
+			}while(dictThread.IsTerminated() == G_FALSE);
 			if (dict->GetLogArray().Get(&par1, -1).length() > 0)
 				PrintStr(env, COL_clRed, &par1);
 			

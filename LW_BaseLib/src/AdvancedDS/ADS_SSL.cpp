@@ -125,37 +125,36 @@ void CSSL_T0::Delivery(void){
 	}
 };
 //------------------------------------------------------------------------------------------//
-CSSL_T0& CSSL_T0::DoTransform(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length){
+ioss CSSL_T0::DoTransform(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length){
 	if (_out.uvid == UVID_SELF){
-		if (length == 0)
-			return(*this);
-		TREE_LChildRChain_Traversal_LINE_nolock(TNF,(&cgT1SList),
-			if (((CSSL_T1HD*)_opNode)->GetPort() == cgPort){
-				((CSSL_T1HD*)_opNode)->ReceiveFromT0(nullptr,data,length);
-				break;
+		if (length > 0){
+			TREE_LChildRChain_Traversal_LINE_nolock(TNF,(&cgT1SList),
+				if (((CSSL_T1HD*)_opNode)->GetPort() == cgPort){
+					((CSSL_T1HD*)_opNode)->ReceiveFromT0(nullptr,data,length);
+					break;
+				}
+			);
+			if (_ios != nullptr){
+				_ios->avail_in -= length;
+				_ios->total_in += length;
+				_ios->avail_out = 0;
+				_ios->total_out += length;
 			}
-		);
-		if (_ios != nullptr){
-			_ios->avail_in -= length;
-			_ios->total_in += length;
-			_ios->avail_out = 0;
-			_ios->total_out += length;
 		}
 	}
 	else{
-		DoTransform(_ios,_out,data,length);
+		return(DoTransform(_ios,_out,data,length));
 	}
-	return(*this);
+	return IOS_OK;
 };
 //------------------------------------------------------------------------------------------//
 bool32 CSSL_T0::Send(IOSTATUS* _ios,uint32 port,const UVIn& _in){
 	IOSTATUS ios;
-	
-	IOSTATUS_Clr(&ios);
+
 	InUse_set();
-	cgMsg.Write(&ios, port, _in);
-	InUse_clr();
+	cgMsg.Write(IOSTATUS_Clr(&ios), port, _in);
 	IOSTATUS_Add(_ios,ios);
+	InUse_clr();
 	ELogT0(this << "CSSL_T0.Send()::Port=" << port<< ",ios.total_in/total_out=" << ios.total_in << "/" << ios.total_out);
 	ELogT0(this << "CSSL_T0.Send()::Array:" << cgMsg.GetDefArrayWR()->Used() << "/" << cgMsg.GetDefArrayWR()->Unused());
 	return(ios.status > IOS_NOMEM);
@@ -193,14 +192,13 @@ uint32 CSSL_PNFBT1::ReadCtrlID	(void)const	{return(pn_CtrlID.GetValueCalcRE());}
 uint32 CSSL_PNFBT1::ReadBlockID	(void)const	{return(pn_BlockID.GetValueCalcRE());};
 uint32 CSSL_PNFBT1::ReadOrderID	(void)const	{return(pn_OrderID.GetValueCalcRE());};
 //------------------------------------------------------------------------------------------//
-const CSSL_PNFBT1& CSSL_PNFBT1::Write(IOSTATUS* _ios,const T1ID& _id,const UVIn& _in){
+ioss CSSL_PNFBT1::Write(IOSTATUS* _ios,const T1ID& _id,const UVIn& _in){
 	PNF_BLOCK::_Begin(_ios);
 	pn_CtrlID.Write	(_ios,_id.ctrlID);
 	pn_BlockID.Write(_ios,_id.blockID);
 	pn_OrderID.Write(_ios,_id.orderID);
 	pn_Info.Write	(_ios,_in);
-	PNF_BLOCK::_Endl();
-	return(*this);
+	return(PNF_BLOCK::_Endl());
 };
 //------------------------------------------------------------------------------------------//
 
@@ -431,7 +429,7 @@ const uint32& CSSL_T1_TX::GetBlockID(void)	{return(cgIDRE.blockID);};
 const uint32& CSSL_T1_TX::GetOrderID(void)	{return(cgIDRE.orderID);};
 //------------------------------------------------------------------------------------------//
 uint64 CSSL_T1_TX::CompressUpdate(IOSTATUS* _ios,const uint8* data,const uint64& length){
-	uint32		flength,slength,offset;
+	uint32		flength,offset;
 	IOSTATUS	ios;
 	IOSTATUS_Clr(&ios);
 	
@@ -448,16 +446,11 @@ uint64 CSSL_T1_TX::CompressUpdate(IOSTATUS* _ios,const uint8* data,const uint64&
 		
 		flength = 0;
 		offset = 0;
-		slength = cgArray.CalcInCapacity(flength,offset);
+		cgArray.CalcInCapacity(flength,offset);
 		
 		cgCTX.status = ALG_Zlib_Update(&cgCTX
 									   ,cgArray.GetPointer(offset),flength
 									   ,cgCTX.next_in,cgCTX.avail_in);
-		if ((slength > 0) && (cgCTX.avail_out == 0) && (cgCTX.avail_in > 0))
-			cgCTX.status = ALG_Zlib_Update(&cgCTX
-										   ,cgArray.GetPointer(0),slength
-										   ,cgCTX.next_in,cgCTX.avail_in);
-		
 		cgArray.In((uint32)cgCTX.total_out);
 		while(cgArray.Used() > MAX_PACKAGE_SIZE_ADJUST){
 			pn_L1.Write(&ios, cgIDWR, IUD(&cgArray,MAX_PACKAGE_SIZE_ADJUST,0));
@@ -623,14 +616,12 @@ bool32 CSSL_T1_TX::SendCMD(IOSTATUS* _ios,CSSL_T0* csslT0,const uint32& port,con
 	IOSTATUS	ios;
 	STDSTR		str = "";
 	
-	IOSTATUS_Clr(&ios);
-	
 	Empty();
 	pn_L1.Write(nullptr,_id, str);
-	SendToT0(_ios,csslT0,port,0);
+	SendToT0(IOSTATUS_Clr(&ios),csslT0,port,0);
 	ios.total_in = 0;
 	IOSTATUS_Add(_ios,ios);
-	return G_TRUE;
+	return(ios.status > IOS_NOMEM);
 }
 //------------------------------------------------------------------------------------------//
 
@@ -702,7 +693,7 @@ void CSSL_T1HD::Unlock(void){
 	InUse_clr();
 };
 //------------------------------------------------------------------------------------------//
-CSSL_T1HD& CSSL_T1HD::DoTransform(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length){
+ioss CSSL_T1HD::DoTransform(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length){
 	bool32		err;
 	IOSTATUS	ios,ios2,ios3;
 	IOSTATUS_Clr(&ios);
@@ -729,10 +720,10 @@ CSSL_T1HD& CSSL_T1HD::DoTransform(IOSTATUS* _ios,const UVOut& _out,const uint8* 
 	ios.avail_out = ios2.avail_out;
 	ios.total_out = ios2.total_out + ios3.total_out;
 	IOSTATUS_Add(_ios, ios);
-	return(*this);
+	return(ios.status);
 }
 //------------------------------------------------------------------------------------------//
-CSSL_T1HD& CSSL_T1HD::DoFinal(IOSTATUS* _ios,const UVOut& _out){
+ioss CSSL_T1HD::DoFinal(IOSTATUS* _ios,const UVOut& _out){
 	IOSTATUS	ios,ios2,ios3;
 	bool32		err,err2,retACK;
 	SYS_TIME_S	dlyTS;
@@ -756,12 +747,12 @@ CSSL_T1HD& CSSL_T1HD::DoFinal(IOSTATUS* _ios,const UVOut& _out){
 	}while((err == IOS_NOMEM || err2 == IOS_NOMEM));
 	
 	if ((CheckSFlag(CSSL_blSendOK) == G_FALSE) && (retACK == G_FALSE))
-		while((CheckACK(&ios3) == G_FALSE) && (SYS_Delay_CheckTS(&dlyTS) == 0));
+		while((CheckACK(&ios3) == G_FALSE) && (SYS_Delay_CheckTS(&dlyTS) == G_FALSE));
 	
 	ios.avail_out = ios2.avail_out;
 	ios.total_out = ios2.total_out + ios3.total_out;
 	IOSTATUS_Add(_ios, ios);
-	return(*this);
+	return(ios.status);
 }
 //------------------------------------------------------------------------------------------//
 bool32 CSSL_T1HD::CheckACK(IOSTATUS* _ios){
@@ -804,7 +795,7 @@ bool32 CSSL_T1HD::CheckACK(IOSTATUS* _ios){
 				break;
 			}
 		};
-	}while(SYS_Delay_CheckTS(&dlyTS) == 0);
+	}while(SYS_Delay_CheckTS(&dlyTS) == G_FALSE);
 	return G_FALSE;
 }
 //------------------------------------------------------------------------------------------//
@@ -816,7 +807,7 @@ bool32 CSSL_T1HD::ReadPackage(IOSTATUS* _ios,const UVOut& _out){
 	SYS_TIME_S	dlyTS,stopWatch;
 	double		delayMS;
 	
-	if (cgRx.HasData() == 0)
+	if (cgRx.HasData() == G_FALSE)
 		return G_FALSE;
 	IOSTATUS_Clr(&ios);
 	IOSTATUS_Clr(&ios2);
@@ -828,7 +819,7 @@ bool32 CSSL_T1HD::ReadPackage(IOSTATUS* _ios,const UVOut& _out){
 	requestTimesNum = REQUESTTIMES;
 	
 	do{
-		if (cgRx.HasData() == 0)
+		if (cgRx.HasData() == G_FALSE)
 			SYS_DelayMS(1);
 		
 		if (cgRx.ReadNext(&ios,_out,&_id) > 0){
@@ -872,7 +863,7 @@ bool32 CSSL_T1HD::ReadPackage(IOSTATUS* _ios,const UVOut& _out){
 				SYS_Delay_SetTS(&dlyTS,delayMS * (REQUESTTIMES - requestTimesNum));
 			}
 		}
-	}while(SYS_Delay_CheckTS(&dlyTS) == 0);
+	}while(SYS_Delay_CheckTS(&dlyTS) == G_FALSE);
 	ios.avail_in = 0;
 	ios.total_in = ios.total_out;
 	ios.avail_out = 0;

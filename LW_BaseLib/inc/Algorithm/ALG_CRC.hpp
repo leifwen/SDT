@@ -109,7 +109,7 @@ template <typename CRC_BIT> static inline void ALG_CRC_Update(ALG_CRC_CTX<CRC_BI
 	// only usable with polynom orders of 8, 16, 24 or 32.
 	uint64 num = length;
 	
-	if (B_ChkFLAG32(ctx->ref,CRC_REFIN) == 0){
+	if (B_ChkFLAG32(ctx->ref,CRC_REFIN) == G_FALSE){
 		while (num --)
 			ctx->remainder = (ctx->remainder << 8) ^ ctx->crcTable[((ctx->remainder >> (ctx->width - 8)) & 0xff) ^ *data++];
 	}
@@ -182,17 +182,15 @@ template <typename ALGCTX> inline ALG_CRC_T<ALGCTX>& ALG_CRC_T<ALGCTX>::InitSize
 };
 //------------------------------------------------------------------------------------------//
 template <typename ALGCTX>
-inline ALG_CRC_T<ALGCTX>& ALG_CRC_T<ALGCTX>::DoTransform(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length){
+inline ioss ALG_CRC_T<ALGCTX>::DoTransform(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length){
 	ALG_CRC_Update(&cgCTX,data,length);
-	Save(_ios,_out,data,length);
-	return(*this);
+	return(Save(_ios,_out,data,length));
 };
 //------------------------------------------------------------------------------------------//
 template <typename ALGCTX>
-inline ALG_CRC_T<ALGCTX>& ALG_CRC_T<ALGCTX>::DoFinal(IOSTATUS* _ios,const UVOut& _out){
+inline ioss ALG_CRC_T<ALGCTX>::DoFinal(IOSTATUS* _ios,const UVOut& _out){
 	ALG_CRC_Final(&cgCTX);
-	DSTF::DoFinal(_ios,_out);
-	return(*this);
+	return(DSTF::DoFinal(_ios,_out));
 };
 //------------------------------------------------------------------------------------------//
 template <typename ALGCTX> inline uint32 ALG_CRC_T<ALGCTX>::Calc(IOSTATUS* _ios,const UVOut& _out,const UVIn& _in){

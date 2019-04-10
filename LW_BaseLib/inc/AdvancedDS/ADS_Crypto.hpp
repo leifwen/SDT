@@ -43,31 +43,27 @@ template <typename T_DIR> inline PNFSC_DIR<T_DIR>& PNFSC_DIR<T_DIR>::InitCFG(uin
 };
 //------------------------------------------------------------------------------------------//
 template <typename T_DIR>
-PNFSC_DIR<T_DIR>& PNFSC_DIR<T_DIR>::DoTransform(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length){
+ioss PNFSC_DIR<T_DIR>::DoTransform(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length){
 	if (_out.uvid == UVID_SELF){
-		PNF_SC::DoTransform(_ios,_out,data,length);
+		return(PNF_SC::DoTransform(_ios,_out,data,length));
 	}
 	else{
-		cgDIR_W.Transform(_ios,OUD(this), data, length);
+		return(cgDIR_W.Transform(_ios,OUD(this), data, length));
 	}
-	return(*this);
 };
 //------------------------------------------------------------------------------------------//
-template <typename T_DIR> PNFSC_DIR<T_DIR>& PNFSC_DIR<T_DIR>::DoFinal(IOSTATUS* _ios,const UVOut& _out){
+template <typename T_DIR> ioss PNFSC_DIR<T_DIR>::DoFinal(IOSTATUS* _ios,const UVOut& _out){
 	cgDIR_W.Final(_ios,OUD(this));
-	PNF_SC::DoFinal(_ios,_out);
-	return(*this);
+	return(PNF_SC::DoFinal(_ios,_out));
 };
 //------------------------------------------------------------------------------------------//
-template <typename T_DIR> inline PNFSC_DIR<T_DIR>& PNFSC_DIR<T_DIR>::_Begin(IOSTATUS* _ios){
-	PNF_SC::_Begin(_ios);
-	return(*this);
+template <typename T_DIR> inline ioss PNFSC_DIR<T_DIR>::_Begin(IOSTATUS* _ios){
+	return(PNF_SC::_Begin(_ios));
 };
 //------------------------------------------------------------------------------------------//
-template <typename T_DIR> bool32 PNFSC_DIR<T_DIR>::Read(IOSTATUS* _ios,const UVOut& _out){
+template <typename T_DIR> ioss PNFSC_DIR<T_DIR>::Read(IOSTATUS* _ios,const UVOut& _out){
 	PNF_SC::Read(_ios, OUD(&cgDIR_R,_out));
-	cgDIR_R.Final(_ios,_out);
-	return G_TRUE;
+	return(cgDIR_R.Final(_ios,_out));
 };
 //------------------------------------------------------------------------------------------//
 template <typename T_DIR>
@@ -138,16 +134,16 @@ template <typename T_DIGEST> inline PNFS_MAIL<T_DIGEST>& PNFS_MAIL<T_DIGEST>::In
 	return(*this);
 };
 //------------------------------------------------------------------------------------------//
-template <typename T_DIGEST> PNFS_MAIL<T_DIGEST>& PNFS_MAIL<T_DIGEST>::_Begin(IOSTATUS* _ios){
+template <typename T_DIGEST> ioss PNFS_MAIL<T_DIGEST>::_Begin(IOSTATUS* _ios){
 	cgDigestW.InitCFG();
 	cgSKey = ALG_CreateRandKey(32);
 
 	PNFB_SHELL::_Begin(_ios);
-	pnml_Text.InitCFG(CFG_INIT_WR_PAR,&cgSKey)._Begin(_ios);
-	return(*this);
+	pnml_Text.InitCFG(CFG_INIT_WR_PAR,&cgSKey);
+	return(pnml_Text._Begin(_ios));
 };
 //------------------------------------------------------------------------------------------//
-template <typename T_DIGEST> PNFS_MAIL<T_DIGEST>& PNFS_MAIL<T_DIGEST>::_Endl(void){
+template <typename T_DIGEST> ioss PNFS_MAIL<T_DIGEST>::_Endl(void){
 	STDSTR	strContent;
 	uint64	num = 0;
 
@@ -163,20 +159,19 @@ template <typename T_DIGEST> PNFS_MAIL<T_DIGEST>& PNFS_MAIL<T_DIGEST>::_Endl(voi
 	if (cgStartup.ios != nullptr)
 		cgStartup.ios->total_in = num;
 
-	PNFB_SHELL::_Endl();
-	return(*this);
+	return(PNFB_SHELL::_Endl());
 };
 //------------------------------------------------------------------------------------------//
 template <typename T_DIGEST>
-PNFS_MAIL<T_DIGEST>& PNFS_MAIL<T_DIGEST>::DoTransform(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length){
-	pnml_Text.Transform(_ios,data,length);
+ioss PNFS_MAIL<T_DIGEST>::DoTransform(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length){
+	ioss iossta;
+	iossta = pnml_Text.Transform(_ios,data,length);
 	cgDigestW.Transform(nullptr,_NONE(),data,length);
-	return(*this);
+	return(iossta);
 };
 //------------------------------------------------------------------------------------------//
 template <typename T_DIGEST> bool32 PNFS_MAIL<T_DIGEST>::Read(IOSTATUS* _ios,const UVOut& _out){
 	STDSTR	strContent,sKey,strDigest;
-	bool32	retbl = G_FALSE;
 	
 	pnml_KeyDigest.Read(nullptr,_EMPTY(&strContent));
 	if (strContent.length() > 0){
@@ -189,13 +184,11 @@ template <typename T_DIGEST> bool32 PNFS_MAIL<T_DIGEST>::Read(IOSTATUS* _ios,con
 			
 			cgDigestR.GetResult(nullptr,_EMPTY(&sKey));
 			
-			retbl = (sKey == strDigest);
-			
-			if (retbl)
-				Save(_ios, _out, strContent);
+			if (sKey == strDigest)
+				return(Save(_ios, _out, strContent));
 		}
 	}
-	return(retbl);
+	return IOS_ERR;
 };
 //------------------------------------------------------------------------------------------//
 template <typename T_DIGEST> inline const PNFS_MAIL<T_DIGEST>& PNFS_MAIL<T_DIGEST>::operator = (const UVIn& _in){
@@ -247,7 +240,7 @@ template <typename T_DIGEST> const ARRAY& MAIL<T_DIGEST>::Write(const RSA* rsa_p
 	return(cgArrayW);
 }
 //------------------------------------------------------------------------------------------//
-template <typename T_DIGEST> bool32 MAIL<T_DIGEST>::Decode(const UVOut& _out,const RSA *rsa_prk,const UVIn& _in){
+template <typename T_DIGEST> ioss MAIL<T_DIGEST>::Decode(const UVOut& _out,const RSA *rsa_prk,const UVIn& _in){
 	STDSTR	strContent,sKey,strDigest;
 	
 	cgArrayR.Reset();
@@ -257,7 +250,7 @@ template <typename T_DIGEST> bool32 MAIL<T_DIGEST>::Decode(const UVOut& _out,con
 	
 	if (this->Analysis(0) > 0)
 		return(this->Read(nullptr,_out));
-	return G_FALSE;
+	return IOS_ERR;
 }
 #endif
 //------------------------------------------------------------------------------------------//
@@ -310,46 +303,42 @@ template <typename T_DIGEST> inline PNFB_AESHASH<T_DIGEST>& PNFB_AESHASH<T_DIGES
 	return(*this);
 };
 //------------------------------------------------------------------------------------------//
-template <typename T_DIGEST> PNFB_AESHASH<T_DIGEST>& PNFB_AESHASH<T_DIGEST>::_Begin(IOSTATUS* _ios){
+template <typename T_DIGEST> ioss PNFB_AESHASH<T_DIGEST>::_Begin(IOSTATUS* _ios){
 	cgDigestW.InitCFG();
 	PNF_BLOCK::_Begin(_ios);
-	pn_Text._Begin(_ios);
-	return(*this);
+	return(pn_Text._Begin(_ios));
 };
 //------------------------------------------------------------------------------------------//
-template <typename T_DIGEST> PNFB_AESHASH<T_DIGEST>& PNFB_AESHASH<T_DIGEST>::_Endl(void){
+template <typename T_DIGEST> ioss PNFB_AESHASH<T_DIGEST>::_Endl(void){
 	pn_Text._Endl();
 	cgDigestW.Final(nullptr,_NONE());
 	pn_Hash.Write(cgStartup.ios, IUD(cgDigestW.cgArray.GetPointer(0),cgDigestW.GetResultSize()));
 	if (cgStartup.ios != nullptr)
 		cgStartup.ios->total_in -= cgDigestW.GetResultSize();
-	PNF_BLOCK::_Endl();
-	return(*this);
+	return(PNF_BLOCK::_Endl());
 };
 //------------------------------------------------------------------------------------------//
 template <typename T_DIGEST>
-PNFB_AESHASH<T_DIGEST>&	PNFB_AESHASH<T_DIGEST>::DoTransform(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length){
-	pn_Text.Transform(_ios,data,length);
+ioss PNFB_AESHASH<T_DIGEST>::DoTransform(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length){
+	ioss iossta;
+	iossta = pn_Text.Transform(_ios,data,length);
 	cgDigestW.Transform(nullptr,_NONE(),data,length);
-	return(*this);
+	return(iossta);
 };
 //------------------------------------------------------------------------------------------//
-template <typename T_DIGEST> bool32 PNFB_AESHASH<T_DIGEST>::Read(IOSTATUS* _ios,const UVOut& _out){
+template <typename T_DIGEST> ioss PNFB_AESHASH<T_DIGEST>::Read(IOSTATUS* _ios,const UVOut& _out){
 	STDSTR	strO,strC,strContent;
-	bool32	retbl;
 	
 	cgDigestR.InitCFG();
 	pn_Text.Read(nullptr, OUD(&cgDigestR,&strContent));
 
 	cgDigestR.GetResult(nullptr,OUD_HEX(_EMPTY(&strC)));
 	pn_Hash.Read(nullptr, OUD_HEX(_EMPTY(&strO)));
+
+	if ((strC == strO))
+		return(Save(_ios, _out, strContent));
 	
-	retbl = (strC == strO);
-	
-	if (retbl)
-		Save(_ios, _out, strContent);
-	
-	return(retbl);
+	return IOS_ERR;
 };
 //------------------------------------------------------------------------------------------//
 
@@ -406,7 +395,7 @@ template <typename T_DIGEST> inline T_AESMK& T_AESMK::InitCFG(uint32 cfg,const v
 	return(*this);
 };
 //------------------------------------------------------------------------------------------//
-template <typename T_DIGEST> T_AESMK& T_AESMK::_Begin(IOSTATUS* _ios){
+template <typename T_DIGEST> ioss T_AESMK::_Begin(IOSTATUS* _ios){
 	//strMulitKey is in HEX, used '|' to split
 	STDSTR		randKey,sKey,mKey;
 	IOSTATUS	ios;
@@ -429,33 +418,29 @@ template <typename T_DIGEST> T_AESMK& T_AESMK::_Begin(IOSTATUS* _ios){
 	ios.total_in = 0;
 	IOSTATUS_Add(_ios, ios);
 	pnaesmk_Text.InitCFG(DSTF::CFG_INIT_WR_PAR,&randKey);
-	pnaesmk_Text._Begin(_ios);
-	return(*this);
+	return(pnaesmk_Text._Begin(_ios));
 };
 //------------------------------------------------------------------------------------------//
-template <typename T_DIGEST> T_AESMK& T_AESMK::_Endl(void){
+template <typename T_DIGEST> ioss T_AESMK::_Endl(void){
 	pnaesmk_Text._Endl();
-	PNF_BLOCK::_Endl();
-	return(*this);
+	return(PNF_BLOCK::_Endl());
 };
 //------------------------------------------------------------------------------------------//
-template <typename T_DIGEST> T_AESMK& T_AESMK::Write(IOSTATUS* _ios,const UVIn& _in){
-	PNF_BLOCK::Write(_ios,_in);
-	return(*this);
+template <typename T_DIGEST> ioss T_AESMK::Write(IOSTATUS* _ios,const UVIn& _in){
+	return(PNF_BLOCK::Write(_ios,_in));
 };
 //------------------------------------------------------------------------------------------//
-template <typename T_DIGEST> T_AESMK& T_AESMK::Write(IOSTATUS* _ios,const STDSTR& mulitKey,const UVIn& _in){
+template <typename T_DIGEST> ioss T_AESMK::Write(IOSTATUS* _ios,const STDSTR& mulitKey,const UVIn& _in){
 	//strMulitKey is in HEX, used '|' to split
 	cgMKeyW = mulitKey;
-	Write(_ios,_in);
-	return(*this);
+	return(Write(_ios,_in));
 };
 //------------------------------------------------------------------------------------------//
-template <typename T_DIGEST> bool32 T_AESMK::Read(IOSTATUS* _ios,const UVOut& _out){
+template <typename T_DIGEST> ioss T_AESMK::Read(IOSTATUS* _ios,const UVOut& _out){
 	return(Read(_ios,_out,cgMKeyR));
 };
 //------------------------------------------------------------------------------------------//
-template <typename T_DIGEST> bool32 T_AESMK::Read(IOSTATUS* _ios,const UVOut& _out,const STDSTR& mulitKey){
+template <typename T_DIGEST> ioss T_AESMK::Read(IOSTATUS* _ios,const UVOut& _out,const STDSTR& mulitKey){
 	STDSTR	randKey,mKey,sKey;
 	uint32	num,i;
 	
@@ -466,13 +451,11 @@ template <typename T_DIGEST> bool32 T_AESMK::Read(IOSTATUS* _ios,const UVOut& _o
 		while (mKey.length() > 0){
 			sKey = Str_ReadSubItem(&mKey, "|");
 			pnaesmk_Key.InitCFG(DSTF::CFG_INIT_RE_PAR,&sKey).Read(nullptr,_EMPTY(&randKey),i);
-			
 			pnaesmk_Text.InitCFG(DSTF::CFG_INIT_RE_PAR,&randKey);
-			if (pnaesmk_Text.Read(_ios,_out))
-				return G_TRUE;
+			return(pnaesmk_Text.Read(_ios,_out));
 		};
 	};
-	return G_FALSE;
+	return IOS_ERR;
 };
 //------------------------------------------------------------------------------------------//
 

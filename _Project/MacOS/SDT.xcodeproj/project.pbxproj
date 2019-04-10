@@ -67,6 +67,7 @@
 		29AE0615203E66EC00A699E7 /* BIC_GCM.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 29AE0614203E66EC00A699E7 /* BIC_GCM.cpp */; };
 		29AE0617203E785C00A699E7 /* ADS_Buffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 29AE0616203E785C00A699E7 /* ADS_Buffer.cpp */; };
 		29AE0619203EA40800A699E7 /* BIC_Dev.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 29AE0618203EA40800A699E7 /* BIC_Dev.cpp */; };
+		29C76CB7225A260C00859962 /* ALG_Math.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 29C76CB6225A260B00859962 /* ALG_Math.cpp */; };
 		29CEB2A82021D50100A9C840 /* ODEV_STDOUT.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 29CEB2A62021D50100A9C840 /* ODEV_STDOUT.cpp */; };
 		29CEB2A92021D50100A9C840 /* Output.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 29CEB2A72021D50100A9C840 /* Output.cpp */; };
 		29D542C02071F2CF004CD677 /* libtls.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 29D542BD2071F2CF004CD677 /* libtls.a */; };
@@ -246,6 +247,8 @@
 		29AE0616203E785C00A699E7 /* ADS_Buffer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ADS_Buffer.cpp; sourceTree = "<group>"; };
 		29AE0618203EA40800A699E7 /* BIC_Dev.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = BIC_Dev.cpp; sourceTree = "<group>"; };
 		29AE061B203EB56200A699E7 /* Script.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Script.h; sourceTree = "<group>"; };
+		29C76CB5225A25A800859962 /* ALG_Math.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ALG_Math.h; sourceTree = "<group>"; };
+		29C76CB6225A260B00859962 /* ALG_Math.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ALG_Math.cpp; sourceTree = "<group>"; };
 		29CEB29E2020AB7600A9C840 /* Output.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Output.h; sourceTree = "<group>"; };
 		29CEB2A02020AB8700A9C840 /* Output.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Output.hpp; sourceTree = "<group>"; };
 		29CEB2A32021753300A9C840 /* ODEV_STDOUT.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = ODEV_STDOUT.hpp; sourceTree = "<group>"; };
@@ -473,6 +476,7 @@
 				292C16E620163AB40037BE62 /* ALG_zlib.h */,
 				29A5F2CD20171F82000E8929 /* ALG_CRC.h */,
 				29A5F2CB20171F72000E8929 /* ALG_CRC.hpp */,
+				29C76CB5225A25A800859962 /* ALG_Math.h */,
 			);
 			path = Algorithm;
 			sourceTree = "<group>";
@@ -506,6 +510,7 @@
 				292C16E720163AC50037BE62 /* ALG_BASE64.cpp */,
 				292C16E820163AC50037BE62 /* ALG_zlib.cpp */,
 				29A5F2CE20175C69000E8929 /* ALG_CRC.cpp */,
+				29C76CB6225A260B00859962 /* ALG_Math.cpp */,
 			);
 			path = Algorithm;
 			sourceTree = "<group>";
@@ -967,10 +972,11 @@
 			};
 			buildConfigurationList = 2909AC62200F8BB8007F7525 /* Build configuration list for PBXProject "SDT" */;
 			compatibilityVersion = "Xcode 3.2";
-			developmentRegion = English;
+			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
+				Base,
 			);
 			mainGroup = 2909AC5E200F8BB8007F7525;
 			productRefGroup = 2909AC68200F8BB8007F7525 /* Products */;
@@ -1017,6 +1023,7 @@
 				29AE0601203B166500A699E7 /* BIF_EXE.cpp in Sources */,
 				292FB400211C13D600B2D75A /* ADS_SMC.cpp in Sources */,
 				2927C88F20458F7D00A24894 /* ParRecord.cpp in Sources */,
+				29C76CB7225A260C00859962 /* ALG_Math.cpp in Sources */,
 				292C16EA20163AC50037BE62 /* ALG_zlib.cpp in Sources */,
 				29A7C00F201986D000CBD42D /* ADS_Protocol.cpp in Sources */,
 				299D7DB420411ED70069200D /* BIC_NTP.cpp in Sources */,
@@ -1119,7 +1126,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = ../../ExtraLib/Openssl/1.0.2d/MAC64/include;
 				LIBRARY_SEARCH_PATHS = ../../ExtraLib/Openssl/1.0.2d/MAC64/lib;
-				MACOSX_DEPLOYMENT_TARGET = 10.12;
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
@@ -1171,7 +1178,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = ../../ExtraLib/Openssl/1.0.2d/MAC64/include;
 				LIBRARY_SEARCH_PATHS = ../../ExtraLib/Openssl/1.0.2d/MAC64/lib;
-				MACOSX_DEPLOYMENT_TARGET = 10.12;
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = macosx;
 			};

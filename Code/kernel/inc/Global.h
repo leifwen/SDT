@@ -30,6 +30,7 @@
 #include "ALG_BASE64.h"
 #include "ALG_zlib.h"
 #include "ALG_CRC.h"
+#include "ALG_Math.h"
 
 #include "ADS_Protocol.h"
 #include "ADS_Crypto.h"

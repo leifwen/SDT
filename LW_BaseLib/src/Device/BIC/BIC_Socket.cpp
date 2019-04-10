@@ -117,7 +117,7 @@ bool32 BIC_SI_LS_PrintSocket(CMD_ENV* env,ASOCKET* socket){
 			Str_AddSpaceInFront(&strPrintData,3);
 			strPrintData += ".";
 			
-			if (socket->CheckSelected() == 0){
+			if (socket->CheckSelected() == G_FALSE){
 				strPrintData += "   ";
 			}
 			else{

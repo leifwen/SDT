@@ -39,7 +39,7 @@ class CSSL_T0 : private DSTF{
 				void		SetPackageDlyMS		(double dlyMS);
 				double		GetPackageDlyMS		(void);
 	private:
-		virtual	CSSL_T0&	DoTransform			(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length);
+		virtual	ioss		DoTransform			(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length);
 	public:
 				void		Register			(TNF* csslT1);
 				void		Delivery			(void);
@@ -64,13 +64,13 @@ class CSSL_PNFBT1 : public PNF_BLOCK{
 		PNF_VAR			pn_OrderID;
 		PNF_SC			pn_Info;
 	public:
-				void 			InitPN		(const ARRAY* _out,const ARRAY* _in,G_ENDIAN endian = G_ENDIAN_LITTLE);
+				void 	InitPN		(const ARRAY* _out,const ARRAY* _in,G_ENDIAN endian = G_ENDIAN_LITTLE);
 	public:
-				uint32			ReadCtrlID	(void)const;
-				uint32			ReadBlockID	(void)const;
-				uint32			ReadOrderID	(void)const;
+				uint32	ReadCtrlID	(void)const;
+				uint32	ReadBlockID	(void)const;
+				uint32	ReadOrderID	(void)const;
 	public:
-		const	CSSL_PNFBT1&	Write		(IOSTATUS* _ios,const T1ID& _id,const UVIn& _in);
+				ioss	Write		(IOSTATUS* _ios,const T1ID& _id,const UVIn& _in);
 };
 //------------------------------------------------------------------------------------------//
 class CSSL_T1_RX : private DSTF{
@@ -155,8 +155,8 @@ class CSSL_T1HD : private DSTF{
 		const	uint32&		GetPort			(void);
 				void		ReceiveFromT0	(IOSTATUS* _ios,const uint8* data,const uint64& length);
 	protected:
-		virtual	CSSL_T1HD&	DoTransform		(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length);
-		virtual	CSSL_T1HD&	DoFinal			(IOSTATUS* _ios,const UVOut& _out);
+		virtual	ioss		DoTransform		(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length);
+		virtual	ioss		DoFinal			(IOSTATUS* _ios,const UVOut& _out);
 				bool32 		CheckACK		(IOSTATUS* _ios);
 	public:
 				void		Lock			(void);

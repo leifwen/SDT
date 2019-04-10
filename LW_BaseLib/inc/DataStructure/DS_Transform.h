@@ -25,13 +25,16 @@ struct IOSTATUS{
 	bool32	status;
 };
 enum {
+	IOS_NOCONVERT = -2,
 	IOS_ERR = -1,
 	IOS_NOMEM = G_FALSE,
 	IOS_OK = G_TRUE,
 	IOS_FINISH = 2,
 };
+typedef	bool32	ioss;
 static inline IOSTATUS* IOSTATUS_Add(IOSTATUS* _out,const IOSTATUS& _in);
 static inline IOSTATUS* IOSTATUS_Clr(IOSTATUS* _ios);
+static inline ioss*		IOSTATUS_STA(ioss* _out,const ioss& _in);
 //------------------------------------------------------------------------------------------//
 class DS_IO_NODE : public TNFP{
 	public:
@@ -43,28 +46,28 @@ class DS_IO_NODE : public TNFP{
 				 DS_IO_NODE(void);
 		virtual ~DS_IO_NODE(void){;};
 	protected:
-						bool32	BaseSave		(				IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length);
-						bool32	BaseConvert		(DSIO* ioNode,	IOSTATUS* _ios,const UVOut& _out,const UVIn& _in);
-						bool32	BaseGetInLength	(uint64* num,									 const UVIn& _in);
-						void	FileAdd			(				IOSTATUS* _ios,const STDSTR& name,const uint8* data,const uint64& length);
-						void	FileWrite		(				IOSTATUS* _ios,const STDSTR& name,const uint8* data,const uint64& length);
-						void	ArrayConvert	(DSIO* ioNode,	IOSTATUS* _ios,const UVOut& _out,const ARRAY* _array,uint32 length,uint32 offset);
-						void	FileConvert		(DSIO* ioNode,	IOSTATUS* _ios,const UVOut& _out,const STDSTR& name,uint64 length,uint64 offset);
+						ioss	BaseConvert		(DSIO* ioNode,	IOSTATUS* _ios,const UVOut& _out,const UVIn& _in);
+						ioss	BaseSave		(				IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length);
+						ioss	BaseGetInLength	(uint64* num,									 const UVIn& _in);
+						ioss	ArrayConvert	(DSIO* ioNode,	IOSTATUS* _ios,const UVOut& _out,const ARRAY* _array,uint32 length,uint32 offset);
+						ioss	FileConvert		(DSIO* ioNode,	IOSTATUS* _ios,const UVOut& _out,const STDSTR& name,uint64 length,uint64 offset);
+						ioss	FileAdd			(				IOSTATUS* _ios,const STDSTR& name,const uint8* data,const uint64& length);
+						ioss	FileWrite		(				IOSTATUS* _ios,const STDSTR& name,const uint8* data,const uint64& length);
 	protected:
-		inline	virtual	DSIO&	DoTransform		(				IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length);
-		inline	virtual	DSIO&	DoFinal			(				IOSTATUS* _ios,const UVOut& _out);
+		inline	virtual	ioss	DoTransform		(				IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length);
+		inline	virtual	ioss	DoFinal			(				IOSTATUS* _ios,const UVOut& _out);
 	private:
-				virtual	bool32	DoConvert		(DSIO* ioNode,	IOSTATUS* _ios,const UVOut& _out,const UVIn& _in);
-				virtual	bool32	DoSave			(				IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length);
-				virtual	bool32	DoGetInLength	(uint64* num,									 const UVIn& _in);
+				virtual	ioss	DoConvert		(DSIO* ioNode,	IOSTATUS* _ios,const UVOut& _out,const UVIn& _in);
+				virtual	ioss	DoSave			(				IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length);
+				virtual	ioss	DoGetInLength	(uint64* num,									 const UVIn& _in);
 	public:
 		inline	virtual	uint64	GetInLength		(												 const UVIn& _in);
-		inline			void	Save			(				IOSTATUS* _ios,const UVOut& _out,const UVIn& _in);
-		inline			void	Save			(				IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length);
+		inline			ioss	Save			(				IOSTATUS* _ios,const UVOut& _out,const UVIn& _in);
+		inline			ioss	Save			(				IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length);
 	public:
-		inline			DSIO&	Transform		(				IOSTATUS* _ios,const UVOut& _out,const UVIn& _in);
-		inline			DSIO&	Transform		(				IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length);
-		inline			DSIO&	Final			(				IOSTATUS* _ios,const UVOut& _out);
+		inline			ioss	Transform		(				IOSTATUS* _ios,const UVOut& _out,const UVIn& _in);
+		inline			ioss	Transform		(				IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length);
+		inline			ioss	Final			(				IOSTATUS* _ios,const UVOut& _out);
 	public:
 		static	inline	DSIO& 	GetDSIOList		(void);
 };
@@ -117,7 +120,7 @@ class DS_TRANSFORM_FRAME : public DS_IO_NODE{
 		inline	virtual	DSTF&	InitCFG		(uint32 cfg,const void* par = nullptr);
 		inline	virtual	DSTF&	_Startup	(IOSTATUS* _ios,const UVOut& _out);
 	public:
-		inline			DSTF&	AllIn		(IOSTATUS* _ios,const UVOut& _out,const UVIn& _in);
+		inline			ioss	AllIn		(IOSTATUS* _ios,const UVOut& _out,const UVIn& _in);
 	public:
 		template <typename T_DSTF> inline	friend	T_DSTF& operator <<	(T_DSTF& _dstf,const STARTUP& sp){
 			_dstf._Startup(sp.ios,sp.uvOut);
@@ -180,9 +183,9 @@ template <typename DS_CTX> class DSTF_DIR : public DSTF{
 		inline	virtual void		SetSelfName		(const STDSTR& strName);
 		inline	virtual	DSTF_DIR&	InitCFG			(uint32 cfg,const void* par = nullptr);
 	protected:
-		inline	virtual	DSTF_DIR&	DoTransform		(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length);
-		inline	virtual	DSTF_DIR&	DoFinal			(IOSTATUS* _ios,const UVOut& _out);
-						bool32		Save			(DS_CTX* _ctx,IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length);
+		inline	virtual	ioss		DoTransform		(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length);
+		inline	virtual	ioss		DoFinal			(IOSTATUS* _ios,const UVOut& _out);
+						ioss		Save			(DS_CTX* _ctx,IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length);
 };
 //------------------------------------------------------------------------------------------//
 typedef DSTF_DIR<DSTF_DIR_CTX> DSTF_DIRBASE;
@@ -211,8 +214,8 @@ class DSTF_AB_FRAME : public DSTF_DIR<DSTF_DIR_CTX>{
 		inline			void			DisableB		(void);
 		inline			void			EnableAB		(void);
 	protected:
-		inline	virtual	DSTF_AB_FRAME&	DoTransform		(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length);
-		inline	virtual	DSTF_AB_FRAME&	DoFinal			(IOSTATUS* _ios,const UVOut& _out);
+		inline	virtual	ioss			DoTransform		(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length);
+		inline	virtual	ioss			DoFinal			(IOSTATUS* _ios,const UVOut& _out);
 };
 //------------------------------------------------------------------------------------------//
 namespace DSTF_TEST {

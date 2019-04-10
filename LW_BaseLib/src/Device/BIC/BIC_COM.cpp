@@ -165,6 +165,66 @@ CMDID BIC_COM_RTS::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 }
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
+CMDID BIC_COM_CTSFLOW::Help(CMD_ENV* env,uint32 flag)const{
+	PrintHelpItem(env,cgCommand,"Set COM CTS flow");
+	if (B_ChkFLAG32(flag, CMD_blPrintSimple))
+		return(cgCommandID);
+	PrintHelpSubItem(env,"[on|off]"	,"Enable/disable hard CTS flow");
+	return(cgCommandID);
+};
+//------------------------------------------------------------------------------------------//
+CMDID BIC_COM_CTSFLOW::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
+	ExpandDeviceAttr* attr = BIC_ENV_DEV::GetEDA(env);
+	if (attr->IsComOpened()){
+		if (msg == "on"){
+			attr->ACom()->SetCTSFlow(G_TRUE);
+			PrintResult(env,"Enable hard CTS flow");
+		}
+		else if (msg == "off"){
+			attr->ACom()->SetCTSFlow(G_FALSE);
+			PrintResult(env,"Disable hard CTS flow");
+		}
+		else{
+			Help(env,0);
+		}
+	}
+	else{
+		PrintFail(env,"no COM connected");
+	}
+	return(cgCommandID);
+}
+//------------------------------------------------------------------------------------------//
+//------------------------------------------------------------------------------------------//
+CMDID BIC_COM_DSRFLOW::Help(CMD_ENV* env,uint32 flag)const{
+	PrintHelpItem(env,cgCommand,"Set COM DSR flow");
+	if (B_ChkFLAG32(flag, CMD_blPrintSimple))
+		return(cgCommandID);
+	PrintHelpSubItem(env,"[on|off]"	,"Enable/disable hard DSR flow");
+	return(cgCommandID);
+};
+//------------------------------------------------------------------------------------------//
+CMDID BIC_COM_DSRFLOW::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
+	ExpandDeviceAttr* attr = BIC_ENV_DEV::GetEDA(env);
+	if (attr->IsComOpened()){
+		if (msg == "on"){
+			attr->ACom()->SetCTSFlow(G_TRUE);
+			PrintResult(env,"Enable hard DSR flow");
+		}
+		else if (msg == "off"){
+			attr->ACom()->SetCTSFlow(G_FALSE);
+			PrintResult(env,"Disable hard DSR flow");
+		}
+		else{
+			Help(env,0);
+		}
+	}
+	else{
+		PrintFail(env,"no COM connected");
+	}
+	return(cgCommandID);
+}
+//------------------------------------------------------------------------------------------//
+//------------------------------------------------------------------------------------------//
 CMDID BIC_COM_MS::Help(CMD_ENV* env,uint32 flag)const{
 	PrintHelpItem(env,cgCommand,"Modem status report");
 	if (B_ChkFLAG32(flag, CMD_blPrintSimple))
@@ -260,7 +320,9 @@ BIC_ACOM::BIC_ACOM(void) : BIC_BASE_S() {
 #if defined Commu_ComEnum_h && defined CommonDefH_VC
 	< cgSub_com_lscom
 #endif
-	< cgSub_com < cgSub_com_br < cgSub_com_openv< cgSub_com_ms < cgSub_com_dtr < cgSub_com_rts;
+	< cgSub_com < cgSub_com_br < cgSub_com_openv< cgSub_com_ms
+	< cgSub_com_dtr < cgSub_com_rts
+	< cgSub_com_ctsflow < cgSub_com_dsrflow;
 };
 //------------------------------------------------------------------------------------------//
 #endif /* BIC_COM_h */

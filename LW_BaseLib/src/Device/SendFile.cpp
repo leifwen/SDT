@@ -27,7 +27,7 @@ bool32 TFileSend::Execute(const DEVICE* dev,const STDSTR& fileName){
 //------------------------------------------------------------------------------------------//
 bool32 TFileSend::SendThreadFun(void* p){
 	std::fstream 	fileStream;
-	uint32			sendLength,i,j,dwBytesWr,TxBytes;
+	uint32			sendLength,i,j,TxBytes;
 	uint8			*tempBuffer;
 	STDSTR			strPrintdata,strTi,strTj;
 	DTIME			startTime,endTime;
@@ -52,14 +52,22 @@ bool32 TFileSend::SendThreadFun(void* p){
 		sendLength = cgDevice->SRxSBUFMaxSize() - cgDevice->SUnsentBytes();
 		if (sendLength > PACKAGE_MAX_SIZE)
 			sendLength = PACKAGE_MAX_SIZE;
-		fileStream.read((char*)tempBuffer,sendLength);
-		sendLength = (uint32)fileStream.gcount();
-		if (sendLength > 0){
+		if (sendLength == 0){
+			SYS_SleepMS(2);
+		}
+		else{
+			fileStream.read((char*)tempBuffer,sendLength);
+			sendLength = (uint32)fileStream.gcount();
+			
 			j = 0;
-			while((j < sendLength) && (IsStop() == 0)){
-				dwBytesWr = cgDevice->SSend(IUD(&tempBuffer[j],sendLength - j));
-				j += dwBytesWr;
-			}
+			while(1){
+				j += cgDevice->SSend(IUD(&tempBuffer[j],sendLength - j));
+				if ((j < sendLength) && (IsTerminated() == G_FALSE)){
+					SYS_SleepMS(2);
+					continue;
+				}
+				break;
+			};
 			++ i;
 			TxBytes += j;
 			strTi = Str_ToStr(i);
@@ -67,9 +75,14 @@ bool32 TFileSend::SendThreadFun(void* p){
 			strTj = Str_ToStr(j);
 			Str_AddSpaceInFront(&strTj,6);
 			
-			*cgDevice->GetSelSTDOUT() << Begin() << NL() << COL_clBlue << "Package " << strTi << ": " << strTj << " Bytes\n" << Endl();
+			*cgDevice->GetSelSTDOUT()
+				<< Begin() << NL()
+				<< COL_Time << SYS_MakeTimeNow()
+				<< COL_clBlue << " Package " << strTi << ": "
+				<< strTj << "/" << Str_ToStr(TxBytes)
+				<< " Bytes\n" << Endl();
 		}
-		if (IsStop()){
+		if (IsTerminated()){
 			*cgDevice->GetSelSTDOUT() << Begin() << NL()
 			<< COL_DivLine_Maroon << COL_Time << SYS_MakeTimeNow()
 			<< COL_NormalMessage << " The file transfer is stopped.\n"
@@ -83,6 +96,7 @@ bool32 TFileSend::SendThreadFun(void* p){
 	double KBps;
 	KBps = (double)TxBytes / startTime.GetSec() / 1000.0;
 	
+	SYS_SleepMS(10);
 	*cgDevice->GetSelSTDOUT() << Begin() << NL()
 	<< COL_DivLine_Maroon
 	<< COL_Time << SYS_MakeTime(endTime)

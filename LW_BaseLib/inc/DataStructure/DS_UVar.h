@@ -36,7 +36,7 @@ struct	_UVVT		{DS_V var;	uint32  uvid;};
 
 struct	_UVBASE		{void* p;	uint32	uvid;};
 struct	_UVTRAN		{void* iop;	_UVBASE	uvb;};
-struct	_UVCHARS	{void* p;	uint64	num;};
+struct	_UVCHARS	{void* p;	uint64	num;	uint64 offset;};
 struct	_UVARRAY	{void* p;	uint32	num;	uint32 offset;};
 struct	_UVFILE		{void* p;	uint64	num;	uint64 offset;	uint32 cfg;};
 
@@ -106,7 +106,7 @@ static inline	_UVBASE		OUD_HEXs	(STDSTR* 	p);
 
 static inline	_UVBASE		OUD			(const UVOut&	uv);
 
-static inline	_UVV_CHARS	OUD_CHARS	(uint8*	p,const uint64& num = 1);
+static inline	_UVV_CHARS	OUD_CHARS	(uint8*	p,uint64 num = 1,uint64 offset = 0);
 static inline	_UVV_FILE	OUD_FILEADD	(const STDSTR&	name);
 static inline	_UVV_FILE	OUD_FILEWR	(const STDSTR&	name);
 

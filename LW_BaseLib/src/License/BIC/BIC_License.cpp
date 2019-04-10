@@ -98,6 +98,7 @@ CMDID BIC_LSERVER::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 	if (strPar.length() == 0)
 		strPar = "16385";
 	if (m_LServer.Open(SetOpenSSL(OPEN_TCPS, "", atoi(strPar.c_str())))){
+		//PrintEnable(env);
 		PrintResult(env,"License server is started at Port",strPar);
 		PrintResult(env,"Press Esc to quit and stop the server");
 		
@@ -106,7 +107,7 @@ CMDID BIC_LSERVER::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 			if (m_LServer.CheckblRequest()){
 				ClrInPressAnyKeyMode(env);
 				PrintResult(env,m_LServer.RequestSocketInfo(&strPrint));
-				PrintResult(env,COL_clBlue,"Input reject or approve [hours] to response registration");
+				PrintResult(env,COL_clBlue,"Input reject/r or approve/a [hours] to response registration");
 				PrintResult(env,COL_clBlue,"[720H = 1M,8760H = 1Y,867240H = 99Y]");
 				while(ReadCommand(env,&strCommand)){
 					Str_TrimSelf(strCommand);

@@ -141,8 +141,8 @@ template <typename ALGCTX> class ALG_DIGEST_T : public DSTF{
 		inline	virtual	ALG_DIGEST_T&	InitCFG		(uint32 cfg = 0,const void* p = nullptr);
 	protected:
 		inline	virtual	ALG_DIGEST_T&	InitSize	(uint32 size);
-		inline	virtual	ALG_DIGEST_T&	DoTransform	(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length);
-		inline	virtual	ALG_DIGEST_T&	DoFinal		(IOSTATUS* _ios,const UVOut& _out);
+		inline	virtual	ioss			DoTransform	(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length);
+		inline	virtual	ioss			DoFinal		(IOSTATUS* _ios,const UVOut& _out);
 	public:
 		inline			ALG_DIGEST_T&	GetResult	(IOSTATUS* _ios,const UVOut& _result);
 		inline			ALG_DIGEST_T&	Calc		(IOSTATUS* _ios,const UVOut& _result,const UVOut& _out,const UVIn& _in);

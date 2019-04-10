@@ -119,7 +119,7 @@ bool32 ODEV_FILE::CheckPrint(uint32 ctrl)const{
 	if (GetGroup() == CRD::CRD_G3)
 		return (OUTPUT_NODE::CheckPrint(ctrl));
 	if (GetGroup() == CRD::CRD_G2){
-		if (CRD::CheckGroup(CRD::CRD_G3,ctrl) == 0)
+		if (CRD::CheckGroup(CRD::CRD_G3,ctrl) == G_FALSE)
 			return G_FALSE;
 	}
 	return G_TRUE;
@@ -132,7 +132,7 @@ void ODEV_FILE::Print(uint32 ctrl,COLORENUM col,const uint8* data, uint32 num){
 		PrintTXT(ctrl,col,data,num);
 	if (CheckSFlag(ODEV_blRTF))
 		PrintRTF(ctrl,col,data,num);
-	if (SYS_Delay_CheckTS(&cgTimeS) != 0)
+	if (SYS_Delay_CheckTS(&cgTimeS) != G_FALSE)
 		SYS_Delay_SetTS(&cgTimeS, FREQUENCY);
 }
 //------------------------------------------------------------------------------------------//
@@ -214,7 +214,7 @@ void ODEV_FILE::PrintRTF(uint32 ctrl,COLORENUM col,const uint8* data, uint32 num
 		}
 		Str_CharToStr(&cgContentRTF, data, length - 1, G_ASCII, G_SPACE_OFF, G_ESCAPE_OFF);
 	}
-	if ((cgContentRTF.length() > UNWRITESIZE) || (SYS_Delay_CheckTS(&cgTimeS) != 0)){
+	if ((cgContentRTF.length() > UNWRITESIZE) || (SYS_Delay_CheckTS(&cgTimeS) != G_FALSE)){
 #ifdef CommonDefH_VC
 		strName = CreateLOGDIR() + "\\" + cgfileName + ".rtf";
 #endif
@@ -280,7 +280,7 @@ void ODEV_FILE::PrintTXT(uint32 ctrl,COLORENUM col,const uint8* data, uint32 num
 		}
 		Str_CharToStr(&cgContentTXT, data, length - 1, G_ASCII, G_SPACE_OFF, G_ESCAPE_OFF);
 	}
-	if ((cgContentTXT.length() > UNWRITESIZE) || (SYS_Delay_CheckTS(&cgTimeS) != 0)){
+	if ((cgContentTXT.length() > UNWRITESIZE) || (SYS_Delay_CheckTS(&cgTimeS) != G_FALSE)){
 #ifdef CommonDefH_VC
 		strName = CreateLOGDIR() + "\\" + cgfileName + ".txt";
 #endif
@@ -300,7 +300,7 @@ void ODEV_FILE::PrintRAW(uint32 ctrl,COLORENUM col,const uint8* data, uint32 num
 	if (num > 0)
 		Str_CharToStr(&cgContentRAW, data, num, G_ASCII, G_SPACE_OFF, G_ESCAPE_OFF);
 	
-	if ((cgContentRAW.length() > UNWRITESIZE) || (SYS_Delay_CheckTS(&cgTimeS) != 0)){
+	if ((cgContentRAW.length() > UNWRITESIZE) || (SYS_Delay_CheckTS(&cgTimeS) != G_FALSE)){
 #ifdef CommonDefH_VC
 		strName = CreateLOGDIR() + "\\" + cgfileName + ".bin";
 #endif
@@ -486,7 +486,7 @@ void ODEV_FILE::AddToRTFFile(const STDSTR& fName,const STDSTR& content){
 	if (content.length() == 0)
 		return;
 	
-	if (CFS_CheckFile(fName) == 0)
+	if (CFS_CheckFile(fName) == G_FALSE)
 		CreateEmptyRTFFile(fName);
 	
 	fileStream.open(fName.c_str(),std::ios::in|std::ios::out|std::ios::binary);
@@ -501,7 +501,7 @@ void ODEV_FILE::AddToTXTFile(const STDSTR& fName,const STDSTR& content){
 	if (content.length() == 0)
 		return;
 	
-	if (CFS_CheckFile(fName) == 0){
+	if (CFS_CheckFile(fName) == G_FALSE){
 		CFS_WriteFile(fName, content);
 	}
 	else{

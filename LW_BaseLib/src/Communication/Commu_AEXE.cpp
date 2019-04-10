@@ -89,7 +89,7 @@ bool32 AEXE::ExecuteCommand(const STDSTR& cmd){
 bool32 AEXE::Execute(const STDSTR &name,const STDSTR& cmd){
 	int32 ret;
 	ret = 0;
-	if (InDoing_try() != 0){
+	if (InDoing_try() != G_FALSE){
 		cgCommand = cmd;
 		cgSH = "";
 		ret = COMMU_THREAD::Open(SetOpenPar(OPEN_None,name,0,0),G_LOCK_OFF);
@@ -101,7 +101,7 @@ bool32 AEXE::Execute(const STDSTR &name,const STDSTR& cmd){
 bool32 AEXE::SH(const STDSTR &name,const STDSTR& cmd){
 	int32 ret;
 	ret = 0;
-	if (InDoing_try() != 0){
+	if (InDoing_try() != G_FALSE){
 		cgCommand = cmd;
 		cgSH = "/bin/sh";
 		ret = COMMU_THREAD::Open(SetOpenPar(OPEN_None,name,0,0),G_LOCK_OFF);
@@ -113,7 +113,7 @@ bool32 AEXE::SH(const STDSTR &name,const STDSTR& cmd){
 bool32 AEXE::BASH(const STDSTR &name,const STDSTR& cmd){
 	int32 ret;
 	ret = 0;
-	if (InDoing_try() != 0){
+	if (InDoing_try() != G_FALSE){
 		cgCommand = cmd;
 		cgSH = "/bin/bash";
 		ret = COMMU_THREAD::Open(SetOpenPar(OPEN_None,name,0,0),G_LOCK_OFF);
@@ -188,7 +188,7 @@ bool32 AEXE::ReadFromDevice(uint32* retNum,uint8* buffer,uint32 length){
 	*retNum = 0;
 	
 	retCode = read(fd_pipeChildOut[0],buffer,length);
-	if (((retCode == -1) && (errno != EINTR) && (errno != EWOULDBLOCK) && (errno != EAGAIN)))
+	if (((retCode < 0) && (errno != EINTR) && (errno != EWOULDBLOCK) && (errno != EAGAIN)))
 		return -1;
 	if (retCode > 0){
 		*retNum = (uint32)retCode;
@@ -198,27 +198,25 @@ bool32 AEXE::ReadFromDevice(uint32* retNum,uint8* buffer,uint32 length){
 }
 //------------------------------------------------------------------------------------------//
 bool32 AEXE::SendToDevice(uint32* retNum,const uint8* buffer,uint32 length){
-	int64		retCode;
-	uint32		i;
+	int64		retCode = 0;
+	uint32		alreadySend;
 	
-	i = 0;
-	while((i < length) && (IsConnected() != 0)){
-		retCode = write(fd_pipeChildIn[1], &buffer[i], length - i);
-		if (retCode == -1){
-			*retNum = i;
-			return -1;
-		}
-		i += retCode;
+	alreadySend = 0;
+	while((alreadySend < length) && (IsConnected())){
+		retCode = write(fd_pipeChildIn[1], &buffer[alreadySend], length - alreadySend);
+		if (retCode < 0)
+			break;
+		alreadySend += retCode;
 	}
-	*retNum = (uint32)i;
-	return G_TRUE;
+	*retNum = alreadySend;
+	return(!((alreadySend < length) || retCode));
 }
 //------------------------------------------------------------------------------------------//
 bool32 AEXE::MonitorThreadFun(void* commu){
 	int	childRet,status;
 	SYS_SleepMS(2);
 	ETLogThreadStart(monitorThread);
-	while(monitorThread.IsTerminated() == 0){
+	while(monitorThread.IsTerminated() == G_FALSE){
 		childRet = waitpid(childpid,&status,WNOHANG);
 		if (childRet == childpid || childRet == -1){
 			childpid = -1;

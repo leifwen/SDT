@@ -408,8 +408,8 @@ void COMMAND_NODE::ImportV0_4(uint32 ver,STDSTR* strIn){
 //------------------------------------------------------------------------------------------//
 STDSTR&	COMMAND_NODE::GetTitle(STDSTR* retStr,uint32 flag){
 	*retStr  = " cID    ";
-	*retStr += (B_ChkFLAG32(flag,CL_showCycle) == 0)?"":"  cycle";
-	*retStr += (B_ChkFLAG32(flag,CL_showTimeout) == 0)?"":"  timeout";
+	*retStr += (B_ChkFLAG32(flag,CL_showCycle) == G_FALSE)?"":"  cycle";
+	*retStr += (B_ChkFLAG32(flag,CL_showTimeout) == G_FALSE)?"":"  timeout";
 	*retStr += "  command";
 	return(*retStr);
 }
@@ -419,7 +419,7 @@ STDSTR&	COMMAND_NODE::Compose(STDSTR* retStr,uint32 flag){
 	InUse_set();
 	*retStr = Str_ToStr(GetdRNodeID(this));
 	Str_AddSpaceInFront(retStr,3);
-	*retStr = ((blEnableSend == 0)?" ":"*") + *retStr;
+	*retStr = ((blEnableSend == G_FALSE)?" ":"*") + *retStr;
 	switch (cmdTail) {
 		case CMD_R: *retStr += ".  R ";break;
 		case CMD_N: *retStr += ".   N";break;
@@ -428,12 +428,12 @@ STDSTR&	COMMAND_NODE::Compose(STDSTR* retStr,uint32 flag){
 		default:
 			*retStr += ".    ";break;
 	}
-	if (B_ChkFLAG32(flag,CL_showCycle) != 0){
+	if (B_ChkFLAG32(flag,CL_showCycle) != G_FALSE){
 		strTemp = StrCycle;
 		Str_AddSpaceInFront(&strTemp,7);
 		*retStr += strTemp;
 	}
-	if (B_ChkFLAG32(flag,CL_showTimeout) != 0){
+	if (B_ChkFLAG32(flag,CL_showTimeout) != G_FALSE){
 		strTemp = StrTimeout + "s";
 		Str_AddSpaceInFront(&strTemp,9);
 		*retStr += strTemp;
@@ -603,8 +603,8 @@ void COMMAND_GROUP::ClearResult(void){
 //------------------------------------------------------------------------------------------//
 STDSTR&	COMMAND_GROUP::GetTitle(STDSTR* retStr,uint32 flag){
 	*retStr  = " gID";
-	*retStr += (B_ChkFLAG32(flag,GL_showCycle) == 0)?"":"  cycle";
-	*retStr += (B_ChkFLAG32(flag,GL_showInterval) == 0)?"":"  interval";
+	*retStr += (B_ChkFLAG32(flag,GL_showCycle) == G_FALSE)?"":"  cycle";
+	*retStr += (B_ChkFLAG32(flag,GL_showInterval) == G_FALSE)?"":"  interval";
 	*retStr += "  group name";
 	return(*retStr);
 }
@@ -614,15 +614,15 @@ STDSTR&	COMMAND_GROUP::Compose(STDSTR* retStr,uint32 flag){
 	InUse_set();
 	*retStr = Str_ToStr(GetdRNodeID(this));
 	Str_AddSpaceInFront(retStr,3);
-	*retStr = ((blEnableAutoRun == 0)?" ":"*") + *retStr;
+	*retStr = ((blEnableAutoRun == G_FALSE)?" ":"*") + *retStr;
 	*retStr += '.';
 	
-	if (B_ChkFLAG32(flag,GL_showCycle) != 0){
+	if (B_ChkFLAG32(flag,GL_showCycle) != G_FALSE){
 		strTemp = Str_ToStr(autoRunTimes);
 		Str_AddSpaceInFront(&strTemp,7);
 		*retStr += strTemp;
 	}
-	if (B_ChkFLAG32(flag,GL_showInterval) != 0){
+	if (B_ChkFLAG32(flag,GL_showInterval) != G_FALSE){
 		strTemp = Str_ToStr(intervalTime) + "ms";
 		Str_AddSpaceInFront(&strTemp,10);
 		*retStr += strTemp;

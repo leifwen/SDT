@@ -71,9 +71,9 @@ CMDID BIF_WAIT::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIF_SYNCHRONOUS::Help(CMD_ENV* env,uint32 flag)const{
-	PrintB(env,".CMD = Synchronous=<PAR1>,<PAR2> -->Time synchronization, PAR1 is offset of zone second,");
-	PrintB(env,"                                    PAR2 is synchronization interval, uint is second.");
-	PrintB(env,"  Command = <'Synchronous=<PAR1>,<PAR2>>[//COMMENT]");
+	PrintB(env,".CMD = Sync/Synchronous=<PAR1>,<PAR2> -->Time synchronization, PAR1 is offset of zone second,");
+	PrintB(env,"                                         PAR2 is synchronization interval, uint is second.");
+	PrintB(env,"  Command = <'Sync/Synchronous=<PAR1>,<PAR2>>[//COMMENT]");
 	PrintP(env,"  Notes:");
 	PrintP(env,"     1.If this is the first implementation, T0=TIME(HOUR(Tnow),MINUTE(Tnow),0)+PAR1.");
 	PrintP(env,"        eg:Time is 10:12:45, record T0=10:12:00 + PAR1.");

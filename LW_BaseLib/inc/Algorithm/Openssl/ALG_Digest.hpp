@@ -93,18 +93,16 @@ template <typename ALGCTX> inline ALG_DIGEST_T<ALGCTX>& ALG_DIGEST_T<ALGCTX>::In
 };
 //------------------------------------------------------------------------------------------//
 template <typename ALGCTX>
-inline ALG_DIGEST_T<ALGCTX>& ALG_DIGEST_T<ALGCTX>::DoTransform(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length){
+inline ioss ALG_DIGEST_T<ALGCTX>::DoTransform(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length){
 	ALG_Digest_Update64(&cgCTX,data,length);
-	Save(_ios,_out,data,length);
-	return(*this);
+	return(Save(_ios,_out,data,length));
 };
 //------------------------------------------------------------------------------------------//
 template <typename ALGCTX>
-inline ALG_DIGEST_T<ALGCTX>& ALG_DIGEST_T<ALGCTX>::DoFinal(IOSTATUS* _ios,const UVOut& _out){
+inline ioss ALG_DIGEST_T<ALGCTX>::DoFinal(IOSTATUS* _ios,const UVOut& _out){
 	cgArray.Reset();
 	ALG_Digest_Final(&cgCTX,cgArray.GetPointer(0));
-	DSTF::DoFinal(_ios,_out);
-	return(*this);
+	return(DSTF::DoFinal(_ios,_out));
 };
 //------------------------------------------------------------------------------------------//
 template <typename ALGCTX>

@@ -53,17 +53,13 @@ void CMainFrame::OnUpdateCOMBO_BR(CCmdUI *pCmdUI){
 }
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnDSR_FLOW(void){
-	if (theApp.GSDTApp.m_DeviceM.cgEDA.IsComOpened()){
-		m_blDSRFlow = !m_blDSRFlow;
-		theApp.GSDTApp.m_DeviceM.ACom()->SetDSRFlow(m_blDSRFlow);
-	}
+	if (theApp.GSDTApp.m_DeviceM.cgEDA.IsComOpened())
+		theApp.GSDTApp.m_DeviceM.ACom()->SetDSRFlow(!theApp.GSDTApp.m_DeviceM.ACom()->GetDSRFlowStatus());
 }
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnCTS_FLOW(void){
-	if (theApp.GSDTApp.m_DeviceM.cgEDA.IsComOpened()){
-		m_blCTSFlow = !m_blCTSFlow;
-		theApp.GSDTApp.m_DeviceM.ACom()->SetCTSFlow(m_blCTSFlow);
-	}
+	if (theApp.GSDTApp.m_DeviceM.cgEDA.IsComOpened())
+		theApp.GSDTApp.m_DeviceM.ACom()->SetCTSFlow(!theApp.GSDTApp.m_DeviceM.ACom()->GetCTSFlowStatus());
 }
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnDTRHigh(void){
@@ -89,7 +85,7 @@ void CMainFrame::OnRTSLow(void){
 void CMainFrame::OnUpdateDSR_FLOW(CCmdUI *pCmdUI){
 	if (theApp.GSDTApp.m_DeviceM.cgEDA.IsComOpened()){
 		pCmdUI->Enable();
-		pCmdUI->SetCheck(m_blDSRFlow);
+		pCmdUI->SetCheck(theApp.GSDTApp.m_DeviceM.ACom()->GetDSRFlowStatus() != 0);
 	}
 	else{
 		pCmdUI->SetCheck(FALSE);
@@ -100,7 +96,7 @@ void CMainFrame::OnUpdateDSR_FLOW(CCmdUI *pCmdUI){
 void CMainFrame::OnUpdateCTS_FLOW(CCmdUI *pCmdUI){
 	if (theApp.GSDTApp.m_DeviceM.cgEDA.IsComOpened()){
 		pCmdUI->Enable();
-		pCmdUI->SetCheck(m_blCTSFlow);
+		pCmdUI->SetCheck(theApp.GSDTApp.m_DeviceM.ACom()->GetCTSFlowStatus() != 0);
 	}
 	else{
 		pCmdUI->SetCheck(FALSE);
@@ -121,6 +117,7 @@ void CMainFrame::OnUpdateDTRHigh(CCmdUI *pCmdUI){
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnUpdateDTRLow(CCmdUI *pCmdUI){
 	if (theApp.GSDTApp.m_DeviceM.cgEDA.IsComOpened()){
+		pCmdUI->Enable();
 		pCmdUI->SetCheck(theApp.GSDTApp.m_DeviceM.ACom()->GetDTRStatus() == 0);
 	}
 	else{

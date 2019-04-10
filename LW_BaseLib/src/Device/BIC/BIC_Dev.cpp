@@ -495,7 +495,7 @@ CMDID BIC_ECHO::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 		return(Help(env,0));
 	}
 	
-	if (attr->device->CheckEcho() == 0){
+	if (attr->device->CheckEcho() == G_FALSE){
 		PrintResult(env,"ECHO is disable");
 	}
 	else{

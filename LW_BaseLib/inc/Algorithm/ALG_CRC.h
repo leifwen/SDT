@@ -74,8 +74,8 @@ class ALG_CRC_T : public DSTF{
 		inline	virtual	ALG_CRC_T&	InitCFG		(uint32 cfg = -1,const void* p = nullptr);
 	protected:
 		inline	virtual	ALG_CRC_T&	InitSize	(uint32 size);
-		inline	virtual	ALG_CRC_T&	DoTransform	(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length);
-		inline	virtual	ALG_CRC_T&	DoFinal		(IOSTATUS* _ios,const UVOut& _out);
+		inline	virtual	ioss		DoTransform	(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length);
+		inline	virtual	ioss		DoFinal		(IOSTATUS* _ios,const UVOut& _out);
 	public:
 		inline	uint32	Calc					(IOSTATUS* _ios,const UVOut& _out,const UVIn& _in);
 		inline	uint32	GetCRCReasult			(void);

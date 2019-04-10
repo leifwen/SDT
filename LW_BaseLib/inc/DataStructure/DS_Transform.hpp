@@ -36,25 +36,38 @@ static inline IOSTATUS* IOSTATUS_Clr(IOSTATUS* _ios){
 	return(_ios);
 };
 //------------------------------------------------------------------------------------------//
+static inline ioss* IOSTATUS_STA(ioss* _out,const ioss& _in){
+	if ((_out != nullptr) && (*_out == IOS_OK))
+		*_out = _in;
+	return(_out);
+};
+//------------------------------------------------------------------------------------------//
 inline DS_IO_NODE& DS_IO_NODE::GetDSIOList(void){
 	static DS_IO_NODE	sgIOList;
 	return(sgIOList);
 };
 //------------------------------------------------------------------------------------------//
-inline DS_IO_NODE& DS_IO_NODE::Transform(IOSTATUS* _ios,const UVOut& _out,const UVIn& _in){
+inline ioss DS_IO_NODE::Save(IOSTATUS* _ios,const UVOut& _out,const UVIn& _in){
+	return(GetDSIOList().DoConvert(&GetDSIOList(),_ios,_out,_in));
+}
+//------------------------------------------------------------------------------------------//
+inline ioss DS_IO_NODE::Save(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length){
+	return(GetDSIOList().DoSave(_ios,_out,data,length));
+}
+//------------------------------------------------------------------------------------------//
+inline ioss DS_IO_NODE::Transform(IOSTATUS* _ios,const UVOut& _out,const UVIn& _in){
 	SetSFlag(DSTF_blStart);
-	GetDSIOList().DoConvert(this,_ios,_out,_in);
-	return(*this);
+	return(GetDSIOList().DoConvert(this,_ios,_out,_in));
 };
 //------------------------------------------------------------------------------------------//
-inline DS_IO_NODE& DS_IO_NODE::Transform(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length){
+inline ioss DS_IO_NODE::Transform(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length){
 	SetSFlag(DSTF_blStart);
 	return(DoTransform(_ios,_out,data,length));
 };
 //------------------------------------------------------------------------------------------//
-inline DS_IO_NODE& DS_IO_NODE::Final(IOSTATUS* _ios,const UVOut& _out){
+inline ioss DS_IO_NODE::Final(IOSTATUS* _ios,const UVOut& _out){
 	if (CheckSFlag(DSTF_blStart) == G_FALSE)
-		return(*this);
+		return IOS_FINISH;
 	ClrSFlag(DSTF_blStart);
 	return(DoFinal(_ios,_out));
 };
@@ -65,22 +78,12 @@ inline uint64 DS_IO_NODE::GetInLength(const UVIn& _in){
 	return(num);
 };
 //------------------------------------------------------------------------------------------//
-inline void DS_IO_NODE::Save(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length){
-	GetDSIOList().DoSave(_ios,_out,data,length);
-}
-//------------------------------------------------------------------------------------------//
-inline void DS_IO_NODE::Save(IOSTATUS* _ios,const UVOut& _out,const UVIn& _in){
-	GetDSIOList().Transform(_ios,_out,_in);
-}
-//------------------------------------------------------------------------------------------//
-inline DS_IO_NODE& DS_IO_NODE::DoTransform(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length){
-	Save(_ios,_out,data,length);
-	return(*this);
+inline ioss DS_IO_NODE::DoTransform(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length){
+	return(Save(_ios,_out,data,length));
 };
 //------------------------------------------------------------------------------------------//
-inline DS_IO_NODE& DS_IO_NODE::DoFinal(IOSTATUS* _ios,const UVOut& _out){
-	Save(_ios,_out,nullptr,0);
-	return(*this);
+inline ioss DS_IO_NODE::DoFinal(IOSTATUS* _ios,const UVOut& _out){
+	return(Save(_ios,_out,nullptr,0));
 };
 //------------------------------------------------------------------------------------------//
 
@@ -126,10 +129,11 @@ inline DSTF& DSTF::_Startup(IOSTATUS* _ios, const UVOut& _out){
 	return(*this);
 };
 //------------------------------------------------------------------------------------------//
-inline DSTF& DSTF::AllIn(IOSTATUS* _ios,const UVOut& _out,const UVIn& _in){
-	Transform(_ios,_out,_in);
-	Final(_ios,_out);
-	return(*this);
+inline ioss DSTF::AllIn(IOSTATUS* _ios,const UVOut& _out,const UVIn& _in){
+	ioss iossta;
+	iossta = Transform(_ios,_out,_in);
+	IOSTATUS_STA(&iossta,Final(_ios,_out));
+	return(iossta);
 };
 //------------------------------------------------------------------------------------------//
 
@@ -199,8 +203,8 @@ template <typename DS_CTX> inline DSTF_DIR<DS_CTX>& DSTF_DIR<DS_CTX>::InitCFG(ui
 };
 //------------------------------------------------------------------------------------------//
 template <typename DS_CTX>
-bool32 DSTF_DIR<DS_CTX>::Save(DS_CTX* _ctx,IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length){
-	uint32		flength,offset,slength;
+ioss DSTF_DIR<DS_CTX>::Save(DS_CTX* _ctx,IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length){
+	uint32		flength,offset;
 	IOSTATUS	ios_in,ios_out;
 	
 	_ctx->next_in = (uint8*)data;
@@ -220,7 +224,7 @@ bool32 DSTF_DIR<DS_CTX>::Save(DS_CTX* _ctx,IOSTATUS* _ios,const UVOut& _out,cons
 			
 			flength = 0;
 			offset = 0;
-			slength = cgArray.CalcInCapacity(flength,offset);
+			cgArray.CalcInCapacity(flength,offset);
 			
 			ios_in.status = _ctx->Execute(_ctx
 										  ,cgArray.GetPointer(offset)
@@ -229,15 +233,9 @@ bool32 DSTF_DIR<DS_CTX>::Save(DS_CTX* _ctx,IOSTATUS* _ios,const UVOut& _out,cons
 										  ,ios_in.avail_in);
 			if (ios_in.status < 0)
 				break;
-			if ((ios_in.status == 0) && (_ctx->total_out == 0))
+			if ((ios_in.status == IOS_NOMEM) && (_ctx->total_out == 0))
 				break;
 			
-			if ((slength > 0) && (_ctx->avail_out == 0) && (_ctx->avail_in > 0))
-				ios_in.status = _ctx->Execute(_ctx
-											  ,cgArray.GetPointer(offset)
-											  ,slength
-											  ,_ctx->next_in
-											  ,ios_in.avail_in);
 			ios_in.total_in += _ctx->total_in;
 			ios_in.avail_in -= _ctx->total_in;
 			
@@ -251,24 +249,24 @@ bool32 DSTF_DIR<DS_CTX>::Save(DS_CTX* _ctx,IOSTATUS* _ios,const UVOut& _out,cons
 		}while((ios_in.avail_in > 0) && (cgArray.Unused() > 0));
 	}while((_ctx->Execute == _ctx->Final) && (ios_in.status == IOS_OK));
 	ios_in.avail_out = ios_out.avail_out;
-	ios_in.status = (ios_in.avail_in == 0);
+	ios_in.status = ios_out.status;
 	IOSTATUS_Add(_ios,ios_in);
 	return(ios_in.status);
 }
 //------------------------------------------------------------------------------------------//
 template <typename DS_CTX>
-inline DSTF_DIR<DS_CTX>& DSTF_DIR<DS_CTX>::DoTransform(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length){
+inline ioss DSTF_DIR<DS_CTX>::DoTransform(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length){
 	cgCTX.Execute = cgCTX.Update;
-	Save(&cgCTX,_ios,_out,data,length);
-	return(*this);
+	return(Save(&cgCTX,_ios,_out,data,length));
 }
 //------------------------------------------------------------------------------------------//
-template <typename DS_CTX> inline DSTF_DIR<DS_CTX>& DSTF_DIR<DS_CTX>::DoFinal(IOSTATUS* _ios,const UVOut& _out){
+template <typename DS_CTX> inline ioss DSTF_DIR<DS_CTX>::DoFinal(IOSTATUS* _ios,const UVOut& _out){
+	ioss	iossta;
 	cgCTX.Execute = cgCTX.Final;
-	Save(&cgCTX,_ios,_out,nullptr,0);
-	DSTF::Save(_ios,_out,nullptr,0);
+	iossta = Save(&cgCTX,_ios,_out,nullptr,0);
+	IOSTATUS_STA(&iossta,DSTF::Save(_ios,_out,nullptr,0));
 	cgCTX.ReInit(&cgCTX);
-	return(*this);
+	return(iossta);
 }
 //------------------------------------------------------------------------------------------//
 
@@ -338,57 +336,58 @@ template <typename T_A,typename T_B> inline	void DSTF_AB_FRAME<T_A,T_B>::EnableA
 };
 //------------------------------------------------------------------------------------------//
 template <typename T_A,typename T_B>
-DSTF_AB_FRAME<T_A,T_B>& DSTF_AB_FRAME<T_A,T_B>::DoTransform(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length){
-
+ioss DSTF_AB_FRAME<T_A,T_B>::DoTransform(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length){
+	ioss iossta;
 	if (CheckSFlag(DSTF_blEnA)){
 		if (CheckSFlag(DSTF_blEnB)){
 			if (B_ChkFLAG32(cgCTX.cfg,CFG_ATOB)){
-				cgA.Transform(_ios,OUD(&cgB,_out),data,length);
+				iossta = cgA.Transform(_ios,OUD(&cgB,_out),data,length);
 			}
 			else{
-				cgB.Transform(_ios,OUD(&cgA,_out),data,length);
+				iossta = cgB.Transform(_ios,OUD(&cgA,_out),data,length);
 			}
 		}
 		else{
-			cgA.Transform(_ios,_out,data,length);
+			iossta = cgA.Transform(_ios,_out,data,length);
 		}
 	}
 	else{
 		if (CheckSFlag(DSTF_blEnB)){
-			cgB.Transform(_ios,_out,data,length);
+			iossta = cgB.Transform(_ios,_out,data,length);
 		}
 		else{
-			DSTF::Transform(_ios,_out,data,length);
+			iossta = DSTF::Transform(_ios,_out,data,length);
 		}
 	}
-	return(*this);
+	return(iossta);
 };
 //------------------------------------------------------------------------------------------//
 template <typename T_A,typename T_B>
-DSTF_AB_FRAME<T_A,T_B>& DSTF_AB_FRAME<T_A,T_B>::DoFinal(IOSTATUS* _ios,const UVOut& _out){
-
+ioss DSTF_AB_FRAME<T_A,T_B>::DoFinal(IOSTATUS* _ios,const UVOut& _out){
+	ioss iossta;
+	
 	if (CheckSFlag(DSTF_blEnA)){
 		if (CheckSFlag(DSTF_blEnB)){
 			if (B_ChkFLAG32(cgCTX.cfg,CFG_ATOB)){
-				cgA.Final(_ios,OUD(&cgB,_out));
+				iossta = cgA.Final(_ios,OUD(&cgB,_out));
 			}
 			else{
-				cgB.Final(_ios,OUD(&cgA,_out));
+				iossta = cgB.Final(_ios,OUD(&cgA,_out));
 			}
 		}
 		else{
-			cgA.Final(_ios,_out);
+			iossta = cgA.Final(_ios,_out);
 		}
 	}
 	else{
 		if (CheckSFlag(DSTF_blEnB)){
-			cgB.Final(_ios,_out);
+			iossta = cgB.Final(_ios,_out);
 		}
 		else{
-			DSTF::Final(_ios,_out);
+			iossta = DSTF::Final(_ios,_out);
 		}
 	}
-	return(*this);
+	return(iossta);
 };
 //------------------------------------------------------------------------------------------//
 

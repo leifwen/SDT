@@ -154,10 +154,6 @@ END_MESSAGE_MAP()
 CMainFrame::CMainFrame(void){
 	// TODO: add member initialization code here
 	theApp.m_nAppLook = theApp.GetInt(_T("ApplicationLook"), ID_VIEW_APPLOOK_WINDOWS_7);
-	m_blDSRFlow = FALSE;
-	m_blCTSFlow = FALSE;
-	m_blAuxDSRFlow = FALSE;
-	m_blAuxCTSFlow = FALSE;
 	m_blAuxComConnect = FALSE;
 	m_blCMUXFC = FALSE;
 	m_blStop = 1;

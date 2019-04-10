@@ -21,7 +21,7 @@
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v120_xp</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
-    <UseOfMfc>Dynamic</UseOfMfc>
+    <UseOfMfc>Static</UseOfMfc>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -43,8 +43,8 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)..\..\ExtraLib\Openssl\1.0.1f\Win32\include;$(SolutionDir)..\..\ExtraLib\zlib\1.2.11\Win32\include</IncludePath>
-    <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(SolutionDir)..\..\ExtraLib\Openssl\1.0.1f\Win32\lib;$(SolutionDir)..\..\ExtraLib\zlib\1.2.11\Win32\lib</LibraryPath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)..\..\ExtraLib\Openssl\1.0.2o\include\;$(SolutionDir)..\..\ExtraLib\zlib\1.2.11\include</IncludePath>
+    <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(SolutionDir)..\..\ExtraLib\Openssl\1.0.2o\lib\Win32;$(SolutionDir)..\..\ExtraLib\zlib\1.2.11\lib\Win32</LibraryPath>
     <LibraryWPath>$(WindowsSDK_MetadataPath);</LibraryWPath>
     <ExecutablePath>$(VC_ExecutablePath_x86);$(WindowsSDK_ExecutablePath);$(VS_ExecutablePath);$(MSBuild_ExecutablePath);$(SystemRoot)\SysWow64;$(FxCopDir);$(PATH);</ExecutablePath>
     <ExcludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(MSBuild_ExecutablePath);$(VC_LibraryPath_x86);</ExcludePath>
@@ -68,11 +68,13 @@
       <ExceptionHandling>Async</ExceptionHandling>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <BrowseInformation>true</BrowseInformation>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>mbnapi_uuid.lib</AdditionalDependencies>
+      <AdditionalOptions>/NODEFAULTLIB:libcmt.lib %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <Midl>
       <MkTypLibCompatible>false</MkTypLibCompatible>
@@ -163,6 +165,7 @@
     <ClInclude Include="..\..\..\LW_BaseLib\inc\Algorithm\ALG_BASE64.h" />
     <ClInclude Include="..\..\..\LW_BaseLib\inc\Algorithm\ALG_CRC.h" />
     <ClInclude Include="..\..\..\LW_BaseLib\inc\Algorithm\ALG_CRC.hpp" />
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Algorithm\ALG_Math.h" />
     <ClInclude Include="..\..\..\LW_BaseLib\inc\Algorithm\ALG_zlib.h" />
     <ClInclude Include="..\..\..\LW_BaseLib\inc\Algorithm\Openssl\ALG_AES.h" />
     <ClInclude Include="..\..\..\LW_BaseLib\inc\Algorithm\Openssl\ALG_Digest.h" />
@@ -288,6 +291,7 @@
     <ClCompile Include="..\..\..\LW_BaseLib\src\AdvancedDS\ADS_SSL.cpp" />
     <ClCompile Include="..\..\..\LW_BaseLib\src\Algorithm\ALG_BASE64.cpp" />
     <ClCompile Include="..\..\..\LW_BaseLib\src\Algorithm\ALG_CRC.cpp" />
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Algorithm\ALG_Math.cpp" />
     <ClCompile Include="..\..\..\LW_BaseLib\src\Algorithm\ALG_zlib.cpp" />
     <ClCompile Include="..\..\..\LW_BaseLib\src\Algorithm\Openssl\ALG_AES.cpp" />
     <ClCompile Include="..\..\..\LW_BaseLib\src\Algorithm\Openssl\ALG_Digest.cpp" />

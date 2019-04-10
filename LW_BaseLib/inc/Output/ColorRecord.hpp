@@ -19,20 +19,20 @@ template <typename UV>	static inline _ColData COLOR	(COLORENUM col,const UV&	_in
 inline uint32 CRD::CheckNL		(uint32 ctrl)					{return(B_ChkFLAG32(ctrl,CRD_NL));};
 inline uint32 CRD::CheckGroup	(uint32 ctrl,uint32 group)		{return(B_ChkFLAG32(ctrl,group & CRD_GROUPMASK));};
 //------------------------------------------------------------------------------------------//
-inline CRD& CRD::DoTransform(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length){
+inline ioss CRD::DoTransform(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length){
+	ioss iossta;
 	SetSFlag(CRD_blAddData);
-	pn_Text.Transform(_ios,data,length);
+	iossta = pn_Text.Transform(_ios,data,length);
 	POS_Update(&cgPosWR);
-	return(*this);
+	return(iossta);
 };
 //------------------------------------------------------------------------------------------//
-inline CRD& CRD::_Begin(IOSTATUS* _ios){
+inline ioss CRD::_Begin(IOSTATUS* _ios){
 	SetS(_ios,-1,COL_FF);
-	pn_Text._Begin(_ios);
-	return(*this);
+	return(pn_Text._Begin(_ios));
 };
 //------------------------------------------------------------------------------------------//
-inline CRD& CRD::_Endl(void){
+inline ioss CRD::_Endl(void){
 	pn_Text._Endl();
 	pn_CTRL.Update(cgDefCtrl);
 	pn_COL.Update (cgDefCol);
@@ -47,15 +47,14 @@ inline CRD& CRD::SetS(IOSTATUS* _ios,uint32 ctrl,COLORENUM col){
 	return(*this);
 };
 //------------------------------------------------------------------------------------------//
-inline CRD& CRD::SetE(void){
-	PNFB_SHELL::_Endl();
-	return(*this);
+inline ioss CRD::SetE(void){
+	return(PNFB_SHELL::_Endl());
 };
 //------------------------------------------------------------------------------------------//
 inline uint32 CRD::ReadCtrl	(void)const	{return(pn_CTRL.GetValueCalcRE());};
 inline uint32 CRD::ReadCOL	(void)const	{return(pn_COL.GetValueCalcRE());};
 //------------------------------------------------------------------------------------------//
-inline CRD& CRD::Write(IOSTATUS* _ios,uint32 ctrl,COLORENUM col,const UVIn& _in){
+inline ioss CRD::Write(IOSTATUS* _ios,uint32 ctrl,COLORENUM col,const UVIn& _in){
 	SetS(_ios,ctrl,col);
 	pn_Text.Write(_ios,_in);
 	return(SetE());
@@ -94,34 +93,32 @@ inline bool32 CRDC::CheckDisableGroup(uint32 group){
 	return(B_ChkFLAG32(cgGroupDisableStatus,group & CRD_GROUPMASK));
 };
 //------------------------------------------------------------------------------------------//
-inline CRDC& CRDC::Write(IOSTATUS* _ios,COLORENUM col,const UVIn& _in,G_LOCK blLock,uint32 enforce,uint32 addr){
+inline void CRDC::Write(IOSTATUS* _ios,COLORENUM col,const UVIn& _in,G_LOCK blLock,uint32 enforce,uint32 addr){
 	InUse_set(blLock);
 	CRD::Write(_ios, MakeCtrl(addr,enforce), col, _in);
 	InUse_clr(blLock);
-	return(*this);
 };
 //------------------------------------------------------------------------------------------//
-inline CRDC& CRDC::WriteNL(IOSTATUS* _ios,COLORENUM col,const UVIn& _in,G_LOCK blLock,uint32 enforce,uint32 addr){
+inline void CRDC::WriteNL(IOSTATUS* _ios,COLORENUM col,const UVIn& _in,G_LOCK blLock,uint32 enforce,uint32 addr){
 	InUse_set(blLock);
 	CRD::Write(_ios, MakeCtrl(addr,enforce | CRD_NL), col, _in);
 	InUse_clr(blLock);
-	return(*this);
 };
 //------------------------------------------------------------------------------------------//
-inline CRDC& CRDC::_Begin(IOSTATUS* _ios){
+inline ioss CRDC::_Begin(IOSTATUS* _ios){
 	InUse_set();
 	cgDefCtrl = MakeCtrl(CRD_DEFGROUP,0);
 	cgDefCol = COL_clDefault;
-	CRD::_Begin(_ios);
-	return(*this);
+	return(CRD::_Begin(_ios));
 };
 //------------------------------------------------------------------------------------------//
-inline CRDC& CRDC::_Endl(void){
-	CRD::_Endl();
+inline ioss CRDC::_Endl(void){
+	ioss iossta;
+	iossta = CRD::_Endl();
 	InUse_clr();
 	cgInNL = 0;
 	cgInClrGroup = 0;
-	return(*this);
+	return(iossta);
 };
 //------------------------------------------------------------------------------------------//
 
@@ -185,31 +182,31 @@ inline bool32 CRDN::CheckPrintDisable(void){
 	return G_FALSE;
 };
 //------------------------------------------------------------------------------------------//
-inline CRDN& CRDN::DoTransform(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length){
+inline ioss CRDN::DoTransform(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length){
 	if (cgCache != nullptr)
-		cgCache->Transform(_ios, data, length);
-	return(*this);
+		return(cgCache->Transform(_ios, data, length));
+	return IOS_OK;
 };
 //------------------------------------------------------------------------------------------//
-inline CRDN& CRDN::DoFinal(IOSTATUS* _ios,const UVOut& _out){
+inline ioss CRDN::DoFinal(IOSTATUS* _ios,const UVOut& _out){
 	if (cgCache != nullptr)
-		cgCache->Final(_ios);
-	return(*this);
+		return(cgCache->Final(_ios));
+	return IOS_OK;
 };
 //------------------------------------------------------------------------------------------//
-inline CRDN& CRDN::_Begin(IOSTATUS* _ios){
+inline ioss CRDN::_Begin(IOSTATUS* _ios){
 	if (cgCache != nullptr){
 		cgCache->_Begin(_ios);
 		cgCache->SetAddr(cgAddress | cgExtraGroup);
 		cgCache->SetEnforce(cgAddress);
 	}
-	return(*this);
+	return IOS_OK;
 };
 //------------------------------------------------------------------------------------------//
-inline CRDN& CRDN::_Endl(void) {
+inline ioss CRDN::_Endl(void) {
 	if (cgCache != nullptr)
-		cgCache->_Endl();
-	return(*this);
+		return(cgCache->_Endl());
+	return IOS_OK;
 };
 //------------------------------------------------------------------------------------------//
 inline void CRDN::Write(IOSTATUS* _ios,COLORENUM col,const UVIn& _in,G_LOCK blLock,uint32 extraGroup)const{

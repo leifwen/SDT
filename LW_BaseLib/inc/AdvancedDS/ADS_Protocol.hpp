@@ -87,44 +87,41 @@ inline void ADS_FIFO::SetDefArrayRE(const ARRAY* array){
 inline ARRAY* ADS_FIFO::GetDefArrayWR	(void)const{return(cgPosWR.array);};
 inline ARRAY* ADS_FIFO::GetDefArrayRE	(void)const{return(cgPosRE.array);};
 //------------------------------------------------------------------------------------------//
-inline ADS_FIFO& ADS_FIFO::DoTransform(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length){
-	Save(_ios,_out,data,length);
+inline ioss ADS_FIFO::DoTransform(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length){
+	ioss iossta;
+	iossta = Save(_ios,_out,data,length);
 	POS_Update(&cgPosWR);
-	return(*this);
+	return(iossta);
 };
 //------------------------------------------------------------------------------------------//
-inline ADS_FIFO& ADS_FIFO::DoFinal(IOSTATUS* _ios,const UVOut& _out){
-	Save(_ios,_out,nullptr,0);
+inline ioss ADS_FIFO::DoFinal(IOSTATUS* _ios,const UVOut& _out){
+	ioss iossta;
+	iossta = Save(_ios,_out,nullptr,0);
 	POS_Update(&cgPosWR);
-	return(*this);
+	return(iossta);
 };
 //------------------------------------------------------------------------------------------//
-inline ADS_FIFO& ADS_FIFO::Transform(IOSTATUS* _ios,const UVIn& _in){
-	DSTF::Transform(_ios,cgPosWR.uvOut,_in);
-	return(*this);
+inline ioss ADS_FIFO::Transform(IOSTATUS* _ios,const UVIn& _in){
+	return(DSTF::Transform(_ios,cgPosWR.uvOut,_in));
 };
 //------------------------------------------------------------------------------------------//
-inline ADS_FIFO& ADS_FIFO::Transform(IOSTATUS* _ios,const uint8* data,const uint64& length){
-	DSTF::Transform(_ios,cgPosWR.uvOut,data,length);
-	return(*this);
+inline ioss ADS_FIFO::Transform(IOSTATUS* _ios,const uint8* data,const uint64& length){
+	return(DSTF::Transform(_ios,cgPosWR.uvOut,data,length));
 };
 //------------------------------------------------------------------------------------------//
-inline ADS_FIFO& ADS_FIFO::Final(IOSTATUS* _ios){
-	DSTF::Final(_ios,cgPosWR.uvOut);
-	return(*this);
+inline ioss ADS_FIFO::Final(IOSTATUS* _ios){
+	return(DSTF::Final(_ios,cgPosWR.uvOut));
 };
 //------------------------------------------------------------------------------------------//
-inline ADS_FIFO& ADS_FIFO::AllIn(IOSTATUS* _ios,const UVIn& _in){
+inline ioss ADS_FIFO::AllIn(IOSTATUS* _ios,const UVIn& _in){
 	_Begin(_ios);
 	Transform(_ios, _in);
 	Final(_ios);
-	_Endl();
-	return(*this);
+	return(_Endl());
 };
 //------------------------------------------------------------------------------------------//
-inline ADS_FIFO& ADS_FIFO::AllOut(IOSTATUS* _ios,const UVOut& _out){
-	Save(_ios,_out,IUD(cgPosRE.array,cgPosRE.length,cgPosRE.offset));
-	return(*this);
+inline ioss ADS_FIFO::AllOut(IOSTATUS* _ios,const UVOut& _out){
+	return(Save(_ios,_out,IUD(cgPosRE.array,cgPosRE.length,cgPosRE.offset)));
 };
 //------------------------------------------------------------------------------------------//
 
@@ -180,25 +177,23 @@ inline void PNF::ResetPNLength(void){
 	cgPosRE.length = cgFixedByte;
 };
 //------------------------------------------------------------------------------------------//
-inline bool32 PNF::Read(IOSTATUS* _ios,const UVOut& _out){
-	AllOut(_ios, _out);
-	return G_TRUE;
+inline ioss PNF::Read(IOSTATUS* _ios,const UVOut& _out){
+	return(AllOut(_ios, _out));
 };
 //------------------------------------------------------------------------------------------//
-inline PNF& PNF::Write(IOSTATUS* _ios,const UVIn& _in){
-	AllIn(_ios, _in);
-	return(*this);
+inline ioss PNF::Write(IOSTATUS* _ios,const UVIn& _in){
+	return(AllIn(_ios, _in));
 };
 //------------------------------------------------------------------------------------------//
-inline PNF& PNF::WriteNone(void){
+inline ioss PNF::WriteNone(void){
 	POS_Hold(&cgPosWR);
 	POS_Update(&cgPosWR);
 	cgPosWR.array->Prepare_Clr();
-	return(*this);
+	return IOS_OK;
 };
 //------------------------------------------------------------------------------------------//
-inline PNF&	PNF::CleanWR(void)	{cgPosWR.array->Reset();return(*this);};
-inline PNF&	PNF::CleanRE(void)	{cgPosRE.array->Reset();return(*this);};
+inline void	PNF::CleanWR(void)	{cgPosWR.array->Reset();};
+inline void	PNF::CleanRE(void)	{cgPosRE.array->Reset();};
 //------------------------------------------------------------------------------------------//
 
 
@@ -232,16 +227,14 @@ inline uint32 PNF_VAR::GetValueCalcRE	(void)const{return(GetValueAMaskRE() >> cg
 inline uint32 PNF_VAR::GetValueWR		(void)const{return(GetOValueWR());};
 inline uint32 PNF_VAR::GetValueRE		(void)const{return(GetOValueRE());};
 //------------------------------------------------------------------------------------------//
-inline	const PNF_VAR& PNF_VAR::Update(uint32 data){
-	UpdateByte(data);
-	return(*this);
+inline ioss PNF_VAR::Update(uint32 data){
+	return(UpdateByte(data));
 };
 //------------------------------------------------------------------------------------------//
-inline PNF_VAR& PNF_VAR::Write(IOSTATUS* _ios,uint32 data){
+inline ioss PNF_VAR::Write(IOSTATUS* _ios,uint32 data){
 	_Begin(_ios);
 	SetByte(_ios,data);
-	_Endl();
-	return(*this);
+	return(_Endl());
 };
 //------------------------------------------------------------------------------------------//
 inline const PNF_VAR& PNF_VAR::operator = (uint32 data){
@@ -265,13 +258,13 @@ inline void PNF_FIXED::InitPN(const ARRAY* _out,const ARRAY* _in,const STDSTR& f
 	PNF::InitPN(_out,_in,(uint32)cgFixedStr.length());
 };
 //------------------------------------------------------------------------------------------//
-inline PNF_FIXED& PNF_FIXED::Write(IOSTATUS* _ios){
+inline ioss PNF_FIXED::Write(IOSTATUS* _ios){
 	IOSTATUS	ios;
-	IOSTATUS_Clr(&ios);
-	AllIn(&ios,cgFixedStr);
+	
+	AllIn(IOSTATUS_Clr(&ios),cgFixedStr);
 	ios.total_in = 0;
 	IOSTATUS_Add(_ios,ios);
-	return(*this);
+	return(ios.status);
 };
 //------------------------------------------------------------------------------------------//
 
@@ -342,7 +335,7 @@ inline void PNF_BLOCK::SetBlockPoint(const PNF* pn){
 	cgPNF = (pn == nullptr) ? this : (PNF*)pn;
 };
 //------------------------------------------------------------------------------------------//
-inline bool32 PNF_BLOCK::Read(IOSTATUS* _ios,const UVOut& _out){
+inline ioss PNF_BLOCK::Read(IOSTATUS* _ios,const UVOut& _out){
 	if (cgPNF == this)
 		return(PNF::Read(_ios,_out));
 	return(cgPNF->Read(_ios,_out));
@@ -352,15 +345,16 @@ inline bool32 PNF_BLOCK::ChecksumResult(void)const{
 	return G_TRUE;
 };
 //------------------------------------------------------------------------------------------//
-inline PNF_BLOCK& PNF_BLOCK::DoTransform(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length){
+inline ioss PNF_BLOCK::DoTransform(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length){
+	ioss iossta;
 	if (cgPNF == this){
-		PNF::DoTransform(_ios,_out,data,length);
+		iossta = PNF::DoTransform(_ios,_out,data,length);
 	}
 	else{
-		cgPNF->Transform(_ios,data,length);
+		iossta = cgPNF->Transform(_ios,data,length);
 		POS_Update(&cgPosWR);
 	}
-	return(*this);
+	return(iossta);
 };
 //------------------------------------------------------------------------------------------//
 
@@ -412,21 +406,21 @@ inline bool32 PNF_SCC::IsFull(void){
 	return(cgMaxSize <= pnlc_Text.GetLengthWR());
 };
 //------------------------------------------------------------------------------------------//
-inline PNF_SCC& PNF_SCC::_Begin(IOSTATUS* _ios){
+inline ioss PNF_SCC::_Begin(IOSTATUS* _ios){
 	if (CheckSFlag(DSTF_blStart) == G_FALSE){
-		PNFB_LC::_Begin(_ios);
+		return(PNFB_LC::_Begin(_ios));
 	}
 	else{
 		cgStartup.ios = _ios;
 		pnlc_Text._Startup(_ios, cgStartup.uvOut);
 	}
-	return(*this);
+	return(IOS_OK);
 }
 //------------------------------------------------------------------------------------------//
-inline PNF_SCC& PNF_SCC::_Endl(void){
+inline ioss PNF_SCC::_Endl(void){
 	if (CheckSFlag(DSTF_blStart))
-		PNFB_LC::_Endl();
-	return(*this);
+		return(PNFB_LC::_Endl());
+	return(IOS_OK);
 }
 //------------------------------------------------------------------------------------------//
 
@@ -439,19 +433,22 @@ inline PNF_SCC& PNF_SCC::_Endl(void){
 
 
 //------------------------------------------------------------------------------------------//
-inline PNF_SC& PNF_SC::_Begin(IOSTATUS* _ios){
+inline ioss PNF_SC::_Begin(IOSTATUS* _ios){
 	ResetPosWR();
-	PNF::_Begin(_ios);
 	cgEA = 0;
-	return(*this);
+	return(PNF::_Begin(_ios));
 };
 //------------------------------------------------------------------------------------------//
 inline bool32 PNF_SC::Read(IOSTATUS* _ios,const UVOut& _out){
-	pnsc_LC[0].Read(_ios,_out);
-	pnsc_LC[1].Read(_ios,_out);
-	pnsc_LC[2].Read(_ios,_out);
-	pnsc_LC[3].Read(_ios,_out);
-	return G_TRUE;
+	ioss iossta;
+	iossta = pnsc_LC[0].Read(_ios,_out);
+	if (iossta == IOS_OK)
+		iossta = pnsc_LC[1].Read(_ios,_out);
+	if (iossta == IOS_OK)
+		iossta = pnsc_LC[2].Read(_ios,_out);
+	if (iossta == IOS_OK)
+		iossta = pnsc_LC[3].Read(_ios,_out);
+	return(iossta);
 }
 //------------------------------------------------------------------------------------------//
 inline const PNF_SC& PNF_SC::operator = (const UVIn& _in){
@@ -556,29 +553,26 @@ template <typename T_PNF> bool32 PNFB_LIST<T_PNF>::Analysis(uint32 startOffset){
 	return G_FALSE;
 };
 //------------------------------------------------------------------------------------------//
-template <typename T_PNF> PNFB_LIST<T_PNF>& PNFB_LIST<T_PNF>::_Begin(IOSTATUS* _ios){
+template <typename T_PNF> ioss PNFB_LIST<T_PNF>::_Begin(IOSTATUS* _ios){
 	cgNum = 0;
 	PNF_BLOCK::_Begin(_ios);
-	pnl_Qty.Write(_ios,0);
-	return(*this);
+	return(pnl_Qty.Write(_ios,0));
 };
 //------------------------------------------------------------------------------------------//
-template <typename T_PNF> PNFB_LIST<T_PNF>& PNFB_LIST<T_PNF>::_Endl(void){
+template <typename T_PNF> ioss PNFB_LIST<T_PNF>::_Endl(void){
 	if (cgNum > 0)
 		pnl_Text._Endl();
 	pnl_Qty.Update(cgNum);
-	PNF_BLOCK::_Endl();
-	return(*this);
+	return(PNF_BLOCK::_Endl());
 };
 //------------------------------------------------------------------------------------------//
 template <typename T_PNF>
-PNFB_LIST<T_PNF>& PNFB_LIST<T_PNF>::DoTransform(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length){
+ioss PNFB_LIST<T_PNF>::DoTransform(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length){
 	if (cgNum == 0){
 		++ cgNum;
 		pnl_Text._Begin(_ios);
 	}
-	pnl_Text.Transform(_ios,data,length);
-	return(*this);
+	return(pnl_Text.Transform(_ios,data,length));
 };
 //------------------------------------------------------------------------------------------//
 template <typename T_PNF> PNFB_LIST<T_PNF>& PNFB_LIST<T_PNF>::NewText(void){
@@ -608,19 +602,21 @@ namespace PNFLISTNAMESPACE {
 };
 //------------------------------------------------------------------------------------------//
 template <typename T_PNF>
-template<typename... Args> PNFB_LIST<T_PNF>& PNFB_LIST<T_PNF>::Write(IOSTATUS* _ios,const Args&... args){
-	_Begin(_ios);
-	cgNum = PNFLISTNAMESPACE::AddText(_ios,&pnl_Text,args...);
+template<typename... Args> ioss PNFB_LIST<T_PNF>::Write(IOSTATUS* _ios,const Args&... args){
+	IOSTATUS ios;
+	_Begin(IOSTATUS_Clr(&ios));
+	cgNum = PNFLISTNAMESPACE::AddText(&ios,&pnl_Text,args...);
+	IOSTATUS_Add(_ios, ios);
 	pnl_Qty.Update(cgNum);
 	PNF_BLOCK::_Endl();
-	return(*this);
+	return(PNF_BLOCK::_Endl());
 };
 //------------------------------------------------------------------------------------------//
 template <typename T_PNF> uint32 PNFB_LIST<T_PNF>::ReadQty(void)const{
 	return(pnl_Qty.GetValueRE());
 };
 //------------------------------------------------------------------------------------------//
-template <typename T_PNF> bool32 PNFB_LIST<T_PNF>::Read(IOSTATUS* _ios,const UVOut& _out,uint32 order){
+template <typename T_PNF> ioss PNFB_LIST<T_PNF>::Read(IOSTATUS* _ios,const UVOut& _out,uint32 order){
 	uint32	num,offset;
 	
 	num = pnl_Qty.GetValueRE();
@@ -638,7 +634,7 @@ template <typename T_PNF> bool32 PNFB_LIST<T_PNF>::Read(IOSTATUS* _ios,const UVO
 		if (offset != 0)
 			return(pnl_Text.Read(_ios,_out));
 	}
-	return G_FALSE;
+	return IOS_ERR;
 };
 //------------------------------------------------------------------------------------------//
 
@@ -695,22 +691,20 @@ template <typename T_PNF> inline uint32 TPNFM::ReadID(void)const{
 	return(pnm_ID.GetValueCalcRE());
 };
 //------------------------------------------------------------------------------------------//
-template <typename T_PNF> inline TPNFM& TPNFM::Write(IOSTATUS* _ios,uint32 mID,const UVIn& _in){
-	*this << Begin(_ios) << SetmID(mID) << _in << Endl();
-	return(*this);
+template <typename T_PNF> inline ioss TPNFM::Write(IOSTATUS* _ios,uint32 mID,const UVIn& _in){
+	*this << Begin(_ios) << SetmID(mID) << _in;
+	return(_Endl());
 };
 //------------------------------------------------------------------------------------------//
-template <typename T_PNF> TPNFM& TPNFM::_Begin(IOSTATUS* _ios){
+template <typename T_PNF> ioss TPNFM::_Begin(IOSTATUS* _ios){
 	PNFB_SHELL::_Begin	(_ios);
 	pnm_ID.Write		(_ios,0);
-	pnm_Text._Begin		(_ios);
-	return(*this);
+	return(pnm_Text._Begin(_ios));
 };
 //------------------------------------------------------------------------------------------//
-template <typename T_PNF> TPNFM& TPNFM::_Endl(void){
+template <typename T_PNF> ioss TPNFM::_Endl(void){
 	pnm_Text._Endl();
-	PNFB_SHELL::_Endl();
-	return(*this);
+	return(PNFB_SHELL::_Endl());
 };
 //------------------------------------------------------------------------------------------//
 

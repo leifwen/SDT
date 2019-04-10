@@ -111,19 +111,19 @@ void DBUF::ChildSetSel(DBUF* sdb){
 	TREE_NODE *cpNode;
 	if ((sdb != nullptr) && (sdb != this)){
 		sdb->InUse_set();
-		if (sdb->CheckSelected() == 0){
+		if (sdb->CheckSelected() == G_FALSE){
 			do{
 				InUse_set();
 				if (cgSelDB != sdb){
 					if (cgSelDB != this){
-						if (cgSelDB->InUse_try() == 0){
+						if (cgSelDB->InUse_try() == G_FALSE){
 							InUse_clr();
 							continue;
 						}
 					}
 					cpNode = GetCoupleNode(cgSelDB);
 					if (cpNode != nullptr){
-						if (cpNode->InUse_try() == 0){
+						if (cpNode->InUse_try() == G_FALSE){
 							InUse_clr();
 							continue;
 						}
@@ -155,14 +155,14 @@ void DBUF::ChildClrSel(DBUF* sdb){
 	if ((sdb != nullptr) && (sdb != this)){
 		do{
 			sdb->InUse_set();
-			if (sdb->CheckSelected() != 0){
-				if (InUse_try() == 0){
+			if (sdb->CheckSelected() != G_FALSE){
+				if (InUse_try() == G_FALSE){
 					sdb->InUse_clr();
 					continue;
 				}
 				cpNode = GetCoupleNode(sdb);
 				if (cpNode != nullptr){
-					if (cpNode->InUse_try() == 0){
+					if (cpNode->InUse_try() == G_FALSE){
 						InUse_clr();
 						sdb->InUse_clr();
 						continue;

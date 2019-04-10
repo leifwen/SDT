@@ -79,8 +79,9 @@ class BIF_COMBINE : public BIF_BASE{
 		BIF_SQ			cgSubC_SQ;
 		BIF_HEX			cgSubC_HEX;
 		BIF_VIEWINHEX	cgSubC_VIEWINHEX;
-		BIF_TIME		cgSubC_Time;
+		BIF_TIME		cgSubC_TIME;
 		BIF_STRING		cgSubC_STRING;
+		BIF_FILE		cgSubC_FILE;
 	
 		BIF_DEFINE		cgSubC_DEFINE;
 		BIF_REPLACE		cgSubC_REPLACE;

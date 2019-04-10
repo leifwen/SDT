@@ -8,6 +8,7 @@
 
 #include "stdafx.h"
 #include "BIC_Device.h"
+#include "SYS_File.h"
 #ifdef BIC_Device_h
 //------------------------------------------------------------------------------------------//
 #ifdef SList_h
@@ -142,11 +143,16 @@ CMDID BIC_SENDFILE::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 	strPar = Str_SplitSubItem(&strPar, ' ');
 	
 	PrintEnable(env);
-	if (BIC_ENV_DEV::GetFileSend(env)->Execute(attr->device,strPar) == G_FALSE){
-		PrintFail(env,"file is sending");
-		return(cgCommandID);
+	if (CFS_CheckFile(msg) == G_FALSE){
+		PrintFail(env,"file does not exist");
 	}
-	InPressKeyMode(env);
+	else{
+		if (BIC_ENV_DEV::GetFileSend(env)->Execute(attr->device,strPar) == G_FALSE){
+			PrintFail(env,"file is sending");
+			return(cgCommandID);
+		}
+		InPressKeyMode(env);
+	}
 	return(cgCommandID);
 }
 //------------------------------------------------------------------------------------------//
@@ -343,9 +349,9 @@ CMDID BIC_SCRIPT::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 		return(Help(env,0));
 	
 	PrintResult(env
-				,((BIC_ENV_DEV::GetScript(env)->CheckATResponse() == 0)?"Disable":"Enable"),"check AT,"
-				,((BIC_ENV_DEV::GetScript(env)->CheckPrintSBICinfo() == 0)?"disable":"enable"),"show script BIC excution,"
-				,((BIC_ENV_DEV::GetScript(env)->CheckCommandExplain() == 0)?"disable":"enable"),"show script BIC explain");
+				,((BIC_ENV_DEV::GetScript(env)->CheckATResponse() == G_FALSE)?"Disable":"Enable"),"check AT,"
+				,((BIC_ENV_DEV::GetScript(env)->CheckPrintSBICinfo() == G_FALSE)?"disable":"enable"),"show script BIC excution,"
+				,((BIC_ENV_DEV::GetScript(env)->CheckCommandExplain() == G_FALSE)?"disable":"enable"),"show script BIC explain");
 	return(cgCommandID);
 }
 //------------------------------------------------------------------------------------------//

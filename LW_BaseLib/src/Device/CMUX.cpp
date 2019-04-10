@@ -645,7 +645,7 @@ bool32 VCOM::cmuxThreadFun(void* commu){
 	
 	ETLogThreadStart(cmuxThread);
 	SetGetDataByRead();
-	while(cmuxThread.IsTerminated() == 0){
+	while(cmuxThread.IsTerminated() == G_FALSE){
 		byteNum = cgRxSBUF.Used();
 		if (byteNum == 3){
 			cgRxSBUF.cgArray.Read(_EMPTY(&strRecData),3,0);
@@ -848,7 +848,7 @@ bool32 CMUXDriver::TxThreadFun(void* commu){
 	uint8		ctrlType;
 	
 	ETLogThreadStart(txThread);
-	while(txThread.IsTerminated() == 0){
+	while(txThread.IsTerminated() == G_FALSE){
 		while(cgTxSBUF.Used() > 0){
 			while(cgTxUIH.TryGetFrame() > 0){
 				cgTxUIH.Read(nullptr, _EMPTY(&strFrame));
@@ -890,7 +890,7 @@ bool32 CMUXDriver::RxThreadFun(void* commu){
 	cgDevice->RxDataShareTo(&cgRxSBUF);
 	SMC_EncryptE(0)
 	ETLogThreadStart(rxThread);
-	while(rxThread.IsTerminated() == 0){
+	while(rxThread.IsTerminated() == G_FALSE){
 		SYS_SleepMS(10);
 		while(cgRxSBUF.Used() > 0){
 			if (cgRxUIH.TryGetFrame()){

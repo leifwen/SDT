@@ -14,15 +14,17 @@
 #define BIC_COM_h
 #ifdef BIC_COM_h
 //------------------------------------------------------------------------------------------//
-BIC_CLASSTYPE	(COM,		"com");
-BIC_CLASSTYPE	(COM_BR,	"br");
-BIC_CLASSTYPE	(COM_DTR,	"dtr");
-BIC_CLASSTYPE	(COM_RTS,	"rts");
-BIC_CLASSTYPE	(COM_MS,	"ms");
+BIC_CLASSTYPE	(COM,		 "com");
+BIC_CLASSTYPE	(COM_BR,	 "br");
+BIC_CLASSTYPE	(COM_DTR,	 "dtr");
+BIC_CLASSTYPE	(COM_RTS,	 "rts");
+BIC_CLASSTYPE	(COM_CTSFLOW,"ctsflow");
+BIC_CLASSTYPE	(COM_DSRFLOW,"dsrflow");
+BIC_CLASSTYPE	(COM_MS,	 "ms");
 #if defined Commu_ComEnum_h && defined CommonDefH_VC
-BIC_CLASSTYPE	(COM_LSCOM,	"lscom");
+BIC_CLASSTYPE	(COM_LSCOM,	 "lscom");
 #endif
-BIC_CLASSTYPE	(COM_OPENV,	"openv");
+BIC_CLASSTYPE	(COM_OPENV,	 "openv");
 //------------------------------------------------------------------------------------------//
 class BIC_ACOM : public BIC_BASE_S{
 	public:
@@ -34,6 +36,8 @@ class BIC_ACOM : public BIC_BASE_S{
 		BIC_COM_MS		cgSub_com_ms;
 		BIC_COM_DTR		cgSub_com_dtr;
 		BIC_COM_RTS		cgSub_com_rts;
+		BIC_COM_CTSFLOW	cgSub_com_ctsflow;
+		BIC_COM_DSRFLOW	cgSub_com_dsrflow;
 #if defined Commu_ComEnum_h && defined CommonDefH_VC
 		BIC_COM_LSCOM	cgSub_com_lscom;
 #endif

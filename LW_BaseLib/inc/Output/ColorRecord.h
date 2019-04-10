@@ -153,16 +153,16 @@ class COLRECORD : public PNFB_SHELL{
 		static	inline	uint32	CheckGroup	(uint32 ctrl,uint32 group);
 
 	protected:
-		inline	virtual	CRD&	DoTransform	(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length);
-		inline	virtual	CRD&	_Begin		(IOSTATUS* _ios);
-		inline	virtual	CRD&	_Endl		(void);
+		inline	virtual	ioss	DoTransform	(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length);
+		inline	virtual	ioss	_Begin		(IOSTATUS* _ios);
+		inline	virtual	ioss	_Endl		(void);
 	private:
 		inline			CRD&	SetS		(IOSTATUS* _ios,uint32 ctrl,COLORENUM col);
-		inline			CRD&	SetE		(void);
+		inline			ioss	SetE		(void);
 	public:
 		inline			uint32	ReadCtrl	(void)const;
 		inline			uint32	ReadCOL		(void)const;
-		inline			CRD&	Write		(IOSTATUS* _ios,uint32 ctrl,COLORENUM col,const UVIn& _in);
+		inline			ioss	Write		(IOSTATUS* _ios,uint32 ctrl,COLORENUM col,const UVIn& _in);
 };
 //------------------------------------------------------------------------------------------//
 class	COLRECORD_CACHE;
@@ -184,11 +184,11 @@ class COLRECORD_CACHE : public CRD{
 		inline			void	EnableGroup			(uint32 group);
 		inline			bool32	CheckDisableGroup	(uint32 group);
 	public:
-		inline			CRDC&	Write	(IOSTATUS* _ios,COLORENUM col,const UVIn& _in,G_LOCK blLock = G_LOCK_ON,uint32 enforce = 0,uint32 addr = CRD_DEFGROUP);
-		inline			CRDC&	WriteNL	(IOSTATUS* _ios,COLORENUM col,const UVIn& _in,G_LOCK blLock = G_LOCK_ON,uint32 enforce = 0,uint32 addr = CRD_DEFGROUP);
+		inline			void	Write	(IOSTATUS* _ios,COLORENUM col,const UVIn& _in,G_LOCK blLock = G_LOCK_ON,uint32 enforce = 0,uint32 addr = CRD_DEFGROUP);
+		inline			void	WriteNL	(IOSTATUS* _ios,COLORENUM col,const UVIn& _in,G_LOCK blLock = G_LOCK_ON,uint32 enforce = 0,uint32 addr = CRD_DEFGROUP);
 	public:
-		inline	virtual	CRDC&	_Begin			(IOSTATUS* _ios);
-		inline	virtual	CRDC&	_Endl			(void);
+		inline	virtual	ioss	_Begin			(IOSTATUS* _ios);
+		inline	virtual	ioss	_Endl			(void);
 	public:
 						void	NL				(void);
 						void	SetCol			(COLORENUM col);
@@ -252,11 +252,11 @@ class COLRECORD_NODE : public DSTF{
 		inline			void	PrintEnable			(void);
 		inline			int32	CheckPrintDisable	(void);
 	protected:
-		inline	virtual	CRDN&	DoTransform			(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length);
-		inline	virtual	CRDN&	DoFinal				(IOSTATUS* _ios,const UVOut& _out);
+		inline	virtual	ioss	DoTransform			(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length);
+		inline	virtual	ioss	DoFinal				(IOSTATUS* _ios,const UVOut& _out);
 	public:
-		inline	virtual	CRDN&	_Begin				(IOSTATUS* _ios);
-		inline	virtual	CRDN&	_Endl				(void);
+		inline	virtual	ioss	_Begin				(IOSTATUS* _ios);
+		inline	virtual	ioss	_Endl				(void);
 	public:
 		inline			void	Write				(IOSTATUS* _ios,COLORENUM col,const UVIn& _in,G_LOCK blLock = G_LOCK_ON,uint32 extraGroup = 0)const;
 		inline			void	WriteNL				(IOSTATUS* _ios,COLORENUM col,const UVIn& _in,G_LOCK blLock = G_LOCK_ON,uint32 extraGroup = 0)const;;

@@ -175,23 +175,23 @@ uint32 OUTPUT_CACHE::AssignMask(uint32 group)const{
 	return(OC_G3AMASK);
 };
 //------------------------------------------------------------------------------------------//
-OUTPUT_CACHE& OUTPUT_CACHE::DoTransform(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length){
+ioss OUTPUT_CACHE::DoTransform(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length){
 	if (_out.uvid == UVID_SELF){
-		if (length == 0)
-			return(*this);
-		ELog("CACHE::Delivery()::ctrl:" << std::hex << cgLastCtrl << " col:" << std::dec << cgLastCol << " L:" << length << ".");
-		TREE_LChildRChain_Traversal_LINE(OUTPUT_NODE,(&cgONList),
-			if (_opNode->CheckPrint(cgLastCtrl)){
-				_opNode->Print(cgLastCtrl,cgLastCol,data,(uint32)length);
-				_opNode->UpdataLastStatus(cgLastCol,data + length - 1);
-			}
-		);
-		B_ClrFLAG32(cgLastCtrl, CRD_NL);
+		if (length > 0){
+			ELog("CACHE::Delivery()::ctrl:" << std::hex << cgLastCtrl << " col:" << std::dec << cgLastCol << " L:" << length << ".");
+			TREE_LChildRChain_Traversal_LINE(OUTPUT_NODE,(&cgONList),
+				if (_opNode->CheckPrint(cgLastCtrl)){
+					_opNode->Print(cgLastCtrl,cgLastCol,data,(uint32)length);
+					_opNode->UpdataLastStatus(cgLastCol,data + length - 1);
+				}
+			);
+			B_ClrFLAG32(cgLastCtrl, CRD_NL);
+		}
 	}
 	else{
-		CRDC::DoTransform(_ios,_out,data,length);
+		return(CRDC::DoTransform(_ios,_out,data,length));
 	}
-	return(*this);
+	return IOS_OK;
 };
 //------------------------------------------------------------------------------------------//
 void OUTPUT_CACHE::Delivery(void){

@@ -12,6 +12,7 @@
 #ifdef BIF_Transform_h
 #include "SYS_File.h"
 #include "SYS_Time.h"
+#include "ALG_Math.h"
 //------------------------------------------------------------------------------------------//
 CMDID BIF_COMBINE_BASE::Execute(CMD_ENV* env,const uint32& mID,const STDSTR& msg,void* bif_retstr)const{
 	//if mID == CMD_ID_NO, means msg is rawIn
@@ -88,10 +89,10 @@ CMDID BIF_HEX::Command(CMD_ENV* env,const STDSTR& msg,void* bif_retstr)const{
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIF_VIEWINHEX::Help(CMD_ENV* env,uint32 flag)const{
-	PrintB(env,".CMD = viewhex:[PAR] -->View send data in HEX format.");
-	PrintB(env,"  Command = <'viewhex:[PAR]>[//COMMENT]");
+	PrintB(env,".CMD = Viewhex:[PAR] -->View send data in HEX format.");
+	PrintB(env,"  Command = <'Viewhex:[PAR]>[//COMMENT]");
 	PrintP(env,"   eg:");
-	PrintP(env,"     Command = 'viewhex:ABCD      //Send: ABCD,4Bytes,but show [HEX:41 42 43 44]");
+	PrintP(env,"     Command = 'Viewhex:ABCD      //Send: ABCD,4Bytes,but show [HEX:41 42 43 44]");
 	return(cgCommandID);
 };
 //------------------------------------------------------------------------------------------//
@@ -111,7 +112,7 @@ CMDID BIF_VIEWINHEX::Command(CMD_ENV* env,const STDSTR& msg,void* bif_retstr)con
 //------------------------------------------------------------------------------------------//
 CMDID BIF_TIME::Help(CMD_ENV* env,uint32 flag)const{
 	PrintB(env,".CMD = Time/Now(<PAR>) -->Get current time.");
-	PrintB(env,"  Command = <'Time/Now=(<PAR>)>[//COMMENT]");
+	PrintB(env,"  Command = <'Time/Now(<PAR>)>[//COMMENT]");
 	PrintP(env,"  Notes:1.PAR is style string, eg: YY/MM/DD,hh:mm:ss(zzz).");
 	PrintP(env,"        2.YY:Year, MM:Month, DD:Date, hh:Hour, mm:Minute, ss:Sencond, zzz:Millisecond.");
 	PrintP(env,"   eg:");
@@ -140,10 +141,10 @@ CMDID BIF_TIME::Command(CMD_ENV* env,const STDSTR& msg,void* bif_retstr)const{
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIF_STRING::Help(CMD_ENV* env,uint32 flag)const{
-	PrintB(env,".CMD = string(<len>) -->Create string, len > 0 and len < 64 * 512.");
-	PrintB(env,"  Command = <'string(len)>");
+	PrintB(env,".CMD = Str/String(<len>) -->Create string, support four arithmetic operation.");
+	PrintB(env,"  Command = <'Str/String(len)>");
 	PrintP(env,"     eg:");
-	PrintP(env,"       Command = 'string(10) //Send: 001>?@ABCD\\r");
+	PrintP(env,"       Command = 'String(5+5) //Send: 001?@ABCDE\\r");
 	return(cgCommandID);
 };
 //------------------------------------------------------------------------------------------//
@@ -153,21 +154,21 @@ CMDID BIF_STRING::Command(CMD_ENV* env,const STDSTR& msg,void* bif_retstr)const{
 	int32		num,line;
 	char		charT;
 	
-	num = atoi(Str_Trim(msg).c_str());
+	num = ALG_FAO32Calc(nullptr,msg);
 	ret->forPrint += "\n";
 	ret->result = "";
 	line = 0;
-	if (num > 64 * 512)
-		num = 64 * 512;
-	while(num > 3){
+	//if (num > 64 * 512)
+	//	num = 64 * 512;
+	while(num > 4){
 		++ line;
 		strT = Str_ToStr(line);
-		if (strT.length() < 3)
-			strT.insert(0,3 - strT.length(),'0');
+		if (strT.length() < 4)
+			strT.insert(0,4 - strT.length(),'0');
 		ret->forPrint += strT;
 		ret->result += strT;
-		num -= 3;
-		charT = 62;
+		num -= 4;
+		charT = 63;
 		while((charT < 92) && (num > 1)){
 			strT = charT;
 			ret->forPrint += strT;
@@ -189,9 +190,13 @@ CMDID BIF_STRING::Command(CMD_ENV* env,const STDSTR& msg,void* bif_retstr)const{
 			-- num;
 		}
 	}
-	if (num == 3){
-		ret->forPrint += ">?\\n\n";
-		ret->result += ">?\n";
+	if (num == 4){
+		ret->forPrint += "?@A\\n\n";
+		ret->result += "?@A\n";
+	}
+	else if (num == 3){
+		ret->forPrint += "?@\\n\n";
+		ret->result += "?@\n";
 	}
 	else if (num == 2){
 		ret->forPrint += "?\\n\n";
@@ -234,8 +239,8 @@ CMDID BIF_FILE::Command(CMD_ENV* env,const STDSTR& msg,void* bif_retstr)const{
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIF_DEFINE::Help(CMD_ENV* env,uint32 flag)const{
-	PrintB(env,".CMD = Define:<PAR> -->Set a define string. No execution command, used with CMD Replace.");
-	PrintB(env,"  Command = <'Define:<PAR>>[//COMMENT]");
+	PrintB(env,".CMD = Def/Define:<PAR> -->Set a define string. No execution command, used with CMD Replace.");
+	PrintB(env,"  Command = <'Def/Define:<PAR>>[//COMMENT]");
 	PrintP(env,"   eg:");
 	PrintP(env,"     Command = 'Define:v1=Leif Wen;v2=+86-180-8888-0966;      //used with CMD Replace");
 	return(cgCommandID);
@@ -253,11 +258,11 @@ CMDID BIF_DEFINE::Command(CMD_ENV* env,const STDSTR& msg,void* bif_retstr)const{
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIF_REPLACE::Help(CMD_ENV* env,uint32 flag)const{
-	PrintB(env,".CMD = rep:<PAR> -->Replace PAR which define in 'define command.");
-	PrintB(env,"  Command = <'rep:<PAR>>");
+	PrintB(env,".CMD = Rep/Replace:<PAR> -->Replace PAR which define in 'define command.");
+	PrintB(env,"  Command = <'Rep/Replace:<PAR>>");
 	PrintP(env,"     eg:");
 	PrintP(env,"     If 'define: v1=Leif Wen;v2=+86-180-8888-0966;");
-	PrintP(env,"       Command = 'rep:Name: v1.MP: v2 //New \"Command\" is Name: Leif Wen.MP: +86-180-8888-0966");
+	PrintP(env,"       Command = 'Rep:Name: v1.MP: v2 //New \"Command\" is Name: Leif Wen.MP: +86-180-8888-0966");
 	return(cgCommandID);
 };
 //------------------------------------------------------------------------------------------//
@@ -539,9 +544,9 @@ CMDID BIF_CALC_BASE64::Command(CMD_ENV* env,const STDSTR& msg,void* bif_retstr)c
 //------------------------------------------------------------------------------------------//
 BIF_COMBINE::BIF_COMBINE(void) : BIF_BASE() {
 	cgCommandID = BIF_ID_COMBINE;
-	cgCommand = "Combine,=/build,=/send,=";
+	cgCommand = "combine,=/build,=/send,=";
 	
-	Add(cgSubC_SQ) < cgSubC_HEX < cgSubC_VIEWINHEX < cgSubC_Time < cgSubC_STRING < cgSubC_DEFINE < cgSubC_REPLACE
+	Add(cgSubC_SQ) < cgSubC_HEX < cgSubC_VIEWINHEX < cgSubC_TIME < cgSubC_STRING < cgSubC_FILE < cgSubC_DEFINE < cgSubC_REPLACE
 #ifdef ALG_Digest_h
 	< cgSubC_CALC_MD5 < cgSubC_CALC_SHA1 < cgSubC_CALC_SHA224 < cgSubC_CALC_SHA256 < cgSubC_CALC_SHA384 < cgSubC_CALC_SHA512
 #endif
@@ -554,12 +559,12 @@ BIF_COMBINE::BIF_COMBINE(void) : BIF_BASE() {
 };
 //------------------------------------------------------------------------------------------//
 CMDID BIF_COMBINE::Help(CMD_ENV* env,uint32 flag)const{
-	PrintB(env,".CMD = combine=<Expression> -->Create new \"Command\".");
+	PrintB(env,".CMD = Combine=<Expression> -->Create new \"Command\".");
 	PrintB(env,"  Command = <'Combine=<Expression>>[//COMMENT]");
 	PrintP(env,"  Notes:1.Expression Operators is +.");
 	PrintP(env,"        2.Can use \"\" set string. Use \\\", \\+ to escape \", +.");
 	PrintP(env,"        3.Support \\0xhh, \\0Xhh, \\a, \\b, \\f, \\n, \\r, \\t, \\v, \\\\, \\', \\\", \\0, \\/, \\*, \\?.");
-	PrintP(env,"        4.support sub command :'','hex,'viewhex,'ret,'time,'string,'replace,");
+	PrintP(env,"        4.support sub command :'','hex,'viewhex,'ret,'time,'string,'file,'replace,");
 	PrintP(env,"          'MD5,'SHA1,'SHA224,'SHA256,'SHA384,'SHA512,'BASE64.");
 	PrintP(env,"     eg:");
 	PrintP(env,"       Command = 'Combine = Happy + New + Year //new \"Command\" is HappyNewYear.");
@@ -733,3 +738,4 @@ CMDID BIF_Transform(CMD_ENV* env,STDSTR* retForSend,STDSTR* retForPrint,const ST
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 #endif /* BIF_Transform_h */
+
