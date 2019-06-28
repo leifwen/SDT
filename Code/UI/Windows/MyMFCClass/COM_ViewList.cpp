@@ -189,7 +189,7 @@ BOOL CMyCListCtrl::DoShowEdit(int hItem,int hSubItem){
 			m_EditItem = hItem;
 			m_EditSubItem = hSubItem;
 			GetItemRect(m_EditItem,&editRect,0);
-			ReCaclRect(m_EditSubItem,&editRect);
+			ReCalcRect(m_EditSubItem,&editRect);
 			m_Edit.Create(ES_LEFT|ES_AUTOHSCROLL|WS_BORDER|WS_CHILD,editRect,this,0);
 			m_Edit.SetFont(&m_EditFont);
 			m_Edit.SetWindowTextW(GetItemText(m_EditItem,m_EditSubItem));
@@ -224,7 +224,7 @@ BOOL CMyCListCtrl::DoShowComboBox(int hItem,int hSubItem){
 			m_EditItem = hItem;
 			m_EditSubItem = hSubItem;
 			GetItemRect(m_EditItem,&editRect,0);
-			ReCaclRect(m_EditSubItem,&editRect);
+			ReCalcRect(m_EditSubItem,&editRect);
 			m_ComboBox.Create(CBS_DROPDOWNLIST|WS_CHILD,editRect,this,0);
 			m_ComboBox.SetFont(&m_ComboBoxFont);
 			OnComboBoxShow(m_EditItem,m_EditSubItem);
@@ -260,7 +260,7 @@ BOOL CMyCListCtrl::DoSaveComboBox(BOOL blSave){
 	return FALSE;
 }
 //------------------------------------------------------------------------------------------//
-void CMyCListCtrl::ReCaclRect(int col,CRect *editRect){
+void CMyCListCtrl::ReCalcRect(int col,CRect *editRect){
 	int i;
 	i = col;
 	while(i-- > 0){

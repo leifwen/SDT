@@ -7,6 +7,7 @@
 //
 
 #include "stdafx.h"
+//------------------------------------------------------------------------------------------//
 #include "SystemInfo.h"
 #ifdef SystemInfo_h
 #include "DS_STRING.h"
@@ -172,7 +173,7 @@ int32 WinNTHDSerialNumAsPhysicalReadWithAdminRights(BYTE* dwSerial,UINT* puSeria
 		}
 	}
 	return bInfoLoaded;
-}
+};
 //------------------------------------------------------------------------------------------//
 int32 WinNTHDSerialNumAsScsiReadWithAdminRights(BYTE* dwSerial,UINT* puSerialLen,UINT uMaxSerialLen){
 	bool bInfoLoaded = false;
@@ -240,7 +241,7 @@ int32 WinNTHDSerialNumAsScsiReadWithAdminRights(BYTE* dwSerial,UINT* puSerialLen
 		}
 	}
 	return bInfoLoaded;
-}
+};
 //------------------------------------------------------------------------------------------//
 //  function to decode the serial numbers of IDE hard drives
 //  using the IOCTL_STORAGE_QUERY_PROPERTY command
@@ -337,7 +338,7 @@ char * flipAndCodeBytes (const char * str,int pos,int flip,char * buf){
 		buf[k - i] = '\0';
 	}
 	return buf;
-}
+};
 //------------------------------------------------------------------------------------------//
 int32 WinNTHDSerialNumAsPhysicalReadWithZeroRights(BYTE* dwSerial,UINT* puSerialLen,UINT uMaxSerialLen){
 	BOOL done = FALSE;
@@ -402,7 +403,7 @@ int32 WinNTHDSerialNumAsPhysicalReadWithZeroRights(BYTE* dwSerial,UINT* puSerial
 		}
 	}
 	return done;
-}
+};
 //------------------------------------------------------------------------------------------//
 BOOL DoIdentify(HANDLE hPhysicalDriveIOCTL, PSENDCMDINPARAMS pSCIP,
 				PSENDCMDOUTPARAMS pSCOP, BYTE bIDCmd, BYTE bDriveNum,
@@ -429,7 +430,7 @@ BOOL DoIdentify(HANDLE hPhysicalDriveIOCTL, PSENDCMDINPARAMS pSCIP,
 						   ( LPVOID ) pSCOP,
 						   sizeof( SENDCMDOUTPARAMS ) + IDENTIFY_BUFFER_SIZE - 1,
 						   lpcbBytesReturned, nullptr );
-}
+};
 //------------------------------------------------------------------------------------------//
 UINT FindAwardBios(BYTE** ppBiosAddr){
 	BYTE* pBiosAddr = * ppBiosAddr + 0xEC71;
@@ -456,7 +457,7 @@ UINT FindAwardBios(BYTE** ppBiosAddr){
 		}
 	}
 	return 0;
-}
+};
 //------------------------------------------------------------------------------------------//
 UINT FindAmiBios( BYTE** ppBiosAddr){
 	BYTE* pBiosAddr = * ppBiosAddr + 0xF478;
@@ -482,7 +483,7 @@ UINT FindAmiBios( BYTE** ppBiosAddr){
 		}
 	}
 	return 0;
-}
+};
 //------------------------------------------------------------------------------------------//
 UINT FindPhoenixBios(BYTE** ppBiosAddr){
 	UINT uOffset[3] = {0x6577,0x7196,0x7550};
@@ -510,7 +511,7 @@ UINT FindPhoenixBios(BYTE** ppBiosAddr){
 		}
 	}
 	return 0;
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 void SI_GetNetCardInfo(STDSTR* stringData){
@@ -601,7 +602,7 @@ void SI_GetNetCardInfo(STDSTR* stringData){
 	}
 	if (pIpAdapterInfo2 != nullptr)
 		delete []pIpAdapterInfo2;
-}
+};
 //------------------------------------------------------------------------------------------//
 void SI_GetHardiskInfo(STDSTR* stringData){
 	BYTE szSystemInfo[4096];
@@ -615,7 +616,7 @@ void SI_GetHardiskInfo(STDSTR* stringData){
 		}
 		*stringData = Str_CharToASCII(szSystemInfo, uSystemInfoLen, G_ESCAPE_OFF);
 	}
-}
+};
 //------------------------------------------------------------------------------------------//
 void SI_GetBOISInfo(STDSTR* stringData){
 	SIZE_T ssize;
@@ -687,7 +688,7 @@ void SI_GetBOISInfo(STDSTR* stringData){
 		ZWunmapV((HANDLE)0xFFFFFFFF,(void*)ba);
 	}
 	*stringData += Str_CharToHEX(szSystemInfo,uSystemInfoLen,G_SPACE_OFF);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 __int64 WinNTHDSerialNumAsPhysicalReadWithZeroRights(int driveNo,BYTE* dwSerial,UINT* puSerialLen,UINT uMaxSerialLen){
@@ -756,7 +757,7 @@ __int64 WinNTHDSerialNumAsPhysicalReadWithZeroRights(int driveNo,BYTE* dwSerial,
 		CloseHandle (hPhysicalDriveIOCTL);
 	}
 	return(size);
-}
+};
 //------------------------------------------------------------------------------------------//
 const STDSTR& SystemInfo_GetHardiskInfo(STDSTR* stringData){
 	BYTE szSystemInfo[4096];
@@ -782,7 +783,7 @@ const STDSTR& SystemInfo_GetHardiskInfo(STDSTR* stringData){
 		*stringData += '|';
 	}
 	return(*stringData);
-}
+};
 //------------------------------------------------------------------------------------------//
 uint32 SystemInfo_GetNetCardInfo(STDSTR* stringData){
 	unsigned long stSize;
@@ -819,7 +820,7 @@ uint32 SystemInfo_GetNetCardInfo(STDSTR* stringData){
 	if (pIpAdapterInfo2 != nullptr)
 		delete []pIpAdapterInfo2;
 	return(netCardNum);
-}
+};
 //------------------------------------------------------------------------------------------//
 const STDSTR& SystemInfo_GetCPUID(STDSTR* stringData){
 	BYTE szSystemInfo[80] = { 0 };
@@ -866,7 +867,7 @@ const STDSTR& SystemInfo_GetCPUID(STDSTR* stringData){
 	*stringData += Str_CharToHEX(szSystemInfo,76,G_SPACE_OFF);
 	*stringData += "|";
 	return(*stringData);
-}
+};
 //------------------------------------------------------------------------------------------//
 #endif
 //------------------------------------------------------------------------------------------//

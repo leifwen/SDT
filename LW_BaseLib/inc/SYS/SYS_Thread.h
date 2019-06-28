@@ -12,6 +12,7 @@
 //------------------------------------------------------------------------------------------//
 #ifndef SYS_Thread_h
 #define SYS_Thread_h
+#ifdef SYS_Thread_h
 //------------------------------------------------------------------------------------------//
 #ifdef CommonDefH_Unix
 #include <pthread.h>
@@ -21,9 +22,9 @@ typedef pthread_t	THREADHANDLE;
 typedef HANDLE		THREADHANDLE;
 #endif
 //------------------------------------------------------------------------------------------//
-class SYS_AThread : public TREE_NODE{
+class SYS_AThread : public TNFP{
 	protected:
-		enum{RFLAG_C = 3, RFLAG_S = TREE_NODE::RFLAG_S + TREE_NODE::RFLAG_C};
+		enum{RFLAG_C = 3, RFLAG_S = TNF::RFLAG_S + TNF::RFLAG_C};
 		enum{SYS_blIsTerminated		= RFLAG_CREATE(0),
 			 SYS_blThreadCreated	= RFLAG_CREATE(1),
 			 SYS_blThreadFinish		= RFLAG_CREATE(2),
@@ -66,18 +67,21 @@ template <typename T_CLASS> class SYS_Thread: public SYS_AThread{
 		virtual	void	OnThreadStop	(void* exep);
 };
 //------------------------------------------------------------------------------------------//
-class SYS_Thread_List : public TREE_NODE{
+class SYS_Thread_List : public TNF{
 	public:
 				 SYS_Thread_List(void){;};
 		virtual	~SYS_Thread_List(void){;};
 	public:
-		void	ThreadRun	(void* exep);
-		void	ThreadStop	(void);
-		void	Enable		(void);
-		void	Disable		(void);
+		void			ThreadRun	(void* exep);
+		void			ThreadStop	(void);
+		SYS_AThread*	GetThread	(const STDSTR& name);
+		void			Enable		(void);
+		void			Disable		(void);
 	};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 #include "SYS_Thread.hpp"
 #endif /* SYS_Thread_h */
+#endif /* SYS_Thread_h */
 #endif /* DS_Tree_h */
+

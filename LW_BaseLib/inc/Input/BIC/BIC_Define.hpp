@@ -6,6 +6,7 @@
 //  Copyright © 2018 Leif Wen. All rights reserved.
 //
 
+//------------------------------------------------------------------------------------------//
 #ifndef BIC_Define_hpp
 #define BIC_Define_hpp
 //------------------------------------------------------------------------------------------//
@@ -34,9 +35,9 @@ inline void BIC_ENV::DeInit(CMD_ENV* env){
 	CMD_ENV::DelVar(env,CMD_VID_SELFNAME,(STDSTR*)nullptr);
 };
 //------------------------------------------------------------------------------------------//
-inline SBUF* BIC_ENV::GetSTDIN(CMD_ENV* env){
+inline ARRAY* BIC_ENV::GetSTDIN(CMD_ENV* env){
 #ifdef Console_h
-	return(CMD_ENV::GetVar(env,CMD_VID_STDIN,(SBUF*)nullptr));
+	return(CMD_ENV::GetVar(env,CMD_VID_STDIN,(ARRAY*)nullptr));
 #else
 	return(nullptr);
 #endif
@@ -105,31 +106,31 @@ template<typename... Args> void BIC_BASE::PrintHelpSubItem(CMD_ENV* env,const ST
 		space.insert(space.length(),17 - command.length(),' ');
 	
 	PrintALineDot(env,COL_clBlue,"    ",command,space,COL_clDefault,args...);
-}
+};
 //------------------------------------------------------------------------------------------//
 template<typename... Args> inline void BIC_BASE::PrintFail(CMD_ENV* env,const Args&... args){
 	
 	PrintALineDot(env,COL_Fail,"[BIC] Execute fail. Due to",args...);
-}
+};
 //------------------------------------------------------------------------------------------//
 inline void BIC_BASE::PrintFail(CMD_ENV* env){
 	PrintALineDot(env,COL_Fail,"[BIC] Execute fail");
-}
+};
 //------------------------------------------------------------------------------------------//
 template<typename... Args> inline void BIC_BASE::PrintSuccess(CMD_ENV* env,const Args&... args){
 	
 	PrintALineDot(env,COL_Sucess,"[BIC] Execute success.",args...);
-}
+};
 //------------------------------------------------------------------------------------------//
 inline void BIC_BASE::PrintSuccess(CMD_ENV* env){
 	
 	PrintALineDot(env,COL_Sucess,"[BIC] Execute success");
-}
+};
 //------------------------------------------------------------------------------------------//
 template<typename... Args> void BIC_BASE::PrintResult(CMD_ENV* env,const Args&... args){
 	
 	PrintALineDot(env,COL_Result,"[BIC]",args...);
-}
+};
 //------------------------------------------------------------------------------------------//
 inline void	BIC_BASE::SetInPressAnyKeyMode(CMD_ENV* env){
 #ifdef Console_h
@@ -206,10 +207,10 @@ inline void BIC_BASE::SwitchToAux(CMD_ENV* env){
 
 
 //------------------------------------------------------------------------------------------//
-inline void BIC_BASE_S::SetFatherName(const STDSTR& strName){
+inline void BIC_BASE_S::SetUpName(const STDSTR& strName){
 	fatherName = strName;
-	TREE_LChildRChain_Traversal_LINE_nolock(CMD_NODE,this,
-		_opNode->SetFatherName(fatherName +  ((fatherName.length() > 0) ? "/" : "") + Str_UpperCase((cgConsoleName.length() > 0)?cgConsoleName:cgCommand))
+	TREE_DownChain_Traversal_LINE_nolock(CMD_NODE,this,
+		_opNode->SetUpName(fatherName +  ((fatherName.length() > 0) ? "/" : "") + Str_UpperCase((cgConsoleName.length() > 0)?cgConsoleName:cgCommand))
 	);
 };
 //------------------------------------------------------------------------------------------//

@@ -7,6 +7,7 @@
 //
 
 #include "stdafx.h"
+//------------------------------------------------------------------------------------------//
 #include "ALG_RSA.h"
 //------------------------------------------------------------------------------------------//
 #ifdef ALG_RSA_h
@@ -36,7 +37,7 @@ STDSTR ALG_CreateRandKey(uint32 length){
 		length -= rLength;
 	}while(length > 0);
 	return(ret);
-}
+};
 //------------------------------------------------------------------------------------------//
 bool32 ALG_RSA_CreateKey(RSA* _out,int bits){
 	bool32		ret;
@@ -54,7 +55,7 @@ bool32 ALG_RSA_CreateKey(RSA* _out,int bits){
 		BN_free(bne);
 	}
 	return(ret);
-}
+};
 //------------------------------------------------------------------------------------------//
 bool32 ALG_RSA_WR_Prk_PEM(RSA* _in,const STDSTR& fileName){
 	bool32	ret;
@@ -68,7 +69,7 @@ bool32 ALG_RSA_WR_Prk_PEM(RSA* _in,const STDSTR& fileName){
 		BIO_free(tBIO);
 	}
 	return(ret);
-}
+};
 //------------------------------------------------------------------------------------------//
 bool32 ALG_RSA_RD_Prk_PEM(RSA** _out,const STDSTR& fileName){
 	BIO *tBIO;
@@ -82,7 +83,7 @@ bool32 ALG_RSA_RD_Prk_PEM(RSA** _out,const STDSTR& fileName){
 		BIO_free(tBIO);
 	}
 	return(readRet != nullptr);
-}
+};
 //------------------------------------------------------------------------------------------//
 bool32 ALG_RSA_WR_Puk_PEM(RSA* _in,const STDSTR& fileName){
 	bool32	ret;
@@ -96,7 +97,7 @@ bool32 ALG_RSA_WR_Puk_PEM(RSA* _in,const STDSTR& fileName){
 		BIO_free(tBIO);
 	}
 	return(ret);
-}
+};
 //------------------------------------------------------------------------------------------//
 bool32 ALG_RSA_RD_Puk(RSA** _out,const STDSTR& fileName){
 	BIO *tBIO;
@@ -109,7 +110,7 @@ bool32 ALG_RSA_RD_Puk(RSA** _out,const STDSTR& fileName){
 		BIO_free(tBIO);
 	}
 	return(readRet != nullptr);
-}
+};
 //------------------------------------------------------------------------------------------//
 const STDSTR& ALG_RSA_DO(STDSTR* _out,ALG_RSA_FUN rsaFun,const RSA* _rsa,const uint8* data,uint32 length){
 	uint8	*bufout;
@@ -124,7 +125,7 @@ const STDSTR& ALG_RSA_DO(STDSTR* _out,ALG_RSA_FUN rsaFun,const RSA* _rsa,const u
 		delete []bufout;
 	}
 	return(*_out);
-}
+};
 //------------------------------------------------------------------------------------------//
 const STDSTR& ALG_RSA_Encode_Prk(STDSTR* _out,const RSA* _in){
 	uint8	bufout[1024 * 2],*p;
@@ -135,7 +136,7 @@ const STDSTR& ALG_RSA_Encode_Prk(STDSTR* _out,const RSA* _in){
 	if (len > 0)
 		_out->append((char*)bufout,len);
 	return(*_out);
-}
+};
 //------------------------------------------------------------------------------------------//
 const STDSTR& ALG_RSA_Encode_Puk(STDSTR* _out,const RSA* _in){
 	uint8	bufout[1024 * 2],*p;
@@ -146,6 +147,6 @@ const STDSTR& ALG_RSA_Encode_Puk(STDSTR* _out,const RSA* _in){
 	if (len > 0)
 		_out->append((char*)bufout,len);
 	return(*_out);
-}
+};
 //------------------------------------------------------------------------------------------//
 #endif /* ALG_RSA_h */

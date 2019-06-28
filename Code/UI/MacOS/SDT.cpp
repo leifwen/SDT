@@ -5,6 +5,7 @@
 //  Created by Leif Wen on 17/01/2018.
 //  Copyright © 2018 Leif Wen. All rights reserved.
 //
+
 /***************************************************************************************/
 #include "Global.h"
 #include <fcntl.h>
@@ -17,7 +18,9 @@ class SDT{
 				 SDT(void);
 		virtual ~SDT(void);
 	private:
+#ifdef AppLayer_h
 		KERNEL	*kernel;
+#endif
 		uint32	cgSizeCache;
 		uint32	cgSizeBuffer;
 		STDSTR	cgCMD;
@@ -33,11 +36,15 @@ class SDT{
 };
 /***************************************************************************************/
 SDT::SDT(void){
+#ifdef AppLayer_h
 	kernel = nullptr;
+#endif
 }
 SDT::~SDT(void){
+#ifdef AppLayer_h
 	if (kernel != nullptr)
 		delete kernel;
+#endif
 }
 /***************************************************************************************/
 void SDT::Run(int argc,char *argv[]){
@@ -50,6 +57,7 @@ void SDT::Run(int argc,char *argv[]){
 
 	switch (Decode(argc,argv)){
 		case SDT_RUN:;
+#ifdef AppLayer_h
 			if (kernel == nullptr)
 				kernel = new KERNEL(cgSizeCache,cgSizeBuffer);
 			if (kernel != nullptr){
@@ -58,9 +66,10 @@ void SDT::Run(int argc,char *argv[]){
 				kernel->Init(DEFAULT_INI_FILE);
 				kernel->Run(cgCMD);
 				kernel->Exit(DEFAULT_INI_FILE);
-			
+
 				UIInit1();
 			}
+#endif
 			break;
 		case SDT_HELP:;
 			UIInit_Help();
@@ -83,9 +92,9 @@ void SDT::UIInit0(void){//print welcome information
 }
 /***************************************************************************************/
 void SDT::UIInit1(void){//print welcome information
-	SYS_SleepMS(100);
+//	SYS_SleepMS(100);
 	std::cout << std::endl << COL_STR_clDefault << "Quit safely." << std::endl;
-	SYS_SleepMS(100);
+//	SYS_SleepMS(100);
 }
 /***************************************************************************************/
 void SDT::UIInit_Help(void){//print welcome information
@@ -100,7 +109,9 @@ void SDT::UIInit_Help(void){//print welcome information
 }
 /***************************************************************************************/
 void SDT::Exit(void){
+#ifdef AppLayer_h
 	kernel->ExecBIC("\x1b\nexit");
+#endif
 }
 /***************************************************************************************/
 uint32 SDT::Decode(int argc,char *argv[]){
@@ -187,7 +198,7 @@ void father_sig_hander(int p){
 	else if(p == SIGTSTP){
 		std::cout << "end by Ctrl+Z" << std::endl;
 	}
-	SYS_DelayMS(10, nullptr);
+//	SYS_DelayMS(10, nullptr);
 }
 /***************************************************************************************/
 void SetSignal(void){

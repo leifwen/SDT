@@ -7,6 +7,7 @@
 //
 
 #include "stdafx.h"
+//------------------------------------------------------------------------------------------//
 #include "ALG_Math.h"
 #include "DS_STRING.h"
 //------------------------------------------------------------------------------------------//
@@ -65,7 +66,7 @@ uint32 ALG_FAO32Calc(STDSTR* result,const STDSTR& expressions){
 	if (result != nullptr)
 		*result = strRet;
 	return(atoi(Str_Trim(strRet).c_str()));
-}
+};
 //------------------------------------------------------------------------------------------//
 static void FAO32::FormatString(STDSTR* strOut,const STDSTR& expressions){
 	//control char :+ - * / ()
@@ -101,7 +102,7 @@ static void FAO32::FormatString(STDSTR* strOut,const STDSTR& expressions){
 		*strOut += ',';
 	}
 	*strOut += ")";
-}
+};
 //------------------------------------------------------------------------------------------//
 static void FAO32::GetPoland(STDSTR* polandQueue,const STDSTR& expressions){
 	STDSTR		stackT,strExp;
@@ -149,5 +150,5 @@ static void FAO32::GetPoland(STDSTR* polandQueue,const STDSTR& expressions){
 			stackT = dataT + "," + stackT;
 		}
 	}
-}
+};
 //------------------------------------------------------------------------------------------//

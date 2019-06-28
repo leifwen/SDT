@@ -7,9 +7,11 @@
 //
 
 #include "stdafx.h"
+//------------------------------------------------------------------------------------------//
 #include "BIF_Dev.h"
 #ifdef BIF_Dev_h
 #include "Device.h"
+#include "Script.h"
 #include "BIF_Expression.h"
 //------------------------------------------------------------------------------------------//
 void BIF_ENV_DEV::InitQuantity(CMD_ENV* env){
@@ -44,6 +46,14 @@ AEXEPOOL* BIF_ENV_DEV::GetAExePool(CMD_ENV* env){
 ExpandDeviceAttr* BIF_ENV_DEV::GetEDA(CMD_ENV* env){
 #ifdef Device_h
 	return(CMD_ENV::GetVar(env,CMD_VID_EDA,(ExpandDeviceAttr*)nullptr));
+#else
+	return(nullptr);
+#endif
+};
+//------------------------------------------------------------------------------------------//
+SCRIPT* BIF_ENV_DEV::GetScript(CMD_ENV* env){
+#ifdef Script_h
+	return(CMD_ENV::GetVar(env,CMD_VID_SCRIPT,(SCRIPT*)nullptr));
 #else
 	return(nullptr);
 #endif
@@ -97,12 +107,13 @@ CMDID BIF_OPEN::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 			if (strPar2 == "echo")
 				openpar.cfg |= DEVICE::CFG_blEnableEcho;
 		}
-		else if (BIF_ENV_DEV::GetEDA(env)->device->CheckEcho()){
+		else if (BIF_ENV_DEV::GetEDA(env)->device->IsEnableEcho()){
 			openpar.cfg |= DEVICE::CFG_blEnableEcho;
 		}
 		
 		PrintExecute(env,"Open",msg);
 		if (BIF_ENV_DEV::GetEDA(env)->device->Open(openpar)){
+			BIF_ENV_DEV::GetScript(env)->ClrblStopSelf();
 			BIF_ENV::RetFun(env) = 'T';
 		}
 #ifdef GList_h
@@ -113,7 +124,7 @@ CMDID BIF_OPEN::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 #endif
 	}
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIF_CLOSE::Help(CMD_ENV* env,uint32 flag)const{
@@ -129,9 +140,10 @@ CMDID BIF_CLOSE::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 		PrintExecute(env,"Close");
 		BIF_ENV_DEV::GetEDA(env)->device->Close();
 		BIF_ENV::RetFun(env) = 'T';
+		BIF_ENV_DEV::GetScript(env)->SetblStopSelf();
 	}
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIF_BR::Help(CMD_ENV* env,uint32 flag)const{
@@ -149,10 +161,12 @@ CMDID BIF_BR::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 	if ((env != nullptr) && (BIF_ENV_DEV::GetEDA(env) != nullptr) && (BIF_ENV_DEV::GetEDA(env)->IsCom())){
 		baudrate = atoi(Str_Trim(msg).c_str());
 		PrintExecute(env,"Set Baudrate to",Str_ToStr(baudrate));
-		BIF_ENV_DEV::GetEDA(env)->ACom()->SetBaudrate(baudrate);
+#ifdef Commu_Com_h
+		BIF_ENV_DEV::GetEDA(env)->AComCore()->SetBaudrate(baudrate);
+#endif
 	}
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIF_DTR::Help(CMD_ENV* env,uint32 flag)const{
@@ -182,7 +196,9 @@ CMDID BIF_DTR::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 				strTempData += GetMSSTR(timeout);
 			}
 			PrintExecute(env,strTempData);
-			BIF_ENV_DEV::GetEDA(env)->ACom()->SetDTRToHigh();
+#ifdef Commu_Com_h
+			BIF_ENV_DEV::GetEDA(env)->AComCore()->SetDTRToHigh();
+#endif
 			DelayMS(env,timeout);
 		}else if ((strPar1 == "l") || (strPar1 == "0") || (strPar1 == "low")){
 			strTempData += "low";
@@ -191,12 +207,14 @@ CMDID BIF_DTR::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 				strTempData += GetMSSTR(timeout);
 			}
 			PrintExecute(env,strTempData);
-			BIF_ENV_DEV::GetEDA(env)->ACom()->SetDTRToLow();
+#ifdef Commu_Com_h
+			BIF_ENV_DEV::GetEDA(env)->AComCore()->SetDTRToLow();
+#endif
 			DelayMS(env,timeout);
 		}
 	}
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIF_RTS::Help(CMD_ENV* env,uint32 flag)const{
@@ -226,7 +244,9 @@ CMDID BIF_RTS::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 				strTempData += GetMSSTR(timeout);
 			}
 			PrintExecute(env,strTempData);
-			BIF_ENV_DEV::GetEDA(env)->ACom()->SetRTSToHigh();
+#ifdef Commu_Com_h
+			BIF_ENV_DEV::GetEDA(env)->AComCore()->SetRTSToHigh();
+#endif
 			DelayMS(env,timeout);
 		}else if ((strPar1 == "l") || (strPar1 == "0") || (strPar1 == "low")){
 			strTempData += "low";
@@ -235,12 +255,14 @@ CMDID BIF_RTS::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 				strTempData += GetMSSTR(timeout);
 			}
 			PrintExecute(env,strTempData);
-			BIF_ENV_DEV::GetEDA(env)->ACom()->SetRTSToLow();
+#ifdef Commu_Com_h
+			BIF_ENV_DEV::GetEDA(env)->AComCore()->SetRTSToLow();
+#endif
 			DelayMS(env,timeout);
 		}
 	}
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIF_CTS::Help(CMD_ENV* env,uint32 flag)const{
@@ -256,9 +278,10 @@ CMDID BIF_CTS::Command(CMD_ENV* env,const STDSTR& msg,void* retTrue)const{
 	STDSTR strPar;
 	
 	*ret = 'F';
+#ifdef Commu_Com_h
 	strPar = Str_LowerCase(Str_Trim(msg));
 	if ((env != nullptr) && (BIF_ENV_DEV::GetEDA(env) != nullptr) && (BIF_ENV_DEV::GetEDA(env)->IsCom())){
-		if (BIF_ENV_DEV::GetEDA(env)->ACom()->GetCTSStatus() == "H"){
+		if (BIF_ENV_DEV::GetEDA(env)->AComCore()->GetCTSStatus() == "H"){
 			if ((strPar == "h") || (strPar == "1") || (strPar == "high"))
 				*ret = 'T';
 		}
@@ -266,8 +289,9 @@ CMDID BIF_CTS::Command(CMD_ENV* env,const STDSTR& msg,void* retTrue)const{
 			*ret = 'T';
 		}
 	}
+#endif
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIF_DSR::Help(CMD_ENV* env,uint32 flag)const{
@@ -283,9 +307,10 @@ CMDID BIF_DSR::Command(CMD_ENV* env,const STDSTR& msg,void* retTrue)const{
 	STDSTR strPar;
 	
 	*ret = 'F';
+#ifdef Commu_Com_h
 	strPar = Str_LowerCase(Str_Trim(msg));
 	if ((env != nullptr) && (BIF_ENV_DEV::GetEDA(env) != nullptr) && (BIF_ENV_DEV::GetEDA(env)->IsCom())){
-		if (BIF_ENV_DEV::GetEDA(env)->ACom()->GetDSRStatus() == "H"){
+		if (BIF_ENV_DEV::GetEDA(env)->AComCore()->GetDSRStatus() == "H"){
 			if ((strPar == "h") || (strPar == "1") || (strPar == "high"))
 				*ret = 'T';
 		}
@@ -293,8 +318,9 @@ CMDID BIF_DSR::Command(CMD_ENV* env,const STDSTR& msg,void* retTrue)const{
 			*ret = 'T';
 		}
 	}
+#endif
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIF_RING::Help(CMD_ENV* env,uint32 flag)const{
@@ -310,9 +336,10 @@ CMDID BIF_RING::Command(CMD_ENV* env,const STDSTR& msg,void* retTrue)const{
 	STDSTR strPar;
 	
 	*ret = 'F';
+#ifdef Commu_Com_h
 	strPar = Str_LowerCase(Str_Trim(msg));
 	if ((env != nullptr) && (BIF_ENV_DEV::GetEDA(env) != nullptr) && (BIF_ENV_DEV::GetEDA(env)->IsCom())){
-		if (BIF_ENV_DEV::GetEDA(env)->ACom()->GetRINGStatus() == "H"){
+		if (BIF_ENV_DEV::GetEDA(env)->AComCore()->GetRINGStatus() == "H"){
 			if ((strPar == "h") || (strPar == "1") || (strPar == "high"))
 				*ret = 'T';
 		}
@@ -320,8 +347,9 @@ CMDID BIF_RING::Command(CMD_ENV* env,const STDSTR& msg,void* retTrue)const{
 			*ret = 'T';
 		}
 	}
+#endif
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIF_DCD::Help(CMD_ENV* env,uint32 flag)const{
@@ -337,9 +365,10 @@ CMDID BIF_DCD::Command(CMD_ENV* env,const STDSTR& msg,void* retTrue)const{
 	STDSTR strPar;
 	
 	*ret = 'F';
+#ifdef Commu_Com_h
 	strPar = Str_LowerCase(Str_Trim(msg));
 	if ((env != nullptr) && (BIF_ENV_DEV::GetEDA(env) != nullptr) && (BIF_ENV_DEV::GetEDA(env)->IsCom())){
-		if (BIF_ENV_DEV::GetEDA(env)->ACom()->GetDCDStatus() == "H"){
+		if (BIF_ENV_DEV::GetEDA(env)->AComCore()->GetDCDStatus() == "H"){
 			if ((strPar == "h") || (strPar == "1") || (strPar == "high"))
 				*ret = 'T';
 		}
@@ -347,8 +376,9 @@ CMDID BIF_DCD::Command(CMD_ENV* env,const STDSTR& msg,void* retTrue)const{
 			*ret = 'T';
 		}
 	}
+#endif
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIF_SETRECVDATAMODE::Help(CMD_ENV* env,uint32 flag)const{
@@ -369,7 +399,7 @@ CMDID BIF_SETRECVDATAMODE::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 		}
 	}
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIF_SETRECMSGREPORT::Help(CMD_ENV* env,uint32 flag)const{
@@ -390,7 +420,7 @@ CMDID BIF_SETRECMSGREPORT::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 		}
 	}
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 #endif /* BIF_Dev_h */

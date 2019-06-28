@@ -6,10 +6,9 @@
 //  Copyright © 2018 Leif Wen. All rights reserved.
 //
 
-#include "BasicDefine.h"
-#include "DS_Transform.h"
 //------------------------------------------------------------------------------------------//
 #include "DS_Transform.h"
+//------------------------------------------------------------------------------------------//
 #ifdef DS_Transform_h
 //------------------------------------------------------------------------------------------//
 #ifndef ALG_zlib_h
@@ -17,21 +16,15 @@
 #ifdef ALG_zlib_h
 #include "zlib.h"
 //------------------------------------------------------------------------------------------//
-enum {	
-	ZLIB_OK		= IOS_OK,
-	ZLIB_NOMEM	= IOS_NOMEM,
-	ZLIB_FINISH	= IOS_FINISH,
-};
-//------------------------------------------------------------------------------------------//
 struct ALG_ZLIB_CTX : public DSTF_DIR_CTX{
 	z_stream ctx;
 };
 //------------------------------------------------------------------------------------------//
 void	ALG_Zlib_Init			(ALG_ZLIB_CTX* ctx,uint32 cfg);
-bool32	ALG_Zlib_Update			(ALG_ZLIB_CTX* ctx,uint8* _out,const uint64& outSize,const uint8* data,const uint64& length);
-bool32	ALG_Zlib_Final			(ALG_ZLIB_CTX* ctx,uint8* _out,const uint64& outSize);
-bool32	ALG_Zlib_Release		(ALG_ZLIB_CTX* ctx);
-bool32	ALG_Zlib_ReInit			(ALG_ZLIB_CTX* ctx);
+IOSE	ALG_Zlib_Update			(ALG_ZLIB_CTX* ctx,uint8* _out,const uint64& outSize,const uint8* data,const uint64& length);
+IOSE	ALG_Zlib_Final			(ALG_ZLIB_CTX* ctx,uint8* _out,const uint64& outSize);
+IOSE	ALG_Zlib_Release		(ALG_ZLIB_CTX* ctx);
+IOSE	ALG_Zlib_ReInit			(ALG_ZLIB_CTX* ctx);
 //------------------------------------------------------------------------------------------//
 class ALG_ZLIB : public DSTF_DIR<ALG_ZLIB_CTX>{
 	protected:

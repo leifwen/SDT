@@ -52,4 +52,7 @@ static inline uint32&	B_SetFLAG32	(uint32&	variable,uint32 u32)		{return(variabl
 static inline uint32&	B_ClrFLAG32	(uint32&	variable,uint32 u32)		{return(variable &= (~u32));};
 static inline bool32	B_ChkFLAG32	(uint32 	variable,uint32 u32)		{return((variable & u32) != 0);};
 //------------------------------------------------------------------------------------------//
+struct 			ABORTCHECK		{bool32(*fun)(void*_p);				void* p;};
+static inline	ABORTCHECK 	ACF	(bool32(*fun)(void*p) = nullptr,	void* _p = nullptr){return{fun,_p};};
+//------------------------------------------------------------------------------------------//
 #endif /* BasicDefine_h */

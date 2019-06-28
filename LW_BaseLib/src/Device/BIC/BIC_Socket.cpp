@@ -7,6 +7,7 @@
 //
 
 #include "stdafx.h"
+//------------------------------------------------------------------------------------------//
 #include "BIC_Socket.h"
 #ifdef BIC_Socket_h
 #include "Commu_Socket.h"
@@ -24,7 +25,7 @@ CMDID BIC_TCP::Help(CMD_ENV* env,uint32 flag)const{
 CMDID BIC_TCP::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 	BIC_CONNECT::SetConnectPar(env,BIC_ENV_DEV::GetEDA(env),msg,OPEN_TCP);
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIC_UDP::Help(CMD_ENV* env,uint32 flag)const{
@@ -38,7 +39,7 @@ CMDID BIC_UDP::Help(CMD_ENV* env,uint32 flag)const{
 CMDID BIC_UDP::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 	BIC_CONNECT::SetConnectPar(env,BIC_ENV_DEV::GetEDA(env),msg,OPEN_UDP);
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIC_TCPS::Help(CMD_ENV* env,uint32 flag)const{
@@ -52,7 +53,7 @@ CMDID BIC_TCPS::Help(CMD_ENV* env,uint32 flag)const{
 CMDID BIC_TCPS::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 	BIC_CONNECT::SetConnectPar(env,BIC_ENV_DEV::GetEDA(env),msg,OPEN_TCPS);
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIC_UDPS::Help(CMD_ENV* env,uint32 flag)const{
@@ -66,7 +67,7 @@ CMDID BIC_UDPS::Help(CMD_ENV* env,uint32 flag)const{
 CMDID BIC_UDPS::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 	BIC_CONNECT::SetConnectPar(env,BIC_ENV_DEV::GetEDA(env),msg,OPEN_UDPS);
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIC_PORT::Help(CMD_ENV* env,uint32 flag)const{
@@ -82,7 +83,7 @@ CMDID BIC_PORT::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 		return(Help(env,0));
 	BIC_CONNECT::SetConnectPar2(env,BIC_ENV_DEV::GetEDA(env),msg);
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIC_SI::Help(CMD_ENV* env,uint32 flag)const{
@@ -100,31 +101,31 @@ CMDID BIC_SI::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 	
 	if (attr->IsServerOpened()){
 		PrintStrNL(env,COLOR(COL_clDefault,IUD(DEV_LINE_STAR)));
-		TREE_LChildRChain_Traversal_LINE_nolock(ASOCKET,attr->AServer(),BIC_SI_LS_PrintSocket(env,_opNode));
+		TREE_DownChain_Traversal_LINE_nolock(ASOCKET,attr->AServer(),BIC_SI_LS_PrintSocket(env,_opNode));
 		PrintStrNL(env,COLOR(COL_clDefault,IUD(DEV_LINE_STAR)));
 	}
 	else{
 		PrintFail(env,"no connect");
 	}
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 bool32 BIC_SI_LS_PrintSocket(CMD_ENV* env,ASOCKET* socket){
 	STDSTR		strPrintData;
 	if (BIC_SI::GetSTDOUT(env) != nullptr){
 		if (socket != nullptr){
-			strPrintData = Str_ToStr(TNF::GetdRNodeID(socket));
+			strPrintData = Str_ToStr(TNF::GetDRNodeID(socket));
 			Str_AddSpaceInFront(&strPrintData,3);
 			strPrintData += ".";
 			
-			if (socket->CheckSelected() == G_FALSE){
+			if (COMMU_NODE::IsSelected(socket) == G_FALSE){
 				strPrintData += "   ";
 			}
 			else{
 				strPrintData += " * ";
 			}
 			*BIC_SI::GetSTDOUT(env)  << Begin() << NL() << COL_clDefault << strPrintData
-			<< COL_clYellow << socket->GetOpenPar().name << COL_clDefault << "@" << COL_clYellow << Str_ToStr(socket->GetOpenPar().port) << NL()
+			<< COL_clYellow << socket->Core()->GetOpenPar().name << COL_clDefault << "@" << COL_clYellow << Str_ToStr(socket->Core()->GetOpenPar().port) << NL()
 			<< COL_clCyan
 			<< "     Received : " << Str_ToStr(socket->RxBytes()) << " bytes\n"
 			<< "     Echo     : " << Str_ToStr(socket->FwBytes()) << " bytes\n"
@@ -133,7 +134,7 @@ bool32 BIC_SI_LS_PrintSocket(CMD_ENV* env,ASOCKET* socket){
 		}
 	}
 	return G_TRUE;
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIC_SS::Help(CMD_ENV* env,uint32 flag)const{
@@ -147,8 +148,8 @@ CMDID BIC_SS::Help(CMD_ENV* env,uint32 flag)const{
 CMDID BIC_SS::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 	ExpandDeviceAttr* attr = BIC_ENV_DEV::GetEDA(env);
 	
-	ASOCKET			*selSocket;
-	int32 			num;
+	ASOCKET	*selSocket,*selNode;
+	int32	num;
 	
 	if (msg.length() == 0)
 		return(Help(env,0));
@@ -156,14 +157,18 @@ CMDID BIC_SS::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 	if (attr->IsServerOpened()){
 		num = atoi(msg.c_str());
 		
-		selSocket = static_cast<ASOCKET*>(FindInLChildRChainByDRNodeID(attr->AServer(), num));
-		if (attr->AServer()->GetSelDB() == selSocket){
-			attr->AServer()->ChildClrSel(selSocket);
+		selSocket = static_cast<ASOCKET*>(FindInDownChainByDRNodeID(attr->AServer(), num));
+		selNode = static_cast<ASOCKET*>(COMMU_NODE::AcquireSelected(attr->AServer()));
+		if (selNode != nullptr){
+			COMMU_NODE::ReleaseSelected(attr->AServer());
+			if (selNode == selSocket){
+				attr->AServer()->ClrChildSelected(selSocket);
+			}
+			else{
+				attr->AServer()->SetChildSelected(selSocket);
+			}
 		}
-		else{
-			attr->AServer()->ChildSetSel(selSocket);
-		}
-		
+
 		PrintStrNL(env,COLOR(COL_clDefault,IUD(DEV_LINE_STAR)));
 		BIC_SI_LS_PrintSocket(env,selSocket);
 		PrintStrNL(env,COLOR(COL_clDefault,IUD(DEV_LINE_STAR)));
@@ -172,35 +177,47 @@ CMDID BIC_SS::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 		PrintFail(env,"no connect");
 	}
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIC_SD::Help(CMD_ENV* env,uint32 flag)const{
 	PrintHelpItem(env,cgCommand,"Socket shutdown");
 	if (B_ChkFLAG32(flag, CMD_blPrintSimple))
 		return(cgCommandID);
-	PrintHelpSubItem(env,"<num>","Socket number");
+	PrintHelpSubItem(env,"[num]","Socket number");
 	return(cgCommandID);
 };
 //------------------------------------------------------------------------------------------//
 CMDID BIC_SD::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 	ExpandDeviceAttr* attr = BIC_ENV_DEV::GetEDA(env);
 	
-	int32 num;
+	uint32	sDID;
+	STDSTR	strPar1,strPar2;
 	
 	if (msg.length() == 0)
 		return(Help(env,0));
 	
 	if (attr->IsServerOpened()){
-		num = atoi(msg.c_str());
-		attr->AServer()->CloseChild(static_cast<ASOCKET*>(FindInLChildRChainByDRNodeID(attr->AServer(), num)));
+		SplitPar1(strPar1, strPar2, msg);
+		if (strPar1 == "all"){
+			attr->AServer()->CloseAllChild();
+			SetblUpdate(attr->AServer());
+		}
+		else{
+			while(strPar1.length() > 0){
+				sDID = (uint32)strtol(strPar1.c_str(),nullptr,10);
+				attr->AServer()->CloseChild(static_cast<ASOCKET*>(FindInDownChainByDRNodeID(attr->AServer(), sDID)));
+				SplitPar1(&strPar1, &strPar2);
+			};
+			SetblUpdate(attr->AServer());
+		}
 	}
 	else{
 		PrintFail(env,"no connect");
 	}
 	
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 
 

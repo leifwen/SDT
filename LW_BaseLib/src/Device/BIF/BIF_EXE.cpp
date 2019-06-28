@@ -7,6 +7,7 @@
 //
 
 #include "stdafx.h"
+//------------------------------------------------------------------------------------------//
 #include "BIF_EXE.h"
 #ifdef BIF_EXE_h
 #include "BIF_Expression.h"
@@ -39,7 +40,7 @@ CMDID BIF_RUNEXE::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 #endif
 	}
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIF_STOPEXE::Help(CMD_ENV* env,uint32 flag)const{
@@ -63,25 +64,25 @@ CMDID BIF_STOPEXE::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 		timeout = GetMS(strPar2);
 		aexe = BIF_ENV_DEV::GetAExePool(env)->Find(strPar1);
 		if (aexe != nullptr){
-			PrintExecute(env,"Stop external command:",strPar1,"::",aexe->GetCommand());
+			PrintExecute(env,"Stop external command:",strPar1,"::",static_cast<CORE_AEXE*>(aexe->Core())->GetCommand());
 			if (BIF_ENV_DEV::GetAExePool(env)->CloseChild(strPar1,timeout))
 				BIF_ENV::RetFun(env) = 'T';
 		}
 #endif
 	}
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 namespace BIF {
 	static void PrintLineWithTime(CMD_ENV* env,STDSTR* strIn);
-}
+};
 //------------------------------------------------------------------------------------------//
 CMDID BIF_WAITEXE::Help(CMD_ENV* env,uint32 flag)const{
 	PrintB(env,".CMD = WaitEXE=<name>,<timeout>,<condition> -->Wait external command executing,");
 	PrintB(env,"                                               only use in Linux.");
 	PrintB(env,"  Command = <'WaitEXE=<name>,<timeout>,<condition>>[//COMMENT]");
 	PrintP(env,"  Notes:1.Can use 'lcs check the execution result.");
-	PrintP(env,"        2.The name is uesd for distinguishing the same command.");
+	PrintP(env,"        2.The name is used for distinguishing the same command.");
 	PrintP(env,"     eg:");
 	PrintP(env,"     Command = 'WaitEXE=CMD1,5s,local  IP address");
 	PrintP(env,"               // WaitEXE EC executing which name is CMD1,and check whether contain \"local  IP address\"");
@@ -108,8 +109,8 @@ CMDID BIF_WAITEXE::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 		if (aexe != nullptr){
 			BIF_ENV::STDIN(env) = "";
 			do{
-				SYS_Delay_CheckTS(&timeS);
-				aexe->Read(_EMPTY(&strPrint), G_ESCAPE_OFF);
+				SYS_Delay_IsTimeout(&timeS);
+				aexe->Read(_EMPTY(&strPrint), -1);
 				BIF_ENV::STDIN(env) += strPrint;
 				BIF::PrintLineWithTime(env,&strPrint);
 				if (BIF_Expression(env,strPar3) != G_FALSE)
@@ -119,7 +120,7 @@ CMDID BIF_WAITEXE::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 						BIF_ENV::RetFun(env) = 'T';
 					break;
 				}
-			}while(!(ChkblExit(env) || SYS_Delay_CheckTS(&timeS) || (BIF_ENV::RetFun(env) == "T")));
+			}while(!(IsExit(env) || SYS_Delay_IsTimeout(&timeS) || (BIF_ENV::RetFun(env) == "T")));
 		}
 #ifdef GList_h
 		if ((BIF_ENV::GetCommandNode(env) != nullptr) && (BIF_ENV::RetFun(env) == "F")){
@@ -127,10 +128,11 @@ CMDID BIF_WAITEXE::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 			++ BIF_ENV::GetCommandNode(env)->catchTimes;
 		}
 #endif
+		BIF_ENV::RetCMD(env) = 2;
 #endif
 	}
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 static void BIF::PrintLineWithTime(CMD_ENV* env,STDSTR* strIn){
 	STDSTR	strT;
@@ -138,16 +140,16 @@ static void BIF::PrintLineWithTime(CMD_ENV* env,STDSTR* strIn){
 	do{
 		strT = Str_ReadSubItem(strIn,"\n",G_TRUE);
 		if (strT.length() > 0)
-			CMD_BASE::PrintWithTime(env,COLOR(COL_DB_RxText,&strT));
+			CMD_BASE::PrintWithTime(env,COL_DB_RxText,&strT);
 	}while(strIn->length() > 0);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIF_GETEXE::Help(CMD_ENV* env,uint32 flag)const{
 	PrintB(env,".CMD = GetEXE=<name> -->Get external command status,only use in Linux.");
 	PrintB(env,"  Command = <'GetEXE=<name>,<timeout>,<condition>>[//COMMENT]");
 	PrintP(env,"  Notes:1.Can use 'lcs check the execution result.");
-	PrintP(env,"        2.The name is uesd for distinguishing the same command.");
+	PrintP(env,"        2.The name is used for distinguishing the same command.");
 	PrintP(env,"        3.Set result to true if EC is in running.");
 	PrintP(env,"     eg:");
 	PrintP(env,"     Command = 'GetEXE=CMD1  // Get EC status which name is CMD1");
@@ -163,7 +165,7 @@ CMDID BIF_GETEXE::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 #endif
 	}
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 #endif /* BIF_EXE_h */

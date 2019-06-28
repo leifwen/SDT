@@ -6,6 +6,7 @@
 //  Copyright © 2018 Leif Wen. All rights reserved.
 //
 
+//------------------------------------------------------------------------------------------//
 #include "BasicDefine.h"
 //------------------------------------------------------------------------------------------//
 #if (defined USE_OPENSSL) || (defined CommonDefH_MAC)
@@ -88,7 +89,7 @@ typedef uint32 CC_LONG;
 #endif
 //------------------------------------------------------------------------------------------//
 #define Define_ALG_Method_CTX(md) \
-	union ALG_##md##_CTX		{CC_##md##_CTX	ctx;}
+	union ALG_##md##_CTX		{CC_##md##_CTX	ctx;};
 //------------------------------------------------------------------------------------------//
 Define_ALG_Method_CTX(SHA1);
 Define_ALG_Method_CTX(SHA224);
@@ -121,7 +122,12 @@ template <typename ALGCTX> static inline void	ALG_Digest_Update64	(ALGCTX* ctx,	
 	static inline STDSTR ALG_Digest_##md (const char* _in){\
 		return(ALG_Digest64((ALG_##md##_CTX*)nullptr,(uint8*)_in,strlen(_in)));\
 	};
-
+//------------------------------------------------------------------------------------------//
+#ifdef DS_Transform_h
+#ifndef ALG_DS_DIGEST
+#define ALG_DS_DIGEST
+#ifdef ALG_DS_DIGEST
+//------------------------------------------------------------------------------------------//
 #define Define_ALG_Digest3(md)\
 	static inline STDSTR ALG_Digest_##md (const UVIn& _in){\
 		ALG_DIGEST_T<ALG_##md##_CTX>	digest;\
@@ -129,8 +135,6 @@ template <typename ALGCTX> static inline void	ALG_Digest_Update64	(ALGCTX* ctx,	
 		digest.InitCFG().Calc(nullptr,_EMPTY(&ret),_NONE(),_in);\
 		return(ret);\
 	};
-//------------------------------------------------------------------------------------------//
-#ifdef DS_Transform_h
 template <typename ALGCTX> class ALG_DIGEST_T : public DSTF{
 	public:
 				 ALG_DIGEST_T(void);
@@ -141,11 +145,11 @@ template <typename ALGCTX> class ALG_DIGEST_T : public DSTF{
 		inline	virtual	ALG_DIGEST_T&	InitCFG		(uint32 cfg = 0,const void* p = nullptr);
 	protected:
 		inline	virtual	ALG_DIGEST_T&	InitSize	(uint32 size);
-		inline	virtual	ioss			DoTransform	(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length);
-		inline	virtual	ioss			DoFinal		(IOSTATUS* _ios,const UVOut& _out);
+		inline	virtual	IOSE			DoTransform	(IOS* _ios,const UVOut& _out,const uint8* data,const uint64& length);
+		inline	virtual	IOSE			DoFinal		(IOS* _ios,const UVOut& _out);
 	public:
-		inline			ALG_DIGEST_T&	GetResult	(IOSTATUS* _ios,const UVOut& _result);
-		inline			ALG_DIGEST_T&	Calc		(IOSTATUS* _ios,const UVOut& _result,const UVOut& _out,const UVIn& _in);
+		inline			ALG_DIGEST_T&	GetResult	(IOS* _ios,const UVOut& _result);
+		inline			ALG_DIGEST_T&	Calc		(IOS* _ios,const UVOut& _result,const UVOut& _out,const UVIn& _in);
 		inline			uint32			GetResultSize(void);
 };
 //------------------------------------------------------------------------------------------//
@@ -155,7 +159,11 @@ typedef ALG_DIGEST_T<ALG_SHA256_CTX>	ALG_SHA256;
 typedef ALG_DIGEST_T<ALG_SHA384_CTX>	ALG_SHA384;
 typedef ALG_DIGEST_T<ALG_SHA512_CTX>	ALG_SHA512;
 typedef ALG_DIGEST_T<ALG_MD5_CTX>	 	ALG_MD5;
-#endif
+#else
+#define Define_ALG_Digest3(md);
+#endif	/* ALG_DS_DIGEST */
+#endif	/* ALG_DS_DIGEST */
+#endif	/* DS_Transform_h */
 //------------------------------------------------------------------------------------------//
 #include "ALG_Digest.hpp"
 #endif /* ALG_Digest_h */

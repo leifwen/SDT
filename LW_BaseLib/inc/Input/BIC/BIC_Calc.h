@@ -6,19 +6,20 @@
 //  Copyright © 2018 Leif Wen. All rights reserved.
 //
 
+//------------------------------------------------------------------------------------------//
 #include "BIC_Define.h"
+#include "ALG_Digest.h"
+#include "ALG_BASE64.h"
+//------------------------------------------------------------------------------------------//
 #ifdef BIC_Define_h
 //------------------------------------------------------------------------------------------//
 #ifndef BIC_Calc_h
 #define BIC_Calc_h
 #ifdef BIC_Calc_h
-#include "ALG_Digest.h"
-#include "ALG_BASE64.h"
-#include "ALG_zlib.h"
 //------------------------------------------------------------------------------------------//
 BIC_CLASSTYPE(CALC_HEX2DEC,	"hex2dec");
 BIC_CLASSTYPE(CALC_DEC2HEX,	"dec2hex");
-#ifdef ALG_Digest_h
+#ifdef ALG_DS_DIGEST
 	BIC_CLASSTYPE(CALC_MD5,		"md5");
 	BIC_CLASSTYPE(CALC_SHA1,	"sha1");
 	BIC_CLASSTYPE(CALC_SHA224,	"sha224");
@@ -39,7 +40,7 @@ class BIC_CALC : public BIC_BASE_S{
 	public:
 		BIC_CALC_HEX2DEC		cgSub_hex2dec;
 		BIC_CALC_DEC2HEX		cgSub_dec2hex;
-#ifdef ALG_Digest_h
+#ifdef ALG_DS_DIGEST
 		BIC_CALC_MD5			cgSub_md5;
 		BIC_CALC_SHA1			cgSub_sha1;
 		BIC_CALC_SHA224			cgSub_sha224;

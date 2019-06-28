@@ -53,32 +53,36 @@ enum MSGID{
 	MESG_REQ_License,
 	MESG_ANS_Approve,
 	MESG_ANS_Reject,
+	
+	MESG_ID_FILE,
+	MESG_REQ_FileCHSetup,
+	MESG_ANS_FileCHSetup,
 };
 //------------------------------------------------------------------------------------------//
-#define MSGSend(_mID,_in,_blRet,_Title) \
+#define MSGSend(_mID,_in,_blRet,_Title1,_Title2) \
 \
-	ELogMSG(this << _Title << "Send " << _GetMesgText(_mID));\
+	ELogMSG(LogTitle(this,_Title1,_Title2,">>") << _GetMesgText(_mID));\
 	_blRet = Send(_mID,_in);\
-	ELogMSG(this << _Title << "Send " << _GetMesgText(_mID) << ((_blRet > 0) ? "successful" : "fail"));
+	ELogMSG(LogTitle(this,_Title1,_Title2,"::") << _GetMesgText(_mID) << ((_blRet > 0) ? "successful" : "fail"));
 //------------------------------------------------------------------------------------------//
-#define MSGSend2(_env,_mID,_in,_fY,_fN,_time,_blRet,_Title) \
+#define MSGSend2(_env,_mID,_in,_fY,_fN,_time,_blRet,_Title1,_Title2) \
 \
-	ELogMSG(this << _Title << "Send " << _GetMesgText(_mID));\
+	ELogMSG(LogTitle(this,_Title1,_Title2,">>") << _GetMesgText(_mID));\
 	_blRet = Send(_env,_mID,_in,_fY,_fN,_time);\
-	ELogMSG(this << _Title << "Send " << _GetMesgText(_mID) << ((_blRet > 0) ? "successful" : "fail"));
+	ELogMSG(LogTitle(this,_Title1,_Title2,"::") << _GetMesgText(_mID) << ((_blRet > 0) ? "successful" : "fail"));
 //------------------------------------------------------------------------------------------//
-#define MSGSend3(_mID,_in,_blRet,_Title) \
+#define MSGSend3(_mID,_in,_blRet,_Title1,_Title2) \
 \
-	ELogMSG(this << _Title << "Send " << _GetMesgText(_mID) << "with MESG:" << _in);\
+	ELogMSG(LogTitle(this,_Title1,_Title2,">>") << _GetMesgText(_mID) << "with MESG:" << _in);\
 	_blRet = Send(_mID,IUD(_in));\
-	ELogMSG(this << _Title << "Send " << _GetMesgText(_mID) << ((_blRet > 0) ? "successful" : "fail"));
+	ELogMSG(LogTitle(this,_Title1,_Title2,">>") << _GetMesgText(_mID) << ((_blRet > 0) ? "successful" : "fail"));
 //------------------------------------------------------------------------------------------//
-#define MPSend(_mID,_in,_blRet)						MSGSend(_mID,_in,_blRet,"MessageProcessing()::")
-#define MPSend2(_env,_mID,_in,_fY,_fN,_time,_blRet)	MSGSend2(_env,_mID,_in,_fY,_fN,_time,_blRet,"MessageProcessing()::")
-#define MPSend3(_mID,_in,_blRet)					MSGSend3(_mID,_in,_blRet,"MessageProcessing()::")
-#define ELogMP(_strMesg)							ELogMSG(this << "MessageProcessing()::" << _strMesg);
-#define ELogMPRecMsg(_mID) 							ELogMSG(this << "MessageProcessing()::Rec  " << _GetMesgText(_mID));
-#define ELogMPRecMsg2(_mID,_strMesg)				ELogMSG(this << "MessageProcessing()::Rec  " << _GetMesgText(_mID) << ": " << _strMesg);
+#define MPSend(_mID,_in,_blRet)						MSGSend(_mID,_in,_blRet,"MsgProcessing","Send")
+#define MPSend2(_env,_mID,_in,_fY,_fN,_time,_blRet)	MSGSend2(_env,_mID,_in,_fY,_fN,_time,_blRet,"MsgProcessing","Send")
+#define MPSend3(_mID,_in,_blRet)					MSGSend3(_mID,_in,_blRet,"MsgProcessing","Send")
+#define ELogMP(_strMesg)							ELogMSG(LogTitle(this,"MsgProcessing","","::") << _strMesg);
+#define ELogMPRecMsg(_mID) 							ELogMSG(LogTitle(this,"MsgProcessing","Rec","<<") << _GetMesgText(_mID));
+#define ELogMPRecMsg2(_mID,_strMesg)				ELogMSG(LogTitle(this,"MsgProcessing","Rec","<<") << _GetMesgText(_mID) << ": " << _strMesg);
 //------------------------------------------------------------------------------------------//
 STDSTR	_GetMesgText(uint32 mID);
 //------------------------------------------------------------------------------------------//

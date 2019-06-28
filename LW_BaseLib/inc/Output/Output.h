@@ -6,14 +6,16 @@
 //  Copyright © 2018 Leif Wen. All rights reserved.
 //
 
+//------------------------------------------------------------------------------------------//
 #include "ColorRecord.h"
-#ifdef ColorRecord_h
+#include "SYS_Thread.h"
+#include "DS_Bitmap.h"
+//------------------------------------------------------------------------------------------//
+#if defined ColorRecord_h && defined DS_Bitmap_h && defined SYS_Thread_h
 //------------------------------------------------------------------------------------------//
 #ifndef Output_h
 #define Output_h
 #ifdef Output_h
-//------------------------------------------------------------------------------------------//
-#include "SYS_Thread.h"
 //------------------------------------------------------------------------------------------//
 class OUTPUT_NODE;
 //------------------------------------------------------------------------------------------//
@@ -28,8 +30,9 @@ class OUTPUT_CACHE : public CRDC{
 				 OUTPUT_CACHE(uint32 size);
 		virtual ~OUTPUT_CACHE(void);
 	private:
-		uint64			g2AddrM[(1 << 12) / 64];
-		uint64			g3AddrM[(1 << 9) / 64];
+		DS_BITMAP		g2AddrM;
+		DS_BITMAP		g3AddrM;
+		DS_SpinLock		cgMapLock;
 	protected:
 		TNFP			cgONList;
 		COLORENUM		cgLastCol;
@@ -46,7 +49,7 @@ class OUTPUT_CACHE : public CRDC{
 						uint32			AssignAddress		(uint32 group);
 						uint32			AssignMask			(uint32 group)const;
 	protected:
-				virtual	ioss			DoTransform			(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length);
+				virtual	IOSE			DoTransform			(IOS* _ios,const UVOut& _out,const uint8* data,const uint64& length);
 	public:
 						void			Delivery			(void);
 		inline			void			Start				(void);
@@ -83,6 +86,8 @@ class OUTPUT_NODE : public CRDN{
 				virtual	bool32			CheckPrint				(uint32 ctrl)const;
 		inline	virtual	void			Print					(uint32 ctrl,COLORENUM col,const uint8* data,uint32 num);
 	public:
+		inline	virtual void 			DoCleanLastLine			(void);
+		static	inline	void 			CleanLastLine			(OUTPUT_NODE* node);
 		template<typename T,typename... Args>static void PrintStr					(OUTPUT_NODE* node,const T&			first,	const Args&... args);
 		template<typename T,typename... Args>static void PrintStrNL					(OUTPUT_NODE* node,const T&			first,	const Args&... args);
 		template<typename T,typename... Args>static void PrintALine					(OUTPUT_NODE* node,const T&			first,	const Args&... args);
@@ -90,6 +95,7 @@ class OUTPUT_NODE : public CRDN{
 		template<			typename... Args>static void PrintALineDot				(OUTPUT_NODE* node,const _ColData&	first,	const Args&... args);
 		template<			typename... Args>static void PrintALineDot				(OUTPUT_NODE* node,const COLORENUM&	col,	const Args&... args);
 		template<			typename... Args>static void PrintWithTime				(OUTPUT_NODE* node,							const Args&... args);
+		template<			typename... Args>static void PrintWithTime_noNL			(OUTPUT_NODE* node,							const Args&... args);
 		template<			typename... Args>static void PrintWithDividingLine		(OUTPUT_NODE* node,							const Args&... args);
 		template<			typename... Args>static void PrintWithDividingLineDot	(OUTPUT_NODE* node,							const Args&... args);
 		template<			typename... Args>static void PrintWithDividingLineDot	(OUTPUT_NODE* node,const _ColData&	first,	const Args&... args);
@@ -107,7 +113,7 @@ class VG3D_POOL : public OUTPUT_NODE{
 			 	 VG3D_POOL(OUTPUT_CACHE* cache = nullptr);
 		virtual ~VG3D_POOL(void);
 	private:
-		uint32			g3AddrM;
+		DS_BITMAP		g3AddrM;
 	public:
 				virtual void			Print				(uint32 ctrl,COLORENUM col,const uint8* data,uint32 num);
 				virtual void			RegisterToCache		(OUTPUT_CACHE* cache,uint32 group = COLRECORD::CRD_G3);

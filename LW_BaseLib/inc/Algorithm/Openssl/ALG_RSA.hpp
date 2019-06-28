@@ -6,6 +6,7 @@
 //  Copyright © 2018 Leif Wen. All rights reserved.
 //
 
+//------------------------------------------------------------------------------------------//
 #ifndef ALG_RSA_hpp
 #define ALG_RSA_hpp
 //------------------------------------------------------------------------------------------//
@@ -18,22 +19,22 @@ const STDSTR& ALG_RSA_DO(STDSTR* _out,ALG_RSA_FUN rsaFun,const RSA* _rsa,const u
 static inline const STDSTR& ALG_RSA_Encrypt_Prk(STDSTR* _out,const RSA* _rsa,const uint8* data,uint32 length){
 	
 	return(ALG_RSA_DO(_out,RSA_private_encrypt,_rsa,data,length));
-}
+};
 //------------------------------------------------------------------------------------------//
 static inline const STDSTR& ALG_RSA_Decrypt_Prk(STDSTR* _out,const RSA* _rsa,const uint8* data,uint32 length){
 	
 	return(ALG_RSA_DO(_out,RSA_private_decrypt,_rsa,data,length));
-}
+};
 //------------------------------------------------------------------------------------------//
 static inline const STDSTR& ALG_RSA_Encrypt_Puk(STDSTR* _out,const RSA* _rsa,const uint8* data,uint32 length){
 	
 	return(ALG_RSA_DO(_out,RSA_public_encrypt,_rsa,data,length));
-}
+};
 //------------------------------------------------------------------------------------------//
 static inline const STDSTR& ALG_RSA_Decrypt_Puk(STDSTR* _out,const RSA* _rsa,const uint8* data,uint32 length){
 	
 	return(ALG_RSA_DO(_out,RSA_public_decrypt,_rsa,data,length));
-}
+};
 //------------------------------------------------------------------------------------------//
 static inline const STDSTR&	ALG_RSA_Encrypt_Prk(STDSTR* _out,const RSA* _rsa,const STDSTR& _in){
 

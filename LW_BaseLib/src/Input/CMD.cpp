@@ -7,6 +7,7 @@
 //
 
 #include "stdafx.h"
+//------------------------------------------------------------------------------------------//
 #include "CMD.h"
 //------------------------------------------------------------------------------------------//
 #ifdef CMD_h
@@ -38,7 +39,7 @@ void CMD_ENV::UnInitQuantity(void){
 		buffer = nullptr;
 	}
 	catch(...){};
-}
+};
 //------------------------------------------------------------------------------------------//
 void CMD_ENV::InitQuantity(uint32 num){
 	if (buffer == nullptr){
@@ -122,7 +123,7 @@ uint32 CMD_BASE::GetMS(const STDSTR& strIn){
 			ms /= 1000;
 	}
 	return((uint32)ms);
-}
+};
 //------------------------------------------------------------------------------------------//
 STDSTR CMD_BASE::GetMSSTR(uint32 ms){
 	STDSTR	ret;
@@ -137,13 +138,13 @@ STDSTR CMD_BASE::GetMSSTR(uint32 ms){
 		ret = "0s";
 	}
 	return(ret);
-}
+};
 //------------------------------------------------------------------------------------------//
 void CMD_BASE::DelayMS(CMD_ENV* env,uint32 timeMS){
 	SYS_TIME_S	timeS;
 	SYS_Delay_SetTS(&timeS,timeMS);
-	while(!(ChkblExit(env) || SYS_Delay_CheckTS(&timeS)));
-}
+	while(!(IsExit(env) || SYS_Delay_IsTimeout(&timeS)));
+};
 //------------------------------------------------------------------------------------------//
 
 
@@ -198,7 +199,7 @@ CMDID CMD_NODE::ResolveIDFun(STDSTR** retMsg,const STDSTR& rawIn)const{
 	}while (oCommand.length() > 0);
 	*retMsg = (STDSTR*)&rawIn;
 	return(CMD_ID_NO);
-}
+};
 //------------------------------------------------------------------------------------------//
 CMDID CMD_NODE::ResolveIDCMD(STDSTR** retMsg,const STDSTR& rawIn)const{
 	STDSTR	subCommand,oCommand;
@@ -226,12 +227,12 @@ CMDID CMD_NODE::ResolveIDCMD(STDSTR** retMsg,const STDSTR& rawIn)const{
 	}while (oCommand.length() > 0);
 	*retMsg = (STDSTR*)&rawIn;
 	return(CMD_ID_NO);
-}
+};
 //------------------------------------------------------------------------------------------//
 CMDID CMD_NODE::ResolveID(STDSTR** retMsg,const STDSTR& rawIn)const{
 	*retMsg = (STDSTR*)&rawIn;
 	return(CMD_ID_NO);
-}
+};
 //------------------------------------------------------------------------------------------//
 CMDID CMD_NODE::Dispose(CMD_ENV* env,const STDSTR& rawIn,void* p)const{
 	STDSTR	msg,*msgP;
@@ -239,7 +240,7 @@ CMDID CMD_NODE::Dispose(CMD_ENV* env,const STDSTR& rawIn,void* p)const{
 	msgP = &msg;
 	mID = ResolveID(&msgP,rawIn);
 	return(MessageProcessing(env,mID,*msgP,p));
-}
+};
 //------------------------------------------------------------------------------------------//
 CMDID CMD_NODE::MessageProcessing(CMD_ENV* env,const uint32& mID,const STDSTR& msg,void* p)const{
 	return(Execute(env,mID,msg,p));
@@ -252,7 +253,7 @@ CMDID CMD_NODE::Execute(CMD_ENV* env,const uint32& mID,const STDSTR& msg,void* p
 	if ((CheckSFlag(CMD_blTrySubCMD)) && (msg.length() > 0))
 		return(TraversalChildExecute(env,mID,msg,p));
 	return(CMD_ID_NO);
-}
+};
 //------------------------------------------------------------------------------------------//
 CMDID CMD_NODE::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 	return(cgCommandID);
@@ -263,14 +264,14 @@ CMDID CMD_NODE::TraversalChildExecute(CMD_ENV* env,const uint32& mID,const STDST
 	CMDID	retCode;
 	retCode = CMD_ID_NO;
 	if (mID == CMD_ID_NO){
-		TREE_LChildRChain_Traversal_LINE_nolock(CMD_NODE,this,
+		TREE_DownChain_Traversal_LINE_nolock(CMD_NODE,this,
 			retCode = _opNode->Dispose(env,msg,p);
 			if (retCode != CMD_ID_NO)
 				break;
 		);
 	}
 	else{
-		TREE_LChildRChain_Traversal_LINE_nolock(CMD_NODE,this,
+		TREE_DownChain_Traversal_LINE_nolock(CMD_NODE,this,
 			retCode = _opNode->MessageProcessing(env,mID,msg,p);
 			if (retCode != CMD_ID_NO)
 				break;
@@ -280,7 +281,7 @@ CMDID CMD_NODE::TraversalChildExecute(CMD_ENV* env,const uint32& mID,const STDST
 };
 //------------------------------------------------------------------------------------------//
 CMDID CMD_NODE::TraversalChildHelp(CMD_ENV* env,uint32 flag)const{
-	TREE_LChildRChain_Traversal_LINE_nolock(CMD_NODE,this,
+	TREE_DownChain_Traversal_LINE_nolock(CMD_NODE,this,
 		if (_opNode->CheckSFlag(CMD_blHidenHelp) == G_FALSE)
 			_opNode->Help(env,flag)
 	);

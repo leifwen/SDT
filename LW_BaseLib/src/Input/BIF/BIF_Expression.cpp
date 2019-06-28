@@ -7,6 +7,7 @@
 //
 
 #include "stdafx.h"
+//------------------------------------------------------------------------------------------//
 #include "BIF_Expression.h"
 #ifdef BIF_Expression_h
 #include "BIF_Transform.h"
@@ -41,7 +42,7 @@ CMDID BIF_RECEIVE::Command(CMD_ENV* env,const STDSTR& msg,void* retTrue)const{
 		}
 	}
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIF_TIMEOUT::Help(CMD_ENV* env,uint32 flag)const{
@@ -57,11 +58,11 @@ CMDID BIF_TIMEOUT::Command(CMD_ENV* env,const STDSTR& msg,void* retTrue)const{
 	
 	*ret = 'F';
 	if (env != nullptr){
-		if (SYS_Delay_CheckTS(&BIF_ENV::RetDTime(env)))
+		if (SYS_Delay_IsTimeout(&BIF_ENV::RetDTime(env)))
 			*ret = 'T';
 	}
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIF_NULLPTR::Help(CMD_ENV* env,uint32 flag)const{
@@ -79,7 +80,7 @@ CMDID BIF_NULLPTR::Command(CMD_ENV* env,const STDSTR& msg,void* retTrue)const{
 	if ((env != nullptr) && (BIF_ENV::STDIN(env).length() == 0))
 		*ret = 'T';
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIF_RX_MORE::Help(CMD_ENV* env,uint32 flag)const{
@@ -97,7 +98,7 @@ CMDID BIF_RX_MORE::Command(CMD_ENV* env,const STDSTR& msg,void* retTrue)const{
 	if ((env != nullptr) && (BIF_ENV::STDIN(env).length() > (STRSIZE)strtoll(msg.c_str(),nullptr,10)))
 		*ret = 'T';
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIF_RX_LESS::Help(CMD_ENV* env,uint32 flag)const{
@@ -115,7 +116,7 @@ CMDID BIF_RX_LESS::Command(CMD_ENV* env,const STDSTR& msg,void* retTrue)const{
 	if ((env != nullptr) && (BIF_ENV::STDIN(env).length() < (STRSIZE)strtoll(msg.c_str(),nullptr,10)))
 		*ret = 'T';
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIF_RX_EQUAL::Help(CMD_ENV* env,uint32 flag)const{
@@ -133,7 +134,7 @@ CMDID BIF_RX_EQUAL::Command(CMD_ENV* env,const STDSTR& msg,void* retTrue)const{
 	if ((env != nullptr) && (BIF_ENV::STDIN(env).length() == (STRSIZE)strtoll(msg.c_str(),nullptr,10)))
 		*ret = 'T';
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIF_LCS::Help(CMD_ENV* env,uint32 flag)const{
@@ -163,7 +164,7 @@ CMDID BIF_LCS::Command(CMD_ENV* env,const STDSTR& msg,void* retTrue)const{
 		}
 	}
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 
 
@@ -181,7 +182,7 @@ BIF_CONDITION::BIF_CONDITION(void) : BIF_BASE() {
 	cgCommandID = BIF_ID_CONDITION;
 	cgCommand = "Condition,=";
 	
-	Add(cgSubC_RECEIVE)
+	AppendDown(cgSubC_RECEIVE)
 	< cgSubC_TIMEOUT
 	< cgSubC_NULLPTR < cgSubC_RX_MORE < cgSubC_RX_LESS < cgSubC_RX_EQUAL
 	< cgSubC_LCS;
@@ -197,14 +198,14 @@ CMDID BIF_CONDITION::Dispose(CMD_ENV* env,const STDSTR& rawIn,void* retTrue)cons
 
 	*ret = "F";
 	return(BIF_BASE::Dispose(env,rawIn,retTrue));
-}
+};
 //------------------------------------------------------------------------------------------//
 CMDID BIF_CONDITION::Command(CMD_ENV* env,const STDSTR& msg,void* retTrue)const{
 	STDSTR *ret = static_cast<STDSTR*>(retTrue);
 	
 	*ret = 'F';
 	return(TraversalChildExecute(env,CMD_ID_NO,msg,retTrue));
-}
+};
 //------------------------------------------------------------------------------------------//
 BIF_CONDITION& BIF_CONDITION::GetCondition(void){
 	static BIF_CONDITION	sgCondition;
@@ -228,7 +229,7 @@ namespace BIFEXP {
 };
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
-bool32 BIF_CheckResult(SBUF* _in,const STDSTR &expressions,int32 timeoutMS){
+bool32 BIF_CheckResult(ARRAY* _in,const STDSTR &expressions,int32 timeoutMS){
 	CMD_ENV	env;
 	
 	BIF_ENV::InitQuantity(&env);
@@ -238,17 +239,17 @@ bool32 BIF_CheckResult(SBUF* _in,const STDSTR &expressions,int32 timeoutMS){
 	
 	BIF_ENV::STDIN(&env) = "";
 	do{
-		_in->Get(nullptr, &BIF_ENV::STDIN(&env), -1);
+		_in->Get(&BIF_ENV::STDIN(&env), -1);
 		if (BIF_Expression(&env,expressions))
 			return G_TRUE;
-	}while(SYS_Delay_CheckTS(&BIF_ENV::RetDTime(&env)) == G_FALSE);
+	}while(SYS_Delay_IsTimeout(&BIF_ENV::RetDTime(&env)) == G_FALSE);
 	
 	BIF_ENV::DeInit(&env);
 	return G_FALSE;
-}
+};
 //------------------------------------------------------------------------------------------//
 bool32 BIF_Expression(CMD_ENV* env,const STDSTR& expressions){
-	STDSTR	dataT,strPDQueue,strRet,fdata1,fdata2,strSub,strSR,caclRet;
+	STDSTR	dataT,strPDQueue,strRet,fdata1,fdata2,strSub,strSR,calcRet;
 	static BIF_RECEIVE		sgReceive;
 	
 	BIFEXP::GetPoland(&strPDQueue,expressions);
@@ -285,16 +286,16 @@ bool32 BIF_Expression(CMD_ENV* env,const STDSTR& expressions){
 			}
 		}
 		else{
-			caclRet = 'F';
+			calcRet = 'F';
 			dataT = Str_HEXToASCII(dataT);
-			if (BIF_CONDITION::GetCondition().Dispose(env,dataT,&caclRet) == BIF_ID_NO)
-				sgReceive.Command(env,dataT,&caclRet);
-			strRet = caclRet + "," + strRet;
+			if (BIF_CONDITION::GetCondition().Dispose(env,dataT,&calcRet) == BIF_ID_NO)
+				sgReceive.Command(env,dataT,&calcRet);
+			strRet = calcRet + "," + strRet;
 		}
 	}
 	fdata1 = Str_ReadSubItem(&strRet,",");
 	return(fdata1 == "T");
-}
+};
 //------------------------------------------------------------------------------------------//
 static void BIFEXP::FormatString(STDSTR* returnStr,const STDSTR& strIn){
 	//control char :&& || & | [] !
@@ -353,7 +354,7 @@ static void BIFEXP::FormatString(STDSTR* returnStr,const STDSTR& strIn){
 		*returnStr += ',';
 	}
 	*returnStr += ']';
-}
+};
 //------------------------------------------------------------------------------------------//
 static void BIFEXP::GetPoland(STDSTR* polandQueue,const STDSTR& expressions){
 	STDSTR		stackT,strExp;
@@ -401,7 +402,7 @@ static void BIFEXP::GetPoland(STDSTR* polandQueue,const STDSTR& expressions){
 			stackT = dataT + "," + stackT;
 		}
 	}
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 #endif /* BIF_Search_h */

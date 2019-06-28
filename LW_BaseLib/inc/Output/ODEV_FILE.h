@@ -6,13 +6,15 @@
 //  Copyright © 2018 Leif Wen. All rights reserved.
 //
 
+//------------------------------------------------------------------------------------------//
 #include "Output.h"
-#ifdef Output_h
+#include "SYS_Time.h"
+//------------------------------------------------------------------------------------------//
+#if defined Output_h && defined SYS_Time_h
 //------------------------------------------------------------------------------------------//
 #ifndef ODEV_FILE_h
 #define ODEV_FILE_h
 #ifdef ODEV_FILE_h
-#include "SYS_Time.h"
 //------------------------------------------------------------------------------------------//
 class ODEV_FILE : public OUTPUT_NODE{
 	protected:

@@ -7,18 +7,23 @@
 //
 
 #include "BIC_Define.h"
-#include "Commu_DBuf.h"
+#include "Commu_Terminal.h"
 #include "Commu_RST.h"
-#if defined BIC_Define_h && defined Commu_DBuf_h
+#include "MSG_RMS.h"
+#if defined BIC_Define_h
 //------------------------------------------------------------------------------------------//
 #ifndef BIC_Commu_h
 #define BIC_Commu_h
 #ifdef BIC_Commu_h
 class AEXEPOOL;
 class NTPServer;
+class COMMU_FRAME;
 #ifndef Commu_RST_h
-typedef void RSTBSocket;
-typedef void RSTBServer;
+typedef void	RSTBServer;
+typedef void	RSTBSocket;
+#endif
+#ifndef Commu_Terminal_h
+typedef void	TerminalServer;
 #endif
 //------------------------------------------------------------------------------------------//
 namespace BIC_ENV_COMMU {

@@ -49,7 +49,7 @@ class CMyCListCtrl : public CListCtrl{
 	protected:
 				int		m_SelectItem;
 				int		m_SelectSubItem;
-				void	ReCaclRect			(int col,CRect* editRect);
+				void	ReCalcRect			(int col,CRect* editRect);
 	protected:
 		afx_msg int		OnCreate			(LPCREATESTRUCT lpCreateStruct);
 		afx_msg void	OnMouseMove			(UINT nFlags, CPoint point);

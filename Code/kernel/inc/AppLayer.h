@@ -8,6 +8,7 @@
 
 #include "Global.h"
 //------------------------------------------------------------------------------------------//
+#ifdef Commu_Base_h
 #ifndef AppLayer_h
 #define AppLayer_h
 #ifdef AppLayer_h
@@ -85,3 +86,4 @@ class KERNEL : public COMMU_FRAME{
 //------------------------------------------------------------------------------------------//
 #endif /* AppLayer_h */
 #endif /* AppLayer_h */
+#endif

@@ -7,6 +7,7 @@
 //
 
 #include "stdafx.h"
+//------------------------------------------------------------------------------------------//
 #include "HTML.h"
 #ifdef HTML_h
 //------------------------------------------------------------------------------------------//
@@ -41,7 +42,7 @@ HTML_NODE::HTML_NODE(void) : TNFP(){
 //------------------------------------------------------------------------------------------//
 HTML_NODE::~HTML_NODE(void){
 	
-	CleanChild(this,this);
+	CleanDownTree(this,this);
 };
 //------------------------------------------------------------------------------------------//
 void HTML_NODE::Init(void){
@@ -59,7 +60,7 @@ ARRAY& HTML_NODE::GetLogArray(void){
 TNFP& HTML_NODE::GetTrashOwer(void){
 	static TNFP sgSpareOwner;
 	return(sgSpareOwner);
-}
+};
 //------------------------------------------------------------------------------------------//
 TNFP* HTML_NODE::GetTrash(void){
 	
@@ -68,7 +69,7 @@ TNFP* HTML_NODE::GetTrash(void){
 //------------------------------------------------------------------------------------------//
 TNFP* HTML_NODE::CreateNode(void){
 	
-	return(SetSubNodeFatherName(new HTML_NODE));
+	return(SetNodeUpName(new HTML_NODE));
 };
 //------------------------------------------------------------------------------------------//
 void HTML_NODE::MoveToTrash(TNF* tFirstNode,TNF* tEndNode){
@@ -87,7 +88,7 @@ bool32 HTML_NODE::IsSingleTag(void)const{
 			return G_TRUE;
 	};
 	return G_FALSE;
-}
+};
 //------------------------------------------------------------------------------------------//
 bool32 HTML_NODE::ResolveContent(ARRAY* _in){
 	uint8	charData;
@@ -123,7 +124,7 @@ bool32 HTML_NODE::ResolveContent(ARRAY* _in){
 	GetLogArray().Put("[E][cont] no complete.",G_ESCAPE_OFF);
 	GetLogArray().Put(ComposeTagForLog(&strTag,(HTML_NODE*)GetUp(this)),G_ESCAPE_OFF);
 	return HTML_R_NoComplete;
-}
+};
 //------------------------------------------------------------------------------------------//
 bool32 HTML_NODE::ResolveAttribute(ARRAY* _in){
 	uint8	charData;
@@ -212,7 +213,7 @@ bool32 HTML_NODE::ResolveAttribute(ARRAY* _in){
 	GetLogArray().Put("[E][attr] no complete.",G_ESCAPE_OFF);
 	GetLogArray().Put(ComposeTagForLog(&strTag,(HTML_NODE*)GetUp(this)),G_ESCAPE_OFF);
 	return HTML_R_NoComplete;
-}
+};
 //------------------------------------------------------------------------------------------//
 bool32 HTML_NODE::ResolveTags(ARRAY* _in){
 	uint8		charData;
@@ -293,7 +294,7 @@ bool32 HTML_NODE::ResolveTags(ARRAY* _in){
 						return HTML_R_NoResource;
 					}
 					newHtmlNode->Init();
-					AddSubNode_nolock(this,newHtmlNode);
+					InsertDownTail_nolock(this,newHtmlNode);
 					ret = newHtmlNode->ResolveAttribute(_in);
 					if (ret <= 0)
 						return(ret);
@@ -313,12 +314,12 @@ bool32 HTML_NODE::ResolveTags(ARRAY* _in){
 						return HTML_R_NoResource;
 					}
 					newHtmlNode->Init();
-					AddSubNode_nolock(this,newHtmlNode);
+					InsertDownTail_nolock(this,newHtmlNode);
 					ret = newHtmlNode->ResolveContent(_in);
 					if (ret <= 0)
 						return(ret);
 					if (newHtmlNode->cgTagsValue.length() == 0)
-						MoveToTrash(newHtmlNode);
+						MoveToTrash(newHtmlNode,newHtmlNode);
 				}
 				break;
 			case HTML_Wait_nmr:
@@ -342,7 +343,7 @@ bool32 HTML_NODE::ResolveTags(ARRAY* _in){
 						return HTML_R_NoResource;
 					}
 					newHtmlNode->Init();
-					AddSubNode_nolock(this,newHtmlNode);
+					InsertDownTail_nolock(this,newHtmlNode);
 					ret = newHtmlNode->ResolveTags(_in);
 					if (ret <= 0)
 						return(ret);
@@ -371,14 +372,14 @@ bool32 HTML_NODE::ResolveTags(ARRAY* _in){
 	GetLogArray().Put("[E][tags] no complete.",G_ESCAPE_OFF);
 	GetLogArray().Put(ComposeTagForLog(&strTag,this),G_ESCAPE_OFF);
 	return HTML_R_NoComplete;
-}
+};
 //------------------------------------------------------------------------------------------//
 const STDSTR& HTML_NODE::ComposeTagForLog(STDSTR* strRet,const HTML_NODE* tHtmlNode){
 	*strRet = "[cgTagsName : ";
 	tHtmlNode->ComposeTag(strRet);
 	*strRet += " ]\n";
 	return(*strRet);
-}
+};
 //------------------------------------------------------------------------------------------//
 const STDSTR& HTML_NODE::ComposeTag(STDSTR* strRet)const{
 	HTML_NODE	*oNode,*nextNode;
@@ -403,7 +404,7 @@ const STDSTR& HTML_NODE::ComposeTag(STDSTR* strRet)const{
 		*strRet += '>';
 	}
 	return(*strRet);
-}
+};
 //------------------------------------------------------------------------------------------//
 bool32 HTML_NODE::Resolve(ARRAY* _in){
 	return(ResolveTags(_in));
@@ -472,7 +473,7 @@ const STDSTR& HTML_NODE::Compose(STDSTR* strRet,const STDSTR& strDeep,G_SPACE bl
 		}
 	}
 	return(*strRet);
-}
+};
 //------------------------------------------------------------------------------------------//
 uint64 HTML_NODE::CheckTags(const STDSTR& tagName,const STDSTR& attrName,const STDSTR& attrValue){
 	HTML_NODE	*oNode,*nextNode;
@@ -502,7 +503,7 @@ uint64 HTML_NODE::CheckTags(const STDSTR& tagName,const STDSTR& attrName,const S
 			++ count;
 	}
 	return(count);
-}
+};
 //------------------------------------------------------------------------------------------//
 uint64 HTML_NODE::SetTags(const STDSTR& tagName,const STDSTR& attrName,const STDSTR& attrValue
 						  ,const STDSTR& newTagName,const STDSTR& newAttrName,const STDSTR& newAttrValue){
@@ -542,7 +543,7 @@ uint64 HTML_NODE::SetTags(const STDSTR& tagName,const STDSTR& attrName,const STD
 		}
 	}
 	return(count);
-}
+};
 //------------------------------------------------------------------------------------------//
 uint64 HTML_NODE::DelAttribute(const STDSTR& tagName,const STDSTR& attrName,const STDSTR& attrValue){
 	HTML_NODE	*oNode,*nextNode;
@@ -560,7 +561,7 @@ uint64 HTML_NODE::DelAttribute(const STDSTR& tagName,const STDSTR& attrName,cons
 				if (((tagName == "*") || (cgTagsName == tagName))
 					&& ((attrName == "*") || (oNode->cgTagsName == attrName))
 					&& ((attrValue == "*") || (oNode->cgTagsValue == attrValue))){
-					MoveToTrash(oNode);
+					MoveToTrash(oNode,oNode);
 					++ count;
 				}
 			}
@@ -570,12 +571,12 @@ uint64 HTML_NODE::DelAttribute(const STDSTR& tagName,const STDSTR& attrName,cons
 			oNode = nextNode;
 		};
 		if ((blHasAttr == G_FALSE) && ((tagName == "*") || (cgTagsName == tagName)) && (attrName == "*") && (attrValue == "*")){
-			MoveToTrash(oNode);
+			MoveToTrash(oNode,oNode);
 			++ count;
 		}
 	}
 	return(count);
-}
+};
 //------------------------------------------------------------------------------------------//
 void HTML_NODE::DelTagExcludeContent(void){
 	HTML_NODE	*oNode,*nextNode;
@@ -585,14 +586,14 @@ void HTML_NODE::DelTagExcludeContent(void){
 		while(oNode != nullptr){
 			nextNode = (HTML_NODE*)GetNext(oNode);
 			if (oNode->cgTagsType == HTML_Attribute)
-				MoveToTrash(oNode);
+				MoveToTrash(oNode,oNode);
 			oNode = nextNode;
 		};
-		oNode = (HTML_NODE*)BreakChild_nolock(this);
+		oNode = (HTML_NODE*)DetachDown_nolock(this);
 		InsertAfter_nolock(this,oNode);
-		MoveToTrash(this);
+		MoveToTrash(this,this);
 	}
-}
+};
 //------------------------------------------------------------------------------------------//
 uint64 HTML_NODE::DelTagsBlankContent(const STDSTR& tagName){
 	HTML_NODE	*oNode,*nextNode;
@@ -629,7 +630,7 @@ uint64 HTML_NODE::DelTagsBlankContent(const STDSTR& tagName){
 		}
 	}
 	return(count);
-}
+};
 //------------------------------------------------------------------------------------------//
 uint64 HTML_NODE::DelTagsExcludeContent(const STDSTR& tagName,const STDSTR& attrName,const STDSTR& attrValue){
 	HTML_NODE	*oNode,*nextNode;
@@ -665,7 +666,7 @@ uint64 HTML_NODE::DelTagsExcludeContent(const STDSTR& tagName,const STDSTR& attr
 		}
 	}
 	return(count);
-}
+};
 //------------------------------------------------------------------------------------------//
 uint64 HTML_NODE::DelTagsIncludeContent(const STDSTR& tagName,const STDSTR& attrName,const STDSTR& attrValue){
 	HTML_NODE	*oNode,*nextNode;
@@ -696,12 +697,12 @@ uint64 HTML_NODE::DelTagsIncludeContent(const STDSTR& tagName,const STDSTR& attr
 			if (blDel
 				|| ((blHasAttr == G_FALSE) && ((tagName == "*") || (cgTagsName == tagName)) && (attrName == "*") && (attrValue == "*"))){
 				++ count;
-				MoveToTrash(this);
+				MoveToTrash(this,this);
 			}
 		}
 	}
 	return(count);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 #endif /* HTML_h */

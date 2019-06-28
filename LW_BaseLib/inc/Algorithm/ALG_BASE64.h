@@ -6,19 +6,14 @@
 //  Copyright © 2018 Leif Wen. All rights reserved.
 //
 
-#include "BasicDefine.h"
+//------------------------------------------------------------------------------------------//
 #include "DS_Transform.h"
+//------------------------------------------------------------------------------------------//
 #ifdef DS_Transform_h
 //------------------------------------------------------------------------------------------//
 #ifndef ALG_BASE64_h
 #define ALG_BASE64_h
 #ifdef ALG_BASE64_h
-//------------------------------------------------------------------------------------------//
-enum {
-	BASE64_OK		= IOS_OK,
-	BASE64_NOMEM	= IOS_NOMEM,
-	BASE64_FINISH	= IOS_FINISH,
-};
 //------------------------------------------------------------------------------------------//
 struct ALG_BASE64_CTX : public DSTF_DIR_CTX{	
 	uint32	outMinSize;
@@ -28,10 +23,10 @@ struct ALG_BASE64_CTX : public DSTF_DIR_CTX{
 };
 //------------------------------------------------------------------------------------------//
 void	ALG_B64_Init	(ALG_BASE64_CTX* ctx,uint32 cfg);
-bool32	ALG_B64_Update	(ALG_BASE64_CTX* ctx,uint8* _out,const uint64& outSize,const uint8* data,const uint64& length);
-bool32	ALG_B64_Final	(ALG_BASE64_CTX* ctx,uint8* _out,const uint64& outSize);
-bool32	ALG_B64_Release	(ALG_BASE64_CTX* ctx);
-bool32	ALG_B64_ReInit	(ALG_BASE64_CTX* ctx);
+IOSE	ALG_B64_Update	(ALG_BASE64_CTX* ctx,uint8* _out,const uint64& outSize,const uint8* data,const uint64& length);
+IOSE	ALG_B64_Final	(ALG_BASE64_CTX* ctx,uint8* _out,const uint64& outSize);
+IOSE	ALG_B64_Release	(ALG_BASE64_CTX* ctx);
+IOSE	ALG_B64_ReInit	(ALG_BASE64_CTX* ctx);
 //------------------------------------------------------------------------------------------//
 class ALG_BASE64 : public DSTF_DIR<ALG_BASE64_CTX>{
 	protected:

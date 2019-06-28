@@ -46,9 +46,9 @@ void CDevListCtrl::OnEditSave(int hItem,int hSubItem){
 	IPCOMNAME		*newNode;
 	cstrText = GetItemText(hItem,hSubItem);
 	strwText = cstrText.GetBuffer(0);
-	m_IPCOMLIST->InUse_set();
-	newNode = (IPCOMNAME*)TREE_NODE::FindInLChildRChainByDRNodeID(m_IPCOMLIST,GetItemData(hItem));
-	newNode->InUse_set();
+	m_IPCOMLIST->Traversal_set();
+	newNode = (IPCOMNAME*)TNF::FindInDownChainByDRNodeID(m_IPCOMLIST,GetItemData(hItem));
+	newNode->rwLock.W_set();
 	switch(hSubItem){
 		case 0:
 			if (cstrText == "TCP")
@@ -74,8 +74,8 @@ void CDevListCtrl::OnEditSave(int hItem,int hSubItem){
 			break;
 	}
 	newNode->CreateShowName();
-	newNode->InUse_clr();
-	m_IPCOMLIST->InUse_clr();
+	newNode->rwLock.W_clr();
+	m_IPCOMLIST->Traversal_clr();
 }
 //------------------------------------------------------------------------------------------//
 void CDevListCtrl::OnComboBoxShow(int hItem,int hSubItem){
@@ -139,9 +139,9 @@ void CDevListCtrl::LoadData(IPCOMLIST *tIPCOMLIST){
 	m_IPCOMLIST->Refresh();
 
 	i = 0;
-	m_IPCOMLIST->InUse_set();
-	TREE_LChildRChain_Traversal_LINE(IPCOMNAME, m_IPCOMLIST,
-		_opNode->InUse_set();
+	m_IPCOMLIST->Traversal_set();
+	TREE_DownChain_Traversal_LINE(IPCOMNAME, m_IPCOMLIST,
+		_opNode->rwLock.R_set();
 		if (_opNode->blAvailable != 0){
 			if (_opNode->typeID == PublicDevice_DEVID_APICOM)
 				InsertItem(i,_T("COM"));
@@ -161,12 +161,12 @@ void CDevListCtrl::LoadData(IPCOMLIST *tIPCOMLIST){
 		SetItemText(i, 2, Str_ANSIToUnicode(Str_ToStr(_opNode->portBaudrate)).c_str());
 		SetItemText(i, 3, Str_ANSIToUnicode(_opNode->TCPTypeOrFriendlyName).c_str());
 		SetItemText(i, 4, Str_ANSIToUnicode(_opNode->strUserDefineName).c_str());
-		SetItemData(i, TREE_NODE::GetdRNodeID(_opNode));
+		SetItemData(i, TNF::GetDRNodeID(_opNode));
 		++ i;
-		_opNode->InUse_clr();
+		_opNode->rwLock.R_clr();
 	);
 
-	m_IPCOMLIST->InUse_clr();
+	m_IPCOMLIST->Traversal_clr();
 }
 //------------------------------------------------------------------------------------------//
 int CDevListCtrl::CreateNode(int node){
@@ -175,7 +175,6 @@ int CDevListCtrl::CreateNode(int node){
 	if (node < 0)
 		node = GetItemCount() - 1;
 
-	m_IPCOMLIST->InUse_set();
 	newNode = new IPCOMNAME;
 	if (newNode != NULL){
 		newNode->typeID = PublicDevice_DEVID_TCPClient;
@@ -184,12 +183,12 @@ int CDevListCtrl::CreateNode(int node){
 		newNode->TCPTypeOrFriendlyName = "Socket Client";
 		newNode->strUserDefineName = "";
 		newNode->CreateShowName();
-		lNode = TREE_NODE::FindInLChildRChainByDRNodeID(m_IPCOMLIST, GetItemData(node));
+		lNode = TNF::FindInDownChainByDRNodeID(m_IPCOMLIST, GetItemData(node));
 		if (lNode != nullptr){
-			TREE_NODE::InsertAfter(lNode, newNode);
+			TNF::InsertAfter(lNode, newNode);
 		}
 		else{
-			m_IPCOMLIST->AddNode(newNode);
+				m_IPCOMLIST->AppendDownNode(newNode);
 		}
 
 		InsertItem(node + 1,_T("TCP"));
@@ -197,9 +196,9 @@ int CDevListCtrl::CreateNode(int node){
 		SetItemText(node + 1,2,_T("115200"));
 		SetItemText(node + 1,3,_T("Socket Client"));
 		SetItemText(node + 1,4,_T(""));
-		SetItemData(node + 1, TREE_NODE::GetdRNodeID(newNode));
+		SetItemData(node + 1, TNF::GetDRNodeID(newNode));
 	}
-	m_IPCOMLIST->InUse_clr();
+
 	SetItemState(node, 0, LVIS_SELECTED|LVIS_FOCUSED);
 	SetItemState(node + 1, LVIS_SELECTED|LVIS_FOCUSED, LVIS_SELECTED|LVIS_FOCUSED);
 	m_SelectItem = node + 1;
@@ -212,11 +211,10 @@ int CDevListCtrl::DelNode(int delItem){
 	IPCOMNAME	*delNode;
 	if (delItem < 0)
 		return -1;
-	m_IPCOMLIST->InUse_set();
-	delNode = (IPCOMNAME*)TREE_NODE::FindInLChildRChainByDRNodeID(m_IPCOMLIST, GetItemData(delItem));
+
+	delNode = (IPCOMNAME*)TNF::FindInDownChainByDRNodeID(m_IPCOMLIST, GetItemData(delItem));
 	m_IPCOMLIST->MoveNodesToTrash(m_IPCOMLIST, delNode, delNode);
 	m_IPCOMLIST->CleanTrash(m_IPCOMLIST);
-	m_IPCOMLIST->InUse_clr();
 
 	DeleteItem(delItem);
 	if (delItem < GetItemCount()){
@@ -237,11 +235,11 @@ int CDevListCtrl::UpNode(int moveItem){
 	if (moveItem < 1)
 		return(moveItem);
 	PriorItem = moveItem - 1;
-	m_IPCOMLIST->InUse_set();
-	moveNode = (IPCOMNAME*)TREE_NODE::FindInLChildRChainByDRNodeID(m_IPCOMLIST, GetItemData(moveItem));
-	TREE_NODE::MoveUp(moveNode);
+
+	moveNode = (IPCOMNAME*)TNF::FindInDownChainByDRNodeID(m_IPCOMLIST, GetItemData(moveItem));
+	TNF::MovePrior(moveNode,moveNode);
 	DeleteItem(moveItem);
-	moveNode->InUse_set();
+	moveNode->rwLock.R_set();
 	if (moveNode->blAvailable != 0){
 		if (moveNode->typeID == PublicDevice_DEVID_APICOM)
 			InsertItem(PriorItem,_T("COM"));
@@ -261,9 +259,9 @@ int CDevListCtrl::UpNode(int moveItem){
 	SetItemText(PriorItem,2,Str_ANSIToUnicode(Str_ToStr(moveNode->portBaudrate)).c_str());
 	SetItemText(PriorItem,3,Str_ANSIToUnicode(moveNode->TCPTypeOrFriendlyName).c_str());
 	SetItemText(PriorItem,4,Str_ANSIToUnicode(moveNode->strUserDefineName).c_str());
-	SetItemData(PriorItem, TREE_NODE::GetdRNodeID(moveNode));
-	moveNode->InUse_clr();
-	m_IPCOMLIST->InUse_clr();
+	SetItemData(PriorItem, TNF::GetDRNodeID(moveNode));
+	moveNode->rwLock.R_clr();
+
 	if (m_SelectItem == moveItem){
 		SetItemState(m_SelectItem, 0, LVIS_SELECTED|LVIS_FOCUSED);
 		SetItemState(PriorItem, LVIS_SELECTED|LVIS_FOCUSED, LVIS_SELECTED|LVIS_FOCUSED);

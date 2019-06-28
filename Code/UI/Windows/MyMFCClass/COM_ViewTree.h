@@ -59,7 +59,7 @@ class CMyCTreeCtrl : public CTreeCtrl{
 		HTREEITEM		m_SelectItem;
 		HTREEITEM		m_HotItem;
 		BOOL			m_blMouseTracking;
-		INT32			CaclRectLeft		(HTREEITEM treeItem);
+		INT32			CalcRectLeft		(HTREEITEM treeItem);
 		BOOL			DoECClick			(HTREEITEM hItem,CPoint point);
 		virtual BOOL	SelectItem			(HTREEITEM hItem);
 	// Implementation

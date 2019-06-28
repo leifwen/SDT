@@ -6,6 +6,7 @@
 //  Copyright © 2018 Leif Wen. All rights reserved.
 //
 
+//------------------------------------------------------------------------------------------//
 #ifndef ALG_CRC_hpp
 #define ALG_CRC_hpp
 //------------------------------------------------------------------------------------------//
@@ -28,7 +29,7 @@ template <typename CRC_BIT> CRC_BIT Reflect(CRC_BIT crc, uint32 bitnum) {
 		j <<= 1;
 	}
 	return (crcout);
-}
+};
 //------------------------------------------------------------------------------------------//
 template <typename CRC_BIT> void GenerateCRCTable(ALG_CRC_CTX<CRC_BIT>* ctx){
 	// make CRC lookup table used by table algorithms
@@ -53,7 +54,7 @@ template <typename CRC_BIT> void GenerateCRCTable(ALG_CRC_CTX<CRC_BIT>* ctx){
 			crc = Reflect(crc, ctx->width);
 		ctx->crcTable[i] = crc;
 	}
-}
+};
 //------------------------------------------------------------------------------------------//
 template <typename CRC_BIT> void Init(ALG_CRC_CTX<CRC_BIT>* ctx,uint32 polynomial, uint32 initValue, uint32 xorValue,uint32 reflect){
 	ctx->polynomial = (CRC_BIT)polynomial;
@@ -69,13 +70,13 @@ template <typename CRC_BIT> void Init(ALG_CRC_CTX<CRC_BIT>* ctx,uint32 polynomia
 	GenerateCRCTable(ctx);
 	ctx->result = 0;
 	Reset(ctx);
-}
+};
 //------------------------------------------------------------------------------------------//
 template <typename CRC_BIT> void Reset(ALG_CRC_CTX<CRC_BIT>* ctx){
 	ctx->remainder = ctx->initValue;
 	if (B_ChkFLAG32(ctx->ref,CRC_REFIN))
 		ctx->remainder = Reflect(ctx->remainder, ctx->width);
-}
+};
 //------------------------------------------------------------------------------------------//
 static inline void ALG_CRC_Init (ALG_CRC_CTX<uint8>* ctx,uint32 cfg){
 	if (ctx->cfg != cfg){
@@ -84,7 +85,7 @@ static inline void ALG_CRC_Init (ALG_CRC_CTX<uint8>* ctx,uint32 cfg){
 	else{
 		Reset(ctx);
 	}
-}
+};
 //------------------------------------------------------------------------------------------//
 static inline void ALG_CRC_Init (ALG_CRC_CTX<uint16>* ctx,uint32 cfg){
 	if (ctx->cfg != cfg){
@@ -93,7 +94,7 @@ static inline void ALG_CRC_Init (ALG_CRC_CTX<uint16>* ctx,uint32 cfg){
 	else{
 		Reset(ctx);
 	}
-}
+};
 //------------------------------------------------------------------------------------------//
 static inline void ALG_CRC_Init (ALG_CRC_CTX<uint32>* ctx,uint32 cfg){
 	if (ctx->cfg != cfg){
@@ -102,7 +103,7 @@ static inline void ALG_CRC_Init (ALG_CRC_CTX<uint32>* ctx,uint32 cfg){
 	else{
 		Reset(ctx);
 	}
-}
+};
 //------------------------------------------------------------------------------------------//
 template <typename CRC_BIT> static inline void ALG_CRC_Update(ALG_CRC_CTX<CRC_BIT>* ctx,const uint8* data,const uint64& length){
 	// fast lookup table algorithm without augmented zero bytes, e.g. used in pkzip.
@@ -117,7 +118,7 @@ template <typename CRC_BIT> static inline void ALG_CRC_Update(ALG_CRC_CTX<CRC_BI
 		while (num --)
 			ctx->remainder = (ctx->remainder >> 8) ^ ctx->crcTable[ (ctx->remainder & 0xff) ^ *data++];
 	}
-}
+};
 //------------------------------------------------------------------------------------------//
 template <typename CRC_BIT> static inline CRC_BIT ALG_CRC_Final(ALG_CRC_CTX<CRC_BIT>* ctx){
 	
@@ -127,7 +128,7 @@ template <typename CRC_BIT> static inline CRC_BIT ALG_CRC_Final(ALG_CRC_CTX<CRC_
 	ctx->result = ctx->remainder;
 	Reset(ctx);
 	return(ctx->result);
-}
+};
 //------------------------------------------------------------------------------------------//
 template <typename CRC_BIT> uint64 CalcBitByBit(ALG_CRC_CTX<CRC_BIT>* ctx,uint32 bitnum,uint8 *data, uint64 length){
 	// fast bit by bit algorithm without augmented zero bytes.
@@ -163,8 +164,8 @@ template <typename CRC_BIT> uint64 CalcBitByBit(ALG_CRC_CTX<CRC_BIT>* ctx,uint32
 	crc &= crcmask;
 	
 	return(crc);
-}
-#ifdef DS_Transform_h
+};
+#ifdef ALG_DS_CRC
 //------------------------------------------------------------------------------------------//
 template <typename ALGCTX> ALG_CRC_T<ALGCTX>::ALG_CRC_T(void) : DSTF(){
 	cgCTX.cfg = 0;
@@ -182,21 +183,21 @@ template <typename ALGCTX> inline ALG_CRC_T<ALGCTX>& ALG_CRC_T<ALGCTX>::InitSize
 };
 //------------------------------------------------------------------------------------------//
 template <typename ALGCTX>
-inline ioss ALG_CRC_T<ALGCTX>::DoTransform(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length){
+inline IOSE ALG_CRC_T<ALGCTX>::DoTransform(IOS* _ios,const UVOut& _out,const uint8* data,const uint64& length){
 	ALG_CRC_Update(&cgCTX,data,length);
 	return(Save(_ios,_out,data,length));
 };
 //------------------------------------------------------------------------------------------//
 template <typename ALGCTX>
-inline ioss ALG_CRC_T<ALGCTX>::DoFinal(IOSTATUS* _ios,const UVOut& _out){
+inline IOSE ALG_CRC_T<ALGCTX>::DoFinal(IOS* _ios,const UVOut& _out){
 	ALG_CRC_Final(&cgCTX);
 	return(DSTF::DoFinal(_ios,_out));
 };
 //------------------------------------------------------------------------------------------//
-template <typename ALGCTX> inline uint32 ALG_CRC_T<ALGCTX>::Calc(IOSTATUS* _ios,const UVOut& _out,const UVIn& _in){
+template <typename ALGCTX> inline uint32 ALG_CRC_T<ALGCTX>::Calc(IOS* _ios,const UVOut& _out,const UVIn& _in){
 	AllIn(_ios,_out,_in);
 	return(GetCRCReasult());
-}
+};
 //------------------------------------------------------------------------------------------//
 template <typename ALGCTX> inline uint32 ALG_CRC_T<ALGCTX>::GetCRCReasult(void){
 	return(cgCTX.result);

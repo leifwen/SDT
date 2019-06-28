@@ -6,6 +6,7 @@
 //  Copyright © 2018 Leif Wen. All rights reserved.
 //
 
+//------------------------------------------------------------------------------------------//
 #ifndef ALG_Digest_hpp
 #define ALG_Digest_hpp
 //------------------------------------------------------------------------------------------//
@@ -40,12 +41,14 @@ Define_ALG_Digest2(SHA384);
 Define_ALG_Digest2(SHA512);
 Define_ALG_Digest2(MD5);
 
+#ifdef ALG_DS_DIGEST
 Define_ALG_Digest3(SHA1);
 Define_ALG_Digest3(SHA224);
 Define_ALG_Digest3(SHA256);
 Define_ALG_Digest3(SHA384);
 Define_ALG_Digest3(SHA512);
 Define_ALG_Digest3(MD5);
+#endif
 //------------------------------------------------------------------------------------------//
 template <typename ALGCTX> static inline void ALG_Digest_Update64(ALGCTX* ctx,const uint8* data,uint64 length){
 	CC_LONG		packageLength;
@@ -55,7 +58,7 @@ template <typename ALGCTX> static inline void ALG_Digest_Update64(ALGCTX* ctx,co
 		ALG_Digest_Update32(ctx,data,packageLength);
 		data += packageLength;
 	};
-}
+};
 //------------------------------------------------------------------------------------------//
 template <typename ALGCTX> static inline STDSTR ALG_Digest64(ALGCTX* ctxnullptr,const uint8* data,uint64 length){
 	ALGCTX	ctx;
@@ -72,9 +75,9 @@ template <typename ALGCTX> static inline STDSTR ALG_Digest64(ALGCTX* ctxnullptr,
 		retStr.append((char*)result,ALG_Digest_Size(&ctx));
 	}
 	return(retStr);
-}
+};
 //------------------------------------------------------------------------------------------//
-#ifdef DS_Transform_h
+#ifdef ALG_DS_DIGEST
 //------------------------------------------------------------------------------------------//
 template <typename ALGCTX> ALG_DIGEST_T<ALGCTX>::ALG_DIGEST_T(void) : DSTF(){
 	InitSize(ALG_Digest_Size(&cgCTX));
@@ -93,26 +96,26 @@ template <typename ALGCTX> inline ALG_DIGEST_T<ALGCTX>& ALG_DIGEST_T<ALGCTX>::In
 };
 //------------------------------------------------------------------------------------------//
 template <typename ALGCTX>
-inline ioss ALG_DIGEST_T<ALGCTX>::DoTransform(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length){
+inline IOSE ALG_DIGEST_T<ALGCTX>::DoTransform(IOS* _ios,const UVOut& _out,const uint8* data,const uint64& length){
 	ALG_Digest_Update64(&cgCTX,data,length);
 	return(Save(_ios,_out,data,length));
 };
 //------------------------------------------------------------------------------------------//
 template <typename ALGCTX>
-inline ioss ALG_DIGEST_T<ALGCTX>::DoFinal(IOSTATUS* _ios,const UVOut& _out){
+inline IOSE ALG_DIGEST_T<ALGCTX>::DoFinal(IOS* _ios,const UVOut& _out){
 	cgArray.Reset();
 	ALG_Digest_Final(&cgCTX,cgArray.GetPointer(0));
 	return(DSTF::DoFinal(_ios,_out));
 };
 //------------------------------------------------------------------------------------------//
 template <typename ALGCTX>
-inline ALG_DIGEST_T<ALGCTX>& ALG_DIGEST_T<ALGCTX>::GetResult(IOSTATUS* _ios,const UVOut& _result){
+inline ALG_DIGEST_T<ALGCTX>& ALG_DIGEST_T<ALGCTX>::GetResult(IOS* _ios,const UVOut& _result){
 	Save(_ios,_result,cgArray.GetPointer(0),ALG_Digest_Size(&cgCTX));
 	return(*this);
 };
 //------------------------------------------------------------------------------------------//
 template <typename ALGCTX>
-inline ALG_DIGEST_T<ALGCTX>& ALG_DIGEST_T<ALGCTX>::Calc(IOSTATUS* _ios,const UVOut& _result,const UVOut& _out,const UVIn& _in){
+inline ALG_DIGEST_T<ALGCTX>& ALG_DIGEST_T<ALGCTX>::Calc(IOS* _ios,const UVOut& _result,const UVOut& _out,const UVIn& _in){
 	ALG_Digest_Init(&cgCTX);
 	AllIn(_ios, _out, _in);
 	GetResult(nullptr,_result);

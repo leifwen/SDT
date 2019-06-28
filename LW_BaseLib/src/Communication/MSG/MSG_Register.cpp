@@ -7,9 +7,10 @@
 //
 
 #include "stdafx.h"
+//------------------------------------------------------------------------------------------//
 #include "MSG_ID.h"
 #include "MSG_Register.h"
-#include "Commu_DBuf.h"
+#include "Commu_Base.h"
 #include "SYS_File.h"
 #ifdef MSG_Register_h
 //------------------------------------------------------------------------------------------//
@@ -24,14 +25,14 @@
 
 #include "SYS_Log.h"
 //------------------------------------------------------------------------------------------//
-MSG_Rerister::MSG_Rerister(uint32 size,void* p) : MSG_NODE(size,p){
+MSG_Rerister::MSG_Rerister(void) : MSG_NODE(){
 	cgMSGID = MESG_ID_REG;
 
 	selfName = "MSG_REG";
-	SetFatherName("");
-}
+	SetUpName("");
+};
 //------------------------------------------------------------------------------------------//
-void MSG_Rerister::Reset(void* commu){
+void MSG_Rerister::Reset(void* _team){
 	ClrSFlag(REG_blApproveY | REG_blApproveN | REG_blReject);
 };
 //------------------------------------------------------------------------------------------//
@@ -39,29 +40,44 @@ bool32 MSG_Rerister::Approve(CMD_ENV* env,uint32 approveHours){
 	bool32	blRet;
 	ClrSFlag(REG_blApproveY | REG_blApproveN);
 	cgApproveHours = approveHours;
-	MSGSend2(env,MESG_REQ_Registration,IUD(""),REG_blApproveY,REG_blApproveN,MSG_CENTER::HandshakeTime,blRet,"");
+	MSGSend2(env,MESG_REQ_Registration,IUD("")
+			 ,REG_blApproveY
+			 ,REG_blApproveN
+			 ,MSG_CENTER::HandshakeTime
+			 ,blRet
+			 ,"MSG_Rerister"
+			 ,"Approve");
 	
 	if ((blRet == 1) || (blRet == -3))
 		return G_TRUE;
 	return G_FALSE;
-}
+};
 //------------------------------------------------------------------------------------------//
 bool32 MSG_Rerister::Send_REQ_License(CMD_ENV* env,ARRAY *array,uint32 waitTimeS){
 	bool32	blRet;
 
 	ClrSFlag(REG_blApproveY | REG_blReject);
-	MSGSend2(env,MESG_REQ_License,IUD(array),REG_blApproveY,REG_blReject,waitTimeS,blRet,"");
+	MSGSend2(env,MESG_REQ_License,array
+			 ,REG_blApproveY
+			 ,REG_blReject
+			 ,waitTimeS
+			 ,blRet
+			 ,"MSG_Rerister"
+			 ,"Send_REQ_License");
 
 	return(blRet);
-}
+};
 //------------------------------------------------------------------------------------------//
-CMDID MSG_Rerister::MessageProcessing(CMD_ENV* env,const uint32& mID,const STDSTR& msg,void* commu){
-	COMMU_THREAD*	_commu = static_cast<COMMU_THREAD*>(commu);
+CMDID MSG_Rerister::MessageProcessing(CMD_ENV* env,const uint32& mID,const STDSTR& msg,void* _team){
+#ifdef Commu_Base_h
+	COMMU_TEAM*		team = static_cast<COMMU_TEAM*>(_team);
+	COMMU_FRAME*	commu = team->commu;
+#endif
 	bool32		blRet;
 	CMDID		retCode = mID;
 	ARRAY		*array;
 	uint32		approveHours = 0;
-	
+
 #ifdef LOGMSG_ENABLE
 	if ((mID >= MESG_REQ_Registration) && (mID <= MESG_ANS_Reject)){
 		ELogMPRecMsg(mID);
@@ -73,7 +89,7 @@ CMDID MSG_Rerister::MessageProcessing(CMD_ENV* env,const uint32& mID,const STDST
 			array = cgRegSign.Create(nullptr);
 			if (array->Used() > 0){
 				ELogMP("Create registration data successful, len = " << array->Used());
-				MPSend(MESG_ANS_Registration,IUD(array),blRet);
+				MPSend(MESG_ANS_Registration,array,blRet);
 			}
 			else{
 				ELogMP("Create array fail");
@@ -83,7 +99,7 @@ CMDID MSG_Rerister::MessageProcessing(CMD_ENV* env,const uint32& mID,const STDST
 			array = cgLS.Create(cgApproveHours * 60 * 60,msg);
 			if (array->Used() > 0){
 				ELogMP("Create License data successful, len = " << array->Used());
-				MPSend(MESG_REQ_WriteLicense,IUD(array),blRet);
+				MPSend(MESG_REQ_WriteLicense,array,blRet);
 			}
 			else{
 				ELogMP("Create Linense fail");
@@ -100,7 +116,8 @@ CMDID MSG_Rerister::MessageProcessing(CMD_ENV* env,const uint32& mID,const STDST
 			SetSFlag(REG_blApproveY);
 			break;
 		case MESG_REQ_License:
-			if (static_cast<LicenseBServer*>(_commu->GetFDB())->CheckApprove(_commu,&approveHours) > 0){
+#ifdef Commu_License_h
+			if (static_cast<LicServer*>(TNF::GetUp(commu))->CheckApprove(commu,&approveHours) > 0){
 				if (approveHours == 0){
 					MPSend(MESG_ANS_Reject,IUD(""),blRet);
 				}
@@ -108,7 +125,7 @@ CMDID MSG_Rerister::MessageProcessing(CMD_ENV* env,const uint32& mID,const STDST
 					array = cgLS.Create(approveHours * 60 * 60,msg);
 				
 		 			if (array->Used() > 0){
-						MPSend(MESG_ANS_Approve,IUD(array),blRet);
+						MPSend(MESG_ANS_Approve,array,blRet);
 					}
 					else{
 						ELogMP("Created linense fail");
@@ -118,7 +135,8 @@ CMDID MSG_Rerister::MessageProcessing(CMD_ENV* env,const uint32& mID,const STDST
 			}
 			ELogMP("Call SelfClose()");
 			cgMsgCenter->SetblREQHS();
-			_commu->CloseSelf(1);
+			commu->CloseSelf(1);
+#endif
 			break;
 		case MESG_ANS_Approve:
 			ELogMP("Write to License.key");
@@ -126,20 +144,24 @@ CMDID MSG_Rerister::MessageProcessing(CMD_ENV* env,const uint32& mID,const STDST
 			SetSFlag(REG_blApproveY);
 			ELogMP("Call SelfClose()");
 			cgMsgCenter->SetblREQHS();
-			_commu->CloseSelf(1);
+#ifdef Commu_Base_h
+			commu->CloseSelf(1);
+#endif
 			break;
 		case MESG_ANS_Reject:
 			SetSFlag(REG_blReject);
 			ELogMP("Call SelfClose()");
 			cgMsgCenter->SetblREQHS();
-			_commu->CloseSelf(1);
+#ifdef Commu_Base_h
+			commu->CloseSelf(1);
+#endif
 			break;
 		default:
 			retCode = MESG_NONE;
 			break;
 	}
 	return(retCode);
-}
+};
 //------------------------------------------------------------------------------------------//
 
 
@@ -151,18 +173,19 @@ CMDID MSG_Rerister::MessageProcessing(CMD_ENV* env,const uint32& mID,const STDST
 
 
 
+#ifdef Commu_License_h
 //------------------------------------------------------------------------------------------//
-LicenseBServer::LicenseBServer(int32 size) : LBServer(size,nullptr){
+LicServer::LicServer(uint32 size) : LicServer_BASE(size,size,nullptr){
 	ClrSFlag(LB_blAnswer | LB_blRequest);
 	SetSelfName("LicenseBServer");
 };
 //------------------------------------------------------------------------------------------//
-bool32 LicenseBServer::CheckblRequest(void)const{
+bool32 LicServer::CheckblRequest(void)const{
 	
 	return(CheckSFlag(LB_blRequest));
 };
 //------------------------------------------------------------------------------------------//
-bool32 LicenseBServer::CheckApprove(COMMU_THREAD* tSocket,uint32* retHours){
+bool32 LicServer::CheckApprove(COMMU_FRAME* tSocket,uint32* retHours){
 	while (cgRequestLock.TryLock() == G_FALSE){
 		if (tSocket->IsOpened() == G_FALSE)
 			return(CheckSFlag(LB_blAnswer));
@@ -179,7 +202,7 @@ bool32 LicenseBServer::CheckApprove(COMMU_THREAD* tSocket,uint32* retHours){
 	return(CheckSFlag(LB_blAnswer));
 };
 //------------------------------------------------------------------------------------------//
-void LicenseBServer::RejectRegistration(void){
+void LicServer::RejectRegistration(void){
 	if (cgApproveHours != nullptr)
 		*cgApproveHours = 0;
 	ClrSFlag(LB_blRequest);
@@ -187,20 +210,21 @@ void LicenseBServer::RejectRegistration(void){
 	cgRequestLock.Unlock();
 };
 //------------------------------------------------------------------------------------------//
-void LicenseBServer::ApproveRegistration(const uint32& approveHours){
+void LicServer::ApproveRegistration(const uint32& approveHours){
 	if (cgApproveHours != nullptr)
 		*cgApproveHours = approveHours;
 	ClrSFlag(LB_blRequest);
 	SetSFlag(LB_blAnswer);
 	cgRequestLock.Unlock();
-}
+};
 //------------------------------------------------------------------------------------------//
-const STDSTR& LicenseBServer::RequestSocketInfo(STDSTR* strPrint){
+const STDSTR& LicServer::RequestSocketInfo(STDSTR* strPrint){
 	*strPrint  = SYS_MakeTimeNow();
 	*strPrint += " Receive registration request from ";
-	*strPrint += cgRequestSocket->GetDevName();
+	*strPrint += cgRequestSocket->Core()->GetDevName();
 	return(*strPrint);
-}
+};
 //------------------------------------------------------------------------------------------//
+#endif
 //------------------------------------------------------------------------------------------//
 #endif /* MSG_Register_h */

@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		29076DD3228C5C9100AC3616 /* Commu_Terminal.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 29076DD2228C5C9100AC3616 /* Commu_Terminal.cpp */; };
+		29076DD6228CEBAB00AC3616 /* Commu_SSL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 29076DD5228CEBAB00AC3616 /* Commu_SSL.cpp */; };
 		2909B367200F912C007F7525 /* libz.1.2.8.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 2909B366200F912C007F7525 /* libz.1.2.8.tbd */; };
 		2909B36E200F991A007F7525 /* SDT.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2909B36D200F991A007F7525 /* SDT.cpp */; };
 		2909B39620120656007F7525 /* DS_Transform.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2909B39320120656007F7525 /* DS_Transform.cpp */; };
@@ -14,7 +16,7 @@
 		2909B39D201208E8007F7525 /* DS_STRING.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2909B39C201208E8007F7525 /* DS_STRING.cpp */; };
 		29141664203EC0A600539C2A /* BIF_CMD.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 29141663203EC0A600539C2A /* BIF_CMD.cpp */; };
 		291D404920284DEC00ADCCEC /* Commu_Com.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 291D404520284DEC00ADCCEC /* Commu_Com.cpp */; };
-		291D404A20284DEC00ADCCEC /* Commu_DBuf.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 291D404620284DEC00ADCCEC /* Commu_DBuf.cpp */; };
+		291D404A20284DEC00ADCCEC /* Commu_Base.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 291D404620284DEC00ADCCEC /* Commu_Base.cpp */; };
 		291D404B20284DEC00ADCCEC /* Commu_NTPServer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 291D404720284DEC00ADCCEC /* Commu_NTPServer.cpp */; };
 		291D40542029F18A00ADCCEC /* Console.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 291D40532029F18A00ADCCEC /* Console.cpp */; };
 		2921E1802041B23800403D75 /* BIC_RST.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2921E17F2041B23800403D75 /* BIC_RST.cpp */; };
@@ -28,9 +30,11 @@
 		292C16E4201639D10037BE62 /* ALG_AES.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 292C16E2201639D10037BE62 /* ALG_AES.cpp */; };
 		292C16E920163AC50037BE62 /* ALG_BASE64.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 292C16E720163AC50037BE62 /* ALG_BASE64.cpp */; };
 		292C16EA20163AC50037BE62 /* ALG_zlib.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 292C16E820163AC50037BE62 /* ALG_zlib.cpp */; };
+		292E5EF02287E17A00CBD2EA /* Commu_Socket.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 292E5EEF2287E17900CBD2EA /* Commu_Socket.cpp */; };
 		292ECF21205D7211004AAC81 /* SystemInfo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 292ECF20205D7211004AAC81 /* SystemInfo.cpp */; };
 		292FB400211C13D600B2D75A /* ADS_SMC.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 292FB3FF211C13D600B2D75A /* ADS_SMC.cpp */; };
 		2948F8612012381200CED05E /* DS_ARRAY.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2948F8602012381200CED05E /* DS_ARRAY.cpp */; };
+		29555376226E4022007D77B1 /* DS_Bitmap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 29555375226E4022007D77B1 /* DS_Bitmap.cpp */; };
 		29682D872133C836005E42B4 /* Test.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 29682D862133C836005E42B4 /* Test.cpp */; };
 		2981B5822020AA5A00257BB9 /* ColorRecord.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2981B5812020AA5A00257BB9 /* ColorRecord.cpp */; };
 		298D31892057778000707622 /* PatchCode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 298D31882057778000707622 /* PatchCode.cpp */; };
@@ -49,6 +53,7 @@
 		29A5F2D520176ECD000E8929 /* SYS_Thread.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 29A5F2D420176ECD000E8929 /* SYS_Thread.cpp */; };
 		29A5F2DB20179675000E8929 /* SYS_Time.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 29A5F2DA20179675000E8929 /* SYS_Time.cpp */; };
 		29A5F2DE20179B78000E8929 /* SYS_Log.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 29A5F2DD20179B78000E8929 /* SYS_Log.cpp */; };
+		29A65BAB22B0CD230061A9EE /* MSG_Files.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 29A65BA922B0CD230061A9EE /* MSG_Files.cpp */; };
 		29A7C00F201986D000CBD42D /* ADS_Protocol.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 29A7C00E201986D000CBD42D /* ADS_Protocol.cpp */; };
 		29A7C015201A4CD600CBD42D /* ADS_Crypto.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 29A7C014201A4CD600CBD42D /* ADS_Crypto.cpp */; };
 		29AE05C620372BF400A699E7 /* BIC_Socket.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 29AE05C320372BF400A699E7 /* BIC_Socket.cpp */; };
@@ -73,6 +78,7 @@
 		29D542C02071F2CF004CD677 /* libtls.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 29D542BD2071F2CF004CD677 /* libtls.a */; };
 		29D542C12071F2CF004CD677 /* libcrypto.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 29D542BE2071F2CF004CD677 /* libcrypto.a */; };
 		29D542C22071F2CF004CD677 /* libssl.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 29D542BF2071F2CF004CD677 /* libssl.a */; };
+		29D6E73D2294FDF400BF20D3 /* CMUX_UIH.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 29D6E73C2294FDF400BF20D3 /* CMUX_UIH.cpp */; };
 		29D8609A20426EBE0029FB06 /* Dict.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 29D8609720426EBE0029FB06 /* Dict.cpp */; };
 		29D8609B20426EBE0029FB06 /* HTML.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 29D8609820426EBE0029FB06 /* HTML.cpp */; };
 		29D8609C20426EBE0029FB06 /* BIC_Dict.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 29D8609920426EBE0029FB06 /* BIC_Dict.cpp */; };
@@ -102,6 +108,11 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		29076DD2228C5C9100AC3616 /* Commu_Terminal.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Commu_Terminal.cpp; sourceTree = "<group>"; };
+		29076DD4228CEBA100AC3616 /* Commu_SSL.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Commu_SSL.h; sourceTree = "<group>"; };
+		29076DD5228CEBAB00AC3616 /* Commu_SSL.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Commu_SSL.cpp; sourceTree = "<group>"; };
+		29076DD722907A8C00AC3616 /* Commu_SSL.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Commu_SSL.hpp; sourceTree = "<group>"; };
+		29076DD822908CF900AC3616 /* Commu_RST.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Commu_RST.h; sourceTree = "<group>"; };
 		2909AC67200F8BB8007F7525 /* SDT */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = SDT; sourceTree = BUILT_PRODUCTS_DIR; };
 		2909B366200F912C007F7525 /* libz.1.2.8.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.1.2.8.tbd; path = usr/lib/libz.1.2.8.tbd; sourceTree = SDKROOT; };
 		2909B36A200F925E007F7525 /* BasicDefine.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BasicDefine.h; sourceTree = "<group>"; };
@@ -121,7 +132,6 @@
 		2909B398201206E9007F7525 /* DS_STRING.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DS_STRING.h; sourceTree = "<group>"; };
 		2909B39A201206FD007F7525 /* DS_STRING.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = DS_STRING.hpp; sourceTree = "<group>"; };
 		2909B39C201208E8007F7525 /* DS_STRING.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DS_STRING.cpp; sourceTree = "<group>"; };
-		29123A8D20409231001FBB00 /* Commu_RST.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Commu_RST.h; sourceTree = "<group>"; };
 		29141661203EBF5200539C2A /* BIF_CMD.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BIF_CMD.h; sourceTree = "<group>"; };
 		29141663203EC0A600539C2A /* BIF_CMD.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = BIF_CMD.cpp; sourceTree = "<group>"; };
 		29141669203F07C200539C2A /* SendFile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SendFile.h; sourceTree = "<group>"; };
@@ -129,7 +139,7 @@
 		291D403F2028372400ADCCEC /* Commu_Com.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Commu_Com.h; sourceTree = "<group>"; };
 		291D40442028466800ADCCEC /* Commu_NTPServer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Commu_NTPServer.h; sourceTree = "<group>"; };
 		291D404520284DEC00ADCCEC /* Commu_Com.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Commu_Com.cpp; sourceTree = "<group>"; };
-		291D404620284DEC00ADCCEC /* Commu_DBuf.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Commu_DBuf.cpp; sourceTree = "<group>"; };
+		291D404620284DEC00ADCCEC /* Commu_Base.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Commu_Base.cpp; sourceTree = "<group>"; };
 		291D404720284DEC00ADCCEC /* Commu_NTPServer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Commu_NTPServer.cpp; sourceTree = "<group>"; };
 		291D404E202850E300ADCCEC /* Console.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Console.h; sourceTree = "<group>"; };
 		291D40532029F18A00ADCCEC /* Console.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Console.cpp; sourceTree = "<group>"; };
@@ -166,6 +176,7 @@
 		292C16E620163AB40037BE62 /* ALG_zlib.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ALG_zlib.h; sourceTree = "<group>"; };
 		292C16E720163AC50037BE62 /* ALG_BASE64.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ALG_BASE64.cpp; sourceTree = "<group>"; };
 		292C16E820163AC50037BE62 /* ALG_zlib.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ALG_zlib.cpp; sourceTree = "<group>"; };
+		292E5EEF2287E17900CBD2EA /* Commu_Socket.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Commu_Socket.cpp; sourceTree = "<group>"; };
 		292ECF1E205D6BFB004AAC81 /* SystemInfo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SystemInfo.h; sourceTree = "<group>"; };
 		292ECF20205D7211004AAC81 /* SystemInfo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SystemInfo.cpp; sourceTree = "<group>"; };
 		292FB3FF211C13D600B2D75A /* ADS_SMC.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ADS_SMC.cpp; sourceTree = "<group>"; };
@@ -173,6 +184,8 @@
 		2948F85F2012380B00CED05E /* DS_ARRAY.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = DS_ARRAY.hpp; sourceTree = "<group>"; };
 		2948F8602012381200CED05E /* DS_ARRAY.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DS_ARRAY.cpp; sourceTree = "<group>"; };
 		2948F88020157B6300CED05E /* ALG_AES.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ALG_AES.h; sourceTree = "<group>"; };
+		29555374226E0FA8007D77B1 /* DS_Bitmap.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DS_Bitmap.h; sourceTree = "<group>"; };
+		29555375226E4022007D77B1 /* DS_Bitmap.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DS_Bitmap.cpp; sourceTree = "<group>"; };
 		29682D862133C836005E42B4 /* Test.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Test.cpp; sourceTree = "<group>"; };
 		2981B57F2020AA4F00257BB9 /* ColorRecord.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ColorRecord.h; sourceTree = "<group>"; };
 		2981B5802020AA4F00257BB9 /* ColorRecord.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = ColorRecord.hpp; sourceTree = "<group>"; };
@@ -187,7 +200,6 @@
 		298D319E205934DF00707622 /* MSG_Handshake.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MSG_Handshake.cpp; sourceTree = "<group>"; };
 		298D31A4205A175500707622 /* MSG_RMS.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MSG_RMS.h; sourceTree = "<group>"; };
 		298D31A5205A8ADC00707622 /* MSG_ID.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MSG_ID.h; sourceTree = "<group>"; };
-		298D31A9205A9C1100707622 /* Commu_Socket.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Commu_Socket.hpp; sourceTree = "<group>"; };
 		298D31AA205BE16400707622 /* MSG_ID.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MSG_ID.cpp; sourceTree = "<group>"; };
 		298D31AB205BE16400707622 /* MSG_RMS.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MSG_RMS.cpp; sourceTree = "<group>"; };
 		298D31B2205BF58E00707622 /* MSG_Terminal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MSG_Terminal.h; sourceTree = "<group>"; };
@@ -217,6 +229,8 @@
 		29A5F2DD20179B78000E8929 /* SYS_Log.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SYS_Log.cpp; sourceTree = "<group>"; };
 		29A5F2E42017A3F5000E8929 /* ADS_Protocol.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = ADS_Protocol.hpp; sourceTree = "<group>"; };
 		29A5F2E62017A41A000E8929 /* ADS_Protocol.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ADS_Protocol.h; sourceTree = "<group>"; };
+		29A65BA922B0CD230061A9EE /* MSG_Files.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = MSG_Files.cpp; sourceTree = "<group>"; };
+		29A65BAC22B0CD3B0061A9EE /* MSG_Files.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MSG_Files.h; sourceTree = "<group>"; };
 		29A7C00E201986D000CBD42D /* ADS_Protocol.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ADS_Protocol.cpp; sourceTree = "<group>"; };
 		29A7C011201986FB00CBD42D /* ADS_Crypto.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = ADS_Crypto.hpp; sourceTree = "<group>"; };
 		29A7C0132019870900CBD42D /* ADS_Crypto.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ADS_Crypto.h; sourceTree = "<group>"; };
@@ -247,6 +261,7 @@
 		29AE0616203E785C00A699E7 /* ADS_Buffer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ADS_Buffer.cpp; sourceTree = "<group>"; };
 		29AE0618203EA40800A699E7 /* BIC_Dev.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = BIC_Dev.cpp; sourceTree = "<group>"; };
 		29AE061B203EB56200A699E7 /* Script.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Script.h; sourceTree = "<group>"; };
+		29C7010C2274BD2900F6126A /* DS_Lock.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = DS_Lock.hpp; sourceTree = "<group>"; };
 		29C76CB5225A25A800859962 /* ALG_Math.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ALG_Math.h; sourceTree = "<group>"; };
 		29C76CB6225A260B00859962 /* ALG_Math.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ALG_Math.cpp; sourceTree = "<group>"; };
 		29CEB29E2020AB7600A9C840 /* Output.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Output.h; sourceTree = "<group>"; };
@@ -261,6 +276,8 @@
 		29D542BD2071F2CF004CD677 /* libtls.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libtls.a; sourceTree = "<group>"; };
 		29D542BE2071F2CF004CD677 /* libcrypto.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libcrypto.a; sourceTree = "<group>"; };
 		29D542BF2071F2CF004CD677 /* libssl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libssl.a; sourceTree = "<group>"; };
+		29D6E73B2294FDED00BF20D3 /* CMUX_UIH.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CMUX_UIH.h; sourceTree = "<group>"; };
+		29D6E73C2294FDF400BF20D3 /* CMUX_UIH.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CMUX_UIH.cpp; sourceTree = "<group>"; };
 		29D8608E2041D4EC0029FB06 /* HTML.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HTML.h; sourceTree = "<group>"; };
 		29D860912041E3FF0029FB06 /* Dict.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Dict.h; sourceTree = "<group>"; };
 		29D860942041EC360029FB06 /* BIC_Dict.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BIC_Dict.h; sourceTree = "<group>"; };
@@ -286,10 +303,9 @@
 		29E4A69B20220CEC00603FEA /* ODEV_System.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ODEV_System.h; sourceTree = "<group>"; };
 		29E4A69C202213C100603FEA /* ODEV_FILE.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ODEV_FILE.cpp; sourceTree = "<group>"; };
 		29E4A69D202213C100603FEA /* ODEV_System.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ODEV_System.cpp; sourceTree = "<group>"; };
-		29E4A6A12022DB9300603FEA /* ADS_Buffer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = ADS_Buffer.hpp; sourceTree = "<group>"; };
 		29E4A6A32022DB9D00603FEA /* ADS_Buffer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ADS_Buffer.h; sourceTree = "<group>"; };
-		29E4A6A5202444A300603FEA /* Commu_DBuf.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Commu_DBuf.hpp; sourceTree = "<group>"; };
-		29E4A6A7202444AD00603FEA /* Commu_DBuf.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Commu_DBuf.h; sourceTree = "<group>"; };
+		29E4A6A5202444A300603FEA /* Commu_Base.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Commu_Base.hpp; sourceTree = "<group>"; };
+		29E4A6A7202444AD00603FEA /* Commu_Base.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Commu_Base.h; sourceTree = "<group>"; };
 		29E69161204D8B29007B3546 /* License_Checker.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = License_Checker.h; sourceTree = "<group>"; };
 		29E69164204E3A01007B3546 /* PatchCode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PatchCode.h; sourceTree = "<group>"; };
 		29E69168204EA8F9007B3546 /* BIC_License.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BIC_License.h; sourceTree = "<group>"; };
@@ -453,11 +469,13 @@
 			isa = PBXGroup;
 			children = (
 				2909B37A200FB25B007F7525 /* DS_Lock.h */,
-				2909B37C200FB35E007F7525 /* DS_BaseClass.h */,
+				29C7010C2274BD2900F6126A /* DS_Lock.hpp */,
 				2909B398201206E9007F7525 /* DS_STRING.h */,
 				2909B39A201206FD007F7525 /* DS_STRING.hpp */,
+				29555374226E0FA8007D77B1 /* DS_Bitmap.h */,
 				2948F85E2012380B00CED05E /* DS_ARRAY.h */,
 				2948F85F2012380B00CED05E /* DS_ARRAY.hpp */,
+				2909B37C200FB35E007F7525 /* DS_BaseClass.h */,
 				2909B382201039E5007F7525 /* DS_Tree.h */,
 				2909B384201039FC007F7525 /* DS_Tree.hpp */,
 				2909B38D2010D6DE007F7525 /* DS_UVar.h */,
@@ -484,10 +502,10 @@
 		2909B377200FB1B3007F7525 /* SYS */ = {
 			isa = PBXGroup;
 			children = (
-				292B4151202E118800144E67 /* SYS_File.cpp */,
 				29A5F2D420176ECD000E8929 /* SYS_Thread.cpp */,
 				29A5F2DA20179675000E8929 /* SYS_Time.cpp */,
 				29A5F2DD20179B78000E8929 /* SYS_Log.cpp */,
+				292B4151202E118800144E67 /* SYS_File.cpp */,
 			);
 			path = SYS;
 			sourceTree = "<group>";
@@ -496,6 +514,7 @@
 			isa = PBXGroup;
 			children = (
 				2909B39C201208E8007F7525 /* DS_STRING.cpp */,
+				29555375226E4022007D77B1 /* DS_Bitmap.cpp */,
 				2948F8602012381200CED05E /* DS_ARRAY.cpp */,
 				2909B39420120656007F7525 /* DS_Tree.cpp */,
 				2909B39320120656007F7525 /* DS_Transform.cpp */,
@@ -593,6 +612,7 @@
 			isa = PBXGroup;
 			children = (
 				292B416D2032F78000144E67 /* Device.h */,
+				29D6E73B2294FDED00BF20D3 /* CMUX_UIH.h */,
 				29D8609E204284710029FB06 /* CMUX.h */,
 				292B417120331F0600144E67 /* BIC */,
 				29AE05E02038872900A699E7 /* BIF */,
@@ -640,11 +660,14 @@
 			isa = PBXGroup;
 			children = (
 				298D319C205934DF00707622 /* MSG */,
-				291D404620284DEC00ADCCEC /* Commu_DBuf.cpp */,
+				291D404620284DEC00ADCCEC /* Commu_Base.cpp */,
+				29076DD5228CEBAB00AC3616 /* Commu_SSL.cpp */,
 				291D404520284DEC00ADCCEC /* Commu_Com.cpp */,
 				29AE05D720384EE700A699E7 /* Commu_ComEnum.cpp */,
-				292B416F20331EC500144E67 /* Commu_AEXE.cpp */,
+				292E5EEF2287E17900CBD2EA /* Commu_Socket.cpp */,
 				291D404720284DEC00ADCCEC /* Commu_NTPServer.cpp */,
+				292B416F20331EC500144E67 /* Commu_AEXE.cpp */,
+				29076DD2228C5C9100AC3616 /* Commu_Terminal.cpp */,
 				299D7DAE20411ED70069200D /* BIC */,
 			);
 			path = Communication;
@@ -704,9 +727,10 @@
 				298D31A5205A8ADC00707622 /* MSG_ID.h */,
 				298D319B205934D800707622 /* MSG_Center.h */,
 				298D319A205934D800707622 /* MSG_Handshake.h */,
-				298D31A4205A175500707622 /* MSG_RMS.h */,
 				298D31B2205BF58E00707622 /* MSG_Terminal.h */,
+				298D31A4205A175500707622 /* MSG_RMS.h */,
 				29D974AE205D281D004260CE /* MSG_Register.h */,
+				29A65BAC22B0CD3B0061A9EE /* MSG_Files.h */,
 				29D974A9205CCF27004260CE /* MSG_RST.h */,
 			);
 			path = MSG;
@@ -718,9 +742,10 @@
 				298D31AA205BE16400707622 /* MSG_ID.cpp */,
 				298D319D205934DF00707622 /* MSG_Center.cpp */,
 				298D319E205934DF00707622 /* MSG_Handshake.cpp */,
-				298D31AB205BE16400707622 /* MSG_RMS.cpp */,
 				29D974A6205CCD46004260CE /* MSG_Terminal.cpp */,
+				298D31AB205BE16400707622 /* MSG_RMS.cpp */,
 				29D974B0205D35CB004260CE /* MSG_Register.cpp */,
+				29A65BA922B0CD230061A9EE /* MSG_Files.cpp */,
 				29D974AB205CD9F5004260CE /* MSG_RST.cpp */,
 			);
 			path = MSG;
@@ -757,7 +782,6 @@
 				29A7C011201986FB00CBD42D /* ADS_Crypto.hpp */,
 				298D3192205906CD00707622 /* ADS_SSL.h */,
 				29E4A6A32022DB9D00603FEA /* ADS_Buffer.h */,
-				29E4A6A12022DB9300603FEA /* ADS_Buffer.hpp */,
 				2927C88220452EEC00A24894 /* ADS_SMC.h */,
 			);
 			path = AdvancedDS;
@@ -779,17 +803,18 @@
 			isa = PBXGroup;
 			children = (
 				298D3199205934D800707622 /* MSG */,
-				29E4A6A7202444AD00603FEA /* Commu_DBuf.h */,
-				29E4A6A5202444A300603FEA /* Commu_DBuf.hpp */,
+				29E4A6A7202444AD00603FEA /* Commu_Base.h */,
+				29E4A6A5202444A300603FEA /* Commu_Base.hpp */,
+				29076DD4228CEBA100AC3616 /* Commu_SSL.h */,
+				29076DD722907A8C00AC3616 /* Commu_SSL.hpp */,
 				291D403F2028372400ADCCEC /* Commu_Com.h */,
 				29AE05D52038490000A699E7 /* Commu_ComEnum.h */,
 				291D403E2027690E00ADCCEC /* Commu_Socket.h */,
-				298D31A9205A9C1100707622 /* Commu_Socket.hpp */,
-				29D974A2205CC701004260CE /* Commu_Terminal.h */,
-				29D974A4205CC730004260CE /* Commu_Terminal.hpp */,
 				291D40442028466800ADCCEC /* Commu_NTPServer.h */,
 				292B41692032EB6B00144E67 /* Commu_AEXE.h */,
-				29123A8D20409231001FBB00 /* Commu_RST.h */,
+				29D974A2205CC701004260CE /* Commu_Terminal.h */,
+				29D974A4205CC730004260CE /* Commu_Terminal.hpp */,
+				29076DD822908CF900AC3616 /* Commu_RST.h */,
 				299D7DAA20411B940069200D /* BIC */,
 			);
 			path = Communication;
@@ -799,6 +824,7 @@
 			isa = PBXGroup;
 			children = (
 				29D860A7204329FA0029FB06 /* Device.cpp */,
+				29D6E73C2294FDF400BF20D3 /* CMUX_UIH.cpp */,
 				29D860A52043297D0029FB06 /* CMUX.cpp */,
 				29AE05C020372BF400A699E7 /* BIC */,
 				29AE05FD203B166500A699E7 /* BIF */,
@@ -999,10 +1025,11 @@
 				29A5F2DE20179B78000E8929 /* SYS_Log.cpp in Sources */,
 				29A5F2DB20179675000E8929 /* SYS_Time.cpp in Sources */,
 				292C16E4201639D10037BE62 /* ALG_AES.cpp in Sources */,
+				29555376226E4022007D77B1 /* DS_Bitmap.cpp in Sources */,
 				292ECF21205D7211004AAC81 /* SystemInfo.cpp in Sources */,
 				29AE05F9203AF9ED00A699E7 /* BIF_Control.cpp in Sources */,
 				298D31A0205934DF00707622 /* MSG_Handshake.cpp in Sources */,
-				291D404A20284DEC00ADCCEC /* Commu_DBuf.cpp in Sources */,
+				291D404A20284DEC00ADCCEC /* Commu_Base.cpp in Sources */,
 				29AE05CA20372CD900A699E7 /* BIC_Calc.cpp in Sources */,
 				29D8609A20426EBE0029FB06 /* Dict.cpp in Sources */,
 				298D31892057778000707622 /* PatchCode.cpp in Sources */,
@@ -1024,6 +1051,8 @@
 				292FB400211C13D600B2D75A /* ADS_SMC.cpp in Sources */,
 				2927C88F20458F7D00A24894 /* ParRecord.cpp in Sources */,
 				29C76CB7225A260C00859962 /* ALG_Math.cpp in Sources */,
+				29076DD6228CEBAB00AC3616 /* Commu_SSL.cpp in Sources */,
+				292E5EF02287E17A00CBD2EA /* Commu_Socket.cpp in Sources */,
 				292C16EA20163AC50037BE62 /* ALG_zlib.cpp in Sources */,
 				29A7C00F201986D000CBD42D /* ADS_Protocol.cpp in Sources */,
 				299D7DB420411ED70069200D /* BIC_NTP.cpp in Sources */,
@@ -1035,6 +1064,7 @@
 				298D31AC205BE16400707622 /* MSG_ID.cpp in Sources */,
 				2909B39D201208E8007F7525 /* DS_STRING.cpp in Sources */,
 				29AE05D820384EE700A699E7 /* Commu_ComEnum.cpp in Sources */,
+				29D6E73D2294FDF400BF20D3 /* CMUX_UIH.cpp in Sources */,
 				29AE05DF2038525C00A699E7 /* BIC_COM.cpp in Sources */,
 				29AE05F5203AF05100A699E7 /* BIF_Expression.cpp in Sources */,
 				29224A5D2040778900373817 /* BIC_Device.cpp in Sources */,
@@ -1042,9 +1072,11 @@
 				29D974B3205D508A004260CE /* BIC_License.cpp in Sources */,
 				2909B39620120656007F7525 /* DS_Transform.cpp in Sources */,
 				291D404B20284DEC00ADCCEC /* Commu_NTPServer.cpp in Sources */,
+				29076DD3228C5C9100AC3616 /* Commu_Terminal.cpp in Sources */,
 				29AE05F7203AF30300A699E7 /* BIF_Transform.cpp in Sources */,
 				29A5F2CF20175C69000E8929 /* ALG_CRC.cpp in Sources */,
 				29AE0615203E66EC00A699E7 /* BIC_GCM.cpp in Sources */,
+				29A65BAB22B0CD230061A9EE /* MSG_Files.cpp in Sources */,
 				298D318B2057984900707622 /* License_Checker.cpp in Sources */,
 				299D7DB220411ED70069200D /* BIC_EXE.cpp in Sources */,
 				29D974AC205CD9F5004260CE /* MSG_RST.cpp in Sources */,
@@ -1170,6 +1202,7 @@
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = s;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;

@@ -86,6 +86,7 @@ enum{
 	BIC_ID_RST_ON,
 	BIC_ID_RST_OFF,
 	BIC_ID_RST_LINK,
+	BIC_ID_RST_SFS,
 	BIC_ID_RST_MAPPING,
 	BIC_ID_RST_LOGIN,
 	BIC_ID_RST_TS,
@@ -163,7 +164,7 @@ enum{
 #define COL_Result	COL_clYellow
 #define	COL_Sucess	COL_NormalMessage
 #define	COL_Fail	COL_ImportantMessage
-class SBUF;
+class ARRAY;
 class CONSOLE;
 class SC_LIST;
 class GC_LIST;
@@ -183,18 +184,17 @@ namespace BIC_ENV {
 	static	inline  void		DeInit		(CMD_ENV* env);
 
 	CMD_VAR		(SelfName,	CMD_VID_SELFNAME,STDSTR);
-	CMD_SETVAR	(SetSTDIN,	CMD_VID_STDIN,	SBUF*);
+	CMD_SETVAR	(SetSTDIN,	CMD_VID_STDIN,	ARRAY*);
 	CMD_SETVAR	(SetCache,	CMD_VID_CACHE,	ODEV_CACHE*);
 	CMD_SETVAR	(SetConsole,CMD_VID_CONSOLE,CONSOLE*);
 	CMD_SETVAR	(SetSCList,	CMD_VID_SCLIST,	SC_LIST*);
 	CMD_SETVAR	(SetGCList,	CMD_VID_GCLIST,	GC_LIST*);
 
-	static	inline	SBUF*		GetSTDIN	(CMD_ENV* env);
+	static	inline	ARRAY*		GetSTDIN	(CMD_ENV* env);
 	static	inline	ODEV_CACHE*	GetCache	(CMD_ENV* env);
 	static	inline	CONSOLE*	GetConsole	(CMD_ENV* env);
 	static	inline	SC_LIST*	GetSCList	(CMD_ENV* env);
 	static	inline	GC_LIST*	GetGCList	(CMD_ENV* env);
-	
 };
 //------------------------------------------------------------------------------------------//
 class BIC_BASE : public CMD_NODE{
@@ -213,8 +213,8 @@ class BIC_BASE : public CMD_NODE{
 		static			bool32	ReadCommand				(CMD_ENV* env,STDSTR* retCMD);
 	public:
 		static			uint8	PrintPressAnyKey		(CMD_ENV* env);
-						bool32	InPressKeyMode			(CMD_ENV* env)const;
-				virtual	bool32	InPressKeyModeExit		(CMD_ENV* env)const;
+						bool32	IntoPressKeyMode		(CMD_ENV* env)const;
+				virtual	bool32	IsExitPressKeyMode		(CMD_ENV* env)const;
 	public:
 		static	inline	void	SetInPressAnyKeyMode	(CMD_ENV* env);
 		static	inline	void	ClrInPressAnyKeyMode	(CMD_ENV* env);
@@ -268,8 +268,8 @@ class BIC_BASE_S : public BIC_BASE{
 				virtual		CMDID		Command				(CMD_ENV* env,const STDSTR& msg,void* p)const;
 				virtual		CMDID		Help				(CMD_ENV* env,uint32 flag)const;
 	public:
-		inline	virtual		void		SetFatherName		(const STDSTR& strName);
-				virtual		BIC_BASE_S*	AddNode				(TNF* tnfNode);
+		inline	virtual		void		SetUpName			(const STDSTR& strName);
+				virtual		BIC_BASE_S*	AppendDownNode		(TNF* tnfNode);
 				virtual		void		PrintConsoleName	(CMD_ENV* env)const;
 };
 //------------------------------------------------------------------------------------------//

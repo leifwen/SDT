@@ -7,9 +7,11 @@
 //
 
 #include "stdafx.h"
+//------------------------------------------------------------------------------------------//
 #include "BIC_RST.h"
 #include "MSG_ID.h"
 #ifdef BIC_RST_h
+#include "SYS_File.h"
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIC_RST_ON::Help(CMD_ENV* env,uint32 flag)const{
@@ -40,14 +42,14 @@ CMDID BIC_RST_ON::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 		return(cgCommandID);
 	}
 	
-	if (BIC_ENV_COMMU::GetRSTServer(env)->Open(SetOpenSSL(OPEN_TCPS,"",port))){
+	if (BIC_ENV_COMMU::GetRSTServer(env)->Open(SetOpenPar(OPEN_TCPS,"",port,0))){
 		PrintSuccess(env, "RST server is started at Port",Str_ToStr(port));
 	}
 	else{
 		PrintFail(env);
 	}
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIC_RST_OFF::Help(CMD_ENV* env,uint32 flag)const{
@@ -59,7 +61,7 @@ CMDID BIC_RST_OFF::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 	BIC_ENV_COMMU::GetRSTServer(env)->Close();
 	PrintSuccess(env, "RST server is stopped");
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIC_RST_LINK::Help(CMD_ENV* env,uint32 flag)const{
@@ -98,14 +100,116 @@ CMDID BIC_RST_LINK::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 	if (BIC_ENV_COMMU::GetRSTClient(env)->IsOpened()){
 		PrintSuccess(env, "Control connection is active");
 	}
-	else if (BIC_ENV_COMMU::GetRSTClient(env)->Open(SetOpenSSL(OPEN_TCP,strIP, port))){
+	else if (BIC_ENV_COMMU::GetRSTClient(env)->Open(SetOpenPar(OPEN_TCP,strIP, port,0))){
 		PrintSuccess(env, "Control connection is active");
 	}
 	else{
 		PrintFail(env);
 	}
 	return(cgCommandID);
-}
+};
+//------------------------------------------------------------------------------------------//
+//------------------------------------------------------------------------------------------//
+static bool32 _Print(CMD_ENV* env,const uint64& fileSize,const uint64& wrSize){
+	uint64	p;
+	STDSTR	str;
+
+	p = wrSize * 100 / fileSize;
+	str = Str_ToStr(p);
+	Str_AddSpaceInFront(&str, 3);
+
+	CMD_BASE::CleanLastLine(env);
+	CMD_BASE::PrintWithTime_noNL(env,"Send" ,str , "%");
+	return(BIC_BASE::ReadChar(env,G_FALSE) == 27);
+};
+//------------------------------------------------------------------------------------------//
+CMDID BIC_RST_SFS::Help(CMD_ENV* env,uint32 flag)const{
+	PrintHelpItem(env, cgCommand, "Send files");
+	if (B_ChkFLAG32(flag, CMD_blPrintSimple))
+		return(cgCommandID);
+	PrintHelpSubItem(env, "[-ow]"		, "Over Write");
+	PrintHelpSubItem(env, "<fn_src>"	, "Source file name ");
+	PrintHelpSubItem(env, "[fn_dec]"	, "Destination file name");
+	return(cgCommandID);
+};
+//------------------------------------------------------------------------------------------//
+CMDID BIC_RST_SFS::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
+#ifdef MSG_Files_h
+	MSG_Files*	msgFiles = (MSG_Files*)static_cast<MEM_MSG<MSG_NODE>*>(BIC_ENV_COMMU::GetRSTClient(env)->unitTeam.mem)->GetMSG(MESG_ID_FILE);
+	STDSTR		strType,fn_src,fn_des,str;
+	bool32		blow = G_FALSE;
+
+	do{
+		PrintALine(env, "");
+		SYS_SleepMS(10);
+
+		if (BIC_ENV_COMMU::GetRSTClient(env)->IsOpened() == G_FALSE){
+			PrintFail(env, "RST server control link was not setup");
+			break;
+		}
+		if (msg.length() == 0){
+			PrintFail(env);
+			break;
+		}
+		
+		fn_des = msg;
+		strType = Str_SplitSubItem(&fn_des, ' ');
+		Str_LTrimSelf(fn_des);
+		if (strType == "-ow"){
+			blow = G_TRUE;
+			fn_src = Str_SplitSubItem(&fn_des, ' ');
+			Str_LTrimSelf(fn_des);
+			fn_des = Str_SplitSubItem(&fn_des, ' ');
+		}
+		else{
+			fn_src = strType;
+			strType = Str_SplitSubItem(&fn_des, ' ');
+			Str_LTrimSelf(fn_des);
+			if (strType == "-ow"){
+				blow = G_TRUE;
+				fn_des = Str_SplitSubItem(&fn_des, ' ');
+			}
+			else{
+				if (fn_des == "-ow")
+					blow = G_TRUE;
+				fn_des = strType;
+			}
+		}
+		
+		fn_src = CFS_FormatFileName(fn_src);
+		fn_des = CFS_FormatFileName("\\" + fn_des);
+
+		if (CFS_CheckFile(fn_src) == G_FALSE){
+			PrintFail(env,"Source file does not exist");
+			break;
+		}
+		
+		str = CFS_GetFileName(fn_des);
+		if (str.length() == 0){
+			str = CFS_GetFileName(fn_src);
+			fn_des = CFS_FormatFileName(fn_des + str);
+		}
+
+		SetInPressAnyKeyMode(env);
+		blow = msgFiles->SendFile(env, _Print, blow, fn_src, fn_des);
+		ClrInPressAnyKeyMode(env);
+		if (blow > 0){
+			PrintSuccess(env);
+			break;
+		}
+		if (blow == -1){
+			PrintFail(env,"DIR exist");
+			break;
+		}
+		if (blow == -2){
+			PrintFail(env,"File exist");
+			break;
+		}
+		PrintFail(env);
+	}while(0);
+#endif
+	return(cgCommandID);
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIC_RST_MAPPING::Help(CMD_ENV* env,uint32 flag)const{
@@ -123,8 +227,8 @@ CMDID BIC_RST_MAPPING::Help(CMD_ENV* env,uint32 flag)const{
 CMDID BIC_RST_MAPPING::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 	uint32		remotePort,mappingPort;
 	STDSTR		strMappingIP,strType;
-	MSG_RMS*	msgRMS = (MSG_RMS*)BIC_ENV_COMMU::GetRSTClient(env)->GetMSG(MESG_ID_RMS);
-	
+	MSG_RMS*	msgRMS = (MSG_RMS*)static_cast<MEM_MSG<MSG_NODE>*>(BIC_ENV_COMMU::GetRSTClient(env)->unitTeam.mem)->GetMSG(MESG_ID_RMS);
+
 	if (BIC_ENV_COMMU::GetRSTClient(env)->IsOpened() == G_FALSE){
 		PrintFail(env, "RST server control link was not setup");
 		return(cgCommandID);
@@ -198,7 +302,7 @@ CMDID BIC_RST_MAPPING::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 		PrintFail(env, "RST control link was not setup");
 	}
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIC_RST_LOGIN::Help(CMD_ENV* env,uint32 flag)const{
@@ -218,8 +322,8 @@ CMDID BIC_RST_LOGIN::Help(CMD_ENV* env,uint32 flag)const{
 CMDID BIC_RST_LOGIN::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 #ifdef MSG_Terminal_h
 	CMD_TAIL		tail;
-	MSG_Terminal*	msgTerminal = (MSG_Terminal*)BIC_ENV_COMMU::GetRSTClient(env)->GetMSG(MESG_ID_TERMINAL);
-	
+	MSG_Terminal*	msgTerminal = (MSG_Terminal*)static_cast<MEM_MSG<MSG_NODE>*>(BIC_ENV_COMMU::GetRSTClient(env)->unitTeam.mem)->GetMSG(MESG_ID_TERMINAL);
+
 	tail = CMD_R;
 	if (msg == "none"){
 		tail = CMD_NONE;
@@ -255,11 +359,11 @@ CMDID BIC_RST_LOGIN::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 	}while(0);
 #endif
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 bool32 BIC_RST_LOGIN::OnlineModeExit(CMD_ENV* env)const{
 #ifdef MSG_Terminal_h
-	MSG_Terminal*	msgTerminal = (MSG_Terminal*)BIC_ENV_COMMU::GetRSTClient(env)->GetMSG(MESG_ID_TERMINAL);
+	MSG_Terminal*	msgTerminal = (MSG_Terminal*)static_cast<MEM_MSG<MSG_NODE>*>(BIC_ENV_COMMU::GetRSTClient(env)->unitTeam.mem)->GetMSG(MESG_ID_TERMINAL);
 	return(msgTerminal->CheckTerminalClosed());
 #else
 	return G_FALSE;
@@ -299,7 +403,7 @@ CMDID BIC_RST_TS::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 	PrintFail(env);
 #endif
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIC_RST_APPROVE::Help(CMD_ENV* env,uint32 flag)const{
@@ -312,7 +416,7 @@ CMDID BIC_RST_APPROVE::Help(CMD_ENV* env,uint32 flag)const{
 //------------------------------------------------------------------------------------------//
 CMDID BIC_RST_APPROVE::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 #ifdef MSG_Register_h
-	MSG_Rerister*	magRerister = (MSG_Rerister*)BIC_ENV_COMMU::GetRSTClient(env)->GetMSG(MESG_ID_REG);
+	MSG_Rerister*	msgRerister = (MSG_Rerister*)static_cast<MEM_MSG<MSG_NODE>*>(BIC_ENV_COMMU::GetRSTClient(env)->unitTeam.mem)->GetMSG(MESG_ID_REG);
 	
 	do{
 		if (BIC_ENV_COMMU::GetRSTClient(env)->IsOpened() == G_FALSE){
@@ -324,7 +428,7 @@ CMDID BIC_RST_APPROVE::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 			break;
 		}
 		
-		if (magRerister->Approve(env, atoi(msg.c_str()))){
+		if (msgRerister->Approve(env, atoi(msg.c_str()))){
 			PrintSuccess(env);
 		}
 		else{
@@ -333,7 +437,7 @@ CMDID BIC_RST_APPROVE::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 	}while(0);
 #endif
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 
 
@@ -353,7 +457,11 @@ BIC_RST::BIC_RST(void) : BIC_BASE_S() {
 	cgConsoleName = cgCommand;
 	cgHelpName = "Remote SSL terminal server";
 	
-	Add(cgSub_on) < cgSub_off < cgSub_link < cgSub_mapping
+	AppendDown(cgSub_on) < cgSub_off < cgSub_link
+#ifdef MSG_Files_h
+	< cgSub_sfs
+#endif
+	< cgSub_mapping
 #ifdef MSG_Terminal_h
 	< cgSub_login
 #endif

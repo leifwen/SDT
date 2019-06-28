@@ -6,6 +6,7 @@
 //  Copyright © 2018 Leif Wen. All rights reserved.
 //
 
+//------------------------------------------------------------------------------------------//
 #include "Dict.h"
 #include "BIC_Define.h"
 #if defined Dict_h && defined BIC_Define_h && defined SWVERSION_DICT

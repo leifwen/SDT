@@ -36,9 +36,8 @@ void CSCTree::LoadData(SC_LIST* tSCList){
 
 	hRoot = TVI_ROOT;
 	hItem = NULL;
-	m_SCList->InUse_set();
-	TREE_LChildRChain_Traversal_LINE(SC_NODE, m_SCList,
-		_opNode->InUse_set();
+	TREE_DownChain_Traversal_LINE(SC_NODE, m_SCList,
+		_opNode->rwLock.R_set();
 		strTest = _opNode->StrCommand;
 		if (strTest.substr(0,2) == "//"){
 			Expand(hRoot,TVE_EXPAND);
@@ -47,15 +46,14 @@ void CSCTree::LoadData(SC_LIST* tSCList){
 		}
 		hItem = AddNode(Str_ANSIToUnicode(strTest).c_str(), _opNode->blEnableSendCR, hRoot);
 		if (hItem != NULL){
-			SetItemData(hItem, TREE_NODE::GetdRNodeID(_opNode));
+			SetItemData(hItem, TNF::GetDRNodeID(_opNode));
 			if (blCheckHead != 0){
 				hRoot = hItem;
 				blCheckHead = 0;
 			}
 		}
-		_opNode->InUse_clr();
+		_opNode->rwLock.R_clr();
 	);
-	m_SCList->InUse_clr();
 	Expand(hRoot,TVE_EXPAND);
 	PostMessageW(WM_VSCROLL,SB_TOP,0);
 }
@@ -64,17 +62,17 @@ BOOL CSCTree::DoShowEdit(HTREEITEM hItem){
 	SC_NODE *node;
 	if (CMyCTreeCtrl::DoShowEdit(hItem)){
 		if (GetParentItem(hItem) == NULL){
-			m_SCList->InUse_set();
-			node = (SC_NODE*)TREE_NODE::FindInLChildRChainByDRNodeID(m_SCList,GetItemData(hItem));
+			m_SCList->Traversal_set();
+			node = (SC_NODE*)TNF::FindInDownChainByDRNodeID(m_SCList,GetItemData(hItem));
 			if (node != NULL){
-				node->InUse_set();
+				node->rwLock.R_set();
 				if (node->StrCommand.substr(0, 2) == "//"){
 					m_Edit.SetWindowTextW(Str_ANSIToUnicode(node->StrCommand.substr(2)).c_str());
 					m_Edit.SetSel(-1);
 				}
-				node->InUse_clr();
+				node->rwLock.R_clr();
 			}
-			m_SCList->InUse_clr();
+			m_SCList->Traversal_clr();
 		}
 		return TRUE;
 	}
@@ -87,10 +85,10 @@ void CSCTree::OnEditSave(HTREEITEM hItem){
 	std::wstring	strwText;
 	if (hItem == NULL)
 		return;
-	m_SCList->InUse_set();
-	node = (SC_NODE*)TREE_NODE::FindInLChildRChainByDRNodeID(m_SCList, GetItemData(hItem));
+	m_SCList->Traversal_set();
+	node = (SC_NODE*)TNF::FindInDownChainByDRNodeID(m_SCList, GetItemData(hItem));
 	if (node != NULL){
-		node->InUse_set();
+		node->rwLock.W_set();
 		text = GetItemText(hItem);
 		strwText = text.GetBuffer(0);
 		node->StrCommand = Str_UnicodeToANSI(strwText);
@@ -109,9 +107,9 @@ void CSCTree::OnEditSave(HTREEITEM hItem){
 				SetItemText(hItem, text);
 			}
 		}
-		node->InUse_clr();
+		node->rwLock.W_clr();
 	}
-	m_SCList->InUse_clr();
+	m_SCList->Traversal_clr();
 }
 //------------------------------------------------------------------------------------------//
 HTREEITEM CSCTree::CreateNode(HTREEITEM hItem){
@@ -119,7 +117,7 @@ HTREEITEM CSCTree::CreateNode(HTREEITEM hItem){
 	INT32	nodeLevel;
 	retItem = NULL;
 	nodeLevel = CheckNodeLevel(hItem);
-	m_SCList->InUse_set();
+
 	switch(nodeLevel){
 		case 0:
 			retItem = CreateNodeL1();
@@ -133,7 +131,6 @@ HTREEITEM CSCTree::CreateNode(HTREEITEM hItem){
 			retItem = CreateNodeL2(hItem);
 		case 3:;
 	}
-	m_SCList->InUse_clr();
 	if (retItem != NULL)
 		Expand(GetParentItem(retItem),TVE_EXPAND);
 	SelectItem(retItem);
@@ -154,24 +151,24 @@ HTREEITEM CSCTree::CreateNodeL1(HTREEITEM hItem){
 	else{
 		retItem = GetNextItem(hItem,TVGN_NEXT);
 		if (retItem != NULL)//next group
-			node = (SC_NODE*)(TREE_NODE::FindInLChildRChainByDRNodeID(m_SCList, GetItemData(retItem)));
+			node = (SC_NODE*)(TNF::FindInDownChainByDRNodeID(m_SCList, GetItemData(retItem)));
 	}
 	newNode = (SC_NODE*)m_SCList->GetNewNode();
 	if (newNode != NULL){
 		retItem = AddNode(_T("//New group"),false,TVI_ROOT,hItem);
 		if (retItem == NULL){
-			m_SCList->MoveToTrash(newNode);
+			m_SCList->MoveToTrash(newNode,newNode);
 		}
 		else{
 			newNode->StrCommand = "//New group";
 			newNode->blEnableSendCR = 0;
 			if (node == NULL){
-				TREE_NODE::AddSubNode(m_SCList, newNode);
+				TNF::InsertDownTail(m_SCList, newNode);
 			}
 			else{
-				TREE_NODE::InsertBefore(node, newNode);
+				TNF::InsertBefore(node, newNode);
 			}
-			SetItemData(retItem, TREE_NODE::GetdRNodeID(newNode));
+			SetItemData(retItem, TNF::GetDRNodeID(newNode));
 		}
 	}
 	return(retItem);
@@ -192,13 +189,13 @@ HTREEITEM CSCTree::CreateNodeL2(HTREEITEM hItem){
 			retItem = AddNode(_T("New single command"), true, GetParentItem(hItem), hItem);
 		}
 		if (retItem == NULL){
-			m_SCList->MoveToTrash(newNode);
+			m_SCList->MoveToTrash(newNode,newNode);
 		}
 		else{
 			newNode->StrCommand = "New single command";
 			newNode->blEnableSendCR = 1;
-			TREE_NODE::InsertAfter(TREE_NODE::FindInLChildRChainByDRNodeID(m_SCList, GetItemData(hItem)), newNode);
-			SetItemData(retItem, TREE_NODE::GetdRNodeID(newNode));
+			TNF::InsertAfter(TNF::FindInDownChainByDRNodeID(m_SCList, GetItemData(hItem)), newNode);
+			SetItemData(retItem, TNF::GetDRNodeID(newNode));
 		}
 	}
 	return(retItem);
@@ -208,7 +205,6 @@ HTREEITEM CSCTree::DelNode(HTREEITEM delItem){
 	INT32	nodeLevel;
 	if (delItem == NULL)
 		return(delItem);
-	m_SCList->InUse_set();
 	nodeLevel = CheckNodeLevel(delItem);
 	switch(nodeLevel){
 		case 1:
@@ -219,7 +215,6 @@ HTREEITEM CSCTree::DelNode(HTREEITEM delItem){
 			break;
 		default:;
 	}
-	m_SCList->InUse_clr();
 	SelectItem(delItem);
 	return(delItem);
 }
@@ -235,14 +230,14 @@ HTREEITEM CSCTree::DelNodeL1(HTREEITEM delItem){
 	if (delItem == m_HotItem)
 		m_HotItem = NULL;
 
-	delNode = (SC_NODE*)TREE_NODE::FindInLChildRChainByDRNodeID(m_SCList, GetItemData(delItem));
+	delNode = (SC_NODE*)TNF::FindInDownChainByDRNodeID(m_SCList, GetItemData(delItem));
 	nextItem = GetNextItem(delItem,TVGN_NEXT);
 	if (nextItem == NULL){
-		endNode = (SC_NODE*)TREE_NODE::GetTail(TREE_NODE::GetDown(m_SCList));
+		endNode = (SC_NODE*)TNF::GetTail(TNF::GetDown(m_SCList));
 		nextItem = GetNextItem(delItem,TVGN_PREVIOUS);
 	}
 	else{
-		endNode = (SC_NODE*)TREE_NODE::GetPrior(TREE_NODE::FindInLChildRChainByDRNodeID(m_SCList, GetItemData(nextItem)));
+		endNode = (SC_NODE*)TNF::GetPrior(TNF::FindInDownChainByDRNodeID(m_SCList, GetItemData(nextItem)));
 	}
 	m_SCList->MoveToTrash(delNode, endNode);
 	DeleteItem(delItem);
@@ -251,6 +246,7 @@ HTREEITEM CSCTree::DelNodeL1(HTREEITEM delItem){
 //------------------------------------------------------------------------------------------//
 HTREEITEM CSCTree::DelNodeL2(HTREEITEM delItem){
 	HTREEITEM	nextItem;
+	TNF			*node;
 
 	if (delItem == NULL)
 		return NULL;
@@ -264,7 +260,8 @@ HTREEITEM CSCTree::DelNodeL2(HTREEITEM delItem){
 		nextItem = GetNextItem(delItem,TVGN_PREVIOUS);
 	if (nextItem == NULL)
 		nextItem = GetParentItem(delItem);
-	m_SCList->MoveToTrash(TREE_NODE::FindInLChildRChainByDRNodeID(m_SCList, GetItemData(delItem)));
+	node = TNF::FindInDownChainByDRNodeID(m_SCList, GetItemData(delItem));
+	m_SCList->MoveToTrash(node,node);
 	DeleteItem(delItem);
 	return(nextItem);
 }
@@ -318,21 +315,19 @@ HTREEITEM CSCTree::UpNodeL2(HTREEITEM moveItem){
 		moveItem = GetNextItem(PriorItem,TVGN_PREVIOUS);
 	}
 	else{//moveItem is the first item in this group
-		m_SCList->InUse_set();
-		moveNode = (SC_NODE*)TREE_NODE::FindInLChildRChainByDRNodeID(m_SCList, GetItemData(moveItem));
-		priorNode = (SC_NODE*)TREE_NODE::GetPrior(moveNode);
-		if (priorNode != (SC_NODE*)(TREE_NODE::GetDown(m_SCList))){//lv2 item cannot move to the first of link
+		moveNode = (SC_NODE*)TNF::FindInDownChainByDRNodeID(m_SCList, GetItemData(moveItem));
+		priorNode = (SC_NODE*)TNF::GetPrior(moveNode);
+		if (priorNode != (SC_NODE*)(TNF::GetDown(m_SCList))){//lv2 item cannot move to the first of link
 			fatherItem = GetParentItem(moveItem);
 			fatherItem = GetNextItem(fatherItem, TVGN_PREVIOUS);
-			TREE_NODE::MoveUp(moveNode);
+			TNF::MovePrior(moveNode, moveNode);
 			DeleteItem(moveItem);
-			moveNode->InUse_set();
+			moveNode->rwLock.R_set();
 			moveItem = AddNode(Str_ANSIToUnicode(moveNode->StrCommand).c_str(), moveNode->blEnableSendCR, fatherItem);
 			if (moveItem != NULL)
-				SetItemData(moveItem, TREE_NODE::GetdRNodeID(moveNode));
-			moveNode->InUse_clr();
+				SetItemData(moveItem, TNF::GetDRNodeID(moveNode));
+			moveNode->rwLock.R_clr();
 		}
-		m_SCList->InUse_clr();
 	}
 	return(moveItem);
 }
@@ -341,7 +336,6 @@ HTREEITEM CSCTree::DownNode(HTREEITEM moveItem){
 	INT32	nodeLevel;
 	if (moveItem == NULL)
 		return(moveItem);
-	m_SCList->InUse_set();
 	nodeLevel = CheckNodeLevel(moveItem);
 	switch(nodeLevel){
 		case 1:
@@ -352,7 +346,6 @@ HTREEITEM CSCTree::DownNode(HTREEITEM moveItem){
 			break;
 		default:;
 	}
-	m_SCList->InUse_clr();
 	SelectItem(moveItem);
 	return(moveItem);
 }
@@ -370,34 +363,34 @@ HTREEITEM CSCTree::DownNodeL1(HTREEITEM moveItem){
 	if (nextItem == NULL)//moveItem is the last
 		return(moveItem);
 
-	moveNode = (SC_NODE*)TREE_NODE::FindInLChildRChainByDRNodeID(m_SCList, GetItemData(moveItem));
-	endNode = (SC_NODE*)TREE_NODE::GetPrior(TREE_NODE::FindInLChildRChainByDRNodeID(m_SCList, GetItemData(nextItem)));
+	moveNode = (SC_NODE*)TNF::FindInDownChainByDRNodeID(m_SCList, GetItemData(moveItem));
+	endNode = (SC_NODE*)TNF::GetPrior(TNF::FindInDownChainByDRNodeID(m_SCList, GetItemData(nextItem)));
 
 	endItem = GetNextItem(nextItem,TVGN_NEXT);
 	if (endItem == NULL){
-		insertNode = (SC_NODE*)TREE_NODE::GetTail(TREE_NODE::GetDown(m_SCList));
+		insertNode = (SC_NODE*)TNF::GetTail(TNF::GetDown(m_SCList));
 	}
 	else{
-		insertNode = (SC_NODE*)TREE_NODE::GetPrior(TREE_NODE::FindInLChildRChainByDRNodeID(m_SCList, GetItemData(endItem)));
+		insertNode = (SC_NODE*)TNF::GetPrior(TNF::FindInDownChainByDRNodeID(m_SCList, GetItemData(endItem)));
 	}
-	TREE_NODE::MoveAfter(moveNode, endNode, insertNode);
+	TNF::MoveAfter(moveNode, endNode, insertNode);
 
 	DeleteItem(moveItem);
-	moveNode->InUse_set();
+	moveNode->rwLock.R_set();
 	moveItem = AddNode(Str_ANSIToUnicode(moveNode->StrCommand).c_str(),0,TVI_ROOT,nextItem);
-	moveNode->InUse_clr();
+	moveNode->rwLock.R_clr();
 	if (moveItem != NULL){
-		moveNode->InUse_set();
-		SetItemData(moveItem, TREE_NODE::GetdRNodeID(moveNode));
-		moveNode->InUse_clr();
-		TREE_RChain_Traversal_LINE(SC_NODE, moveNode,
+		moveNode->rwLock.R_set();
+		SetItemData(moveItem, TNF::GetDRNodeID(moveNode));
+		moveNode->rwLock.R_clr();
+		TREE_NextChain_Traversal_LINE(SC_NODE, moveNode,
 			if (_opNode == endNode)
 				break;
 			if (_nextNode != NULL){
-				_nextNode->InUse_set();
+				_nextNode->rwLock.R_set();
 				nextItem = AddNode(Str_ANSIToUnicode(_nextNode->StrCommand).c_str(), _nextNode->blEnableSendCR, moveItem);
-				SetItemData(nextItem, TREE_NODE::GetdRNodeID(_nextNode));
-				_nextNode->InUse_clr();
+				SetItemData(nextItem, TNF::GetDRNodeID(_nextNode));
+				_nextNode->rwLock.R_clr();
 			}
 		);
 	}
@@ -414,32 +407,32 @@ HTREEITEM CSCTree::DownNodeL2(HTREEITEM moveItem){
 		return(moveItem);
 	fatherItem = GetParentItem(moveItem);
 	fatherNextItem = GetNextItem(fatherItem,TVGN_NEXT);//father next item
-	moveNode = (SC_NODE*)TREE_NODE::FindInLChildRChainByDRNodeID(m_SCList, GetItemData(moveItem));
+	moveNode = (SC_NODE*)TNF::FindInDownChainByDRNodeID(m_SCList, GetItemData(moveItem));
 	if (fatherNextItem == NULL){//moveItem in the last group
-		if (moveNode == (SC_NODE*)TREE_NODE::GetTail(TREE_NODE::GetDown(m_SCList)))//moveItem is the last item;
+		if (moveNode == (SC_NODE*)TNF::GetTail(TNF::GetDown(m_SCList)))//moveItem is the last item;
 			return(moveItem);
 	}
 	nextItem = GetNextItem(moveItem,TVGN_NEXT);
-	moveNode->InUse_set();
+	moveNode->rwLock.R_set();
 	if (nextItem == NULL){//hItem is the last item in the group;
 		nextItem = GetNextItem(fatherNextItem,TVGN_CHILD);
-		TREE_NODE::MoveDown(moveNode);
-		TREE_NODE::MoveDown(moveNode);//move to next group second node.
+		TNF::MoveNext(moveNode, moveNode);
+		TNF::MoveNext(moveNode, moveNode);//move to next group second node.
 		DeleteItem(moveItem);
 		moveItem = AddNode(Str_ANSIToUnicode(moveNode->StrCommand).c_str(),moveNode->blEnableSendCR,fatherNextItem,nextItem);
 		if (moveItem != NULL)
-			SetItemData(moveItem, TREE_NODE::GetdRNodeID(moveNode));
+			SetItemData(moveItem, TNF::GetDRNodeID(moveNode));
 		DownNodeL2(nextItem);
 		moveItem = GetNextItem(fatherNextItem,TVGN_CHILD);
 	}
 	else{
-		TREE_NODE::MoveDown(moveNode);
+		TNF::MoveNext(moveNode, moveNode);
 		DeleteItem(moveItem);
 		moveItem = AddNode(Str_ANSIToUnicode(moveNode->StrCommand).c_str(),moveNode->blEnableSendCR,fatherItem,nextItem);
 		if (moveItem != NULL)
-			SetItemData(moveItem, TREE_NODE::GetdRNodeID(moveNode));
+			SetItemData(moveItem, TNF::GetDRNodeID(moveNode));
 	}
-	moveNode->InUse_clr();
+	moveNode->rwLock.R_clr();
 	return(moveItem);
 }
 //------------------------------------------------------------------------------------------//
@@ -447,11 +440,11 @@ void CSCTree::OnLButtonDblClk(UINT nFlags, CPoint point){
 	SC_NODE		*lNode,copyNode;
 	if (m_SelectItem != NULL){
 		if (GetParentItem(m_SelectItem) != NULL){
-			m_SCList->InUse_set();
-			lNode = (SC_NODE*)TREE_NODE::FindInLChildRChainByDRNodeID(m_SCList, GetItemData(m_SelectItem));
+			m_SCList->Traversal_set();
+			lNode = (SC_NODE*)TNF::FindInDownChainByDRNodeID(m_SCList, GetItemData(m_SelectItem));
 			if (lNode != NULL)
 				SC_NODE::Copy(&copyNode, lNode);
-			m_SCList->InUse_clr();
+			m_SCList->Traversal_clr();
 			if (lNode != NULL)
 				theApp.GSDTApp.m_DeviceM.SendCommandWithPrint(copyNode.StrCommand, (CMD_TAIL)copyNode.blEnableSendCR,G_ESCAPE_ON);
 		}

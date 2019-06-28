@@ -6,18 +6,18 @@
 //  Copyright © 2018 Leif Wen. All rights reserved.
 //
 
+//------------------------------------------------------------------------------------------//
 #ifndef ALG_CRC_h
 #define ALG_CRC_h
 #ifdef ALG_CRC_h
 //------------------------------------------------------------------------------------------//
-#include "BasicDefine.h"
 #include "DS_Transform.h"
 //------------------------------------------------------------------------------------------//
 namespace CRC8ID{
 	enum {none = 0,eCRC8,eAUTOSAR,eBLUETOOTH,eCDMA2000,eDARC,eDVB_S2
 		,eEBU,eAES,eGSM_A,eGSM_B,eI_CODE,eITU,eLTE,eMAXIM
 		,eOPENSAFETY,eROHC,eSAE_J1850,eWCDMA,eDefault = eCRC8};
-}
+};
 namespace CRC16ID{
 	enum {none = 0,eARC,eCRC_16,eIBM,eLHA,eAUG_CCITT,eSPI_FUJITSU,eBUYPASS
 		,eVERIFONE,eUMTS,eCCITT_FALSE,eCDMA2000,eCMS,eDDS_110,eDECT_R
@@ -25,12 +25,12 @@ namespace CRC16ID{
 		,eMAXIM,eMCRF4XX,eOPENSAFETY_A,eOPENSAFETY_B,ePROFIBUS,eIEC_61158_2
 		,eRIELLO,eT10_DIF,eTELEDISK,eTMS37157,eUSB,eCRC_A,eCCITT,eKERMIT
 		,eMODBUS,eX_25,eISO_HDLC,eIBM_SDLC,eCRC_B,eXMODEM,eZMODEM,eACORN,eLTE,eDefault = eXMODEM};
-}
+};
 namespace CRC32ID{
 	enum {none = 0,eADCCP,ePKZIP,eCRC32,eAUTOSAR,eBZIP2,eAAL5,eDECT_B
 		,eB_CRC32,eCRC32C,eISCSI,eCASTAGNOLI,eINTERLAKEN
 		,eCRC32D,eMPEG2,ePOSIX,eCKSUM,eCRC32Q,eJAMCRC,eXFER,eDefault = eMPEG2};
-}
+};
 //------------------------------------------------------------------------------------------//
 template <typename CRC_BIT> struct ALG_CRC_CTX{
 	uint32	cfg;
@@ -63,6 +63,9 @@ template <typename CRC_BIT> static inline void		ALG_CRC_Update	(ALG_CRC_CTX<CRC_
 template <typename CRC_BIT> static inline CRC_BIT	ALG_CRC_Final	(ALG_CRC_CTX<CRC_BIT>* ctx);
 //------------------------------------------------------------------------------------------//
 #ifdef DS_Transform_h
+#ifndef ALG_DS_CRC
+#define ALG_DS_CRC
+#ifdef ALG_DS_CRC
 template <typename ALGCTX>
 class ALG_CRC_T : public DSTF{
 	public:
@@ -74,10 +77,10 @@ class ALG_CRC_T : public DSTF{
 		inline	virtual	ALG_CRC_T&	InitCFG		(uint32 cfg = -1,const void* p = nullptr);
 	protected:
 		inline	virtual	ALG_CRC_T&	InitSize	(uint32 size);
-		inline	virtual	ioss		DoTransform	(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length);
-		inline	virtual	ioss		DoFinal		(IOSTATUS* _ios,const UVOut& _out);
+		inline	virtual	IOSE		DoTransform	(IOS* _ios,const UVOut& _out,const uint8* data,const uint64& length);
+		inline	virtual	IOSE		DoFinal		(IOS* _ios,const UVOut& _out);
 	public:
-		inline	uint32	Calc					(IOSTATUS* _ios,const UVOut& _out,const UVIn& _in);
+		inline	uint32	Calc					(IOS* _ios,const UVOut& _out,const UVIn& _in);
 		inline	uint32	GetCRCReasult			(void);
 		inline	uint32	GetCRCBit				(void);
 };
@@ -85,7 +88,9 @@ class ALG_CRC_T : public DSTF{
 typedef ALG_CRC_T<ALG_CRC8_CTX>	 ALG_CRC8;
 typedef ALG_CRC_T<ALG_CRC16_CTX> ALG_CRC16;
 typedef ALG_CRC_T<ALG_CRC32_CTX> ALG_CRC32;
-#endif
+#endif /* ALG_DS_CRC */
+#endif /* ALG_DS_CRC */
+#endif /* DS_Transform_h */
 //------------------------------------------------------------------------------------------//
 #include "ALG_CRC.hpp"
 #endif /* ALG_CRC_h */

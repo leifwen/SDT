@@ -30,8 +30,8 @@
 //------------------------------------------------------------------------------------------//
 class SCRIPT : public DEVICE_EXE_FRAME{
 	protected:
-		enum	{RFLAG_C = 1, RFLAG_S = DEVICE_EXE_FRAME::RFLAG_S + DEVICE_EXE_FRAME::RFLAG_C};
-		enum	{SRC_blATResponse = RFLAG_CREATE(0)};
+		enum	{RFLAG_C = 2, RFLAG_S = DEVICE_EXE_FRAME::RFLAG_S + DEVICE_EXE_FRAME::RFLAG_C};
+		enum	{SRC_blATResponse = RFLAG_CREATE(0),SRC_blStopSelf = RFLAG_CREATE(1)};
 	public:
 				 SCRIPT(uint32 size);
 		virtual ~SCRIPT(void);
@@ -82,7 +82,10 @@ class SCRIPT : public DEVICE_EXE_FRAME{
 				void	SetblATResponse		(void);
 				void	ClrblATResponse		(void);
 				bool32	CheckATResponse		(void);
-
+	
+				void	SetblStopSelf		(void);
+				void	ClrblStopSelf		(void);
+				bool32	IsStopSelf			(void);
 	public:
 		virtual	void	Stop				(void);
 				void	Help				(OUTPUT_NODE* oDevNode);

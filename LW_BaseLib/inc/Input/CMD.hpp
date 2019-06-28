@@ -6,6 +6,7 @@
 //  Copyright © 2018 Leif Wen. All rights reserved.
 //
 
+//------------------------------------------------------------------------------------------//
 #ifndef CMD_hpp
 #define CMD_hpp
 //------------------------------------------------------------------------------------------//
@@ -22,7 +23,7 @@ inline	bool32	CMD_ENV::CheckEnvFlag	(const uint64& rStatus)const 	{return(CheckS
 inline	void	CMD_ENV::SetblExitForce	(void)			{SetSFlag(ENV_blExit | ENV_blExitLock);};
 inline	void	CMD_ENV::SetblExit		(void)			{if (CheckSFlag(ENV_blExitLock) == G_FALSE) SetSFlag(ENV_blExit);};
 inline	void	CMD_ENV::ClrblExit		(void)			{if (CheckSFlag(ENV_blExitLock) == G_FALSE) ClrSFlag(ENV_blExit);};
-inline	bool32	CMD_ENV::ChkblExit		(void)const		{return(CheckSFlag(ENV_blExitLock) || CheckSFlag(ENV_blExit));};
+inline	bool32	CMD_ENV::IsExit			(void)const		{return(CheckSFlag(ENV_blExitLock) || CheckSFlag(ENV_blExit));};
 inline	void	CMD_ENV::Init			(CMD_ENV* env)	{env->ClearEnvAllFlag();};
 //------------------------------------------------------------------------------------------//
 inline void CMD_ENV::SetVar(CMD_ENV* env,uint32 vid,void* var){
@@ -83,7 +84,7 @@ inline	bool32	CMD_BASE::CheckEnvFlag		(CMD_ENV* env,const uint64& rStatus) 	{ret
 inline	void	CMD_BASE::SetblExitForce	(CMD_ENV* env){if (env != nullptr) env->SetblExitForce();};
 inline	void	CMD_BASE::SetblExit			(CMD_ENV* env){if (env != nullptr) env->SetblExit();};
 inline	void	CMD_BASE::ClrblExit			(CMD_ENV* env){if (env != nullptr) env->ClrblExit();};
-inline	bool32	CMD_BASE::ChkblExit			(CMD_ENV* env){return(env != nullptr ? env->ChkblExit() : G_FALSE);};
+inline	bool32	CMD_BASE::IsExit			(CMD_ENV* env){return(env != nullptr ? env->IsExit() : G_FALSE);};
 //------------------------------------------------------------------------------------------//
 inline OUTPUT_NODE* CMD_BASE::GetSTDOUT(CMD_ENV* env){
 	return(CMD_ENV::GetSTDOUT(env));
@@ -123,15 +124,28 @@ template<typename... Args> void CMD_BASE::PrintALineDot(CMD_ENV* env,const Args&
 	OUTPUT_NODE::PrintALineDot(GetSTDOUT(env),args...);
 #endif
 };
+//------------------------------------------------------------------------------------------//
 template<typename... Args> void CMD_BASE::PrintWithTime(CMD_ENV* env,const Args&... args){
 #ifdef Output_h
 	OUTPUT_NODE::PrintWithTime(GetSTDOUT(env),args...);
 #endif
 };
 //------------------------------------------------------------------------------------------//
+template<typename... Args> void CMD_BASE::PrintWithTime_noNL(CMD_ENV* env,const Args&... args){
+#ifdef Output_h
+	OUTPUT_NODE::PrintWithTime_noNL(GetSTDOUT(env),args...);
+#endif
+};
+//------------------------------------------------------------------------------------------//
 template<typename... Args> void CMD_BASE::PrintWithDividingLine(CMD_ENV* env,const Args&... args){
 #ifdef Output_h
 	OUTPUT_NODE::PrintWithDividingLine(CMD_ENV::GetSTDOUT(env),args...);
+#endif
+};
+//------------------------------------------------------------------------------------------//
+inline void CMD_BASE::CleanLastLine(CMD_ENV* env){
+#ifdef Output_h
+	OUTPUT_NODE::CleanLastLine(CMD_ENV::GetSTDOUT(env));
 #endif
 };
 //------------------------------------------------------------------------------------------//

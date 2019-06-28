@@ -6,6 +6,7 @@
 //  Copyright © 2018 Leif Wen. All rights reserved.
 //
 
+//------------------------------------------------------------------------------------------//
 #ifndef DS_STRING_h
 #define DS_STRING_h
 //------------------------------------------------------------------------------------------//
@@ -61,9 +62,9 @@ const	uint8*	Str_Uint64ToChar	(uint8* _out,uint64 data,G_ENDIAN endianType = G_E
 		uint32	Str_EscapeToChar	(uint8& retChar,const uint8*& data,uint64& num);
 		void	Str_CharToHex		(STDSTR* _out,uint8 data);
 //------------------------------------------------------------------------------------------//
-				const	STDSTR& Str_UnEscapeToStr	(STDSTR* _out,const uint8 data);
-				const	STDSTR& Str_UnEscapeToStr	(STDSTR* _out,const uint8* data,uint64 num);
-static inline	const	STDSTR& Str_UnEscapeToStr	(STDSTR* _out,const STDSTR& _in);
+				const	STDSTR& Str_EscapeToASCII	(STDSTR* _out,const uint8 data);
+				const	STDSTR& Str_EscapeToASCII	(STDSTR* _out,const uint8* data,uint64 num);
+static inline	const	STDSTR& Str_EscapeToASCII	(STDSTR* _out,const STDSTR& _in);
 //------------------------------------------------------------------------------------------//
 				const	STDSTR& Str_CharToStrEscape	(STDSTR* _out,const uint8 *data,uint64 num);
 				const	STDSTR&	Str_CharToStr		(STDSTR* _out,const uint8 *data,uint64 num,G_HA blHA,G_SPACE blSpace,G_ESCAPE blEscape);
@@ -94,6 +95,8 @@ STDSTR			Str_UnicodeToANSI	(const std::wstring&	strIn);
 std::wstring	Str_UTF8ToUnicode	(const STDSTR&			strIn);
 STDSTR			Str_UnicodeToUTF8	(const std::wstring&	strIn);
 #endif
+//------------------------------------------------------------------------------------------//
+static inline	STDSTR*		_EMPTY		(STDSTR* p)	{*p = "";return(p);};
 //------------------------------------------------------------------------------------------//
 #include "DS_STRING.hpp"
 #endif /* DS_STRING_h */

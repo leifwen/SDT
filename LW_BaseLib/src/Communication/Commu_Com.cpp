@@ -7,6 +7,7 @@
 //
 
 #include "stdafx.h"
+//------------------------------------------------------------------------------------------//
 #include "Commu_Com.h"
 #ifdef Commu_Com_h
 //------------------------------------------------------------------------------------------//
@@ -16,30 +17,11 @@
 #include <termios.h>
 #include <sys/ioctl.h>
 #endif
+//#define LOGPRINT_ENABLE
+//#define LOGTHREAD_ENABLE
+#include "SYS_Log.h"
 //------------------------------------------------------------------------------------------//
-ACOM::ACOM(uint32 size,const ODEV_SYSTEM* logSys) : COMMU_THREAD(size,logSys){
-	Init();
-	TNFP::SetSelfName("ACOM");
-	SetSelfName(selfName);
-	SetFatherName("");
-};
-//------------------------------------------------------------------------------------------//
-ACOM::~ACOM(void){
-	Close();
-	modemStatusThread.RemoveSelf();
-};
-//------------------------------------------------------------------------------------------//
-void ACOM::SetSelfName(const STDSTR& strName){
-	COMMU_THREAD::SetSelfName(strName);
-	modemStatusThread.SetFatherName(GetFullName(this));
-};
-//------------------------------------------------------------------------------------------//
-void ACOM::SetFatherName(const STDSTR& strName){
-	COMMU_THREAD::SetFatherName(strName);
-	modemStatusThread.SetFatherName(GetFullName(this));
-};
-//------------------------------------------------------------------------------------------//
-void ACOM::Init(void){
+CORE_ACOM::CORE_ACOM(void) : COMMU_CORE(){
 #ifdef CommonDefH_Unix
 	osHandle = -1;
 #endif
@@ -49,16 +31,36 @@ void ACOM::Init(void){
 	vPortName = "";
 	modemStatus = "";
 	ClrSFlag(ACOM_blDSR | ACOM_blCTS | ACOM_blDCD | ACOM_blRING | ACOM_blDTR | ACOM_blRTS | ACOM_blCTSFlow | ACOM_blDSRFlow);
-	if (GetLogSystem() != nullptr){
-		modemStatusThread.ThreadInit(this, &ACOM::ModemStatusThreadFun,"modemStatus");
-		cgThreadList < modemStatusThread;
-		modemStatusThread.Enable();
-	}
-}
+	
+	modemStatusThread.ThreadInit(this, &CORE_ACOM::ModemStatusThreadFun,"ms");
+	
+	SetSelfName("CORE_ACOM");
+	SetUpName("");
+};
+//------------------------------------------------------------------------------------------//
+CORE_ACOM::~CORE_ACOM(void){
+	CloseDev();
+	modemStatusThread.RemoveSelf();
+};
+//------------------------------------------------------------------------------------------//
+void CORE_ACOM::SetSelfName(const STDSTR& strName){
+	COMMU_CORE::SetSelfName(strName);
+	modemStatusThread.SetUpName(GetFullName(this));
+};
+//------------------------------------------------------------------------------------------//
+void CORE_ACOM::SetUpName(const STDSTR& strName){
+	COMMU_CORE::SetUpName(strName);
+	modemStatusThread.SetUpName(GetFullName(this));
+};
+//------------------------------------------------------------------------------------------//
+void CORE_ACOM::Init(const COMMU_TEAM* _team){
+	COMMU_CORE::Init(_team);
+	unitTeam->commu->ThreadAccept(&modemStatusThread);
+};
 //------------------------------------------------------------------------------------------//
 #ifdef CommonDefH_VC
 //------------------------------------------------------------------------------------------//
-bool32 ACOM::OpenDev(const OPEN_PAR& par){
+bool32 CORE_ACOM::OpenDev(const OPEN_PAR& par){
 	STDSTR			strComPortNo;
 	DCB				ComDCB;
 	COMMTIMEOUTS	ComTimeOuts;
@@ -75,7 +77,7 @@ bool32 ACOM::OpenDev(const OPEN_PAR& par){
 	if(osHandle == INVALID_HANDLE_VALUE)
 		return G_FALSE;
 	
-	SetupComm(osHandle,(DWORD)cgRxSBUF.MaxSize(),((DWORD)cgTxSBUF.MaxSize() < OSTXBUF_MAX_SIZE) ? (DWORD)cgTxSBUF.MaxSize() : OSTXBUF_MAX_SIZE);
+	SetupComm(osHandle, (DWORD)COMMU_BRIDGE::RxMaxSize(unitTeam->bridge), ((DWORD)COMMU_BRIDGE::TxMaxSize(unitTeam->bridge) < OSTXBUF_MAX_SIZE) ? (DWORD)COMMU_BRIDGE::TxMaxSize(unitTeam->bridge) : OSTXBUF_MAX_SIZE);
 	PurgeComm(osHandle, PURGE_TXABORT | PURGE_RXABORT | PURGE_TXCLEAR | PURGE_RXCLEAR);
 	
 	ComTimeOuts.ReadIntervalTimeout = 1000;
@@ -106,13 +108,13 @@ bool32 ACOM::OpenDev(const OPEN_PAR& par){
 	ComDCB.StopBits = ONESTOPBIT;
 	SetCommState(osHandle,&ComDCB);
 	
-	return G_TRUE;
-}
+	return(COMMU_CORE::OpenDev(par));
+};
 //------------------------------------------------------------------------------------------//
 #endif
 #ifdef CommonDefH_Unix
 //------------------------------------------------------------------------------------------//
-bool32 SetBR(ACOM::HANDLE hand,int32 baudrate,uint32 type){
+bool32 SetBR(CORE_ACOM::HANDLE hand,int32 baudrate,uint32 type){
 	struct	termios 	serCfg;
 	
 	if (tcgetattr(hand, &serCfg) != 0){
@@ -169,9 +171,9 @@ bool32 SetBR(ACOM::HANDLE hand,int32 baudrate,uint32 type){
 			return G_FALSE;
 	}
 	return G_TRUE;
-}
+};
 //------------------------------------------------------------------------------------------//
-bool32 SetHardFlow(ACOM::HANDLE hand,bool32 blEnable,uint32 type){
+bool32 SetHardFlow(CORE_ACOM::HANDLE hand,bool32 blEnable,uint32 type){
 	struct	termios 	serCfg;
 	
 	if (tcgetattr(hand, &serCfg) != 0){
@@ -195,9 +197,9 @@ bool32 SetHardFlow(ACOM::HANDLE hand,bool32 blEnable,uint32 type){
 			return G_FALSE;
 	}
 	return G_TRUE;
-}
+};
 //------------------------------------------------------------------------------------------//
-bool32 SetAttr(ACOM::HANDLE hand,uint32 type){
+bool32 SetAttr(CORE_ACOM::HANDLE hand,uint32 type){
 	struct	termios 	serCfg;
 	
 	if (tcgetattr(hand, &serCfg) != 0){
@@ -238,7 +240,7 @@ bool32 SetAttr(ACOM::HANDLE hand,uint32 type){
 }
 
 //------------------------------------------------------------------------------------------//
-bool32 OpenCOM(ACOM::HANDLE* osHandle,const OPEN_PAR& par){
+bool32 OpenCOM(CORE_ACOM::HANDLE* osHandle,const OPEN_PAR& par){
 	uint32  bitPar;
 	
 	if (par.name.length() == 0)
@@ -261,9 +263,9 @@ bool32 OpenCOM(ACOM::HANDLE* osHandle,const OPEN_PAR& par){
 	if ((*osHandle < 0) || (SetAttr(*osHandle,par.type) == 0) || (SetBR(*osHandle,par.port,par.type) == 0))
 		return G_FALSE;
 	return G_TRUE;
-}
+};
 //------------------------------------------------------------------------------------------//
-bool32 ACOM::OpenDev(const OPEN_PAR& par){
+bool32 CORE_ACOM::OpenDev(const OPEN_PAR& par){
 	if (OpenCOM(&osHandle,par) == G_FALSE)
 		return G_FALSE;
 #ifdef CommonDefH_Unix
@@ -292,45 +294,40 @@ bool32 ACOM::OpenDev(const OPEN_PAR& par){
 		}
 	}
 #endif
-	return G_TRUE;
-}
+	return(COMMU_CORE::OpenDev(par));
+};
 //------------------------------------------------------------------------------------------//
 #endif
 //------------------------------------------------------------------------------------------//
-void ACOM::DoPrintOnOpenSuccess(void){
-	if (GetCNType(this) == CN_S){
-		PrintOpenSuccessReport("COM");
-	}
-	else{
-		PrintOpenSuccessReport();
-	}
+void CORE_ACOM::PrintOpenSuccess(const STDSTR& strTitle){
+	COMMU_CORE::PrintOpenSuccess();
 #ifdef CommonDefH_Unix
 	if (GetOpenPar().type == OPEN_COMV)
-		PrintMessageDot(COL_NormalMessage,"Virtual COM",
-						COL_ImportantMessage,vPortName,
-						COL_NormalMessage,"has been created");
+		COMMU_LOGSYS::PrintMessageDot(unitTeam->logSys,COL_NormalMessage,"Virtual COM",
+									  COL_ImportantMessage,vPortName,
+									  COL_NormalMessage,"has been created");
 #endif
 };
 //------------------------------------------------------------------------------------------//
-void ACOM::DoPrintOnClose(void){
-	if (CheckSFlag(CF_blCloseDueToOS)){
-		PrintConnectionReport(cgAttrTitle,"COM","connection disconnected");
+void CORE_ACOM::PrintClose(const uint64& rxBytes,const uint64& txBytes,const uint64& fwBytes){
+	if (unitTeam->commu->IsCloseDueToOS()){
+		COMMU_LOGSYS::PrintConnectionReport(unitTeam->logSys,rxBytes,txBytes,fwBytes,"COM","connection disconnected");
 	}
 	else{
-		PrintConnectionReport("User closed",cgAttrTitle,"COM");
+		COMMU_LOGSYS::PrintConnectionReport(unitTeam->logSys,rxBytes,txBytes,fwBytes,"User closed","COM");
 	}
 #ifdef CommonDefH_Unix
 	if (GetOpenPar().type == OPEN_COMV){
 		unlink(vPortName.c_str());
-		PrintMessageDot(COL_NormalMessage,"Virtual COM",
-						COL_ImportantMessage,vPortName,
-						COL_NormalMessage,"has been deleted");
+		COMMU_LOGSYS::PrintMessageDot(unitTeam->logSys,COL_NormalMessage,"Virtual COM",
+									  COL_ImportantMessage,vPortName,
+									  COL_NormalMessage,"has been deleted");
 		vPortName = "";
 	}
 #endif
-}
+};
 //------------------------------------------------------------------------------------------//
-bool32 ACOM::SetBaudrate(int32 comBaudRate){
+bool32 CORE_ACOM::SetBaudrate(int32 comBaudRate){
 #ifdef CommonDefH_VC
 	DCB		ComDCB;
 	
@@ -346,10 +343,9 @@ bool32 ACOM::SetBaudrate(int32 comBaudRate){
 #ifdef CommonDefH_Unix
 	return(SetBR(osHandle,comBaudRate,GetOpenPar().type));
 #endif
-}
+};
 //------------------------------------------------------------------------------------------//
-void ACOM::CloseDev(void){
-	COMMU_THREAD::CloseDev();
+void CORE_ACOM::CloseDev(void){
 #ifdef CommonDefH_Unix
 	if (IsConnected())
 		close(osHandle);
@@ -370,9 +366,11 @@ void ACOM::CloseDev(void){
 #endif
 	ClrSFlag(ACOM_blDSR | ACOM_blCTS | ACOM_blDCD | ACOM_blRING | ACOM_blDTR | ACOM_blRTS | ACOM_blCTSFlow | ACOM_blDSRFlow);
 	modemStatus = "";
-}
+	
+	COMMU_CORE::CloseDev();
+};
 //------------------------------------------------------------------------------------------//
-bool32 ACOM::ReadFromDevice(uint32* retNum,uint8* buffer,uint32 length){
+bool32 CORE_ACOM::ReadFromDevice(uint32* retNum,uint8* buffer,uint32 length){
 	*retNum = 0;
 #ifdef CommonDefH_Unix
 	int64		retCode;
@@ -423,9 +421,9 @@ bool32 ACOM::ReadFromDevice(uint32* retNum,uint8* buffer,uint32 length){
 	}
 	return G_FALSE;
 #endif
-}
+};
 //------------------------------------------------------------------------------------------//
-bool32 ACOM::SendToDevice(uint32* retNum,const uint8* buffer,uint32 length){
+bool32 CORE_ACOM::SendToDevice(uint32* retNum,const uint8* buffer,uint32 length){
 #ifdef CommonDefH_Unix
 	int64		retCode = 0;
 	uint32		alreadySend;
@@ -459,7 +457,7 @@ bool32 ACOM::SendToDevice(uint32* retNum,const uint8* buffer,uint32 length){
 		memset(&ComStat, 0, sizeof(COMSTAT));
 		err = ClearCommError(osHandle,&dwErrorFlags,&ComStat);
 		if (err > 0){
-			dwBytesBuf = ((DWORD)cgTxSBUF.MaxSize() < OSTXBUF_MAX_SIZE) ? (DWORD)cgTxSBUF.MaxSize() : OSTXBUF_MAX_SIZE - ComStat.cbOutQue;
+			dwBytesBuf = ((DWORD)COMMU_BRIDGE::TxMaxSize(unitTeam->bridge) < OSTXBUF_MAX_SIZE) ? (DWORD)COMMU_BRIDGE::TxMaxSize(unitTeam->bridge) : OSTXBUF_MAX_SIZE - ComStat.cbOutQue;
 			dwBytesL = (dwBytesBuf < length) ? dwBytesBuf : length;
 			dwBytesWr = 0;
 			if (dwBytesL > 0){
@@ -471,11 +469,16 @@ bool32 ACOM::SendToDevice(uint32* retNum,const uint8* buffer,uint32 length){
 	}
 	return G_FALSE;
 #endif
-}
+};
 //------------------------------------------------------------------------------------------//
-bool32 ACOM::ModemStatusThreadFun(void* commu){
-	STDSTR	strMSstatus;
-	int32	blflag;
+bool32 CORE_ACOM::ModemStatusThreadFun(void* _team){
+	COMMU_TEAM*		team = static_cast<COMMU_TEAM*>(_team);
+	COMMU_FRAME*	commu = team->commu;
+	COMMU_LOGSYS*	logSys = team->logSys;
+	STDSTR			strMSstatus;
+	int32			blflag;
+
+	ETLogThreadStart(modemStatusThread);
 	while(modemStatusThread.IsTerminated() == G_FALSE){
 		SYS_SleepMS(50);
 		if (IsConnected() == G_FALSE)
@@ -483,8 +486,8 @@ bool32 ACOM::ModemStatusThreadFun(void* commu){
 		
 		blflag = 0;
 #ifdef ODEV_System_h
-		if (GetLogSystem() != nullptr)
-			blflag = B_ChkFLAG64(GetLogSystem()->envcfg,ODEV_FLAG_EnMSReport);
+		if (COMMU_LOGSYS::GetLogSystem(logSys) != nullptr)
+			blflag = B_ChkFLAG64(COMMU_LOGSYS::GetLogSystem(unitTeam->logSys)->envcfg,ODEV_FLAG_EnMSReport);
 #endif
 		if (blflag == 0){
 			modemStatus = GetModemStatus();
@@ -493,28 +496,30 @@ bool32 ACOM::ModemStatusThreadFun(void* commu){
 			strMSstatus  = GetModemStatus();
 			
 			if (strMSstatus != modemStatus){
-				PrintConnectionReport("Modem",GetOpenPar().name,"status has changed:",strMSstatus);
+				COMMU_LOGSYS::PrintConnectionReport(logSys,commu->RxBytes(),commu->TxBytes(),commu->FwBytes()
+													,"Modem",GetOpenPar().name,"status has changed:",strMSstatus);
 				modemStatus = strMSstatus;
 			}
 		}
 	}
+	ETLogThreadStop(modemStatusThread);
 	return G_TRUE;
-}
+};
 //------------------------------------------------------------------------------------------//
-STDSTR ACOM::GetModemStatus(void){
+STDSTR CORE_ACOM::GetModemStatus(void){
 	return("CTS=" + GetCTSStatus() + " ,DSR="+ GetDSRStatus() + " ,RING=" + GetRINGStatus() + " ,DCD=" + GetDCDStatus());
-}
+};
 //------------------------------------------------------------------------------------------//
-STDSTR ACOM::GetFullModemStatus(void){
+STDSTR CORE_ACOM::GetFullModemStatus(void){
 	return("CTS=" + GetCTSStatus()
 		   + " ,DSR="+ GetDSRStatus()
 		   + " ,RING=" + GetRINGStatus()
 		   + " ,DCD=" + GetDCDStatus()
 		   + (GetDTRStatus() == G_FALSE ? ", DTR=L" : ", DTR=H")
 		   + (GetRTSStatus() == G_FALSE ? ", RTS=L" : ", RTS=H"));
-}
+};
 //------------------------------------------------------------------------------------------//
-STDSTR ACOM::GetCTSStatus(void){
+STDSTR CORE_ACOM::GetCTSStatus(void){
 	STDSTR	retStr = "";
 	
 #ifdef CommonDefH_Unix
@@ -543,9 +548,9 @@ STDSTR ACOM::GetCTSStatus(void){
 			retStr = "H";
 	}
 	return(retStr);
-}
+};
 //------------------------------------------------------------------------------------------//
-STDSTR ACOM::GetDSRStatus(void){
+STDSTR CORE_ACOM::GetDSRStatus(void){
 	STDSTR	retStr = "";
 	
 #ifdef CommonDefH_Unix
@@ -574,9 +579,9 @@ STDSTR ACOM::GetDSRStatus(void){
 			retStr = "H";
 	}
 	return(retStr);
-}
+};
 //------------------------------------------------------------------------------------------//
-STDSTR ACOM::GetRINGStatus(void){
+STDSTR CORE_ACOM::GetRINGStatus(void){
 	STDSTR	retStr = "";
 	
 #ifdef CommonDefH_Unix
@@ -605,9 +610,9 @@ STDSTR ACOM::GetRINGStatus(void){
 			retStr = "H";
 	}
 	return(retStr);
-}
+};
 //------------------------------------------------------------------------------------------//
-STDSTR ACOM::GetDCDStatus(void){
+STDSTR CORE_ACOM::GetDCDStatus(void){
 	STDSTR	retStr = "";
 	
 #ifdef CommonDefH_Unix
@@ -636,14 +641,14 @@ STDSTR ACOM::GetDCDStatus(void){
 			retStr = "H";
 	}
 	return(retStr);
-}
+};
 //------------------------------------------------------------------------------------------//
-bool32 ACOM::GetDTRStatus		(void){return(CheckSFlag(ACOM_blDTR));};
-bool32 ACOM::GetRTSStatus		(void){return(CheckSFlag(ACOM_blRTS));};
-bool32 ACOM::GetDSRFlowStatus	(void){return(CheckSFlag(ACOM_blDSRFlow));};
-bool32 ACOM::GetCTSFlowStatus	(void){return(CheckSFlag(ACOM_blCTSFlow));};
+bool32 CORE_ACOM::GetDTRStatus		(void){return(CheckSFlag(ACOM_blDTR));};
+bool32 CORE_ACOM::GetRTSStatus		(void){return(CheckSFlag(ACOM_blRTS));};
+bool32 CORE_ACOM::GetDSRFlowStatus	(void){return(CheckSFlag(ACOM_blDSRFlow));};
+bool32 CORE_ACOM::GetCTSFlowStatus	(void){return(CheckSFlag(ACOM_blCTSFlow));};
 //------------------------------------------------------------------------------------------//
-void ACOM::SetDTRToHigh(void) {
+void CORE_ACOM::SetDTRToHigh(void) {
 #ifdef CommonDefH_Unix
 	int status;
 	if (IsConnected()){
@@ -657,9 +662,9 @@ void ACOM::SetDTRToHigh(void) {
 		EscapeCommFunction(osHandle,CLRDTR);
 #endif
 	SetSFlag(ACOM_blDTR);
-}
+};
 //------------------------------------------------------------------------------------------//
-void ACOM::SetDTRToLow(void){
+void CORE_ACOM::SetDTRToLow(void){
 #ifdef CommonDefH_Unix
 	int status;
 	if (IsConnected()){
@@ -673,9 +678,9 @@ void ACOM::SetDTRToLow(void){
 		EscapeCommFunction(osHandle,SETDTR);
 #endif
 	ClrSFlag(ACOM_blDTR);
-}
+};
 //------------------------------------------------------------------------------------------//
-void ACOM::SetRTSToHigh(void){
+void CORE_ACOM::SetRTSToHigh(void){
 #ifdef CommonDefH_Unix
 	int status;
 	if (IsConnected()){
@@ -689,9 +694,9 @@ void ACOM::SetRTSToHigh(void){
 		EscapeCommFunction(osHandle,CLRRTS);
 #endif
 	SetSFlag(ACOM_blRTS);
-}
+};
 //------------------------------------------------------------------------------------------//
-void ACOM::SetRTSToLow(void){
+void CORE_ACOM::SetRTSToLow(void){
 #ifdef CommonDefH_Unix
 	int status;
 	if (IsConnected()){
@@ -705,31 +710,31 @@ void ACOM::SetRTSToLow(void){
 		EscapeCommFunction(osHandle,SETRTS);
 #endif
 	ClrSFlag(ACOM_blRTS);
-}
+};
 //------------------------------------------------------------------------------------------//
-void ACOM::SetDTR(bool32 blHigh) {
+void CORE_ACOM::SetDTR(bool32 blHigh) {
 	if (blHigh != G_FALSE){
 		SetDTRToHigh();
-		PrintMessageDot("Set",cgAttrTitle,"DTR to high");
+		COMMU_LOGSYS::PrintMessageDot(unitTeam->logSys,"Set","DTR to high");
 	}
 	else{
 		SetDTRToLow();
-		PrintMessageDot("Set",cgAttrTitle,"DTR to low");
+		COMMU_LOGSYS::PrintMessageDot(unitTeam->logSys,"Set","DTR to low");
 	}
-}
+};
 //------------------------------------------------------------------------------------------//
-void ACOM::SetRTS(bool32 blHigh) {
+void CORE_ACOM::SetRTS(bool32 blHigh) {
 	if (blHigh != G_FALSE){
 		SetRTSToHigh();
-		PrintMessageDot("Set",cgAttrTitle,"RTS to high");
+		COMMU_LOGSYS::PrintMessageDot(unitTeam->logSys,"Set","RTS to high");
 	}
 	else{
 		SetRTSToLow();
-		PrintMessageDot("Set",cgAttrTitle,"RTS to low");
+		COMMU_LOGSYS::PrintMessageDot(unitTeam->logSys,"Set","RTS to low");
 	}
-}
+};
 //------------------------------------------------------------------------------------------//
-void ACOM::SetDSRFlow(bool32 blEnable){
+void CORE_ACOM::SetDSRFlow(bool32 blEnable){
 #ifdef CommonDefH_Unix
 	if (SetHardFlow(osHandle, blEnable, GetOpenPar().type)){
 		if (blEnable == G_FALSE){
@@ -755,9 +760,9 @@ void ACOM::SetDSRFlow(bool32 blEnable){
 		}
 	}
 #endif
-}
+};
 //------------------------------------------------------------------------------------------//
-void ACOM::SetCTSFlow(bool32 blEnable){
+void CORE_ACOM::SetCTSFlow(bool32 blEnable){
 #ifdef CommonDefH_Unix
 	if (SetHardFlow(osHandle, blEnable, GetOpenPar().type)){
 		if (blEnable == G_FALSE){
@@ -782,6 +787,6 @@ void ACOM::SetCTSFlow(bool32 blEnable){
 		}
 	}
 #endif
-}
-//------------------------------------------------------------------------------------------//
+};
+//------------------------------------------------------------------------------------------//							
 #endif /* Commu_Com_h */

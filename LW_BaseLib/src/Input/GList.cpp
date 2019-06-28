@@ -7,14 +7,14 @@
 //
 
 #include "stdafx.h"
+//------------------------------------------------------------------------------------------//
 #include "GList.h"
 #ifdef GList_h
 #include "DS_STRING.h"
 #include "SYS_File.h"
 //------------------------------------------------------------------------------------------//
-COMMAND_NODE::COMMAND_NODE(void) : TREE_NODE(){
+COMMAND_NODE::COMMAND_NODE(void) : TNF(){
 	Init();
-	SetSelfName("COMMAND_NODE");
 };
 //------------------------------------------------------------------------------------------//
 void COMMAND_NODE::Init(void){
@@ -38,7 +38,7 @@ void COMMAND_NODE::Init(void){
 	timeoutTimes = 0;
 	blFirstSynchronous = G_FALSE;
 	timeST0.Clear();
-}
+};
 //------------------------------------------------------------------------------------------//
 STDSTR&	COMMAND_NODE::Export(uint32 ver,STDSTR* strOut){
 	switch (ver) {
@@ -59,7 +59,7 @@ STDSTR&	COMMAND_NODE::Export(uint32 ver,STDSTR* strOut){
 			break;
 	}
 	return(*strOut);
-}
+};
 //------------------------------------------------------------------------------------------//
 void COMMAND_NODE::Import(uint32 ver,STDSTR* strIn){
 	switch (ver) {
@@ -80,7 +80,7 @@ void COMMAND_NODE::Import(uint32 ver,STDSTR* strIn){
 			break;
 	}
 	return;
-}
+};
 //------------------------------------------------------------------------------------------//
 STDSTR& COMMAND_NODE::ExportV0_6(uint32 ver,STDSTR* strOut){
 	//V0.6
@@ -98,7 +98,7 @@ STDSTR& COMMAND_NODE::ExportV0_6(uint32 ver,STDSTR* strOut){
 	//		StrCatch =
 	//	[node_end]
 	
-	InUse_set();
+	rwLock.R_set();
 	*strOut += "    [node]\n";
 	*strOut += ("      strCommand = " + Str_Trim(StrCommand) + "\n");
 	if (blEnableSend == 0)
@@ -122,9 +122,9 @@ STDSTR& COMMAND_NODE::ExportV0_6(uint32 ver,STDSTR* strOut){
 	if (StrCatch.length() > 0)
 		*strOut += ("      strCatch = " + Str_Trim(StrCatch) + "\n");
 	*strOut +=  "    [node_end]\n";
-	InUse_clr();
+	rwLock.R_clr();
 	return(*strOut);
-}
+};
 //------------------------------------------------------------------------------------------//
 STDSTR& COMMAND_NODE::ExportV0_5(uint32 ver,STDSTR* strOut){
 	//V0.5
@@ -143,7 +143,7 @@ STDSTR& COMMAND_NODE::ExportV0_5(uint32 ver,STDSTR* strOut){
 	//		StrCatch =
 	//	[node_end]
 	
-	InUse_set();
+	rwLock.R_set();
 	*strOut += "    [node]\n";
 	*strOut += ("      strCommand = " + Str_Trim(StrCommand) + "\n");
 	if (blEnableSend == 0)
@@ -169,9 +169,9 @@ STDSTR& COMMAND_NODE::ExportV0_5(uint32 ver,STDSTR* strOut){
 	if (StrCatch.length() > 0)
 		*strOut += ("      strCatch = " + Str_Trim(StrCatch) + "\n");
 	*strOut +=  "    [node_end]\n";
-	InUse_clr();
+	rwLock.R_clr();
 	return(*strOut);
-}
+};
 //------------------------------------------------------------------------------------------//
 STDSTR& COMMAND_NODE::ExportV0_4(uint32 ver,STDSTR* strOut){
 	//V0.4
@@ -188,7 +188,7 @@ STDSTR& COMMAND_NODE::ExportV0_4(uint32 ver,STDSTR* strOut){
 	//		strCatch =
 	//	[node_end]
 	
-	InUse_set();
+	rwLock.R_set();
 	*strOut += "    [node]\n";
 	if (blEnableSend == 0)
 		*strOut += ("      blEnableSend = 0\n");
@@ -210,9 +210,9 @@ STDSTR& COMMAND_NODE::ExportV0_4(uint32 ver,STDSTR* strOut){
 	if (StrCatch != "")
 		*strOut += ("      strCatch = " + StrCatch + "\n");
 	*strOut +=  "    [node_end]\n";
-	InUse_clr();
+	rwLock.R_clr();
 	return(*strOut);
-}
+};
 //------------------------------------------------------------------------------------------//
 void COMMAND_NODE::ImportV0_6(uint32 ver,STDSTR* strIn){
 	//V0.6
@@ -231,7 +231,7 @@ void COMMAND_NODE::ImportV0_6(uint32 ver,STDSTR* strIn){
 	//	[node_end]
 	STDSTR		strLine,strItem;
 	
-	InUse_set();
+	rwLock.W_set();
 	Init();
 	while(strIn->length() > 0){
 		strLine = Str_Trim(Str_ReadSubItem(strIn,"\n"));
@@ -271,8 +271,8 @@ void COMMAND_NODE::ImportV0_6(uint32 ver,STDSTR* strIn){
 			StrCatch = strLine;
 		}
 	}
-	InUse_clr();
-}
+	rwLock.W_clr();
+};
 //------------------------------------------------------------------------------------------//
 void COMMAND_NODE::ImportV0_5(uint32 ver,STDSTR* strIn){
 	//V0.5
@@ -294,7 +294,7 @@ void COMMAND_NODE::ImportV0_5(uint32 ver,STDSTR* strIn){
 	int32		blHex;
 	
 	blHex = 0;
-	InUse_set();
+	rwLock.W_set();
 	Init();
 	while(strIn->length() > 0){
 		strLine = Str_Trim(Str_ReadSubItem(strIn,"\n"));
@@ -340,8 +340,8 @@ void COMMAND_NODE::ImportV0_5(uint32 ver,STDSTR* strIn){
 			StrCatch = strLine;
 		}
 	}
-	InUse_clr();
-}
+	rwLock.W_clr();
+};
 //------------------------------------------------------------------------------------------//
 void COMMAND_NODE::ImportV0_4(uint32 ver,STDSTR* strIn){
 	//V0.4
@@ -361,7 +361,7 @@ void COMMAND_NODE::ImportV0_4(uint32 ver,STDSTR* strIn){
 	int32		blHex;
 	
 	blHex = 0;
-	InUse_set();
+	rwLock.W_set();
 	Init();
 	while(strIn->length() > 0){
 		strLine = Str_Trim(Str_ReadSubItem(strIn,"\n"));
@@ -403,8 +403,8 @@ void COMMAND_NODE::ImportV0_4(uint32 ver,STDSTR* strIn){
 			StrCatch = strLine;
 		}
 	}
-	InUse_clr();
-}
+	rwLock.W_clr();
+};
 //------------------------------------------------------------------------------------------//
 STDSTR&	COMMAND_NODE::GetTitle(STDSTR* retStr,uint32 flag){
 	*retStr  = " cID    ";
@@ -412,12 +412,12 @@ STDSTR&	COMMAND_NODE::GetTitle(STDSTR* retStr,uint32 flag){
 	*retStr += (B_ChkFLAG32(flag,CL_showTimeout) == G_FALSE)?"":"  timeout";
 	*retStr += "  command";
 	return(*retStr);
-}
+};
 //------------------------------------------------------------------------------------------//
 STDSTR&	COMMAND_NODE::Compose(STDSTR* retStr,uint32 flag){
 	STDSTR	strTemp;
-	InUse_set();
-	*retStr = Str_ToStr(GetdRNodeID(this));
+	rwLock.R_set();
+	*retStr = Str_ToStr(GetDRNodeID(this));
 	Str_AddSpaceInFront(retStr,3);
 	*retStr = ((blEnableSend == G_FALSE)?" ":"*") + *retStr;
 	switch (cmdTail) {
@@ -440,19 +440,19 @@ STDSTR&	COMMAND_NODE::Compose(STDSTR* retStr,uint32 flag){
 	}
 	*retStr += "  ";
 	*retStr += StrCommand;
-	InUse_clr();
+	rwLock.R_clr();
 	return(*retStr);
-}
+};
 //------------------------------------------------------------------------------------------//
 STDSTR&	COMMAND_NODE::ComposeDetail(STDSTR* retStr){
-	InUse_set();
+	rwLock.R_set();
 	*retStr  = "     Continue : " + StrContinue + "\n";
 	*retStr += "     Resend   : " + StrResend + "\n";
 	*retStr += "     CStop    : " + StrStop + "\n";
 	*retStr += "     Catch    : " + StrCatch + "\n";
-	InUse_clr();
+	rwLock.R_clr();
 	return(*retStr);
-}
+};
 //------------------------------------------------------------------------------------------//
 
 
@@ -465,13 +465,13 @@ STDSTR&	COMMAND_NODE::ComposeDetail(STDSTR* retStr){
 
 
 //------------------------------------------------------------------------------------------//
-COMMAND_GROUP::COMMAND_GROUP(void) : TREE_NODE(){
+COMMAND_GROUP::COMMAND_GROUP(void) : TNFP(){
 	Init();
 	SetSelfName("COMMAND_GROUP");
-}
+};
 //------------------------------------------------------------------------------------------//
 COMMAND_GROUP::~COMMAND_GROUP(void){
-	CleanChild(this, this);
+	 CleanDownTree(this, this);
 };
 //------------------------------------------------------------------------------------------//
 void COMMAND_GROUP::Init(void){
@@ -480,20 +480,20 @@ void COMMAND_GROUP::Init(void){
 	
 	blEnableAutoRun = G_FALSE;
 	autoRunTimes = 1;
-}
+};
 //------------------------------------------------------------------------------------------//
 TNFP& COMMAND_GROUP::GetTrashOwer(void){
 	static TNFP sgSpareOwner;
 	return(sgSpareOwner);
-}
+};
 //------------------------------------------------------------------------------------------//
 TNFP* COMMAND_GROUP::GetTrash(void){
 	return(GetTrashOwer().GetTrash());
 };
 //------------------------------------------------------------------------------------------//
 TNF* COMMAND_GROUP::CreateNode(void){
-	return(SetSubNodeFatherName(new COMMAND_NODE));
-}
+	return(new COMMAND_NODE);
+};
 //------------------------------------------------------------------------------------------//
 STDSTR&	COMMAND_GROUP::Export(uint32 ver,STDSTR* strOut){
 	switch (ver) {
@@ -508,7 +508,7 @@ STDSTR&	COMMAND_GROUP::Export(uint32 ver,STDSTR* strOut){
 			break;
 	}
 	return(*strOut);
-}
+};
 //------------------------------------------------------------------------------------------//
 void COMMAND_GROUP::Import(uint32 ver,STDSTR* strIn){
 	switch (ver) {
@@ -523,7 +523,7 @@ void COMMAND_GROUP::Import(uint32 ver,STDSTR* strIn){
 			break;
 	}
 	return;
-}
+};
 //------------------------------------------------------------------------------------------//
 STDSTR& COMMAND_GROUP::ExportV0_4(uint32 ver,STDSTR* strOut){
 	//V0.4
@@ -537,16 +537,16 @@ STDSTR& COMMAND_GROUP::ExportV0_4(uint32 ver,STDSTR* strOut){
 	//	[group_end]
 	
 	*strOut +=  "  [group]\n";
-	InUse_set();
+	rwLock.R_set();
 	*strOut += ("    groupName = " + name + "\n");
 	*strOut += ("    intervalTime = " + Str_ToStr(intervalTime) + "\n");
-	InUse_clr();
+	rwLock.R_clr();
 	
-	TREE_LChildRChain_Traversal_LINE_nolock(COMMAND_NODE,this,_opNode->Export(ver,strOut));
+	TREE_DownChain_Traversal_LINE_nolock(COMMAND_NODE,this,_opNode->Export(ver,strOut));
 	
 	*strOut += "  [group_end]\n";
 	return(*strOut);
-}
+};
 //------------------------------------------------------------------------------------------//
 void COMMAND_GROUP::ImportV0_4(uint32 ver,STDSTR* strIn){
 	//V0.4
@@ -562,7 +562,8 @@ void COMMAND_GROUP::ImportV0_4(uint32 ver,STDSTR* strIn){
 	COMMAND_NODE	*node;
 	STDSTR		strLine,strItem;
 	
-	InUse_set();
+	rwLock.W_set();
+	Init();
 	name = "";
 	intervalTime = 200;
 	while(strIn->length() > 0){
@@ -573,7 +574,7 @@ void COMMAND_GROUP::ImportV0_4(uint32 ver,STDSTR* strIn){
 			node = (COMMAND_NODE*)GetNewNode();
 			if (node != nullptr){
 				node->Import(ver,strIn);
-				AddNode(node);
+				AppendDownNode(node);
 			}
 			continue;
 		}
@@ -586,20 +587,20 @@ void COMMAND_GROUP::ImportV0_4(uint32 ver,STDSTR* strIn){
 			intervalTime = atoi(strLine.c_str());
 		}
 	}
-	InUse_clr();
-}
+	rwLock.W_clr();
+};
 //------------------------------------------------------------------------------------------//
 void COMMAND_GROUP::ClearResult(void){
-	TREE_LChildRChain_Traversal_LINE(COMMAND_NODE,this,
-		_opNode->InUse_set();
+	TREE_DownChain_Traversal_LINE(COMMAND_NODE,this,
+		_opNode->rwLock.W_set();
 		_opNode->runTimes = 0;
 		_opNode->catchTimes = 0;
 		_opNode->timeoutTimes = 0;
 		_opNode->blFirstSynchronous = G_FALSE;
 		_opNode->timeST0.Clear();
-		_opNode->InUse_clr();
+		_opNode->rwLock.W_clr();
 	);
-}
+};
 //------------------------------------------------------------------------------------------//
 STDSTR&	COMMAND_GROUP::GetTitle(STDSTR* retStr,uint32 flag){
 	*retStr  = " gID";
@@ -607,12 +608,12 @@ STDSTR&	COMMAND_GROUP::GetTitle(STDSTR* retStr,uint32 flag){
 	*retStr += (B_ChkFLAG32(flag,GL_showInterval) == G_FALSE)?"":"  interval";
 	*retStr += "  group name";
 	return(*retStr);
-}
+};
 //------------------------------------------------------------------------------------------//
 STDSTR&	COMMAND_GROUP::Compose(STDSTR* retStr,uint32 flag){
 	STDSTR	strTemp;
-	InUse_set();
-	*retStr = Str_ToStr(GetdRNodeID(this));
+	rwLock.R_set();
+	*retStr = Str_ToStr(GetDRNodeID(this));
 	Str_AddSpaceInFront(retStr,3);
 	*retStr = ((blEnableAutoRun == G_FALSE)?" ":"*") + *retStr;
 	*retStr += '.';
@@ -629,9 +630,9 @@ STDSTR&	COMMAND_GROUP::Compose(STDSTR* retStr,uint32 flag){
 	}
 	*retStr += "  ";
 	*retStr += name;
-	InUse_clr();
+	rwLock.R_clr();
 	return(*retStr);
-}
+};
 //------------------------------------------------------------------------------------------//
 
 
@@ -644,7 +645,7 @@ STDSTR&	COMMAND_GROUP::Compose(STDSTR* retStr,uint32 flag){
 
 
 //------------------------------------------------------------------------------------------//
-GC_LIST::GC_LIST(void) : TREE_NODE(){
+GC_LIST::GC_LIST(void) : TNFP(){
 	SetSelfName("GC_LIST");
 };
 //------------------------------------------------------------------------------------------//
@@ -653,18 +654,18 @@ GC_LIST::~GC_LIST(void){
 };
 //------------------------------------------------------------------------------------------//
 TNF* GC_LIST::CreateNode(void){
-	return(SetSubNodeFatherName(new COMMAND_GROUP));
+	return(SetNodeUpName(new COMMAND_GROUP));
 };
 //------------------------------------------------------------------------------------------//
 void GC_LIST::MoveToTrash(TNF* tFirstNode,TNF* tEndNode){
-	Remove(tFirstNode,tEndNode);
-	TREE_RChain_Traversal_LINE_nolock(COMMAND_GROUP,tFirstNode,CleanChild(_opNode,_opNode));
+	DetachUpPriorNext(tFirstNode,tEndNode);
+	TREE_NextChain_Traversal_LINE_nolock(COMMAND_GROUP,tFirstNode,CleanDownTree(_opNode,_opNode));
 	MoveNodesToTrash(this,tFirstNode,tEndNode);
 };
 //------------------------------------------------------------------------------------------//
 void GC_LIST::Empty(void){
-	TREE_LChildRChain_Traversal_LINE(COMMAND_GROUP,this,CleanChild(_opNode,_opNode));
-	CleanChild(this,this);
+	TREE_DownChain_Traversal_LINE(COMMAND_GROUP,this,CleanDownTree(_opNode,_opNode));
+	CleanDownTree(this,this);
 };
 //------------------------------------------------------------------------------------------//
 void GC_LIST::Save(const STDSTR& fileName){
@@ -720,7 +721,7 @@ STDSTR&	GC_LIST::Export(uint32 ver,STDSTR* strOut){
 			break;
 	}
 	return(*strOut);
-}
+};
 //------------------------------------------------------------------------------------------//
 void GC_LIST::Import(uint32 ver,STDSTR* strIn){
 	switch (ver) {
@@ -735,7 +736,7 @@ void GC_LIST::Import(uint32 ver,STDSTR* strIn){
 			break;
 	}
 	return;
-}
+};
 //------------------------------------------------------------------------------------------//
 STDSTR& GC_LIST::ExportV0_4(uint32 ver,STDSTR* strOut){
 	//V0.4
@@ -747,10 +748,10 @@ STDSTR& GC_LIST::ExportV0_4(uint32 ver,STDSTR* strOut){
 	//	[grouplist_end]
 	
 	*strOut += "[grouplist]\n";
-	TREE_LChildRChain_Traversal_LINE(COMMAND_GROUP,this,_opNode->Export(ver,strOut));
+	TREE_DownChain_Traversal_LINE(COMMAND_GROUP,this,_opNode->Export(ver,strOut));
 	*strOut += "[grouplist_end]\n";
 	return(*strOut);
-}
+};
 //------------------------------------------------------------------------------------------//
 void GC_LIST::ImportV0_4(uint32 ver,STDSTR* strIn){
 	//V0.4
@@ -771,21 +772,21 @@ void GC_LIST::ImportV0_4(uint32 ver,STDSTR* strIn){
 			group = (COMMAND_GROUP*)GetNewNode();
 			if (group != nullptr){
 				group->Import(ver,strIn);
-				AddNode(group);
+				AppendDownNode(group);
 			}
 		}
 	}
-}
+};
 //------------------------------------------------------------------------------------------//
 void GC_LIST::ClearTestResult(void){
-	TREE_LChildRChain_Traversal_LINE(COMMAND_GROUP,this,_opNode->ClearResult());
-}
+	TREE_DownChain_Traversal_LINE(COMMAND_GROUP,this,_opNode->ClearResult());
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
-void COMMAND_NODE::CopyCOMMAND_NODE(COMMAND_NODE* node1,const COMMAND_NODE* node2){
+void COMMAND_NODE::CopyCommandNode(COMMAND_NODE* node1,const COMMAND_NODE* node2){
 	if ((node2 != nullptr) && (node1 != nullptr)){
-		node1->InUse_set();
-		((COMMAND_NODE*)node2)->InUse_set();
+		node1->rwLock.W_set();
+		((COMMAND_NODE*)node2)->rwLock.R_set();
 		node1->StrCommand = node2->StrCommand;
 		node1->blEnableSend = node2->blEnableSend;
 		node1->cmdTail = node2->cmdTail;
@@ -797,54 +798,50 @@ void COMMAND_NODE::CopyCOMMAND_NODE(COMMAND_NODE* node1,const COMMAND_NODE* node
 		node1->StrStop = node2->StrStop;
 		node1->StrResend = node2->StrResend;
 		node1->StrCatch = node2->StrCatch;
-		((COMMAND_NODE*)node2)->InUse_clr();
-		node1->InUse_clr();
+		((COMMAND_NODE*)node2)->rwLock.R_clr();
+		node1->rwLock.W_clr();
 	}
-}
+};
 //------------------------------------------------------------------------------------------//
-void COMMAND_GROUP::CopyCOMMAND_GROUP(COMMAND_GROUP* group1,const COMMAND_GROUP* group2,bool32 blClear){
+void COMMAND_GROUP::CopyCommandGroup_nolook(COMMAND_GROUP* group1,const COMMAND_GROUP* group2,bool32 blClear){
 	COMMAND_NODE  *newNode;
 	if ((group2 == nullptr) || (group1 == nullptr))
 		return;
 	if (blClear != 0){
-		CleanChild(group1, group1);
+		CleanDownTree(group1, group1);
 		group1->name = group2->name;
 		group1->intervalTime = group2->intervalTime;
 		group1->blEnableAutoRun = group2->blEnableAutoRun;
 		group1->autoRunTimes = group2->autoRunTimes;
 	}
 	
-	TREE_LChildRChain_Traversal_LINE(COMMAND_NODE,((COMMAND_GROUP*)group2),
+	TREE_DownChain_Traversal_LINE(COMMAND_NODE,((COMMAND_GROUP*)group2),
 		newNode = (COMMAND_NODE*)group1->GetNewNode();
 		if (newNode != nullptr){
-			COMMAND_NODE::CopyCOMMAND_NODE(newNode,_opNode);
-			group1->AddNode(newNode);
+			COMMAND_NODE::CopyCommandNode(newNode,_opNode);
+			group1->AppendDownNode(newNode);
 		}
 	);
-}
+};
 //------------------------------------------------------------------------------------------//
-void GC_LIST::CopyCOMMAND_GROUP_ENABLE(GC_LIST* tGroupList1,const GC_LIST* tGroupList2){
+void GC_LIST::CopyGCList_nolook(GC_LIST* tGroupList1,const GC_LIST* tGroupList2){
 	COMMAND_GROUP	*newGroup;
 	
 	if ((tGroupList2 == nullptr) || (tGroupList1 == nullptr))
 		return;
 	tGroupList1->Empty();
-	tGroupList1->InUse_set();
-	((GC_LIST*)tGroupList2)->InUse_set();
-	TREE_LChildRChain_Traversal_LINE(COMMAND_GROUP, ((GC_LIST*)tGroupList2),
-		_opNode->InUse_set();
-		if (_opNode->blEnableAutoRun != 0){
+	TREE_DownChain_Traversal_LINE(COMMAND_GROUP, ((GC_LIST*)tGroupList2),
+		_opNode->rwLock.R_set();
+		if (_opNode->blEnableAutoRun != G_FALSE){
 			newGroup = (COMMAND_GROUP*)tGroupList1->GetNewNode();
 			if (newGroup != nullptr){
-				COMMAND_GROUP::CopyCOMMAND_GROUP(newGroup,_opNode);
-				tGroupList1->AddNode(newGroup);
+				COMMAND_GROUP::CopyCommandGroup_nolook(newGroup,_opNode);
+				tGroupList1->AppendDownNode(newGroup);
 			}
 		}
-		_opNode->InUse_clr();
+		_opNode->rwLock.R_clr();
 	);
-	((GC_LIST*)tGroupList2)->InUse_clr();
-	tGroupList1->InUse_clr();
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 #endif /* GList_h */

@@ -82,7 +82,7 @@ AFX_IDI_STD_MDIFRAME    ICON                    "res\\inuse\\SDT-1.ico"
 IDI_MCFRM               ICON                    "res\\MCFrm.ico"
 IDI_SOCKETFRM           ICON                    "res\\SocketFrm.ico"
 IDI_SENDWND             ICON                    "res\\InUse\\Send.ico"
-IDI_CACL                ICON                    "res\\InUse\\Calculator.ico"
+IDI_CALC                ICON                    "res\\InUse\\Calculator.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -290,7 +290,7 @@ BEGIN
     "R",            ID_EDIT_REPLACE,        VIRTKEY, CONTROL, NOINVERT
     "A",            ID_EDIT_SELECT_ALL,     VIRTKEY, CONTROL, NOINVERT
     "Z",            ID_EDIT_UNDO,           VIRTKEY, CONTROL, NOINVERT
-    "C",            ID_RI_BUTTON_CACL,      VIRTKEY, ALT, NOINVERT
+    "C",            ID_RI_BUTTON_CALC,      VIRTKEY, ALT, NOINVERT
     VK_F2,          ID_RI_BUTTON_GC,        VIRTKEY, NOINVERT
     "S",            ID_RE_SAVE,             VIRTKEY, CONTROL, NOINVERT
     "S",            ID_RI_BUTTON_SEND,      VIRTKEY, ALT, NOINVERT
@@ -575,7 +575,7 @@ BEGIN
     ID_RI_BUTTON_OPENRFD    "Open record directory\nRecord Directory"
     ID_RI_BUTTON_NEWRECORD  "Create new record file\nNew Record File"
     ID_RI_BUTTON_SEND       "Send data and file\nSend Box"
-    ID_RI_BUTTON_CACL       "Provide some calculate tools\nCalculate Tools"
+    ID_RI_BUTTON_CALC       "Provide some calculate tools\nCalculate Tools"
     ID_RI_COMBO_AUXCOM      "Device Input"
     ID_RI_COMBO_AUXBR       "Device Input"
     ID_RI_BUTTON_AUXOPEN    "Connect or disconnect Auxiliary COM\nConnect"

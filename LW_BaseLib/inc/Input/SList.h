@@ -6,20 +6,23 @@
 //  Copyright © 2018 Leif Wen. All rights reserved.
 //
 
+//------------------------------------------------------------------------------------------//
 #include "DS_Tree.h"
 //------------------------------------------------------------------------------------------//
+#ifdef DS_Tree_h
 #ifndef SList_h
 #define SList_h
 #ifdef SList_h
 //------------------------------------------------------------------------------------------//
-class SC_NODE : public TREE_NODE{
+class SC_NODE : public TNF{
 	private:
 	public:
 				 SC_NODE(void);
 		virtual ~SC_NODE(void){;};
 	public://need record
-		STDSTR	StrCommand;
-		bool32	blEnableSendCR;//send "\r"
+		STDSTR		StrCommand;
+		bool32		blEnableSendCR;//send "\r"
+		DS_RWLock	rwLock;
 	private:
 				STDSTR&		ExportV0_4			(uint32 ver,STDSTR* strOut);
 				void		ImportV0_4			(uint32 ver,STDSTR* strIn);
@@ -33,7 +36,7 @@ class SC_NODE : public TREE_NODE{
 				STDSTR&		Compose				(STDSTR* retStr);
 };
 //------------------------------------------------------------------------------------------//
-class SC_LIST : public TREE_NODE{
+class SC_LIST : public TNFP{
 	public:
 				 SC_LIST(void);
 		virtual ~SC_LIST(void);
@@ -57,3 +60,4 @@ class SC_LIST : public TREE_NODE{
 //------------------------------------------------------------------------------------------//
 #endif /* SList_h */
 #endif /* SList_h */
+#endif

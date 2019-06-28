@@ -13,14 +13,21 @@
 #define Commu_NTPServer_h
 #ifdef Commu_NTPServer_h
 //------------------------------------------------------------------------------------------//
-class NTPServer : public ASOCKETSERVER{
+class CORE_NTPServer : public CORE_SOCKETSERVER{
 	public:
-				 NTPServer(void);
-		virtual ~NTPServer(void){;};
+				 CORE_NTPServer(void);
+		virtual ~CORE_NTPServer(void){;};
 	private:
-		virtual bool32	ListionUDP	(void* commu);
+		virtual bool32	ListionUDP	(void* _team);
+};
+//------------------------------------------------------------------------------------------//
+typedef	COMMU<0,COMMU_FRAME,CORE_NTPServer>	NTPServer_BASE;
+class NTPServer : public NTPServer_BASE{
 	public:
-				bool32	Run			(int32 port = 123);
+				 NTPServer(void) : NTPServer_BASE(1024,1024,nullptr){;};
+		virtual ~NTPServer(void){;};
+	public:
+		bool32	Run			(int32 port = 123);
 };
 //------------------------------------------------------------------------------------------//
 #endif /* Commu_NTPServer_h */

@@ -7,9 +7,10 @@
 //
 
 #include "stdafx.h"
+//------------------------------------------------------------------------------------------//
 #include "MSG_ID.h"
 #include "MSG_Handshake.h"
-#include "Commu_DBuf.h"
+#include "Commu_Base.h"
 #ifdef MSG_Handshake_h
 //------------------------------------------------------------------------------------------//
 //#define LOGPRINT_ENABLE
@@ -23,7 +24,7 @@
 
 #include "SYS_Log.h"
 //------------------------------------------------------------------------------------------//
-MSG_HANDSHAKE::MSG_HANDSHAKE(uint32 size,void* p) : MSG_NODE(size,p){
+MSG_HANDSHAKE::MSG_HANDSHAKE(void) : MSG_NODE(){
 	cgMSGID = MESG_ID_Handshake;
 	cgRSA_Prk = RSA_new();
 	cgRSA_Puk = RSA_new();
@@ -31,7 +32,7 @@ MSG_HANDSHAKE::MSG_HANDSHAKE(uint32 size,void* p) : MSG_NODE(size,p){
 	
 	TNFP::SetSelfName("MSG_HANDSHAKE");
 	cgMail.SetSelfName("Mail");
-	SetFatherName("");
+	SetUpName("");
 };
 //------------------------------------------------------------------------------------------//
 MSG_HANDSHAKE::~MSG_HANDSHAKE(void){
@@ -39,10 +40,10 @@ MSG_HANDSHAKE::~MSG_HANDSHAKE(void){
 	CRYPTO_cleanup_all_ex_data();
 };
 //------------------------------------------------------------------------------------------//
-void MSG_HANDSHAKE::Reset(void* commu){
+void MSG_HANDSHAKE::Reset(void* _team){
 	cgMail.Init(1024,MAIL_SHA1::CFG_AES256 | MAIL_SHA1::CFG_AES_CFB8 | MAIL_SHA1::CFG_DEFAULT_COMPRESSION);
 	ClrSFlag(HS_blHandshakeY | HS_blHandshakeN | HS_blREQClose);
-	MessageProcessing(nullptr,MESG_INI_Handshake,"",commu);
+	MessageProcessing(nullptr,MESG_INI_Handshake,"",_team);
 	if (cgRSA_Puk != nullptr){
 		RSA_free(cgRSA_Puk);
 		cgRSA_Puk = RSA_new();
@@ -51,12 +52,12 @@ void MSG_HANDSHAKE::Reset(void* commu){
 //------------------------------------------------------------------------------------------//
 void MSG_HANDSHAKE::SetSelfName(const STDSTR& strName){
 	selfName = strName;
-	cgMail.SetFatherName(GetFullName(this));
-}
+	cgMail.SetUpName(GetFullName(this));
+};
 //------------------------------------------------------------------------------------------//
-void MSG_HANDSHAKE::SetFatherName(const STDSTR& strName){
+void MSG_HANDSHAKE::SetUpName(const STDSTR& strName){
 	fatherName = strName;
-	cgMail.SetFatherName(GetFullName(this));
+	cgMail.SetUpName(GetFullName(this));
 };
 //------------------------------------------------------------------------------------------//
 void MSG_HANDSHAKE::FreeRSA_Prk(void){
@@ -81,20 +82,20 @@ bool32 MSG_HANDSHAKE::SetRSA_Prk(void){
 bool32 MSG_HANDSHAKE::Send_REQ_Handshake(void){
 	bool32	blRet;
 	
-	MSGSend(MESG_REQ_Handshake,ALG_CreateRandKey(32),blRet,"Send_REQ_Handshake()::");
+	MSGSend(MESG_REQ_Handshake,ALG_CreateRandKey(32),blRet,"MSG_HANDSHAKE","Send_REQ_Handshake");
 	
 	return(blRet);
-}
+};
 //------------------------------------------------------------------------------------------//
 bool32 MSG_HANDSHAKE::HandshakeCheck(CMD_ENV* env){
 
 	while(CheckSFlag(HS_blHandshakeY | HS_blHandshakeN) == G_FALSE){
-		if (CMD_NODE::ChkblExit(env))
+		if (CMD_NODE::IsExit(env))
 			break;
 		SYS_SleepMS(2);
 	}
 	return(CheckSFlag(HS_blHandshakeY));
-}
+};
 //------------------------------------------------------------------------------------------//
 bool32 MSG_HANDSHAKE::IsHandshakeFail(void){
 	
@@ -104,7 +105,7 @@ bool32 MSG_HANDSHAKE::IsHandshakeFail(void){
 bool32 MSG_HANDSHAKE::Send_REQ_Close(CMD_ENV* env){
 	bool32	err;
 	
-	MSGSend2(env,MESG_REQ_Close,IUD("88"),HS_blREQClose,HS_blREQClose,1,err,"Send_REQ_Close()::");
+	MSGSend2(env,MESG_REQ_Close,IUD("88"),HS_blREQClose,HS_blREQClose,1,err,"MSG_HANDSHAKE","Send_REQ_Close");
 	
 	if ((err == G_TRUE) || (err == -3))
 		return G_TRUE;
@@ -116,8 +117,12 @@ bool32 MSG_HANDSHAKE::IsREQClose(void){
 	return(CheckSFlag(HS_blREQClose));
 };
 //------------------------------------------------------------------------------------------//
-CMDID MSG_HANDSHAKE::MessageProcessing(CMD_ENV* env,const uint32& mID,const STDSTR& msg,void* commu){
-	COMMU_THREAD*	_commu = static_cast<COMMU_THREAD*>(commu);
+CMDID MSG_HANDSHAKE::MessageProcessing(CMD_ENV* env,const uint32& mID,const STDSTR& msg,void* _team){
+#ifdef Commu_Base_h
+	COMMU_TEAM*		team = static_cast<COMMU_TEAM*>(_team);
+	COMMU_FRAME*	commu = team->commu;
+	COMMU_BRIDGE*	bridge = team->bridge;
+#endif
 	static	SYS_TIME_S		Time_Handshake;
 	STDSTR	strMesg,strContent;
 	bool32	blRet = G_TRUE;
@@ -141,7 +146,7 @@ CMDID MSG_HANDSHAKE::MessageProcessing(CMD_ENV* env,const uint32& mID,const STDS
 			if (ALG_RSA_Decode_Puk(&cgRSA_Puk,msg.substr(32))){
 				strMesg = ALG_CreateRandKey(32);
 				ALG_RSA_Encode_Puk(&strMesg,cgRSA_Prk);
-				MPSend(MESG_ANS_RSAPuk,IUD(cgMail.Write(cgRSA_Puk,strMesg)),blRet);
+				MPSend(MESG_ANS_RSAPuk,cgMail.Write(cgRSA_Puk,strMesg),blRet);
 			}
 			else{
 				ELogMP("Fail MESG_REQ_RSAPuk,Decode");
@@ -153,7 +158,7 @@ CMDID MSG_HANDSHAKE::MessageProcessing(CMD_ENV* env,const uint32& mID,const STDS
 				ALG_RSA_Decode_Puk(&cgRSA_Puk,strContent.substr(32));
 				strMesg = ALG_CreateRandKey(32);
 				strMesg += Str_DecToHex(ALG_AES::CFG_AES256 | ALG_AES::CFG_AES_CFB8);
-				MPSend(MESG_REQ_UpdateAESKey,IUD(cgMail.Write(cgRSA_Puk,strMesg)),blRet);
+				MPSend(MESG_REQ_UpdateAESKey,cgMail.Write(cgRSA_Puk,strMesg),blRet);
 			}
 			else{
 				ELogMP("Fail MESG_ANS_RSAPuk,Signature");
@@ -162,7 +167,7 @@ CMDID MSG_HANDSHAKE::MessageProcessing(CMD_ENV* env,const uint32& mID,const STDS
 		case MESG_REQ_UpdateAESKey:
 			blRet = G_FALSE;
 			if (cgMail.Decode(_EMPTY(&strContent), cgRSA_Prk, msg) > 0){
-				MPSend(MESG_ANS_UpdateAESKey,IUD(cgMail.Write(cgRSA_Puk,strContent)),blRet);
+				MPSend(MESG_ANS_UpdateAESKey,cgMail.Write(cgRSA_Puk,strContent),blRet);
 				if (blRet > 0){
 					strMesg = ALG_AESKey32Bye(strContent.substr(0,32));
 					strContent.erase(32);
@@ -207,10 +212,14 @@ CMDID MSG_HANDSHAKE::MessageProcessing(CMD_ENV* env,const uint32& mID,const STDS
 			ELogMP("Call CloseSelf()");
 			SetSFlag(HS_blREQClose);
 			cgMsgCenter->SetblREQClose();
-			_commu->CloseSelf(1);
+#ifdef Commu_Base_h
+			commu->CloseSelf(1);
+#endif
 			break;
 		case MESG_ANS_Close:
-			_commu->PushSend(100);
+#ifdef Commu_Base_h
+			COMMU_BRIDGE::PushSend(bridge,100);
+#endif
 			SetSFlag(HS_blREQClose);
 			cgMsgCenter->SetblREQClose();
 			break;
@@ -221,7 +230,7 @@ CMDID MSG_HANDSHAKE::MessageProcessing(CMD_ENV* env,const uint32& mID,const STDS
 	if ((mID >= MESG_INI_Handshake) && (mID <= MESG_ANS_Close) && (blRet == G_FALSE))
 		SetSFlag(HS_blHandshakeN);
 	
-	if ((CheckSFlag(HS_blHandshakeN)) || ((CheckSFlag(HS_blHandshakeY) == G_FALSE) && (SYS_Delay_CheckTS(&Time_Handshake)))){
+	if ((CheckSFlag(HS_blHandshakeN)) || ((CheckSFlag(HS_blHandshakeY) == G_FALSE) && (SYS_Delay_IsTimeout(&Time_Handshake)))){
 		SYS_Delay_SetTS(&Time_Handshake,MSG_CENTER::HandshakeTime << 10);
 		SetSFlag(HS_blHandshakeN);
 	}
@@ -229,11 +238,12 @@ CMDID MSG_HANDSHAKE::MessageProcessing(CMD_ENV* env,const uint32& mID,const STDS
 		ELogMP("Handshake fail, Call CloseSelf()");
 		SetSFlag(HS_blREQClose);
 		cgMsgCenter->SetblREQClose();
-		_commu->CloseSelf(1);
+#ifdef Commu_Base_h
+		commu->CloseSelf(1);
+#endif
 	};
-
 	return(retCode);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 #endif /* MSG_Handshake_h */

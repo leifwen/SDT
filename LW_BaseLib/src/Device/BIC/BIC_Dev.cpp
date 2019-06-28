@@ -7,6 +7,7 @@
 //
 
 #include "stdafx.h"
+//------------------------------------------------------------------------------------------//
 #include "BIC_Dev.h"
 #ifdef BIC_Dev_h
 //------------------------------------------------------------------------------------------//
@@ -116,7 +117,7 @@ CMDID BIC_MAIN::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 	BIC_ENV_DEV::SetEDA(env, BIC_ENV_DEV::GetEDA_M(env));
 	BIC_ENV_DEV::GetEDA(env)->name = "M";
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIC_AUX::Help(CMD_ENV* env,uint32 flag)const{
@@ -128,7 +129,7 @@ CMDID BIC_AUX::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 	BIC_ENV_DEV::SetEDA(env, BIC_ENV_DEV::GetEDA_A(env));
 	BIC_ENV_DEV::GetEDA(env)->name = "A";
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIC_SECOND::Help(CMD_ENV* env,uint32 flag)const{
@@ -140,7 +141,7 @@ CMDID BIC_SECOND::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 	BIC_ENV_DEV::SetEDA(env, BIC_ENV_DEV::GetEDA_S(env));
 	BIC_ENV_DEV::GetEDA(env)->name = "S";
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 namespace BIC {
@@ -190,7 +191,7 @@ CMDID BIC_CONNECT::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 		OnlineMode(env,attr,tail);
 	}
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 bool32 BIC_CONNECT::SetConnectPar(CMD_ENV* env,ExpandDeviceAttr* eda,const STDSTR& par,uint32 devType){
 	STDSTR	strPar1,strPar2;
@@ -221,7 +222,7 @@ bool32 BIC_CONNECT::SetConnectPar(CMD_ENV* env,ExpandDeviceAttr* eda,const STDST
 	}
 	PrintFail(env,"already connected");
 	return G_FALSE;
-}
+};
 //------------------------------------------------------------------------------------------//
 bool32 BIC_CONNECT::SetConnectPar2(CMD_ENV* env,ExpandDeviceAttr* eda,const STDSTR& par){
 	int32 baud;
@@ -255,19 +256,19 @@ bool32 BIC_CONNECT::SetConnectPar2(CMD_ENV* env,ExpandDeviceAttr* eda,const STDS
 	}
 #ifdef Commu_Com_h
 	else if (eda->IsCom()){
-		eda->ACom()->SetBaudrate(baud);
+		eda->AComCore()->SetBaudrate(baud);
 		return G_TRUE;
 	}
 #endif
 	PrintFail(env,"already connected");
 	return G_FALSE;
-}
+};
 //------------------------------------------------------------------------------------------//
 uint8 BIC_CONNECT::PressAnyKey(CMD_ENV* env,ExpandDeviceAttr* eda,SYS_TIME_S* dly){
 	uint8	retChar;
 	retChar = 0;
 	SetInPressAnyKeyMode(env);
-	while(ChkblExit(env) == G_FALSE){
+	while(IsExit(env) == G_FALSE){
 		retChar = ReadChar(env,G_FALSE);
 		if (retChar > 0)
 			break;
@@ -275,12 +276,12 @@ uint8 BIC_CONNECT::PressAnyKey(CMD_ENV* env,ExpandDeviceAttr* eda,SYS_TIME_S* dl
 			SYS_SleepMS(10);
 		if (eda->IsOpened() == G_FALSE)
 			break;
-		if (SYS_Delay_CheckTS(dly))
+		if (SYS_Delay_IsTimeout(dly))
 			break;
 	}
 	ClrInPressAnyKeyMode(env);
 	return(retChar);
-}
+};
 //------------------------------------------------------------------------------------------//
 bool32 BIC_CONNECT::OnlineMode(CMD_ENV* env,ExpandDeviceAttr* attr,CMD_TAIL tail){
 	uint8	chKey;
@@ -303,7 +304,7 @@ bool32 BIC_CONNECT::OnlineMode(CMD_ENV* env,ExpandDeviceAttr* attr,CMD_TAIL tail
 	SwitchToAux(env);
 	PrintEnable(env);
 	sendData = "";
-	while((ChkblExit(env) == G_FALSE) && attr->IsOpened()){
+	while((IsExit(env) == G_FALSE) && attr->IsOpened()){
 		SYS_SleepMS(10);
 		chKey = ReadChar(env,G_FALSE);
 		if ((chKey >= 32) && (chKey <= 126)){
@@ -329,7 +330,7 @@ bool32 BIC_CONNECT::OnlineMode(CMD_ENV* env,ExpandDeviceAttr* attr,CMD_TAIL tail
 				strT = '^';
 				strT += (chKey + 0x40);
 				attr->device->PrintSendStrWOG1(strT);
-				attr->device->SSend(IUD(chKey));
+				attr->device->Send(IUD(chKey));
 			}
 		}
 	}
@@ -338,7 +339,7 @@ bool32 BIC_CONNECT::OnlineMode(CMD_ENV* env,ExpandDeviceAttr* attr,CMD_TAIL tail
 	ClrInOnlineMode(env);
 	SwitchToMain(env);
 	return(ret);
-}
+};
 //------------------------------------------------------------------------------------------//
 void BIC_CONNECT::PrintTitle(CMD_ENV* env,ExpandDeviceAttr* eda,bool32 blPrintTail){
 	if (GetSTDOUT(env) != nullptr){
@@ -392,7 +393,7 @@ void BIC_CONNECT::PrintTitle(CMD_ENV* env,ExpandDeviceAttr* eda,bool32 blPrintTa
 		*GetSTDOUT(env) << Endl();
 	}
 	return;
-}
+};
 //------------------------------------------------------------------------------------------//
 
 
@@ -417,7 +418,7 @@ CMDID BIC_ONLINE::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 	if (attr->IsOpened())
 		BIC_CONNECT::Command(env,msg,p);
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIC_DISCONNECT::Help(CMD_ENV* env,uint32 flag)const{
@@ -430,7 +431,7 @@ CMDID BIC_DISCONNECT::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 		return(Help(env,0));
 	BIC_ENV_DEV::GetEDA(env)->device->CloseSelf(0);
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIC_CR::Help(CMD_ENV* env,uint32 flag)const{
@@ -459,19 +460,19 @@ CMDID BIC_CR::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 		return(cgCommandID);
 #endif
 #ifdef CommonDefH_Unix
-		attr->device->SEmpty();
+		attr->device->Empty();
 #endif
 	}
 	
 	PrintStrNL(env,COLOR(COL_clDefault,IUD(DEV_LINE_STAR)));
 	BIC_CONNECT::PrintTitle(env,attr,G_FALSE);
 	PrintStrNL(env,COL_clCyan
-			   , "Received :", Str_ToStr(attr->device->SRxBytes()), "bytes\n"
-			   , "Echo     :", Str_ToStr(attr->device->SFwBytes()), "bytes\n"
-			   , "Sent     :", Str_ToStr(attr->device->STxBytes()), "bytes\n"
+			   , "Received :", Str_ToStr(attr->device->RxBytes()), "bytes\n"
+			   , "Echo     :", Str_ToStr(attr->device->FwBytes()), "bytes\n"
+			   , "Sent     :", Str_ToStr(attr->device->TxBytes()), "bytes\n"
 			   , COLOR(COL_clDefault,IUD(DEV_LINE_STAR)));
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIC_ECHO::Help(CMD_ENV* env,uint32 flag)const{
@@ -495,14 +496,14 @@ CMDID BIC_ECHO::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 		return(Help(env,0));
 	}
 	
-	if (attr->device->CheckEcho() == G_FALSE){
+	if (attr->device->IsEnableEcho() == G_FALSE){
 		PrintResult(env,"ECHO is disable");
 	}
 	else{
 		PrintResult(env,"ECHO is enable");
 	}
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIC_REC::Help(CMD_ENV* env,uint32 flag)const{
@@ -567,7 +568,7 @@ CMDID BIC_REC::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 				,((B_ChkFLAG64(*attr->envcfg,ODEV_FLAG_EnHEXViewMode) == G_FALSE)	?"ASCII"	:"HEX")		,"mode,"
 				,((B_ChkFLAG64(*attr->envcfg,ODEV_FLAG_EnOSPMsgLine) == G_FALSE)	?"disable"	:"enable")	,"OSP message delimiter");
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIC_DEV::Help(CMD_ENV* env,uint32 flag)const{
@@ -621,7 +622,7 @@ CMDID BIC_DEV::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 		<< COL_DivStar_Default << Endl();
 	}
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 
 
@@ -666,6 +667,6 @@ static STDSTR BIC::CreateHelpDescribe(void){
 	strC += " UDP server";
 #endif
 	return(strC);
-}
+};
 //------------------------------------------------------------------------------------------//
 #endif /* BIC_Dev_h */

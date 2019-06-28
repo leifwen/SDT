@@ -21,11 +21,11 @@ class CPaneCEdit : public CEdit{
 		DECLARE_MESSAGE_MAP()
 };
 //------------------------------------------------------------------------------------------//
-class CCaclPaneView : public CView{
+class CCalcPaneView : public CView{
 	public:
-		DECLARE_DYNCREATE(CCaclPaneView)
-				 CCaclPaneView(void);
-		virtual ~CCaclPaneView(void){;};
+		DECLARE_DYNCREATE(CCalcPaneView)
+				 CCalcPaneView(void);
+		virtual ~CCalcPaneView(void){;};
 	public:
 		virtual void	OnDraw			(CDC* pDC);  // overridden to draw this view
 		virtual BOOL	PreCreateWindow	(CREATESTRUCT& cs);
@@ -43,12 +43,12 @@ class CCaclPaneView : public CView{
 		CButton			m_RadioA2H;
 		CButton			m_RadioXor;
 		CButton			m_RadioOSP;
-		CButton			m_ButtonCacl;
+		CButton			m_ButtonCalc;
 		int			CreateEdit			(void);
-		std::string	CaclNMEAChecksum	(const std::string& strInput);
-		std::string	CaclSiRfChecksum	(const std::string& strInput);
-		uint32		CaclHEXLength		(const std::string& strInput);
-		uint32		CaclASCIILength		(const std::string& strInput);
+		std::string	CalcNMEAChecksum	(const std::string& strInput);
+		std::string	CalcSiRfChecksum	(const std::string& strInput);
+		uint32		CalcHEXLength		(const std::string& strInput);
+		uint32		CalcASCIILength		(const std::string& strInput);
 	protected:
 		void		PostNcDestroy		(void);
 		BOOL		PreTranslateMessage	(MSG* pMsg);
@@ -63,7 +63,7 @@ class CCaclPaneView : public CView{
 		afx_msg void	OnA2H			(void);
 		afx_msg void	OnXor			(void);
 		afx_msg void	OnOsp			(void);
-		afx_msg void	OnCacl			(void);
+		afx_msg void	OnCalc			(void);
 		DECLARE_MESSAGE_MAP()
 		#ifdef _DEBUG
 			virtual void AssertValid	(void) const;
@@ -72,12 +72,12 @@ class CCaclPaneView : public CView{
 };
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
-class CCaclViewDP : public CDockablePane{
+class CCalcViewDP : public CDockablePane{
 	public:// Construction
-				 CCaclViewDP(void) : CDockablePane(){;};
-		virtual ~CCaclViewDP(void){;};
+				 CCalcViewDP(void) : CDockablePane(){;};
+		virtual ~CCalcViewDP(void){;};
 	protected:// Attributes
-		CCaclPaneView		m_cView;
+		CCalcPaneView		m_cView;
 		int		CreateCView		(void);
 	public:
 		void	AdjustLayout	(void);

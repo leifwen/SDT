@@ -7,6 +7,7 @@
 //
 
 #include "stdafx.h"
+//------------------------------------------------------------------------------------------//
 #include "BIC_NTP.h"
 #ifdef BIC_NTP_h
 //------------------------------------------------------------------------------------------//
@@ -45,7 +46,7 @@ CMDID BIC_NTPS::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 		PrintFail(env);
 	}
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 namespace BICNTP {
 	static bool32 NTPSync(CMD_ENV* env, const STDSTR& IP, const int32 port, STDSTR* retPackage, double* dTCompensation, double* dT1Ret, double* dT4Ret);
@@ -134,7 +135,7 @@ CMDID BIC_NTP::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 			<< "Network delay        [(T4 - T1) - (T2 - T3)]:  " << Str_FloatToStr(dT4Ret,1,5,4) << "s.\n"
 			<< "Compensation   [((T2 - T1) + (T3 - T4)) / 2]:  " << Str_FloatToStr(dTCompensation,1,5,4) << "s.\n\n"
 			<< Endl();
-		}
+		};
 #endif
 		dT1.gCompensation += dTCompensation;
 	}
@@ -145,17 +146,17 @@ CMDID BIC_NTP::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 		PrintFail(env,"Receive error");
 	}
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
+typedef COMMU<TMEM|TBIRDGE,COMMU_FRAME,CORE_SOCKET>	NTP_SOCKET;
 static bool32 BICNTP::NTPSync(CMD_ENV* env, const STDSTR& IP, const int32 port, STDSTR* retPackage, double* dTCompensation, double* dT1Ret, double* dT4Ret){
 	STDSTR		strRec;
 	DTIME		dT1, dT2, dT3, dT4;
 	bool32		blTimeout, retCode;
 	uint8		buffer[48];
-	ASOCKET		cASOCKET(1024,nullptr);
+	NTP_SOCKET	cASOCKET(1024,1024,nullptr);
 	SYS_TIME_S	timeS;
 	
-	cASOCKET.SetGetDataByRead();
 	cASOCKET.Open(SetOpenPar(OPEN_UDP,IP, port, 0));
 	
 	// strH = "7B 01 00 00";
@@ -178,19 +179,19 @@ static bool32 BICNTP::NTPSync(CMD_ENV* env, const STDSTR& IP, const int32 port, 
 	SYS_NTPToChar(SYS_TimeToNTP(dT1.GetSec()),buffer + 24);
 	
 	cASOCKET.Send(IUD(buffer,48));
-	
-	SYS_Delay_SetTS(&timeS, 10 * 1000);//10s
+
+	SYS_Delay_SetTS(&timeS, 1 * 1000);//10s
 	
 	strRec = "";
 	blTimeout = G_FALSE;
 	BIC_BASE::SetInPressAnyKeyMode(env);
-	while (CMD_BASE::ChkblExit(env) == G_FALSE){
+	while (CMD_BASE::IsExit(env) == G_FALSE){
 		uint8	chkey;
 		cASOCKET.Read(&strRec, -1);
 		dT4.Now();
 		if (strRec.length() >= 48)
 			break;
-		blTimeout = SYS_Delay_CheckTS(&timeS);
+		blTimeout = SYS_Delay_IsTimeout(&timeS);
 		if (blTimeout)
 			break;
 		chkey = BIC_BASE::ReadChar(env,G_FALSE);
@@ -212,8 +213,8 @@ static bool32 BICNTP::NTPSync(CMD_ENV* env, const STDSTR& IP, const int32 port, 
 		*retPackage = strRec;
 		dT2 = SYS_NTPToTime(SYS_CharToNTP((uint8*)strRec.c_str() + 32));
 		dT3 = SYS_NTPToTime(SYS_CharToNTP((uint8*)strRec.c_str() + 40));
-		//dTRet = (dT4->GetSec() - dT1.GetSec()) + (dT3.GetSec() - dT2.GetSec());	//Network delay [(T4 - T1) - (T2 - T3)]
-		*dTCompensation = (dT2 - dT1 + dT3 - dT4).GetSec() / 2;						//Compensation [((T2 - T1) + (T3 - T4)) / 2]
+		//dTRet = (dT4->GetSec() - dT1.GetSec()) + (dT3.GetSec() - dT2.GetSec());			//Network delay [(T4 - T1) - (T2 - T3)]
+		*dTCompensation = (dT2.GetSec() - dT1.GetSec() + dT3.GetSec() - dT4.GetSec()) / 2;	//Compensation [((T2 - T1) + (T3 - T4)) / 2]
 		*dT4Ret = dT4.GetSec();
 		*dT1Ret = dT1.GetSec();
 		retCode = G_TRUE;
@@ -223,7 +224,7 @@ static bool32 BICNTP::NTPSync(CMD_ENV* env, const STDSTR& IP, const int32 port, 
 	}
 	cASOCKET.Close();
 	return(retCode);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 #endif /* BIC_NTP_h */

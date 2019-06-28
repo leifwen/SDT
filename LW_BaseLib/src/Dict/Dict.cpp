@@ -7,6 +7,7 @@
 //
 
 #include "stdafx.h"
+//------------------------------------------------------------------------------------------//
 #include "Dict.h"
 #ifdef Dict_h
 //------------------------------------------------------------------------------------------//
@@ -28,7 +29,7 @@ void DICTWORD_NODE::Init(void){
 	cgOrderNumber = 0;
 	cgELength = 0;
 	cgHtmlContent.Init();
-}
+};
 //------------------------------------------------------------------------------------------//
 ARRAY& DICTWORD_NODE::GetLogArray(void){
 	static ARRAY sgLogArray;
@@ -38,13 +39,13 @@ ARRAY& DICTWORD_NODE::GetLogArray(void){
 void DICTWORD_NODE::Empty(void){
 	TNF *oNode,*next;
 	
-	CleanChild(&cgHtmlContent, &cgHtmlContent);
-	oNode = BreakChild(this);
+	CleanDownTree(&cgHtmlContent, &cgHtmlContent);
+	oNode = DetachDown(this);
 	
 	next = oNode;
 	while(next != nullptr){
-		CleanChild(&((DICTWORD_NODE*)next)->cgHtmlContent, &((DICTWORD_NODE*)next)->cgHtmlContent);
-		next = GetNext(InsertAfter_nolock(next,BreakChild_nolock(next),G_FALSE));
+		CleanDownTree(&((DICTWORD_NODE*)next)->cgHtmlContent, &((DICTWORD_NODE*)next)->cgHtmlContent);
+		next = GetNext(InsertAfter_nolock(next,DetachDown_nolock(next),G_FALSE));
 	};
 
 	MoveNodesToTrash(this, oNode, GetHead(GetTail(oNode)));
@@ -85,7 +86,7 @@ bool32 DICTWORD_NODE::ReadCompressDict(const STDSTR& fileName){
 			ndNode->cgELength = ndNode->cgOWord.length();
 			
 			if (ldNode->cgOWordLowerCase == ndNode->cgOWordLowerCase){
-				ldNode->AddNode(ndNode);
+				ldNode->AppendDownNode(ndNode);
 			}
 			else{
 				InsertAfter_nolock(ldNode,ndNode);
@@ -98,10 +99,10 @@ bool32 DICTWORD_NODE::ReadCompressDict(const STDSTR& fileName){
 			}
 		}
 	};
-	AddNode(ndNode);
+	AppendDownNode(ndNode);
 	fileStream.close();
 	return(readNum);
-}
+};
 //------------------------------------------------------------------------------------------//
 bool32 DICTWORD_NODE::ReadDict(const STDSTR& fileName){
 	//split by '\b'
@@ -161,7 +162,7 @@ bool32 DICTWORD_NODE::ReadDict(const STDSTR& fileName){
 				ndNode->cgOrderNumber = count;
 				ndNode->cgELength = ndNode->cgOExplain.length();
 				if (ldNode->cgOWordLowerCase == ndNode->cgOWordLowerCase){
-					ldNode->AddNode(ndNode);
+					ldNode->AppendDownNode(ndNode);
 				}
 				else{
 					InsertAfter_nolock(ldNode,ndNode);
@@ -183,10 +184,10 @@ bool32 DICTWORD_NODE::ReadDict(const STDSTR& fileName){
 			}
 		}
 	};
-	AddNode(ndNode);
+	AppendDownNode(ndNode);
 	fileStream.close();
 	return(count);
-}
+};
 //------------------------------------------------------------------------------------------//
 bool32 DICTWORD_NODE::SaveDict(const STDSTR& fileName){
 	std::fstream	fileStream;
@@ -203,7 +204,7 @@ bool32 DICTWORD_NODE::SaveDict(const STDSTR& fileName){
 		strContent += oNode->cgOWord;
 		strContent += "\n";
 		oNode->cgHtmlContent.Compose(&strContent,"",G_SPACE_ON);
-		TREE_LChildRChain_Traversal_LINE_nolock(DICTWORD_NODE,oNode,
+		TREE_DownChain_Traversal_LINE_nolock(DICTWORD_NODE,oNode,
 			strContent += '\b';
 			strContent += _opNode->cgOWord;
 			strContent += "\n";
@@ -215,7 +216,7 @@ bool32 DICTWORD_NODE::SaveDict(const STDSTR& fileName){
 	fileStream.flush();
 	fileStream.close();
 	return G_TRUE;
-}
+};
 //------------------------------------------------------------------------------------------//
 bool32 DICTWORD_NODE::SaveCompressDict(const STDSTR& fileName){
 	std::fstream	fileStream;
@@ -232,7 +233,7 @@ bool32 DICTWORD_NODE::SaveCompressDict(const STDSTR& fileName){
 		strContent += "\t";
 		oNode->cgHtmlContent.Compose(&strContent,"",G_SPACE_OFF);
 		strContent += '\n';
-		TREE_LChildRChain_Traversal_LINE_nolock(DICTWORD_NODE, oNode,
+		TREE_DownChain_Traversal_LINE_nolock(DICTWORD_NODE, oNode,
 			strContent += _opNode->cgOWord;
 			strContent += "\t";
 			_opNode->cgHtmlContent.Compose(&strContent,"",G_SPACE_OFF);
@@ -244,7 +245,7 @@ bool32 DICTWORD_NODE::SaveCompressDict(const STDSTR& fileName){
 	fileStream.flush();
 	fileStream.close();
 	return G_TRUE;
-}
+};
 //------------------------------------------------------------------------------------------//
 uint64 DICTWORD_NODE::CheckTags(const STDSTR& tagName,const STDSTR& attrName,const STDSTR& attrValue){
 	DICTWORD_NODE	*oNode,*nextNode;
@@ -255,13 +256,13 @@ uint64 DICTWORD_NODE::CheckTags(const STDSTR& tagName,const STDSTR& attrName,con
 	while(oNode != nullptr){
 		nextNode = (DICTWORD_NODE*)GetNext(oNode);
 		count += oNode->cgHtmlContent.CheckTags(tagName, attrName, attrValue);
-		TREE_LChildRChain_Traversal_LINE_nolock(DICTWORD_NODE,oNode,
+		TREE_DownChain_Traversal_LINE_nolock(DICTWORD_NODE,oNode,
 			count += _opNode->cgHtmlContent.CheckTags(tagName, attrName, attrValue)
 		);
 		oNode = nextNode;
 	};
 	return(count);
-}
+};
 //------------------------------------------------------------------------------------------//
 uint64 DICTWORD_NODE::SetTags(const STDSTR & tagName,const STDSTR & attrName,const STDSTR & attrValue
 							  ,const STDSTR & newTagName,const STDSTR & newAttrName,const STDSTR & newAttrValue){
@@ -273,13 +274,13 @@ uint64 DICTWORD_NODE::SetTags(const STDSTR & tagName,const STDSTR & attrName,con
 	while(oNode != nullptr){
 		nextNode = (DICTWORD_NODE*)GetNext(oNode);
 		count += oNode->cgHtmlContent.SetTags(tagName, attrName, attrValue, newTagName, newAttrName, newAttrValue);
-		TREE_LChildRChain_Traversal_LINE_nolock(DICTWORD_NODE,oNode,
+		TREE_DownChain_Traversal_LINE_nolock(DICTWORD_NODE,oNode,
 			count += _opNode->cgHtmlContent.SetTags(tagName, attrName, attrValue, newTagName, newAttrName, newAttrValue)
 		);
 		oNode = nextNode;
 	};
 	return(count);
-}
+};
 //------------------------------------------------------------------------------------------//
 uint64 DICTWORD_NODE::DelAttribute(const STDSTR& tagName,const STDSTR& attrName,const STDSTR& attrValue){
 	DICTWORD_NODE	*oNode,*nextNode;
@@ -290,13 +291,13 @@ uint64 DICTWORD_NODE::DelAttribute(const STDSTR& tagName,const STDSTR& attrName,
 	while(oNode != nullptr){
 		nextNode = (DICTWORD_NODE*)GetNext(oNode);
 		count += oNode->cgHtmlContent.DelAttribute(tagName, attrName, attrValue);
-		TREE_LChildRChain_Traversal_LINE_nolock(DICTWORD_NODE,oNode,
+		TREE_DownChain_Traversal_LINE_nolock(DICTWORD_NODE,oNode,
 			count += _opNode->cgHtmlContent.DelAttribute(tagName, attrName, attrValue)
 		);
 		oNode = nextNode;
 	};
 	return(count);
-}
+};
 //------------------------------------------------------------------------------------------//
 uint64 DICTWORD_NODE::DelTagsBlankContent(const STDSTR& tagName){
 	DICTWORD_NODE	*oNode,*nextNode;
@@ -307,13 +308,13 @@ uint64 DICTWORD_NODE::DelTagsBlankContent(const STDSTR& tagName){
 	while(oNode != nullptr){
 		nextNode = (DICTWORD_NODE*)GetNext(oNode);
 		count += oNode->cgHtmlContent.DelTagsBlankContent(tagName);
-		TREE_LChildRChain_Traversal_LINE_nolock(DICTWORD_NODE,oNode,
+		TREE_DownChain_Traversal_LINE_nolock(DICTWORD_NODE,oNode,
 			count += _opNode->cgHtmlContent.DelTagsBlankContent(tagName)
 		);
 		oNode = nextNode;
 	};
 	return(count);
-}
+};
 //------------------------------------------------------------------------------------------//
 uint64 DICTWORD_NODE::DelTagsExcludeContent(const STDSTR& tagName,const STDSTR& attrName,const STDSTR& attrValue){
 	DICTWORD_NODE	*oNode,*nextNode;
@@ -324,13 +325,13 @@ uint64 DICTWORD_NODE::DelTagsExcludeContent(const STDSTR& tagName,const STDSTR& 
 	while(oNode != nullptr){
 		nextNode = (DICTWORD_NODE*)GetNext(oNode);
 		count += oNode->cgHtmlContent.DelTagsExcludeContent(tagName,attrName,attrValue);
-		TREE_LChildRChain_Traversal_LINE_nolock(DICTWORD_NODE,oNode,
+		TREE_DownChain_Traversal_LINE_nolock(DICTWORD_NODE,oNode,
 			count += _opNode->cgHtmlContent.DelTagsExcludeContent(tagName,attrName,attrValue)
 		);
 		oNode = nextNode;
 	};
 	return(count);
-}
+};
 //------------------------------------------------------------------------------------------//
 uint64 DICTWORD_NODE::DelTagsIncludeContent(const STDSTR& tagName,const STDSTR& attrName,const STDSTR& attrValue){
 	DICTWORD_NODE	*oNode,*nextNode;
@@ -341,13 +342,13 @@ uint64 DICTWORD_NODE::DelTagsIncludeContent(const STDSTR& tagName,const STDSTR& 
 	while(oNode != nullptr){
 		nextNode = (DICTWORD_NODE*)GetNext(oNode);
 		count += oNode->cgHtmlContent.DelTagsIncludeContent(tagName,attrName,attrValue);
-		TREE_LChildRChain_Traversal_LINE_nolock(DICTWORD_NODE,oNode,
+		TREE_DownChain_Traversal_LINE_nolock(DICTWORD_NODE,oNode,
 			count += _opNode->cgHtmlContent.DelTagsIncludeContent(tagName,attrName,attrValue)
 		);
 		oNode = nextNode;
 	};
 	return(count);
-}
+};
 //------------------------------------------------------------------------------------------//
 
 
@@ -420,10 +421,10 @@ COCAWORD_NODE::~COCAWORD_NODE(void){
 void COCAWORD_NODE::Empty(void){
 	TNF *oNode,*next;
 	
-	oNode = BreakChild(this);
+	oNode = DetachDown(this);
 	next = oNode;
 	while(next != nullptr)
-		next = GetNext(InsertAfter_nolock(next,BreakChild_nolock(next),G_FALSE));
+		next = GetNext(InsertAfter_nolock(next,DetachDown_nolock(next),G_FALSE));
 	
 	MoveNodesToTrash(this, oNode, GetHead(GetTail(next)));
 	CleanTrash(this);
@@ -476,10 +477,10 @@ int32 COCAWORD_NODE::ReadFromFile(const STDSTR& fileName){
 			}
 		}
 	};
-	AddNode(newNode);
+	AppendDownNode(newNode);
 	fileStream.close();
 	return(readNum);
-}
+};
 //------------------------------------------------------------------------------------------//
 bool32 COCAWORD_NODE::WriteToFile(const STDSTR& fileName){
 	std::fstream	fileStream;
@@ -540,7 +541,7 @@ bool32 COCAWORD_NODE::WriteToFile(const STDSTR& fileName){
 	fileStream.flush();
 	fileStream.close();
 	return G_TRUE;
-}
+};
 //------------------------------------------------------------------------------------------//
 int32 COCAWORD_NODE::UpdateDict(DICTWORD_NODE* dict9,DICTWORD_NODE* dict8){
 	STDSTR			strWord;
@@ -557,7 +558,7 @@ int32 COCAWORD_NODE::UpdateDict(DICTWORD_NODE* dict9,DICTWORD_NODE* dict8){
 				nextNode1 = (DICTWORD_NODE*)GetNext(oNode1);
 				if (oNode1->cgOWordLowerCase == strWord){
 					oNode->cgO9E = oNode1->cgOExplain;
-					TREE_LChildRChain_Traversal_LINE_nolock(DICTWORD_NODE,oNode1,oNode->cgO9E += _opNode->cgOExplain;);
+					TREE_DownChain_Traversal_LINE_nolock(DICTWORD_NODE,oNode1,oNode->cgO9E += _opNode->cgOExplain;);
 					break;
 				}
 				oNode1 = nextNode1;
@@ -573,7 +574,7 @@ int32 COCAWORD_NODE::UpdateDict(DICTWORD_NODE* dict9,DICTWORD_NODE* dict8){
 				nextNode1 = (DICTWORD_NODE*)GetNext(oNode1);
 				if (oNode1->cgOWordLowerCase == strWord){
 					oNode->cgO8E = oNode1->cgOExplain;
-					TREE_LChildRChain_Traversal_LINE_nolock(DICTWORD_NODE,oNode1,oNode->cgO8E += _opNode->cgOExplain;);
+					TREE_DownChain_Traversal_LINE_nolock(DICTWORD_NODE,oNode1,oNode->cgO8E += _opNode->cgOExplain;);
 					break;
 				}
 				oNode1 = nextNode1;
@@ -584,7 +585,7 @@ int32 COCAWORD_NODE::UpdateDict(DICTWORD_NODE* dict9,DICTWORD_NODE* dict8){
 		oNode = nextNode;
 	};
 	return G_TRUE;
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 #endif /* Dict_h */

@@ -6,6 +6,7 @@
 //  Copyright © 2018 Leif Wen. All rights reserved.
 //
 
+//------------------------------------------------------------------------------------------//
 #ifndef SYS_Time_hpp
 #define SYS_Time_hpp
 //------------------------------------------------------------------------------------------//
@@ -19,23 +20,23 @@ void DTIME::Clear(void){
 //------------------------------------------------------------------------------------------//
 double DTIME::GetSec(void)const{
 	return((double)gTime.tv_sec + (double)gTime.tv_usec / 1000000.0);
-}
+};
 //------------------------------------------------------------------------------------------//
 double DTIME::GetMSec(void)const{
 	return((double)gTime.tv_sec * 1000.0 + (double)gTime.tv_usec / 1000.0);
-}
+};
 //------------------------------------------------------------------------------------------//
 inline DTIME& DTIME::Set(const double& second){
 	gTime.tv_sec = (uint64)second;
 	gTime.tv_usec = (uint64)((second - gTime.tv_sec) * 1000 * 1000);
 	return(*this);
-}
+};
 //------------------------------------------------------------------------------------------//
 inline DTIME& DTIME::Set(const DTIME& dtime){
 	gTime.tv_sec = dtime.gTime.tv_sec;
 	gTime.tv_usec = dtime.gTime.tv_usec;
 	return(*this);
-}
+};
 //------------------------------------------------------------------------------------------//
 inline STDSTR DTIME::Format(const STDSTR &style,G_UTC utc)const{
 	
@@ -72,19 +73,19 @@ inline bool32 SYS_SleepMS(int32 timeMS){
 	Sleep(timeMS);
 #endif
 	return G_FALSE;
-}
+};
 //------------------------------------------------------------------------------------------//
 inline void SYS_StopWatch_Start(SYS_TIME_S* timeS){
 	timeS->DTime1.Now();
 	timeS->timeMS = 0;
-}
+};
 //------------------------------------------------------------------------------------------//
 inline const double& SYS_StopWatch_Stop(SYS_TIME_S* timeS){
 	timeS->DTime2.Now();
 	timeS->DTime2 -= timeS->DTime1;
 	timeS->timeMS = timeS->DTime2.GetMSec();
 	return(timeS->timeMS);
-}
+};
 //------------------------------------------------------------------------------------------//
 inline void SYS_Delay_SetTS(SYS_TIME_S* timeS,double timeMS){
 	timeS->DTime1.Now();
@@ -97,7 +98,7 @@ inline void SYS_Delay_SetTS(SYS_TIME_S* timeS,double timeMS){
 	timeS->QTime1 = timeS->litmp.QuadPart;				// get first count.
 	timeS->QTime1 += (LONGLONG)((timeMS * timeS->dfFreq) / 1000);
 #endif
-}
+};
 //------------------------------------------------------------------------------------------//
 inline void SYS_Delay_AddTS(SYS_TIME_S* timeS,double timeMS){
 	timeS->timeMS += timeMS;
@@ -105,28 +106,29 @@ inline void SYS_Delay_AddTS(SYS_TIME_S* timeS,double timeMS){
 #ifdef CommonDefH_VC
 	timeS->QTime1 += (LONGLONG)((timeMS * timeS->dfFreq) / 1000);
 #endif
-}
+};
 //------------------------------------------------------------------------------------------//
-inline bool32 SYS_Delay_CheckTS(SYS_TIME_S* timeS){
+inline bool32 SYS_Delay_IsTimeout(SYS_TIME_S* timeS){
+	bool32	blIsTimeout;
 	if (timeS == nullptr)
 		return G_FALSE;
 #ifdef CommonDefH_Unix
 	timeS->DTime2.Now();
-	timeS->dfTim = (timeS->DTime2 >= timeS->DTime1);
+	blIsTimeout = (timeS->DTime2 >= timeS->DTime1);
 #endif
 #ifdef CommonDefH_VC
 	if (timeS->timeMS > 99){
 		timeS->DTime2.Now();
-		timeS->dfTim = (timeS->DTime2 >= timeS->DTime1);
+		blIsTimeout = (timeS->DTime2 >= timeS->DTime1);
 	}
 	else{
 		QueryPerformanceCounter(&timeS->litmp);
 		timeS->QTime2 = timeS->litmp.QuadPart;				// get last count
-		timeS->dfTim = (timeS->QTime2 >= timeS->QTime1);	// get time,uint is ms
+		blIsTimeout = (timeS->QTime2 >= timeS->QTime1);	// get time,uint is ms
 	}
 #endif
-	return(timeS->dfTim);
-}
+	return(blIsTimeout);
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 #endif /* SYS_Time_h */

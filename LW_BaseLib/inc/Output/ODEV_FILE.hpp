@@ -6,6 +6,7 @@
 //  Copyright © 2018 Leif Wen. All rights reserved.
 //
 
+//------------------------------------------------------------------------------------------//
 #ifndef ODEV_FILE_hpp
 #define ODEV_FILE_hpp
 //------------------------------------------------------------------------------------------//
@@ -13,9 +14,7 @@
 #ifdef ODEV_FILE_h
 //------------------------------------------------------------------------------------------//
 inline void	ODEV_FILE::SetFileName(const STDSTR& filename){
-	InUse_set();
 	cgfileName = filename;
-	InUse_clr();
 };
 //------------------------------------------------------------------------------------------//
 inline const STDSTR& ODEV_FILE::GetFileName(void)const{

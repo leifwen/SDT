@@ -7,6 +7,7 @@
 //
 
 #include "stdafx.h"
+//------------------------------------------------------------------------------------------//
 #include "SendFile.h"
 #ifdef SendFile_h
 #include "SYS_File.h"
@@ -15,7 +16,7 @@
 TFileSend::TFileSend(void) : DEVICE_EXE_FRAME(PACKAGE_MAX_SIZE){
 	sendThread.ThreadInit(this,&TFileSend::SendThreadFun,"sendThread");
 	cgFileName = "";
-}
+};
 //------------------------------------------------------------------------------------------//
 bool32 TFileSend::Execute(const DEVICE* dev,const STDSTR& fileName){
 	if ((CFS_CheckFile(fileName) == G_FALSE) || IsExecuting(dev) == G_FALSE)
@@ -23,7 +24,7 @@ bool32 TFileSend::Execute(const DEVICE* dev,const STDSTR& fileName){
 	
 	cgFileName = fileName;
 	return(DEVICE_EXE_FRAME::Execute(dev,&sendThread));
-}
+};
 //------------------------------------------------------------------------------------------//
 bool32 TFileSend::SendThreadFun(void* p){
 	std::fstream 	fileStream;
@@ -32,7 +33,7 @@ bool32 TFileSend::SendThreadFun(void* p){
 	STDSTR			strPrintdata,strTi,strTj;
 	DTIME			startTime,endTime;
 	
-	tempBuffer = cgSBUF.cgArray.GetPointer(0);
+	tempBuffer = cgSBUF.array.GetPointer(0);
 	
 	startTime.Now();
 	
@@ -49,7 +50,7 @@ bool32 TFileSend::SendThreadFun(void* p){
 	i = 0;
 	TxBytes = 0;
 	do{
-		sendLength = cgDevice->SRxSBUFMaxSize() - cgDevice->SUnsentBytes();
+		sendLength = cgDevice->TxMaxSize() - cgDevice->UnsentBytes();
 		if (sendLength > PACKAGE_MAX_SIZE)
 			sendLength = PACKAGE_MAX_SIZE;
 		if (sendLength == 0){
@@ -59,15 +60,8 @@ bool32 TFileSend::SendThreadFun(void* p){
 			fileStream.read((char*)tempBuffer,sendLength);
 			sendLength = (uint32)fileStream.gcount();
 			
-			j = 0;
-			while(1){
-				j += cgDevice->SSend(IUD(&tempBuffer[j],sendLength - j));
-				if ((j < sendLength) && (IsTerminated() == G_FALSE)){
-					SYS_SleepMS(2);
-					continue;
-				}
-				break;
-			};
+			j = cgDevice->Send(IUD(tempBuffer,sendLength));
+
 			++ i;
 			TxBytes += j;
 			strTi = Str_ToStr(i);
@@ -107,6 +101,6 @@ bool32 TFileSend::SendThreadFun(void* p){
 	<< COL_DivLine_Maroon
 	<< Endl();
 	return G_TRUE;
-}
+};
 //------------------------------------------------------------------------------------------//
 #endif /* SendFile_h */

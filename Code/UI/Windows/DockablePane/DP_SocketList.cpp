@@ -68,7 +68,7 @@ void CSocketListCtrl::LoadData(ASOCKETSERVER* server){
 	if (m_Server == NULL)
 		return;
 
-	if (m_Server->CheckUpdate() == 0)
+	if (TNF::IsUpdate(m_Server) == 0)
 		return;
 
 	DeleteAllItems();
@@ -76,18 +76,16 @@ void CSocketListCtrl::LoadData(ASOCKETSERVER* server){
 	m_SelectSubItem = -1;
 
 	i = 0;
-	TREE_LChildRChain_Traversal_LINE(ASOCKET, m_Server,
-		_opNode->InUse_set();
+	TREE_DownChain_Traversal_LINE(ASOCKET, m_Server,
 		if (_opNode->IsOpened() != 0){
-			InsertItem(i, Str_ANSIToUnicode(_opNode->GetOpenPar().name).c_str());
-			SetItemText(i, 1, Str_ANSIToUnicode(Str_ToStr(_opNode->GetOpenPar().port)).c_str());
-			SetItemData(i, TREE_NODE::GetdRNodeID(_opNode));
-			SetCheck(i, _opNode->CheckSelected());
+			InsertItem(i, Str_ANSIToUnicode(_opNode->Core()->GetOpenPar().name).c_str());
+			SetItemText(i, 1, Str_ANSIToUnicode(Str_ToStr(_opNode->Core()->GetOpenPar().port)).c_str());
+			SetItemData(i, TNF::GetDRNodeID(_opNode));
+			SetCheck(i, COMMU_NODE::IsSelected(_opNode));
 			++i;
 		}
-		_opNode->InUse_clr();
 	);
-	m_Server->ClrblUpdate();
+	TNF::ClrblUpdate(m_Server);
 }
 //------------------------------------------------------------------------------------------//
 void CSocketListCtrl::Disconnect(int disItem){
@@ -98,7 +96,7 @@ void CSocketListCtrl::Disconnect(int disItem){
 	if (disItem < 0)
 		return;
 
-	nextSocket = (ASOCKET*)TREE_NODE::FindInLChildRChainByDRNodeID(m_Server, GetItemData(disItem));
+	nextSocket = (ASOCKET*)TNF::FindInDownChainByDRNodeID(m_Server, GetItemData(disItem));
 	m_Server->CloseChild(nextSocket);
 }
 //------------------------------------------------------------------------------------------//
@@ -120,16 +118,16 @@ void CSocketListCtrl::OnLButtonDown(UINT nFlags, CPoint point){
 			SetCheck(lvinfo.iItem);
 			if (m_Server == NULL)
 				return;
-			socketSelected = (ASOCKET*)TREE_NODE::FindInLChildRChainByDRNodeID(m_Server, GetItemData(lvinfo.iItem));
-			if (m_Server->GetSelDB() != socketSelected)
-				m_Server->ChildSetSel(socketSelected);
+			socketSelected = (ASOCKET*)TNF::FindInDownChainByDRNodeID(m_Server, GetItemData(lvinfo.iItem));
+			if (COMMU_NODE::IsSelected(socketSelected) == G_FALSE)
+				m_Server->SetChildSelected(socketSelected);
 		}
 		else{
 			SetCheck(lvinfo.iItem,FALSE);
 			if (m_Server != NULL){
-				socketSelected = (ASOCKET*)TREE_NODE::FindInLChildRChainByDRNodeID(m_Server, GetItemData(lvinfo.iItem));
-				if (m_Server->GetSelDB() == socketSelected)
-					m_Server->ChildClrSel(socketSelected);
+				socketSelected = (ASOCKET*)TNF::FindInDownChainByDRNodeID(m_Server, GetItemData(lvinfo.iItem));
+				if (COMMU_NODE::IsSelected(socketSelected))
+					m_Server->ClrChildSelected(socketSelected);
 			}
 		}
 	}
@@ -143,13 +141,13 @@ void CSocketListCtrl::OnLButtonDblClk(UINT nFlags, CPoint point){
 		return;
 	if (m_Server == NULL)
 		return;
-	aSocket = (ASOCKET*)TREE_NODE::FindInLChildRChainByDRNodeID(m_Server, GetItemData(m_SelectItem));
+	aSocket = (ASOCKET*)TNF::FindInDownChainByDRNodeID(m_Server, GetItemData(m_SelectItem));
 	if (aSocket != nullptr){
-		if (aSocket->GetG3DefSTDOUT() == nullptr){
+		if (COMMU_LOGSYS::GetG3DefSTDOUT(aSocket->unitTeam.logSys) == nullptr){
 			CreateScoketView(aSocket);
 		}
 		else{
-			((CChildFrame*)(aSocket->GetG3DefSTDOUT()->cgRichEdit->GetParentFrame()))->MDIActivate();
+			((CChildFrame*)(COMMU_LOGSYS::GetG3DefSTDOUT(aSocket->unitTeam.logSys)->cgRichEdit->GetParentFrame()))->MDIActivate();
 		}
 	}
 }
@@ -159,7 +157,7 @@ void CSocketListCtrl::CreateScoketView(ASOCKET *aSocket){
 	CCreateContext	context;
 	CString			cTitle;
 
-	cTitle = Str_ANSIToUnicode(aSocket->GetDevName()).c_str();
+	cTitle = Str_ANSIToUnicode(aSocket->Core()->GetDevName()).c_str();
 
 	context.m_pNewViewClass = RUNTIME_CLASS(CMyRichView);
 	childpFrm = new CChildFrame();
@@ -173,7 +171,7 @@ void CSocketListCtrl::CreateScoketView(ASOCKET *aSocket){
 	childpFrm->InitSTDOUT("Socket");
 	childpFrm->m_bCanClose = TRUE;
 	
-	aSocket->AddG3D_STDOUT(&childpFrm->m_stdout);
+	COMMU_LOGSYS::AddG3D_STDOUT(aSocket->unitTeam.logSys,&childpFrm->m_stdout);
 }
 //------------------------------------------------------------------------------------------//
 

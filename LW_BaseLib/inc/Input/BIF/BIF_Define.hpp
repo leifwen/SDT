@@ -6,6 +6,7 @@
 //  Copyright © 2018 Leif Wen. All rights reserved.
 //
 
+//------------------------------------------------------------------------------------------//
 #ifndef BIF_Define_hpp
 #define BIF_Define_hpp
 //------------------------------------------------------------------------------------------//
@@ -13,6 +14,7 @@
 #ifdef BIF_Define_h
 #include "GList.h"
 #include "SYS_Time.h"
+#include "ColorRecord.h"
 //------------------------------------------------------------------------------------------//
 inline void BIF_ENV::InitQuantity(CMD_ENV* env){
 	if (env != nullptr)
@@ -51,6 +53,10 @@ inline COMMAND_NODE* BIF_ENV::GetCommandNode(CMD_ENV* env){
 #else
 	return(nullptr);
 #endif
+};
+//------------------------------------------------------------------------------------------//
+inline ARRAY* BIF_ENV::GetArrayIn(CMD_ENV* env){
+	return(CMD_ENV::GetVar(env,CMD_VID_arrayIn,(ARRAY*)nullptr));
 };
 //------------------------------------------------------------------------------------------//
 

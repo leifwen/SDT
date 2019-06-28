@@ -7,6 +7,7 @@
 //
 
 #include "stdafx.h"
+//------------------------------------------------------------------------------------------//
 #include "ColorRecord.h"
 //------------------------------------------------------------------------------------------//
 #ifdef ColorRecord_h
@@ -38,7 +39,7 @@ void CRD::InitPN(void){
 	cgDefCtrl = CRD_GROUPMASK;
 	cgDefCol = COL_NONE;
 	ClrSFlag(CRD_blAddData);
-}
+};
 //------------------------------------------------------------------------------------------//
 
 
@@ -77,7 +78,7 @@ void CRDC::SetCol(COLORENUM col){
 		cgDefCol = col;
 	}
 	else if (cgDefCol != col){
-		CRD::_Endl();
+		CRD::_Endl(nullptr);
 		CRD::_Begin(cgStartup.ios);
 		cgDefCol = col;
 		B_ClrFLAG32(cgDefCtrl, CRD_NL);
@@ -89,21 +90,21 @@ void CRDC::SetAddr(uint32 addr){
 		cgInAddr = addr;
 	}
 	else if (addr != cgInAddr){
-		CRD::_Endl();
+		CRD::_Endl(nullptr);
 		CRD::_Begin(cgStartup.ios);
 		cgInAddr = addr;
 		cgInNL = 0;
 	}
 	cgDefCtrl = MakeCtrl(cgInAddr, cgInEnforce | cgInNL);
 	B_ClrFLAG32(cgDefCtrl, cgInClrGroup & CRD_GROUPMASK);
-}
+};
 //------------------------------------------------------------------------------------------//
 void CRDC::SetEnforce(uint32 group){
 	if (CheckSFlag(CRD_blAddData) == G_FALSE){
 		cgInEnforce = group;
 	}
 	else if (group != cgInEnforce){
-		CRD::_Endl();
+		CRD::_Endl(nullptr);
 		CRD::_Begin(cgStartup.ios);
 		cgInEnforce = group;
 		cgInNL = 0;
@@ -118,7 +119,7 @@ void CRDC::ClrGroup(uint32 group){
 		cgInClrGroup = group;
 	}
 	else if (group != cgInEnforce){
-		CRD::_Endl();
+		CRD::_Endl(nullptr);
 		CRD::_Begin(cgStartup.ios);
 		cgInClrGroup = group;
 		cgInNL = 0;

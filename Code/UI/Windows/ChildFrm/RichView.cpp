@@ -209,6 +209,23 @@ void CMyRichView::AppendChar(const COLORREF& col, const STDSTR& strIn, G_LOCK bl
 	Spin_Print_Unlock(blLock);
 }
 //------------------------------------------------------------------------------------------//
+void CMyRichView::CleanLastLine(void){
+	long	nStartChar, nEndChar;
+
+	Spin_Print_Lock();
+	GetRichEditCtrl().HideSelection(TRUE, FALSE);
+	GetRichEditCtrl().SetSel(-1, -1);
+	GetRichEditCtrl().GetSel(nStartChar, nEndChar);
+	nStartChar -= GetRichEditCtrl().LineLength(-1);;
+
+	GetRichEditCtrl().SetSel(nStartChar, nEndChar);
+	GetRichEditCtrl().ReplaceSel(_T(""));
+
+	GetRichEditCtrl().SetSel(-1, -1);
+	GetRichEditCtrl().HideSelection(FALSE, FALSE);
+	Spin_Print_Unlock();
+}
+//------------------------------------------------------------------------------------------//
 void CMyRichView::ToHome(void){
 	Spin_Print_Lock();
 	GetRichEditCtrl().SetSel(0, 0);
@@ -231,55 +248,44 @@ void CMyRichView::OnDropFiles(HDROP hDropInfo){
 	std::string		strFileName, strExtName, strT;
 
 	nFileCount = DragQueryFile(hDropInfo, 0xFFFFFFFF, NULL, MAX_PATH);
-	if (nFileCount > 1){
-		PrintFileName(hDropInfo);
-	}
-	else{
-		ZeroMemory(szFileName,MAX_PATH);
-		DragQueryFile(hDropInfo,0,szFileName,MAX_PATH);
+	do{
+		if (nFileCount > 1){
+			PrintFileName(hDropInfo);
+			break;
+		}
+		
+		ZeroMemory(szFileName, MAX_PATH);
+		DragQueryFile(hDropInfo, 0, szFileName, MAX_PATH);
 		cFileName = szFileName;
 		wstrFileName = cFileName;
 		strFileName = Str_UnicodeToANSI(wstrFileName);
-		if (CFS_CheckFile(strFileName) != 0){
-			if (PrintDirList(strFileName) == FALSE){
-				if (::GetKeyState(VK_MENU) & 0x8000){
-					strT = Str_Replace(strFileName, " ", "\\ ");
-					if (m_Console != nullptr)
-						m_Console->Paste((uint8*)strT.c_str(), strT.length());
-				}
-				else{
-					pos = strFileName.find_last_of('.');
-					strExtName = "";
-					if (pos != std::string::npos)
-						strExtName = strFileName.substr(pos);
-					if ((Str_UpperCase(strExtName) == ".TXT") || (Str_UpperCase(strExtName) == ".INI")){
-						if (::GetKeyState(VK_CONTROL) & 0x8000){
-							PrintHexFile(strFileName);
-						}
-						else{
-							PrintTxtFile(strFileName);
-						}
-					}
-					else if (Str_UpperCase(strExtName) == ".RTF"){
-						if (::GetKeyState(VK_CONTROL) & 0x8000){
-							PrintHexFile(strFileName);
-						}
-						else{
-							PrintRtfFile(strFileName);
-						}
-					}
-					else{
-						if (::GetKeyState(VK_CONTROL) & 0x8000){
-							PrintTxtFile(strFileName);
-						}
-						else{
-							PrintHexFile(strFileName);
-						}
-					}
-				}
-			}
+		if (CFS_CheckFile(strFileName) == G_FALSE)
+			break;
+		if (PrintDirList(strFileName) != FALSE)
+			break;
+		if (::GetKeyState(VK_MENU) & 0x8000){
+			if (!(::GetKeyState(VK_CONTROL) & 0x8000))
+				PrintHexFile(strFileName);
+			break;
 		}
-	}
+		if (::GetKeyState(VK_CONTROL) & 0x8000){
+			pos = strFileName.find_last_of('.');
+			strExtName = "";
+			if (pos != std::string::npos)
+				strExtName = strFileName.substr(pos);
+			if (Str_UpperCase(strExtName) == ".RTF"){
+				PrintRtfFile(strFileName);
+			}
+			else{
+				PrintTxtFile(strFileName);
+			}
+			break;
+		}
+
+		strT = Str_Replace(strFileName, " ", "\\ ");
+		if (m_Console != nullptr)
+			m_Console->Paste((uint8*)strT.c_str(), strT.length());
+	} while(0);
 	DragFinish (hDropInfo);
 }
 //------------------------------------------------------------------------------------------//
@@ -547,16 +553,16 @@ BOOL CMyRichView::PrintDirList(std::string& tDirName){
 	strPrint += Str_ToStr(nFileCount);
 	strPrint += " files.\r\n";
 
-	AppendChar(COL_RGB_clMaroon,strPrint);
+	AppendChar(COL_RGB_clMaroon, strPrint, G_LOCK_OFF);
 	AppendChar(COL_RGB_clPurple,DIVIDING_LINE, G_LOCK_OFF);
 	AppendChar(COL_RGB_clBlack,tDirName + "\\\r\n", G_LOCK_OFF);
 
 	wstrFileName = fileDir;
-	AppendChar(COL_RGB_clRed,Str_UnicodeToANSI(wstrFileName));
+	AppendChar(COL_RGB_clRed,Str_UnicodeToANSI(wstrFileName),G_LOCK_OFF);
 	wstrFileName = fileName;
-	AppendChar(COL_RGB_clBlue,Str_UnicodeToANSI(wstrFileName));
+	AppendChar(COL_RGB_clBlue,Str_UnicodeToANSI(wstrFileName),G_LOCK_OFF);
 	AppendChar(COL_RGB_clPurple,DIVIDING_LINE, G_LOCK_OFF);
-	AppendChar(COL_RGB_clMaroon,"End");
+	AppendChar(COL_RGB_clMaroon,"End",G_LOCK_OFF);
 
 	GetRichEditCtrl().SetSel(0,0);
 	Spin_Print_Unlock();

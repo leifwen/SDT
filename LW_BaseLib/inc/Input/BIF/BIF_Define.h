@@ -6,6 +6,7 @@
 //  Copyright © 2018 Leif Wen. All rights reserved.
 //
 
+//------------------------------------------------------------------------------------------//
 #include "CMD.h"
 #ifdef CMD_h
 //------------------------------------------------------------------------------------------//
@@ -93,6 +94,7 @@ namespace BIF_ENV{
 			,CMD_VID_retDTime
 			,CMD_VID_retCMD
 			,CMD_VID_commandNode
+			,CMD_VID_arrayIn
 			,CMD_VID_NEXT
 	};
 	enum	{RFLAG_C = 2, RFLAG_S = CMD_ENV::RFLAG_S + CMD_ENV::RFLAG_C};
@@ -107,11 +109,13 @@ namespace BIF_ENV{
 	CMD_VAR		(RetDefine,		CMD_VID_retDefine,	STDSTR);//used for CMD define & replace
 	CMD_VAR		(RetSearch,		CMD_VID_retSearch,	STDSTR);//used for CMD search & ret
 	CMD_VAR		(RetFun,		CMD_VID_retFun,		STDSTR);//T or F
-	CMD_VAR		(RetCMD,		CMD_VID_retCMD,		bool32);//used for CMD sotp & break
-	CMD_VAR		(RetDTime,		CMD_VID_retDTime,	SYS_TIME_S);
+	CMD_VAR		(RetCMD,		CMD_VID_retCMD,		bool32);//used for CMD stop & break
+	CMD_VAR		(RetDTime,		CMD_VID_retDTime,	SYS_TIME_S);//used for CMD timeout
 	CMD_SETVAR	(SetCommandNode,CMD_VID_commandNode,COMMAND_NODE*);
+	CMD_SETVAR	(SetArrayIn,	CMD_VID_arrayIn,	ARRAY*);//used for CMD wait
 	
 	static	inline	COMMAND_NODE*	GetCommandNode	(CMD_ENV* env);
+	static	inline	ARRAY*			GetArrayIn		(CMD_ENV* env);
 };
 //------------------------------------------------------------------------------------------//
 class BIF_BASE : public CMD_NODE{

@@ -7,6 +7,7 @@
 //
 
 #include "stdafx.h"
+//------------------------------------------------------------------------------------------//
 #include "ALG_BASE64.h"
 //------------------------------------------------------------------------------------------//
 #ifdef ALG_BASE64_h
@@ -208,38 +209,33 @@ static const uint32 d3[256] = {
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 void ALG_B64_Init(ALG_BASE64_CTX* ctx,uint32 cfg){
+	IOS_clr(ctx);
 	ctx->next_in = nullptr;
-	ctx->avail_in = 0;
-	ctx->total_in = 0;
-	
 	ctx->next_out = nullptr;
-	ctx->avail_out = 0;
-	ctx->total_out = 0;
-	
-	ctx->status = 0;
+	ctx->rcode = IOS_ERR;
 	
 	ctx->cfg = cfg;
 	ctx->outMinSize = B_ChkFLAG32(cfg,ALG_BASE64::CFG_NL) ? 5 : 4;
 	ctx->in64 = 0;
 	ctx->unDoNum = 0;
-}
+};
 //------------------------------------------------------------------------------------------//
-bool32 ALG_B64_ReInit(ALG_BASE64_CTX* ctx){
+IOSE ALG_B64_ReInit(ALG_BASE64_CTX* ctx){
 	ctx->in64 = 0;
 	ctx->unDoNum = 0;
-	return G_TRUE;
-}
+	return IOS_OK;
+};
 //------------------------------------------------------------------------------------------//
-bool32 ALG_B64_Release(ALG_BASE64_CTX* ctx){
+IOSE ALG_B64_Release(ALG_BASE64_CTX* ctx){
 	return(ALG_B64_ReInit(ctx));
-}
+};
 //------------------------------------------------------------------------------------------//
-bool32 ALG_B64_EnCalc(ALG_BASE64_CTX* ctx,uint8*& _out,uint8*& _in){
+IOSE ALG_B64_EnCalc(ALG_BASE64_CTX* ctx,uint8*& _out,uint8*& _in){
 	uint8	t1, t2, t3;
 	
 	while (ctx->avail_in > 2){
 		if (ctx->avail_out < ctx->outMinSize)
-			return BASE64_NOMEM;
+			return IOS_NO_MEM;
 		t1 = *_in++;
 		t2 = *_in++;
 		t3 = *_in++;
@@ -265,11 +261,11 @@ bool32 ALG_B64_EnCalc(ALG_BASE64_CTX* ctx,uint8*& _out,uint8*& _in){
 			}
 		}
 	};
-	return BASE64_OK;
-}
+	return IOS_OK;
+};
 //------------------------------------------------------------------------------------------//
-bool32 ALG_B64_EnUpdate(ALG_BASE64_CTX* ctx,uint8* _out,const uint64& outSize,const uint8* data,const uint64& length){
-	bool32	err = BASE64_OK;
+IOSE ALG_B64_EnUpdate(ALG_BASE64_CTX* ctx,uint8* _out,const uint64& outSize,const uint8* data,const uint64& length){
+	IOSE	rcode = IOS_OK;
 	uint64	total_in,avail_in;
 	uint8*	buf = ctx->buf;
 
@@ -289,21 +285,21 @@ bool32 ALG_B64_EnUpdate(ALG_BASE64_CTX* ctx,uint8* _out,const uint64& outSize,co
 			total_in = ctx->total_in;
 			avail_in = ctx->avail_in;
 			ctx->avail_in = 3;
-			err = ALG_B64_EnCalc(ctx, ctx->next_out, buf);
+			rcode = ALG_B64_EnCalc(ctx, ctx->next_out, buf);
 			ctx->total_in = total_in;
 			ctx->avail_in = avail_in;
-			if (err == BASE64_NOMEM){
+			if (rcode == IOS_NO_MEM){
 				ctx->unDoNum = 3;
-				return BASE64_NOMEM;
+				return IOS_NO_MEM;
 			}
 			break;
 		}
 	};
 	if (ctx->avail_in == 0)
-		return BASE64_OK;
+		return IOS_OK;
 	
 	if (ctx->avail_in > 2)
-		err = ALG_B64_EnCalc(ctx, ctx->next_out, ctx->next_in);
+		rcode = ALG_B64_EnCalc(ctx, ctx->next_out, ctx->next_in);
 	ctx->unDoNum = 0;
 	switch(ctx->avail_in){
 		case 0:;
@@ -328,17 +324,17 @@ bool32 ALG_B64_EnUpdate(ALG_BASE64_CTX* ctx,uint8* _out,const uint64& outSize,co
 	}
 	ctx->total_in += ctx->unDoNum;
 	ctx->avail_in -= ctx->unDoNum;
-	return(err);
-}
+	return(rcode);
+};
 //------------------------------------------------------------------------------------------//
-bool32 ALG_B64_EnFinal(ALG_BASE64_CTX* ctx,uint8* _out,const uint64& outSize){
+IOSE ALG_B64_EnFinal(ALG_BASE64_CTX* ctx,uint8* _out,const uint64& outSize){
 
 	ctx->avail_in = 0;
 	ctx->next_out = _out;
 	ctx->avail_out = outSize;
 
 	if (ctx->avail_out < ctx->outMinSize)
-		return BASE64_NOMEM;
+		return IOS_NO_MEM;
 
 	switch (ctx->unDoNum) {
 		case 0:
@@ -375,10 +371,10 @@ bool32 ALG_B64_EnFinal(ALG_BASE64_CTX* ctx,uint8* _out,const uint64& outSize){
 				-- ctx->avail_out;
 			}
 	}
-	return BASE64_FINISH;
-}
+	return IOS_FINISH;
+};
 //------------------------------------------------------------------------------------------//
-bool32 ALG_B64_DeCalc(ALG_BASE64_CTX* ctx,uint8*& _out,uint8*& _in){
+IOSE ALG_B64_DeCalc(ALG_BASE64_CTX* ctx,uint8*& _out,uint8*& _in){
 	uint32	x;
 	uint8	x2,x3;
 
@@ -398,7 +394,7 @@ bool32 ALG_B64_DeCalc(ALG_BASE64_CTX* ctx,uint8*& _out,uint8*& _in){
 		if (x2 == '='){
 			if (ctx->avail_out < 1){
 				_in -= 4;
-				return BASE64_NOMEM;
+				return IOS_NO_MEM;
 			}
 			*_out++ = (uint8)x;
 			++ ctx->total_out;
@@ -407,7 +403,7 @@ bool32 ALG_B64_DeCalc(ALG_BASE64_CTX* ctx,uint8*& _out,uint8*& _in){
 		else if (x3 == '='){
 			if (ctx->avail_out < 2){
 				_in -= 4;
-				return BASE64_NOMEM;
+				return IOS_NO_MEM;
 			}
 
 			x |= d2[x2];
@@ -419,7 +415,7 @@ bool32 ALG_B64_DeCalc(ALG_BASE64_CTX* ctx,uint8*& _out,uint8*& _in){
 		else{
 			if (ctx->avail_out < 3){
 				_in -= 4;
-				return BASE64_NOMEM;
+				return IOS_NO_MEM;
 			}
 			x |= d2[x2];
 			x |= d3[x3];
@@ -437,11 +433,11 @@ bool32 ALG_B64_DeCalc(ALG_BASE64_CTX* ctx,uint8*& _out,uint8*& _in){
 		-- ctx->avail_in;
 		++ _in;
 	}
-	return BASE64_OK;
-}
+	return IOS_OK;
+};
 //------------------------------------------------------------------------------------------//
-bool32 ALG_B64_DeUpdate(ALG_BASE64_CTX* ctx,uint8* _out,const uint64& outSize,const uint8* data,const uint64& length){
-	bool32	err = BASE64_OK;
+IOSE ALG_B64_DeUpdate(ALG_BASE64_CTX* ctx,uint8* _out,const uint64& outSize,const uint8* data,const uint64& length){
+	IOSE	rcode = IOS_OK;
 	uint64	total_in,avail_in;
 	uint8*	buf = ctx->buf;
 	
@@ -461,21 +457,21 @@ bool32 ALG_B64_DeUpdate(ALG_BASE64_CTX* ctx,uint8* _out,const uint64& outSize,co
 			total_in = ctx->total_in;
 			avail_in = ctx->avail_in;
 			ctx->avail_in = 4;
-			err = ALG_B64_DeCalc(ctx, ctx->next_out, buf);
+			rcode = ALG_B64_DeCalc(ctx, ctx->next_out, buf);
 			ctx->total_in = total_in;
 			ctx->avail_in = avail_in;
-			if (err == BASE64_NOMEM){
+			if (rcode == IOS_NO_MEM){
 				ctx->unDoNum = 4;
-				return BASE64_NOMEM;
+				return IOS_NO_MEM;
 			}
 			break;
 		}
 	};
 	if (ctx->avail_in == 0)
-		return BASE64_OK;
+		return IOS_OK;
 	
 	if (ctx->avail_in > 3)
-		err = ALG_B64_DeCalc(ctx, ctx->next_out, ctx->next_in);
+		rcode = ALG_B64_DeCalc(ctx, ctx->next_out, ctx->next_in);
 	ctx->unDoNum = 0;
 	switch(ctx->avail_in){
 		case 0:;
@@ -507,11 +503,11 @@ bool32 ALG_B64_DeUpdate(ALG_BASE64_CTX* ctx,uint8* _out,const uint64& outSize,co
 	}
 	ctx->total_in += ctx->unDoNum;
 	ctx->avail_in -= ctx->unDoNum;
-	return(err);
-}
+	return(rcode);
+};
 //------------------------------------------------------------------------------------------//
-bool32 ALG_B64_DeFinal(ALG_BASE64_CTX* ctx,uint8* _out,const uint64& outSize){
-	bool32 err = BASE64_OK;
+IOSE ALG_B64_DeFinal(ALG_BASE64_CTX* ctx,uint8* _out,const uint64& outSize){
+	IOSE	rcode = IOS_OK;
 	uint64	total_in;
 	uint8*	buf = ctx->buf;
 	
@@ -526,30 +522,30 @@ bool32 ALG_B64_DeFinal(ALG_BASE64_CTX* ctx,uint8* _out,const uint64& outSize){
 			ctx->unDoNum = 0;
 			total_in = ctx->total_in;
 			ctx->avail_in = 4;
-			err = ALG_B64_DeCalc(ctx, ctx->next_out, buf);
+			rcode = ALG_B64_DeCalc(ctx, ctx->next_out, buf);
 			ctx->total_in = total_in;
 			ctx->avail_in = 0;
-			if (err == BASE64_NOMEM){
+			if (rcode == IOS_NO_MEM){
 				ctx->unDoNum = 4;
-				return BASE64_NOMEM;
+				return IOS_NO_MEM;
 			}
 			break;
 		}
 	};
-	return BASE64_FINISH;
+	return IOS_FINISH;
 };
 //------------------------------------------------------------------------------------------//
-bool32 ALG_B64_Update(ALG_BASE64_CTX* ctx,uint8* _out,const uint64& outSize,const uint8* data,const uint64& length){
+IOSE ALG_B64_Update(ALG_BASE64_CTX* ctx,uint8* _out,const uint64& outSize,const uint8* data,const uint64& length){
 	if (B_ChkFLAG32(ctx->cfg, ALG_BASE64::CFG_Encode))
 		return(ALG_B64_EnUpdate(ctx, _out, outSize, data, length));
 	return(ALG_B64_DeUpdate(ctx, _out, outSize, data, length));
-}
+};
 //------------------------------------------------------------------------------------------//
-bool32 ALG_B64_Final(ALG_BASE64_CTX* ctx,uint8* _out,const uint64& outSize){
+IOSE ALG_B64_Final(ALG_BASE64_CTX* ctx,uint8* _out,const uint64& outSize){
 	if (B_ChkFLAG32(ctx->cfg, ALG_BASE64::CFG_Encode))
 		return(ALG_B64_EnFinal(ctx, _out, outSize));
 	return(ALG_B64_DeFinal(ctx, _out, outSize));
-}
+};
 //------------------------------------------------------------------------------------------//
 static inline void ALG_B64_Init(void* ctx,uint32 cfg,const void* p){
 	ALG_B64_Init((ALG_BASE64_CTX*)ctx,cfg);
@@ -557,28 +553,28 @@ static inline void ALG_B64_Init(void* ctx,uint32 cfg,const void* p){
 		 << (B_ChkFLAG32(((ALG_BASE64_CTX*)ctx)->cfg, ALG_BASE64::CFG_Encode) ? "Encode" : "Decode"));
 };
 //------------------------------------------------------------------------------------------//
-static inline bool32 ALG_B64_Update(void* ctx,uint8* _out,const uint64& outSize,const uint8* data,const uint64& length){
+static inline IOSE ALG_B64_Update(void* ctx,uint8* _out,const uint64& outSize,const uint8* data,const uint64& length){
 	ELog(((ALG_BASE64_CTX*)ctx)->dstf << "Update(): "
 		 << (B_ChkFLAG32(((ALG_BASE64_CTX*)ctx)->cfg, ALG_BASE64::CFG_Encode) ? "Encode" : "Decode") << "    ,len=" << length);
 	return(ALG_B64_Update((ALG_BASE64_CTX*)ctx, _out, outSize, data, length));
-}
+};
 //------------------------------------------------------------------------------------------//
-static inline bool32 ALG_B64_Final(void* ctx,uint8* _out,const uint64& outSize,const uint8* data,const uint64& length){
+static inline IOSE ALG_B64_Final(void* ctx,uint8* _out,const uint64& outSize,const uint8* data,const uint64& length){
 	ELog(((ALG_BASE64_CTX*)ctx)->dstf << "Final():  "
 		 << (B_ChkFLAG32(((ALG_BASE64_CTX*)ctx)->cfg, ALG_BASE64::CFG_Encode) ? "Encode" : "Decode"));
 	return(ALG_B64_Final((ALG_BASE64_CTX*)ctx,_out,outSize));
 };
 //------------------------------------------------------------------------------------------//
-static inline bool32 ALG_B64_Release(void* ctx){
+static inline IOSE ALG_B64_Release(void* ctx){
 	ELog(((ALG_BASE64_CTX*)ctx)->dstf << "Release()");
 	ALG_B64_Release((ALG_BASE64_CTX*)ctx);
-	return G_TRUE;
+	return IOS_OK;
 };
 //------------------------------------------------------------------------------------------//
-static inline bool32 ALG_B64_ReInit(void* ctx){
+static inline IOSE ALG_B64_ReInit(void* ctx){
 	ELog(((ALG_AES_CTX*)ctx)->dstf << "ReInit()");
 	ALG_B64_ReInit((ALG_BASE64_CTX*)ctx);
-	return G_TRUE;
+	return IOS_OK;
 };
 //------------------------------------------------------------------------------------------//
 ALG_BASE64::ALG_BASE64(void) : DSTF_DIR(){
@@ -588,10 +584,10 @@ ALG_BASE64::ALG_BASE64(void) : DSTF_DIR(){
 	cgCTX.Release	= ALG_B64_Release;
 	cgCTX.ReInit	= ALG_B64_ReInit;
 	TNFP::SetSelfName("B64");
-}
+};
 //------------------------------------------------------------------------------------------//
 ALG_BASE64::~ALG_BASE64(void){
 	ALG_B64_Release(&cgCTX);
-}
+};
 //------------------------------------------------------------------------------------------//
 #endif

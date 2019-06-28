@@ -54,7 +54,7 @@ BOOL CMainFrame::CreateDockingWindows(){
 		TRACE0("Failed to create Properties window\n");
 		return FALSE; // failed to create
 	}
-	if (!m_wndCacl.Create(_T("Calculator"), this, CRect(0, 145, 300, 145 + 494), TRUE, ID_VIEW_CACLVIEW
+	if (!m_wndCalc.Create(_T("Calculator"), this, CRect(0, 145, 300, 145 + 494), TRUE, ID_VIEW_CALCVIEW
 		, WS_CHILD | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | CBRS_LEFT |CBRS_FLOAT_MULTI)){
 		TRACE0("Failed to create Properties window\n");
 		return FALSE; // failed to create
@@ -79,8 +79,8 @@ BOOL CMainFrame::CreateDockingWindows(){
 	m_wndSend.EnableDocking(CBRS_ALIGN_ANY);
 	DockPane(&m_wndSend);
 
-	m_wndCacl.EnableDocking(CBRS_ALIGN_ANY);
-	DockPane(&m_wndCacl);
+	m_wndCalc.EnableDocking(CBRS_ALIGN_ANY);
+	DockPane(&m_wndCalc);
 
 	CDockablePane *pTabbedBar2 = NULL;
 	m_wndGC.AttachToTabWnd(&m_wndSC, DM_SHOW, TRUE, &pTabbedBar2);
@@ -91,8 +91,8 @@ BOOL CMainFrame::CreateDockingWindows(){
 	m_wndSend.ShowPane(FALSE,FALSE,TRUE);
 
 	CDockablePane *pTabbedBar3 = NULL;
-	m_wndCacl.AttachToTabWnd(&m_wndSC, DM_SHOW, TRUE, &pTabbedBar3);
-	m_wndCacl.ShowPane(FALSE,FALSE,TRUE);
+	m_wndCalc.AttachToTabWnd(&m_wndSC, DM_SHOW, TRUE, &pTabbedBar3);
+	m_wndCalc.ShowPane(FALSE,FALSE,TRUE);
 
 	m_wndGC.ShowPane(FALSE,FALSE,TRUE);
 
@@ -197,8 +197,8 @@ void CMainFrame::SetDockingWindowIcons(BOOL bHiColorIcons){
 	m_wndSend.SetIcon(hSendViewBarIcon, FALSE);
 	UpdateMDITabbedBarsIcons();
 
-	HICON hCaclViewBarIcon = (HICON) ::LoadImage(::AfxGetResourceHandle(), MAKEINTRESOURCE(bHiColorIcons ? IDI_CACL : IDI_CACL), IMAGE_ICON, ::GetSystemMetrics(SM_CXSMICON), ::GetSystemMetrics(SM_CYSMICON), 0);
-	m_wndCacl.SetIcon(hCaclViewBarIcon, FALSE);
+	HICON hCalcViewBarIcon = (HICON) ::LoadImage(::AfxGetResourceHandle(), MAKEINTRESOURCE(bHiColorIcons ? IDI_CALC : IDI_CALC), IMAGE_ICON, ::GetSystemMetrics(SM_CXSMICON), ::GetSystemMetrics(SM_CYSMICON), 0);
+	m_wndCalc.SetIcon(hCalcViewBarIcon, FALSE);
 	UpdateMDITabbedBarsIcons();
 }
 //------------------------------------------------------------------------------------------//

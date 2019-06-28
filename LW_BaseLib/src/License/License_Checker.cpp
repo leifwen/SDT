@@ -7,6 +7,7 @@
 //
 
 #include "stdafx.h"
+//------------------------------------------------------------------------------------------//
 #include "License_Checker.h"
 #ifdef License_Checker_h
 //------------------------------------------------------------------------------------------//
@@ -32,7 +33,7 @@ static LINENSE_Content& CHK_GetLinense(void){
 static uint8& CHK_GetOverTime(void){
 	static	uint8	sgOverTime = 0;
 	return (sgOverTime);
-}
+};
 //------------------------------------------------------------------------------------------//
 void CHK_CheckerInit(void){
 #ifdef PatchCode_h
@@ -43,7 +44,7 @@ void CHK_CheckerInit(void){
 	
 	tLS.Decode(&CHK_GetLinense(),IUD_FILE(PATCHCODE::GetFNLic()));
 #endif
-}
+};
 //------------------------------------------------------------------------------------------//
 void CHK_CheckerInitClear(void){
 #ifdef PatchCode_h
@@ -52,7 +53,7 @@ void CHK_CheckerInitClear(void){
 	CHK_GetLinense().FillZero();
 	PATCHCODE::LoadPatchCode().Release();
 #endif
-}
+};
 //------------------------------------------------------------------------------------------//
 bool32 CHK_CheckTime(void){
 #ifdef PatchCode_h
@@ -79,11 +80,11 @@ bool32 CHK_CheckTime(void){
 #else
 	return G_TRUE;
 #endif
-}
+};
 //------------------------------------------------------------------------------------------//
 void CHK_GetCurrentTime(DTIME* cCTime){
 	cCTime->Now();
-}
+};
 //------------------------------------------------------------------------------------------//
 static void CHK_GetRATime(DTIME* cRTime,DTIME* cATime){
 #ifdef PatchCode_h
@@ -97,7 +98,7 @@ static void CHK_GetRATime(DTIME* cRTime,DTIME* cATime){
 	PATCHCODE::GetTime(cRTime);
 #endif
 	cATime->EncodeTimeABS(0, 3, 0, 0);
-}
+};
 //------------------------------------------------------------------------------------------//
 static bool32 CHK_CheckATime(void){
 #ifdef PatchCode_h
@@ -125,7 +126,7 @@ static bool32 CHK_CheckATime(void){
 	}
 #endif
 	return G_TRUE;
-}
+};
 //------------------------------------------------------------------------------------------//
 static bool32 CHK_CheckBTime(void){
 #ifdef PatchCode_h
@@ -153,11 +154,15 @@ static bool32 CHK_CheckBTime(void){
 	}
 #endif
 	return G_TRUE;
-}
+};
 //------------------------------------------------------------------------------------------//
 bool32 CHK_GetSMC(STDSTR* smc,uint32 codeNo){
+#ifdef PatchCode_h
 	return(DecryptSMC(smc,&CHK_GetLinense(),codeNo));
-}
+#else
+	return G_FALSE;
+#endif
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 static const double CHK_PI = 3.1415926;
@@ -187,7 +192,7 @@ static long double CHK_erf(long double x,uint32 maxN){
 	
 	ret = 2 * ret / sqrtl(CHK_PI);
 	return(ret);
-}
+};
 //------------------------------------------------------------------------------------------//
 static long double CHK_Gaussian(long double x,long double u,long double b){
 	uint32		n;
@@ -219,7 +224,7 @@ static long double CHK_Gaussian(long double x,long double u,long double b){
 	ret = 0.5 + ret / sqrtl(CHK_PI);
 	
 	return(ret);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 #endif /* License_Checker_h */

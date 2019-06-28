@@ -7,6 +7,7 @@
 //
 
 #include "stdafx.h"
+//------------------------------------------------------------------------------------------//
 #include "PatchCode.h"
 #include "SystemInfo.h"
 #ifdef PatchCode_h
@@ -33,7 +34,7 @@ namespace PCNS {
 };
 //------------------------------------------------------------------------------------------//
 PATCHCODE::PATCHCODE(void) : PNF_BLOCK(){
-	Add(pn_PatchTime) < pn_FNLic < pn_RSA_Bin < pn_RSA_Admin < pn_SMCList < pn_Len;
+	AppendDown(pn_PatchTime) < pn_FNLic < pn_RSA_Bin < pn_RSA_Admin < pn_SMCList < pn_Len;
 	
 	InitSize(PatchCodeSize);
 	
@@ -54,7 +55,7 @@ PATCHCODE::PATCHCODE(void) : PNF_BLOCK(){
 //------------------------------------------------------------------------------------------//
 PATCHCODE::~PATCHCODE(void){
 	Release();
-}
+};
 //------------------------------------------------------------------------------------------//
 void PATCHCODE::Release(void){
 	if (cgRSA_Admin != nullptr)
@@ -65,15 +66,15 @@ void PATCHCODE::Release(void){
 	cgRSA_Bin = nullptr;
 	CRYPTO_cleanup_all_ex_data();
 	ClrSFlag(PC_blGet);
-}
+};
 //------------------------------------------------------------------------------------------//
 bool32 PATCHCODE::IsReady(void){
 	return (CheckSFlag(PC_blGet));
-}
+};
 //------------------------------------------------------------------------------------------//
 bool32 PATCHCODE::AddPatchCode(STDSTR* retMsg,const STDSTR& fileName){
 	bool32		err;
-	STDSTR		smcInfo,smcList,strStatus,strTime;
+	STDSTR		smcInfo,smcList,strStatus,strKey;
 	DTIME 		patchTime;
 	RSA			*rsa_admin,*rsa_bin;
 	ALG_SHA1	sha1;
@@ -122,28 +123,30 @@ bool32 PATCHCODE::AddPatchCode(STDSTR* retMsg,const STDSTR& fileName){
 			strStatus += "BIN code replace successful.\n";
 			
 			cgArray.Reset();
-			strTime = Str_DecToHex((uint64)patchTime.Now().GetSec());
-			pn_FNLic.InitCFG(DSTF::CFG_INIT_WR_CFGPAR | ALG_AES::CFG_AES128 | ALG_AES::CFG_AES_CFB8, &strTime);
-			_Begin(nullptr);
+			strKey = Str_DecToHex((uint64)patchTime.Now().GetSec());
+			pn_FNLic.InitCFG(DSTF::CFG_INIT_WR_CFGPAR | ALG_AES::CFG_AES128 | ALG_AES::CFG_AES_CFB8, &strKey);
 			
-			pn_PatchTime = strTime;
+			_Begin(nullptr);
+			pn_PatchTime = strKey;
 			pn_FNLic	 = IUD("License.key");
 			pn_RSA_Bin	 = ALG_RSA_Encode_Prk (_EMPTY(&smcInfo),rsa_bin);
 			pn_RSA_Admin = ALG_RSA_Encode_Puk (_EMPTY(&smcInfo),rsa_admin);
-			_Endl();
+			_Endl(nullptr);
 			
-			sha1.InitCFG() << Startup(nullptr,_NONE()) << IUD_FILE(fileName) << IUD(cgArray) << Finish();
-			sha1.GetResult(nullptr, _EMPTY(&smcInfo));
+			sha1._SetIOS(nullptr);
+			sha1._SetOut(_NONE());
+			sha1.InitCFG() << IUD_FILE(fileName) << cgArray << Endl();
+			sha1.GetResult(nullptr, _EMPTY(&strKey));
 			
 			aes256
 			.InitSize(1024)
-			.InitCFG(ALG_AES::CFG_Encrypt | ALG_AES::CFG_AES256 | ALG_AES::CFG_AES_CFB8,&smcInfo)
+			.InitCFG(ALG_AES::CFG_Encrypt | ALG_AES::CFG_AES256 | ALG_AES::CFG_AES_CFB8,&strKey)
 			.AllIn(nullptr,_EMPTY(&smcInfo),smcList);
 			
 			pn_SMCList.InitCFG(CFG_INIT_WR_PAR,rsa_admin) = smcInfo;
 			
 			pn_Len = cgArray.Used() + 2;
-			Save(nullptr, OUD_FILEADD(fileName), IUD(cgArray));
+			Save(nullptr, OUD_FILEApp(fileName), cgArray);
 			
 			strStatus += "Patch to BIN ";
 			strStatus += Str_ToStr(cgArray.Used());
@@ -158,7 +161,7 @@ bool32 PATCHCODE::AddPatchCode(STDSTR* retMsg,const STDSTR& fileName){
 	if (retMsg != nullptr)
 		*retMsg = strStatus;
 	return(err);
-}
+};
 //------------------------------------------------------------------------------------------//
 PATCHCODE& PATCHCODE::LoadPatchCode(void){
 	static	PATCHCODE	sgPatchCode;
@@ -215,19 +218,19 @@ PATCHCODE& PATCHCODE::LoadPatchCode(void){
 		}
 	}
 	return(sgPatchCode);
-}
+};
 //------------------------------------------------------------------------------------------//
 const STDSTR& PATCHCODE::GetSMCList(STDSTR* smcList){
 	if (LoadPatchCode().IsReady())
 		LoadPatchCode().pn_SMCList.AllOut(nullptr,smcList);
 	return(*smcList);
-}
+};
 //------------------------------------------------------------------------------------------//
 const STDSTR& PATCHCODE::GetHash(STDSTR* hash){
 	if (LoadPatchCode().IsReady())
 		*hash += LoadPatchCode().cgCalcHash;
 	return(*hash);
-}
+};
 //------------------------------------------------------------------------------------------//
 const DTIME& PATCHCODE::GetTime(DTIME* patchTime){
 	STDSTR	strContent;
@@ -240,7 +243,7 @@ const DTIME& PATCHCODE::GetTime(DTIME* patchTime){
 		*patchTime = 0;
 	}
 	return(*patchTime);
-}
+};
 //------------------------------------------------------------------------------------------//
 const STDSTR PATCHCODE::GetFNLic(void){
 	STDSTR	fileName = "";
@@ -251,11 +254,11 @@ const STDSTR PATCHCODE::GetFNLic(void){
 		LoadPatchCode().pn_FNLic.Read(nullptr, _EMPTY(&fileName));
 	}
 	return(fileName);
-}
+};
 //------------------------------------------------------------------------------------------//
 RSA* PATCHCODE::GetRSA_Bin(void){
 	return (LoadPatchCode().cgRSA_Bin);
-}
+};
 //------------------------------------------------------------------------------------------//
 RSA* PATCHCODE::GetRSA_Admin(void){
 	STDSTR	strContent;
@@ -270,7 +273,7 @@ RSA* PATCHCODE::GetRSA_Admin(void){
 		}
 	}
 	return(LoadPatchCode().cgRSA_Admin);
-}
+};
 //------------------------------------------------------------------------------------------//
 
 
@@ -284,7 +287,7 @@ RSA* PATCHCODE::GetRSA_Admin(void){
 
 //------------------------------------------------------------------------------------------//
 REG_Content::REG_Content(void) : PNF_BLOCK(){
-	Add(pn_RSA_Bin) < pn_SMCList < pn_MKEY < pn_Hash;
+	AppendDown(pn_RSA_Bin) < pn_SMCList < pn_MKEY < pn_Hash;
 	
 	InitSize(PatchCodeSize);
 	PNF_BLOCK::InitPN	(&cgArray,&cgArray);
@@ -301,7 +304,7 @@ void REG_Content::FillZero(void){
 //------------------------------------------------------------------------------------------//
 ARRAY* REG_Content::DataIn(void){
 	return(&cgArray);
-}
+};
 //------------------------------------------------------------------------------------------//
 ARRAY* REG_Content::Write(const RSA* rsa_bin,const STDSTR& smcList,const STDSTR& mKey,const STDSTR& hash){
 	STDSTR	strContent;
@@ -314,7 +317,7 @@ ARRAY* REG_Content::Write(const RSA* rsa_bin,const STDSTR& smcList,const STDSTR&
 	pn_MKEY		= mKey;
 	pn_Hash		= hash;
 	
-	_Endl();
+	_Endl(nullptr);
 	return(&cgArray);
 };
 //------------------------------------------------------------------------------------------//
@@ -376,12 +379,12 @@ ARRAY* REG_SIGN::Create(STDSTR* retMsg){
 			break;
 		}
 
-		Write(rsa_admin, IUD(cgRegContent.Write(rsa_bin,smcList,mKey,strHash)));
+		Write(rsa_admin, cgRegContent.Write(rsa_bin,smcList,mKey,strHash));
 	}while(0);
 	if (retMsg != nullptr)
 		*retMsg = strStatus;
 	return(&cgArray);
-}
+};
 //------------------------------------------------------------------------------------------//
 bool32 REG_SIGN::CreateREGFILE(STDSTR* retMsg){
 	STDSTR	strReg,retStatus;
@@ -390,7 +393,7 @@ bool32 REG_SIGN::CreateREGFILE(STDSTR* retMsg){
 	
 	array = Create(&retStatus);
 	if (array->IsEmpty() == G_FALSE){
-		Save(nullptr, OUD_FILEWR("PreRegistration.key"), IUD(array));
+		Save(nullptr, OUD_FILEWR("PreRegistration.key"), array);
 		retStatus += "Create \"PreRegistration.key\" successful.\n";
 		err = G_TRUE;
 	}
@@ -401,7 +404,7 @@ bool32 REG_SIGN::CreateREGFILE(STDSTR* retMsg){
 	if (retMsg != nullptr)
 		*retMsg = retStatus;
 	return(err);
-}
+};
 //------------------------------------------------------------------------------------------//
 bool32 REG_SIGN::Decode(RSA** rsa_bin,STDSTR* retMKey,const UVOut& smcList,const RSA* rsa_admin,const UVIn& _in){
 	if (MAIL_SHA1::Decode(_EMPTY(cgRegContent.DataIn()), rsa_admin, _in)){
@@ -423,7 +426,7 @@ bool32 REG_SIGN::Decode(RSA** rsa_bin,STDSTR* retMKey,const UVOut& smcList,const
 
 //------------------------------------------------------------------------------------------//
 LINENSE_Content::LINENSE_Content(void) : PNF_BLOCK(){
-	Add(pn_RegTime) < pn_ApproveTime < pn_SMCBlock;
+	AppendDown(pn_RegTime) < pn_ApproveTime < pn_SMCBlock;
 	
 	InitSize(PatchCodeSize * 2);
 	PNF_BLOCK::InitPN		(&cgArray,&cgArray);
@@ -439,7 +442,7 @@ void LINENSE_Content::FillZero(void){
 //------------------------------------------------------------------------------------------//
 ARRAY* LINENSE_Content::DataIn(void){
 	return(&cgArray);
-}
+};
 //------------------------------------------------------------------------------------------//
 ARRAY* LINENSE_Content::Write(RSA** rsa_bin,const RSA* rsa_admin,const uint64& approveSeconds,const UVIn& regMsg){
 	REG_SIGN	regSign;
@@ -453,7 +456,7 @@ ARRAY* LINENSE_Content::Write(RSA** rsa_bin,const RSA* rsa_admin,const uint64& a
 
 	if (regSign.Decode(rsa_bin,&mKey,_EMPTY(&smcList.cgArray),rsa_admin,regMsg)){
 		cgArray.Reset();
-		if (smcList.Analysis(0)){
+		if (smcList.Analysis(0) > 0){
 			_Begin(nullptr);
 			
 			pn_RegTime.Write	(nullptr, mKey, Str_DecToHex((uint64)regTime.Now().GetSec()));
@@ -469,25 +472,25 @@ ARRAY* LINENSE_Content::Write(RSA** rsa_bin,const RSA* rsa_admin,const uint64& a
 				smcList.Read(nullptr, _EMPTY(&smc), i);
 				pn_SMCBlock.NewText() << smc;
 			}
-			pn_SMCBlock._Endl();
+			pn_SMCBlock._Endl(nullptr);
 			
-			_Endl();
+			_Endl(nullptr);
 		}
 	}
 	return(&cgArray);
-}
+};
 //------------------------------------------------------------------------------------------//
 bool32 LINENSE_Content::Read(const UVOut& smc,const STDSTR& mKey,uint32 order){
-	if (Analysis(0)){
+	if (Analysis(0) > 0){
 		pn_SMCBlock.InitCFG(DSTF::CFG_INIT_RE_CFGPAR | ALG_AES::CFG_AES128 | ALG_AES::CFG_AES_CFB8, &mKey);
 		return(pn_SMCBlock.Read(nullptr, smc, order));
 	}
 	return G_FALSE;
-}
+};
 //------------------------------------------------------------------------------------------//
 bool32 LINENSE_Content::Read(DTIME* cRTime,DTIME* cATime,const STDSTR& mKey){
 	STDSTR	strTime;
-	if (Analysis(0)){
+	if (Analysis(0) > 0){
 		if (pn_RegTime.Read(nullptr, _EMPTY(&strTime), mKey)){
 			*cRTime = (double)Str_HexToDec(strTime);
 			if (pn_ApproveTime.Read(nullptr, _EMPTY(&strTime), mKey)){
@@ -499,17 +502,17 @@ bool32 LINENSE_Content::Read(DTIME* cRTime,DTIME* cATime,const STDSTR& mKey){
 	*cRTime = 0;
 	*cATime = 0;
 	return G_FALSE;
-}
+};
 //------------------------------------------------------------------------------------------//
 bool32 DecryptSMC(STDSTR* smc,LINENSE_Content* linc,uint32 codeNo){
 	STDSTR	key;
 	return(linc->Read(smc, PCNS::MakeMulitKey(_EMPTY(&key)),codeNo));
-}
+};
 //------------------------------------------------------------------------------------------//
 bool32 DecryptTime(DTIME* cRTime,DTIME* cATime,LINENSE_Content* linc){
 	STDSTR	key;
 	return(linc->Read(cRTime, cATime, PCNS::MakeMulitKey(_EMPTY(&key))));
-}
+};
 //------------------------------------------------------------------------------------------//
 
 
@@ -538,14 +541,14 @@ ARRAY* LINENSE_SIGN::Create(const uint64& approveSeconds,const UVIn& regMsg){
 	if (PCNS::ReadRSA_Admin(&rsa_admin)){
 		array = content.Write(&rsa_bin, rsa_admin, approveSeconds, regMsg);
 		if (array->IsEmpty() == G_FALSE)
-			Write(rsa_bin, IUD(array));
+			Write(rsa_bin, array);
 	}
 	
 	RSA_free(rsa_bin);
 	RSA_free(rsa_admin);
 	CRYPTO_cleanup_all_ex_data();
 	return(&cgArray);
-}
+};
 //------------------------------------------------------------------------------------------//
 bool32 LINENSE_SIGN::Decode(LINENSE_Content* content,const UVIn& _in){
 	STDSTR	mKey;
@@ -560,7 +563,7 @@ bool32 LINENSE_SIGN::Decode(LINENSE_Content* content,const UVIn& _in){
 		}
 	}
 	return G_FALSE;
-}
+};
 //------------------------------------------------------------------------------------------//
 
 
@@ -574,7 +577,7 @@ bool32 LINENSE_SIGN::Decode(LINENSE_Content* content,const UVIn& _in){
 //------------------------------------------------------------------------------------------//
 static inline bool32 PCNS::ReadRSA_Admin(RSA **rsa_admin){
 	return(ALG_RSA_RD_Prk_PEM(rsa_admin, CHK_RSA_S_FN));
-}
+};
 //------------------------------------------------------------------------------------------//
 static bool32 PCNS::BinAnalysis(STDSTR* smcInfo,const STDSTR& fileName){
 	uint8			buffer[1024 * 8];
@@ -673,7 +676,7 @@ static bool32 PCNS::BinReplace(const STDSTR& fileName,STDSTR smcInfo){
 	}
 	fileStream.close();
 	return G_TRUE;
-}
+};
 //------------------------------------------------------------------------------------------//
 static void SMC_DelSMCChars(uint8* data,uint32 num){
 	//SMCEncrypt_Begin-----------------SMCEncrypt_End
@@ -694,7 +697,7 @@ static void SMC_DelSMCChars(uint8* data,uint32 num){
 	*p++ = '\x0C';
 	
 	RAND_bytes(p,0x0C);
-}
+};
 //------------------------------------------------------------------------------------------//
 static bool32 PCNS::CreateSMCList(STDSTR* smcList,const STDSTR& fileName,STDSTR smcInfo){
 	bool32			err = G_FALSE;
@@ -729,12 +732,12 @@ static bool32 PCNS::CreateSMCList(STDSTR* smcList,const STDSTR& fileName,STDSTR 
 		SMC_DelSMCChars(buffer,(uint32)length);
 		smcBlock.NewText() << IUD(buffer,length);
 	}
-	smcBlock._Endl();
+	smcBlock._Endl(nullptr);
 	smcBlock.cgArray.Get(_EMPTY(smcList), -1);
 	
 	fileStream.close();
 	return(err);
-}
+};
 //------------------------------------------------------------------------------------------//
 
 
@@ -755,7 +758,7 @@ static const STDSTR& PCNS::MakeMulitKey(STDSTR* retMKey){
 	strKey = Str_ASCIIToHEX(strHash, G_ESCAPE_OFF) + "&";
  	PCNS::GetMulitKey(&strKey);
 	return(PCNS::FormatKey(retMKey,strKey));
-}
+};
 //------------------------------------------------------------------------------------------//
 static const STDSTR& PCNS::GetMulitKey(STDSTR* retMKey){
 	STDSTR	strKey,strKey2;
@@ -768,7 +771,7 @@ static const STDSTR& PCNS::GetMulitKey(STDSTR* retMKey){
 	strKey = "[" + strKey2 + "]";
 	*retMKey += strKey;
 	return(*retMKey);
-}
+};
 //------------------------------------------------------------------------------------------//
 static const STDSTR& PCNS::FormatKey(STDSTR* retKey,const STDSTR& mKey){
 	STDSTR	dataT,strPDQueue,strRet,fdata1,fdata2,fdata3;
@@ -797,7 +800,7 @@ static const STDSTR& PCNS::FormatKey(STDSTR* retKey,const STDSTR& mKey){
 	
 	*retKey = Str_HEXToASCII(Str_ReadSubItem(&strRet,","));
 	return(*retKey);
-}
+};
 //------------------------------------------------------------------------------------------//
 static STDSTR PCNS::AandB(STDSTR A,const STDSTR& B){
 	STDSTR	ret,sA,sB,_B;
@@ -874,7 +877,7 @@ static void PCNS::FormatString(STDSTR* retStr,const STDSTR& strIn){
 		*retStr += ',';
 	}
 	*retStr += ']';
-}
+};
 //------------------------------------------------------------------------------------------//
 static void PCNS::GetPoland(STDSTR* polandQueue,const STDSTR& expressions){
 	STDSTR		stackT,strExp;
@@ -911,6 +914,6 @@ static void PCNS::GetPoland(STDSTR* polandQueue,const STDSTR& expressions){
 			stackT = dataT + "," + stackT;
 		}
 	}
-}
+};
 //------------------------------------------------------------------------------------------//
 #endif /* PatchCode_h */

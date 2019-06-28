@@ -5,20 +5,23 @@
 //  Created by Leif Wen on 18/01/2018.
 //  Copyright © 2018 Leif Wen. All rights reserved.
 //
+
 #include "stdafx.h"
+//------------------------------------------------------------------------------------------//
 #include "DS_Tree.h"
 #include <sstream>
 #include <iomanip>
+//------------------------------------------------------------------------------------------//
 #ifdef DS_Tree_h
 //------------------------------------------------------------------------------------------//
-std::atomic_uint TNF::cgID_NextNode = ATOMIC_VAR_INIT(0);
+std::atomic_uint TNF::cgNextUniqueID = ATOMIC_VAR_INIT(0);
 //------------------------------------------------------------------------------------------//
-TNF::TREE_NODE_FRAME(void) : BASE_FLAG(){
-	cgID_NextNode ++;
-	nodeID = cgID_NextNode.load();
+TNF::TREE_NODE_FRAME(void) : TREE_FLAG(){
+	cgNextUniqueID ++;
+	cgUniqueID = cgNextUniqueID.load();
 	
-	cgID_NextDRNode = 0;
-	dRNodeID = 0;
+	cgNextDRNodeID = 0;
+	cgDRNodeID = 0;
 	
 	cgHead = this;
 	cgTail = this;
@@ -26,7 +29,7 @@ TNF::TREE_NODE_FRAME(void) : BASE_FLAG(){
 	cgNext = nullptr;
 	cgUp = nullptr;
 	cgDown = nullptr;
-}
+};
 //------------------------------------------------------------------------------------------//
 TNF::~TREE_NODE_FRAME(void){
 	cgHead = this;
@@ -35,12 +38,12 @@ TNF::~TREE_NODE_FRAME(void){
 	cgNext = nullptr;
 	cgUp = nullptr;
 	cgDown = nullptr;
-}
+};
 //------------------------------------------------------------------------------------------//
-STDSTR TNF::GetHEXID(const TNF* tnfNode){
+STDSTR TNF::GetHEXUniqueID(const TNF* tnfNode){
 	std::stringstream tStream;
 	STDSTR	name;
-	tStream << "" << std::setiosflags(std::ios::uppercase) << std::hex << std::setw(4) << std::setfill('0') << GetNodeID(tnfNode);
+	tStream << "" << std::setiosflags(std::ios::uppercase) << std::hex << std::setw(4) << std::setfill('0') << GetUniqueID(tnfNode);
 	tStream >> name;
 	return(name);
 };
@@ -49,8 +52,8 @@ void TNF::UpdateInstert_nolock(TNF* tInsertNode,TNF* tHeadNode,bool32 blUpdatedR
 	TNF *loopNode;
 	
 	if (blUpdatedRNodeID != G_FALSE){
-		tHeadNode->cgID_NextDRNode ++;
-		tInsertNode->dRNodeID.store(tHeadNode->cgID_NextDRNode.load());
+		tHeadNode->cgNextDRNodeID ++;
+		tInsertNode->cgDRNodeID.store(tHeadNode->cgNextDRNodeID.load());
 	}
 	tInsertNode->cgHead = tHeadNode;
 	tInsertNode->cgTail = nullptr;
@@ -59,22 +62,22 @@ void TNF::UpdateInstert_nolock(TNF* tInsertNode,TNF* tHeadNode,bool32 blUpdatedR
 	loopNode = tInsertNode->cgNext;
 	while(loopNode != nullptr){
 		if (blUpdatedRNodeID != G_FALSE){
-			tHeadNode->cgID_NextDRNode ++;
-			loopNode->dRNodeID.store(tHeadNode->cgID_NextDRNode.load());
+			tHeadNode->cgNextDRNodeID ++;
+			loopNode->cgDRNodeID.store(tHeadNode->cgNextDRNodeID.load());
 		}
 		loopNode->cgHead = tHeadNode;
 		loopNode->cgTail = nullptr;
 		loopNode->cgUp = tHeadNode->cgUp;
 		loopNode = loopNode->cgNext;
 	}
-}
+};
 //------------------------------------------------------------------------------------------//
 void TNF::UpdateHead_nolock(TNF* tHeadNode,bool32 blUpdatedRNodeID){
 	TNF *loopNode;
 	
 	if (blUpdatedRNodeID != G_FALSE){
-		tHeadNode->dRNodeID.store(0);
-		tHeadNode->cgID_NextDRNode.store(0);
+		tHeadNode->cgDRNodeID.store(0);
+		tHeadNode->cgNextDRNodeID.store(0);
 	}
 	tHeadNode->cgHead = tHeadNode;
 	tHeadNode->cgTail = tHeadNode;
@@ -83,8 +86,8 @@ void TNF::UpdateHead_nolock(TNF* tHeadNode,bool32 blUpdatedRNodeID){
 	loopNode = tHeadNode->cgNext;
 	while(loopNode != nullptr){
 		if (blUpdatedRNodeID != G_FALSE){
-			tHeadNode->cgID_NextDRNode ++;
-			loopNode->dRNodeID.store(tHeadNode->cgID_NextDRNode.load());
+			tHeadNode->cgNextDRNodeID ++;
+			loopNode->cgDRNodeID.store(tHeadNode->cgNextDRNodeID.load());
 		}
 		loopNode->cgHead = tHeadNode;
 		loopNode->cgTail = nullptr;
@@ -92,16 +95,26 @@ void TNF::UpdateHead_nolock(TNF* tHeadNode,bool32 blUpdatedRNodeID){
 		tHeadNode->cgTail = loopNode;
 		loopNode = loopNode->cgNext;
 	}
-}
+};
 //------------------------------------------------------------------------------------------//
 TNF* TNF::InsertAfter(TNF* tOpNode,TNF* tInsertNode,bool32 blUpdatedRNodeID){
 	TNF* f;
-	f = tOpNode->cgUp;
-	LockChild_set(f);
-	InsertAfter_nolock(tOpNode,tInsertNode,blUpdatedRNodeID);
-	LockChild_clr(f);
+	do{
+		Modify_set(tOpNode);
+		f = tOpNode->cgUp;
+		if (Modify_try(f) == G_FALSE){
+			Modify_clr(tOpNode);
+			continue;
+		}
+		else{
+			Modify_clr(tOpNode);
+			InsertAfter_nolock(tOpNode,tInsertNode,blUpdatedRNodeID);
+			Modify_clr(f);
+		}
+		break;
+	}while(1);
 	return(tOpNode);
-}
+};
 //------------------------------------------------------------------------------------------//
 TNF* TNF::InsertAfter_nolock(TNF* tOpNode,TNF* tInsertNode,bool32 blUpdatedRNodeID){
 	TNF	*head,*endNode,*next;
@@ -127,16 +140,26 @@ TNF* TNF::InsertAfter_nolock(TNF* tOpNode,TNF* tInsertNode,bool32 blUpdatedRNode
 		tOpNode->cgNext = tInsertNode;
 	}while(0);
 	return(tOpNode);
-}
+};
 //------------------------------------------------------------------------------------------//
 TNF* TNF::InsertBefore(TNF* tOpNode,TNF* tInsertNode,bool32 blUpdatedRNodeID){
 	TNF *f;
-	f = tOpNode->cgUp;
-	LockChild_set(f);
-	InsertBefore_nolock(tOpNode,tInsertNode,blUpdatedRNodeID);
-	LockChild_clr(f);
+	do{
+		Modify_set(tOpNode);
+		f = tOpNode->cgUp;
+		if (Modify_try(f) == G_FALSE){
+			Modify_clr(tOpNode);
+			continue;
+		}
+		else{
+			Modify_clr(tOpNode);
+			InsertBefore_nolock(tOpNode,tInsertNode,blUpdatedRNodeID);
+			Modify_clr(f);
+		}
+		break;
+	}while(1);
 	return(tOpNode);
-}
+};
 //------------------------------------------------------------------------------------------//
 TNF* TNF::InsertBefore_nolock(TNF* tOpNode,TNF* tInsertNode,bool32 blUpdatedRNodeID){
 	TNF	*head,*endNode,*prior;
@@ -154,7 +177,7 @@ TNF* TNF::InsertBefore_nolock(TNF* tOpNode,TNF* tInsertNode,bool32 blUpdatedRNod
 			if (tOpNode->cgUp != nullptr)
 				tOpNode->cgUp->cgDown = tInsertNode;
 			tInsertNode->cgUp = tOpNode->cgUp;
-			tInsertNode->cgID_NextDRNode.store(head->cgID_NextDRNode.load());
+			tInsertNode->cgNextDRNodeID.store(head->cgNextDRNodeID.load());
 			tInsertNode->cgTail = head->cgTail;
 			head = tInsertNode;
 		}
@@ -171,20 +194,20 @@ TNF* TNF::InsertBefore_nolock(TNF* tOpNode,TNF* tInsertNode,bool32 blUpdatedRNod
 		}
 	}while(0);
 	return(tOpNode);
-}
+};
 //------------------------------------------------------------------------------------------//
-TNF* TNF::AddSubNode(TNF* tOpNode,TNF* tInsertNode){
+TNF* TNF::InsertDownTail(TNF* tOpNode,TNF* tInsertNode){
 	do{
 		if (tOpNode == nullptr)
 			break;
-		LockChild_set(tOpNode);
-		AddSubNode_nolock(tOpNode,tInsertNode);
-		LockChild_clr(tOpNode);
+		Modify_set(tOpNode);
+		InsertDownTail_nolock(tOpNode,tInsertNode);
+		Modify_clr(tOpNode);
 	}while(0);
 	return(tOpNode);
-}
+};
 //------------------------------------------------------------------------------------------//
-TNF* TNF::AddSubNode_nolock(TNF* tOpNode,TNF* tInsertNode){
+TNF* TNF::InsertDownTail_nolock(TNF* tOpNode,TNF* tInsertNode){
 	do{
 		if ((tOpNode == nullptr) || (tInsertNode == nullptr) || (tOpNode == tInsertNode))
 			break;
@@ -201,24 +224,133 @@ TNF* TNF::AddSubNode_nolock(TNF* tOpNode,TNF* tInsertNode){
 		}
 	}while(0);
 	return(tOpNode);
-}
+};
 //------------------------------------------------------------------------------------------//
-TNF* TNF::Remove(TNF* tFirstNode,TNF* tEndNode,bool32 blUpdatedRNodeID){
+void TNF::MovePrior(TNF* tFirstNode,TNF* tEndNode){
 	TNF *f;
-	f = tFirstNode->cgUp;
-	LockChild_set(f);
-	Remove_nolock(tFirstNode,tEndNode,blUpdatedRNodeID);
-	LockChild_clr(f);
-	return(tFirstNode);
-}
+	do{
+		Modify_set(tFirstNode);
+		f = tFirstNode->cgUp;
+		if (Modify_try(f) == G_FALSE){
+			Modify_clr(tFirstNode);
+			continue;
+		}
+		else{
+			Modify_clr(tFirstNode);
+			MovePrior_nolock(tFirstNode,tEndNode);
+			Modify_clr(f);
+		}
+		break;
+	}while(1);
+};
 //------------------------------------------------------------------------------------------//
-TNF* TNF::Remove_nolock(TNF* tFirstNode,TNF* tEndNode,bool32 blUpdatedRNodeID){
+void TNF::MovePrior_nolock(TNF* tFirstNode,TNF* tEndNode){
+	TNF	*prior;
+	do{
+		if (tFirstNode == nullptr)
+			break;
+		if (tEndNode == nullptr)
+			tEndNode = tFirstNode->cgHead->cgTail;
+		prior = tFirstNode->cgPrior;
+		if (prior == nullptr)
+			break;
+		DetachUpPriorNext_nolock(tFirstNode,tEndNode,G_FALSE);
+		InsertBefore_nolock(prior,tFirstNode,G_FALSE);
+	}while(0);
+};
+//------------------------------------------------------------------------------------------//
+void TNF::MoveNext(TNF* tFirstNode,TNF* tEndNode){
+	TNF *f;
+	do{
+		Modify_set(tFirstNode);
+		f = tFirstNode->cgUp;
+		if (Modify_try(f) == G_FALSE){
+			Modify_clr(tFirstNode);
+			continue;
+		}
+		else{
+			Modify_clr(tFirstNode);
+			MoveNext_nolock(tFirstNode,tEndNode);
+			Modify_clr(f);
+		}
+		break;
+	}while(1);
+};
+//------------------------------------------------------------------------------------------//
+void TNF::MoveNext_nolock(TNF* tFirstNode,TNF* tEndNode){
+	TNF	*next;
+	do{
+		if (tFirstNode == nullptr)
+			break;
+		if (tEndNode == nullptr)
+			tEndNode = tFirstNode->cgHead->cgTail;
+		next = tEndNode->cgNext;
+		if (next == nullptr)
+			break;
+		DetachUpPriorNext_nolock(tFirstNode,tEndNode,G_FALSE);
+		InsertAfter_nolock(next,tFirstNode,G_FALSE);
+	}while(0);
+};
+//------------------------------------------------------------------------------------------//
+void TNF::MoveAfter(TNF* tFirstNode,TNF* tEndNode,TNF* tAfterNode){
+	TNF *f;
+	do{
+		Modify_set(tFirstNode);
+		f = tFirstNode->cgUp;
+		if (Modify_try(f) == G_FALSE){
+			Modify_clr(tFirstNode);
+			continue;
+		}
+		else{
+			Modify_clr(tFirstNode);
+			MoveAfter_nolock(tFirstNode,tEndNode,tAfterNode);
+			Modify_clr(f);
+		}
+		break;
+	}while(1);
+};
+//------------------------------------------------------------------------------------------//
+void TNF::MoveAfter_nolock(TNF* tFirstNode,TNF* tEndNode,TNF* tAfterNode){
+	do{
+		if (tFirstNode == nullptr)
+			break;
+		if (tEndNode == nullptr)
+			tEndNode = tFirstNode->cgHead->cgTail;
+		if (tAfterNode == nullptr)
+			tAfterNode = tFirstNode->cgHead->cgTail;
+		if (tAfterNode == nullptr)
+			break;
+		DetachUpPriorNext_nolock(tFirstNode,tEndNode,G_FALSE);
+		InsertAfter_nolock(tAfterNode,tFirstNode,G_FALSE);
+	}while(0);
+};
+//------------------------------------------------------------------------------------------//
+TNF* TNF::DetachUpPriorNext(TNF* tFirstNode,TNF* tEndNode,bool32 blUpdatedRNodeID){
+	TNF *f;
+	do{
+		Modify_set(tFirstNode);
+		f = tFirstNode->cgUp;
+		if (Modify_try(f) == G_FALSE){
+			Modify_clr(tFirstNode);
+			continue;
+		}
+		else{
+			Modify_clr(tFirstNode);
+			DetachUpPriorNext_nolock(tFirstNode,tEndNode,blUpdatedRNodeID);
+			Modify_clr(f);
+		}
+		break;
+	}while(1);
+	return(tFirstNode);
+};
+//------------------------------------------------------------------------------------------//
+TNF* TNF::DetachUpPriorNext_nolock(TNF* tFirstNode,TNF* tEndNode,bool32 blUpdatedRNodeID){
 	TNF *head,*next,*prior,*upNode;
 	do{
 		if (tFirstNode == nullptr)
 			break;
 		if (tEndNode == nullptr)
-			tEndNode = tFirstNode;
+			tEndNode = tFirstNode->cgHead->cgTail;
 		
 		prior = tFirstNode->cgPrior;
 		if (prior != nullptr){//tFirstNode is not head
@@ -238,7 +370,7 @@ TNF* TNF::Remove_nolock(TNF* tFirstNode,TNF* tEndNode,bool32 blUpdatedRNodeID){
 			if (upNode != nullptr)
 				upNode->cgDown = next;
 			if (next != nullptr){
-				next->cgID_NextDRNode.store(tFirstNode->cgID_NextDRNode.load());
+				next->cgNextDRNodeID.store(tFirstNode->cgNextDRNodeID.load());
 				UpdateHead_nolock(next,G_FALSE);
 			}
 		}
@@ -247,91 +379,22 @@ TNF* TNF::Remove_nolock(TNF* tFirstNode,TNF* tEndNode,bool32 blUpdatedRNodeID){
 		UpdateHead_nolock(tFirstNode,blUpdatedRNodeID);
 	}while(0);
 	return(tFirstNode);
-}
+};
 //------------------------------------------------------------------------------------------//
-void TNF::MoveUp(TNF* tFirstNode,TNF* tEndNode){
-	TNF *f;
-	f = tFirstNode->cgUp;
-	LockChild_set(f);
-	MoveUp_nolock(tFirstNode,tEndNode);
-	LockChild_clr(f);
-}
-//------------------------------------------------------------------------------------------//
-void TNF::MoveUp_nolock(TNF* tFirstNode,TNF* tEndNode){
-	TNF	*prior;
-	do{
-		if (tFirstNode == nullptr)
-			break;
-		if (tEndNode == nullptr)
-			tEndNode = tFirstNode;
-		prior = tFirstNode->cgPrior;
-		if (prior == nullptr)
-			break;
-		Remove_nolock(tFirstNode,tEndNode,G_FALSE);
-		InsertBefore_nolock(prior,tFirstNode,G_FALSE);
-	}while(0);
-}
-//------------------------------------------------------------------------------------------//
-void TNF::MoveDown(TNF* tFirstNode,TNF* tEndNode){
-	TNF *f;
-	f = tFirstNode->cgUp;
-	LockChild_set(f);
-	MoveDown_nolock(tFirstNode,tEndNode);
-	LockChild_clr(f);
-}
-//------------------------------------------------------------------------------------------//
-void TNF::MoveDown_nolock(TNF* tFirstNode,TNF* tEndNode){
-	TNF	*next;
-	do{
-		if (tFirstNode == nullptr)
-			break;
-		if (tEndNode == nullptr)
-			tEndNode = tFirstNode;
-		next = tEndNode->cgNext;
-		if (next == nullptr)
-			break;
-		Remove_nolock(tFirstNode,tEndNode,G_FALSE);
-		InsertAfter_nolock(next,tFirstNode,G_FALSE);
-	}while(0);
-}
-//------------------------------------------------------------------------------------------//
-void TNF::MoveAfter(TNF* tFirstNode,TNF* tEndNode,TNF* tAfterNode){
-	TNF *f;
-	f = tFirstNode->cgUp;
-	LockChild_set(f);
-	MoveAfter_nolock(tFirstNode,tEndNode,tAfterNode);
-	LockChild_clr(f);
-}
-//------------------------------------------------------------------------------------------//
-void TNF::MoveAfter_nolock(TNF* tFirstNode,TNF* tEndNode,TNF* tAfterNode){
-	do{
-		if (tFirstNode == nullptr)
-			break;
-		if (tEndNode == nullptr)
-			tEndNode = tFirstNode;
-		if (tAfterNode == nullptr)
-			tAfterNode = tEndNode->cgNext;
-		if (tAfterNode == nullptr)
-			break;
-		Remove_nolock(tFirstNode,tEndNode,G_FALSE);
-		InsertAfter_nolock(tAfterNode,tFirstNode,G_FALSE);
-	}while(0);
-}
-//------------------------------------------------------------------------------------------//
-TNF* TNF::BreakChild(TNF* tnfNode){
+TNF* TNF::DetachDown(TNF* tnfNode){
 	TNF	*child;
 	child = nullptr;
 	do{
 		if (tnfNode == nullptr)
 			break;
-		LockChild_set(tnfNode);
-		child = BreakChild_nolock(tnfNode);
-		LockChild_clr(tnfNode);
+		Modify_set(tnfNode);
+		child = DetachDown_nolock(tnfNode);
+		Modify_clr(tnfNode);
 	}while(0);
 	return(child);
-}
+};
 //------------------------------------------------------------------------------------------//
-TNF* TNF::BreakChild_nolock(TNF* tnfNode){
+TNF* TNF::DetachDown_nolock(TNF* tnfNode){
 	TNF	*child;
 	child = nullptr;
 	do{
@@ -345,19 +408,29 @@ TNF* TNF::BreakChild_nolock(TNF* tnfNode){
 		UpdateHead_nolock(child,G_TRUE);
 	}while(0);
 	return(child);
-}
+};
 //------------------------------------------------------------------------------------------//
-TNF* TNF::BreakNext(TNF* tnfNode){
+TNF* TNF::DetachNext(TNF* tnfNode){
 	TNF *next;
 	TNF *f;
-	f = tnfNode->cgUp;
-	LockChild_set(f);
-	next = BreakNext_nolock(tnfNode);
-	LockChild_clr(f);
+	do{
+		Modify_set(tnfNode);
+		f = tnfNode->cgUp;
+		if (Modify_try(f) == G_FALSE){
+			Modify_clr(tnfNode);
+			continue;
+		}
+		else{
+			Modify_clr(tnfNode);
+			next = DetachNext_nolock(tnfNode);
+			Modify_clr(f);
+		}
+		break;
+	}while(1);
 	return(next);
-}
+};
 //------------------------------------------------------------------------------------------//
-TNF* TNF::BreakNext_nolock(TNF* tnfNode){
+TNF* TNF::DetachNext_nolock(TNF* tnfNode){
 	TNF	*next;
 	next = nullptr;
 	do{
@@ -366,19 +439,19 @@ TNF* TNF::BreakNext_nolock(TNF* tnfNode){
 		next = tnfNode->cgNext;
 		if (next == nullptr)
 			break;
-		Remove(next,tnfNode->cgHead->cgTail);
+		DetachUpPriorNext_nolock(next,tnfNode->cgHead->cgTail);
 	}while(0);
 	return(next);
-}
+};
 //------------------------------------------------------------------------------------------//
-TNF* TNF::FindInLChildRChainByDRNodeID(TNF* tnNode,uint32 tDRNodeID){
+TNF* TNF::FindInDownChainByDRNodeID(TNF* tnNode,uint32 tDRNodeID){
 	TNF	*ret;
 	ret = nullptr;
 	if (tnNode != nullptr){
-		TREE_LChildRChain_Find(TNF,tnNode,ret,(GetdRNodeID(_opNode) == tDRNodeID));
+		TREE_DownChain_Find(TNF,tnNode,ret,(GetDRNodeID(_opNode) == tDRNodeID));
 	}
 	return(ret);
-}
+};
 //------------------------------------------------------------------------------------------//
 
 
@@ -395,19 +468,17 @@ TNFP::TREE_NODE_FRAME_POOL(void) : TREE_NODE_FRAME(){
 	STDSTR	name;
 	cgTrash = nullptr;
 
-	selfName = "TN" + GetHEXID(this);
+	selfName = "TN" + GetHEXUniqueID(this);
 	fatherName = "";
-}
-//------------------------------------------------------------------------------------------//
-TNFP::~TREE_NODE_FRAME_POOL(void){
-	InUse_set();
-	DestroyTrash();
-	InUse_clr();
 };
 //------------------------------------------------------------------------------------------//
-TNFP* TNFP::SetSubNodeFatherName(TNFP* node){
+TNFP::~TREE_NODE_FRAME_POOL(void){
+	DestroyTrash();
+};
+//------------------------------------------------------------------------------------------//
+TNFP* TNFP::SetNodeUpName(TNFP* node){
 	if (node != nullptr)
-		node->SetFatherName(GetFullName(this));
+		node->SetUpName(GetFullName(this));
 	return(node);
 };
 //------------------------------------------------------------------------------------------//
@@ -416,12 +487,12 @@ void TNFP::DestroyTree(TNF* tnfNode){
 		return;
 	
 	TNF *oNode,*nextNode;
-	
-	Remove(tnfNode,GetTail(GetHead(tnfNode)),G_FALSE);
+
+	DetachUpPriorNext(tnfNode,nullptr,G_FALSE);
 	
 	oNode = tnfNode;
 	do{
-		oNode = GetNext(InsertAfter_nolock(oNode,BreakChild_nolock(oNode),G_FALSE));
+		oNode = GetNext(InsertAfter_nolock(oNode,DetachDown_nolock(oNode),G_FALSE));
 	}while(oNode != nullptr);
 	
 	oNode = tnfNode;
@@ -430,16 +501,16 @@ void TNFP::DestroyTree(TNF* tnfNode){
 		delete oNode;
 		oNode = nextNode;
 	}while(oNode != nullptr);
-}
+};
 //------------------------------------------------------------------------------------------//
-void TNFP::DestroySubTree(TNF* tnfNode){
+void TNFP::DestroyDownNextTree(TNF* tnfNode){
 	if (tnfNode == nullptr)
 		return;
 	
 	TNF *child,*next;
 	
-	child = BreakChild(tnfNode);
-	next = BreakNext(tnfNode);
+	child = DetachDown(tnfNode);
+	next = DetachNext(tnfNode);
 
 	if (next != nullptr){
 		InsertAfter_nolock(next,child,G_FALSE);
@@ -448,13 +519,13 @@ void TNFP::DestroySubTree(TNF* tnfNode){
 		next = child;
 	}
 	DestroyTree(next);
-}
+};
 //------------------------------------------------------------------------------------------//
 void TNFP::MoveNodesToTrash(TNFP* trashOwner,TNF* tFirstNode,TNF* tEndNode){
 	if (tFirstNode == nullptr)
 		return;
 	
-	Remove(tFirstNode,tEndNode);
+	DetachUpPriorNext(tFirstNode,tEndNode);
 	if (trashOwner == nullptr){
 		DestroyTree(tFirstNode);
 	}
@@ -462,112 +533,28 @@ void TNFP::MoveNodesToTrash(TNFP* trashOwner,TNF* tFirstNode,TNF* tEndNode){
 		DestroyTree(tFirstNode);
 	}
 	else{
-		AddSubNode(trashOwner->GetTrash(),tFirstNode);
+		InsertDownTail(trashOwner->GetTrash(),tFirstNode);
 	}
-}
-//------------------------------------------------------------------------------------------//
-TNF* TNFP::GetNewNode(void){
-	TNF* nNode;
-	if (GetTrash() == nullptr)
-		return(CreateNode());
-	nNode = GetDown(GetTrash());
-	if (nNode == nullptr)
-		return(CreateNode());
-	return(CleanChild(this,Remove(GetTail(nNode))));
-}
-//------------------------------------------------------------------------------------------//
-
-
-
-
-
-
-
-
-
-
-//------------------------------------------------------------------------------------------//
-TREE_NODE::TREE_NODE(void) : TNFP(){
-	cgCNType = CN_None;
-	cgCoupleNode = nullptr;
-	Enable();
 };
 //------------------------------------------------------------------------------------------//
-void TREE_NODE::LinkCoupleNode_nolock(TREE_NODE* slaveNode){
-	if ((slaveNode != nullptr) && (slaveNode != this)){
-		slaveNode->cgCoupleNode = this;
-		slaveNode->cgCNType = CN_S;
-		cgCoupleNode = slaveNode;
-		cgCNType = CN_M;
+TNF* TNFP::GetNewNode(void){
+	TNF* nNode,*tNode;
+	tNode = GetTrash();
+	if (tNode == nullptr){
+		nNode = CreateNode();
 	}
 	else{
-		cgCoupleNode = nullptr;
-		cgCNType = CN_None;
+		Modify_set(tNode);
+		nNode = GetDown(tNode);
+		if (nNode == nullptr){
+			nNode = CreateNode();
+		}
+		else{
+			nNode = CleanDownTree(this,DetachUpPriorNext_nolock(GetTail(nNode),GetTail(nNode)));
+		}
+		Modify_clr(tNode);
 	}
-}
-//------------------------------------------------------------------------------------------//
-void TREE_NODE::LinkCoupleNode(TREE_NODE* slaveNode){
-	if ((slaveNode == nullptr) || (slaveNode == this))
-		return;
-	
-	do{
-		InUse_set();
-		if (cgCoupleNode != nullptr){
-			if (cgCoupleNode->InUse_try() == G_FALSE){
-				InUse_clr();
-				continue;
-			}
-			cgCoupleNode->cgCoupleNode = nullptr;
-			cgCoupleNode->cgCNType = CN_None;
-			cgCoupleNode->InUse_clr();
-			cgCoupleNode = nullptr;
-			cgCNType = CN_None;
-		}
-		if (slaveNode->InUse_try() == G_FALSE){
-			InUse_clr();
-			continue;
-		}
-		if (slaveNode->cgCoupleNode != nullptr){
-			if (slaveNode->cgCoupleNode->InUse_try() == G_FALSE){
-				slaveNode->InUse_clr();
-				InUse_clr();
-				continue;
-			}
-			slaveNode->cgCoupleNode->cgCoupleNode = nullptr;
-			slaveNode->cgCoupleNode->cgCNType = CN_None;
-			slaveNode->cgCoupleNode->InUse_clr();
-		}
-		slaveNode->cgCoupleNode = this;
-		slaveNode->cgCNType = CN_S;
-		cgCoupleNode = slaveNode;
-		cgCNType = CN_M;
-		
-		slaveNode->InUse_clr();
-		InUse_clr();
-		break;
-	}while(1);
-}
-//------------------------------------------------------------------------------------------//
-TREE_NODE* TREE_NODE::UnlinkCoupleNode(void){
-	TREE_NODE *retCPNode = nullptr;
-	do{
-		InUse_set();
-		if (cgCoupleNode != nullptr){
-			if (cgCoupleNode->InUse_try() == G_FALSE){
-				InUse_clr();
-				continue;
-			}
-			retCPNode = cgCoupleNode;
-			cgCoupleNode->cgCoupleNode = nullptr;
-			cgCoupleNode->cgCNType = CN_None;
-			cgCoupleNode->InUse_clr();
-			cgCoupleNode = nullptr;
-			cgCNType = CN_None;
-		}
-		InUse_clr();
-		break;
-	}while(1);
-	return(retCPNode);
-}
+	return(nNode);
+};
 //------------------------------------------------------------------------------------------//
 #endif

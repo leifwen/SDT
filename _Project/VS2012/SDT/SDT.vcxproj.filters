@@ -227,12 +227,6 @@
     <ClInclude Include="..\..\..\LW_BaseLib\inc\Communication\Commu_ComEnum.h">
       <Filter>_LWBaseLib\inc\Communication</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\LW_BaseLib\inc\Communication\Commu_DBuf.h">
-      <Filter>_LWBaseLib\inc\Communication</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\LW_BaseLib\inc\Communication\Commu_DBuf.hpp">
-      <Filter>_LWBaseLib\inc\Communication</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\LW_BaseLib\inc\Communication\Commu_NTPServer.h">
       <Filter>_LWBaseLib\inc\Communication</Filter>
     </ClInclude>
@@ -548,9 +542,6 @@
     <ClInclude Include="..\..\..\LW_BaseLib\inc\Communication\Commu_RST.h">
       <Filter>_LWBaseLib\inc\Communication</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\LW_BaseLib\inc\Communication\Commu_Socket.hpp">
-      <Filter>_LWBaseLib\inc\Communication</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\LW_BaseLib\inc\Communication\Commu_Terminal.h">
       <Filter>_LWBaseLib\inc\Communication</Filter>
     </ClInclude>
@@ -571,6 +562,30 @@
     </ClInclude>
     <ClInclude Include="..\..\..\LW_BaseLib\inc\Algorithm\ALG_Math.h">
       <Filter>_LWBaseLib\inc\Algorithm</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\DataStructure\DS_Bitmap.h">
+      <Filter>_LWBaseLib\inc\DataStructure</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\DataStructure\DS_Lock.hpp">
+      <Filter>_LWBaseLib\inc\DataStructure</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Communication\Commu_Base.h">
+      <Filter>_LWBaseLib\inc\Communication</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Communication\Commu_Base.hpp">
+      <Filter>_LWBaseLib\inc\Communication</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Communication\Commu_SSL.h">
+      <Filter>_LWBaseLib\inc\Communication</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Communication\Commu_SSL.hpp">
+      <Filter>_LWBaseLib\inc\Communication</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Device\CMUX_UIH.h">
+      <Filter>_LWBaseLib\inc\Device</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\LW_BaseLib\inc\Communication\MSG\MSG_Files.h">
+      <Filter>_LWBaseLib\inc\Communication\MSG</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -611,9 +626,6 @@
       <Filter>_LWBaseLib\src\Communication</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\LW_BaseLib\src\Communication\Commu_ComEnum.cpp">
-      <Filter>_LWBaseLib\src\Communication</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\LW_BaseLib\src\Communication\Commu_DBuf.cpp">
       <Filter>_LWBaseLib\src\Communication</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\LW_BaseLib\src\Communication\Commu_NTPServer.cpp">
@@ -849,6 +861,27 @@
     </ClCompile>
     <ClCompile Include="..\..\..\LW_BaseLib\src\Algorithm\ALG_Math.cpp">
       <Filter>_LWBaseLib\src\Algorithm</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\LW_BaseLib\src\DataStructure\DS_Bitmap.cpp">
+      <Filter>_LWBaseLib\src\DataStructure</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Communication\Commu_Base.cpp">
+      <Filter>_LWBaseLib\src\Communication</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Communication\Commu_Socket.cpp">
+      <Filter>_LWBaseLib\src\Communication</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Communication\Commu_SSL.cpp">
+      <Filter>_LWBaseLib\src\Communication</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Communication\Commu_Terminal.cpp">
+      <Filter>_LWBaseLib\src\Communication</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Device\CMUX_UIH.cpp">
+      <Filter>_LWBaseLib\src\Device</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\LW_BaseLib\src\Communication\MSG\MSG_Files.cpp">
+      <Filter>_LWBaseLib\src\Communication\MSG</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

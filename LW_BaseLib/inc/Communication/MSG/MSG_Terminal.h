@@ -21,17 +21,20 @@ class MSG_Terminal : public MSG_NODE{
 				,TER_blCloseTerminalY = RFLAG_CREATE(2)
 		};
 	public:
-				 MSG_Terminal(uint32 size,void* p);
+				 MSG_Terminal(void);
 		virtual ~MSG_Terminal(void){;};
 	private:
 		SYS_Thread<MSG_Terminal>	BICThread;
 	private:
-				bool32	BICThreadOnStop				(void* commu);
-				bool32	BICThreadFun				(void* commu);
-		virtual	CMDID	MessageProcessing			(CMD_ENV* env,const uint32& mID,const STDSTR& msg,void* commu);
+		virtual	CMDID	MessageProcessing			(CMD_ENV* env,const uint32& mID,const STDSTR& msg,void* _team);
+				bool32	BICThreadOnStop				(void* _team);
+				bool32	BICThreadFun				(void* _team);
 	public:
-		virtual	void	Reset						(void* commu);
-		virtual	void	Close						(void* commu);
+		virtual	void	SetSelfName					(const STDSTR& strName);
+		virtual	void	SetUpName					(const STDSTR& strName);
+		virtual	void	Reset						(void* _team);
+		virtual	void	Close						(void* _team);
+	public:
 				bool32	Send_REQ_SetupTerminal		(CMD_ENV* env);
 				bool32	Send_REQ_CloseTerminal		(CMD_ENV* env);
 				bool32	CheckTerminalClosed			(void);

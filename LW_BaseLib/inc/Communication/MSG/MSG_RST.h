@@ -10,16 +10,17 @@
 #include "MSG_RMS.h"
 #include "MSG_Terminal.h"
 #include "MSG_Register.h"
+#include "MSG_Files.h"
 #ifdef MSG_Center_h
 //------------------------------------------------------------------------------------------//
 #ifndef MSG_RST_h
 #define MSG_RST_h
 #ifdef MSG_RST_h
 //------------------------------------------------------------------------------------------//
-class MSG_RST : public MSG_NODE{
+class MSG_RSTerminal : public MSG_NODE{
 	public:
-				 MSG_RST(uint32 size,void* p);
-		virtual ~MSG_RST(void){;};
+				 MSG_RSTerminal(void);
+		virtual ~MSG_RSTerminal(void){;};
 	public:
 #ifdef MSG_RMS_h
 		MSG_RMS			cgMsgRMS;
@@ -29,6 +30,9 @@ class MSG_RST : public MSG_NODE{
 #endif
 #ifdef MSG_Register_h
 		MSG_Rerister	cgMsgRegister;
+#endif
+#ifdef MSG_Files_h
+		MSG_Files		cgMsgFiles;
 #endif
 };
 //------------------------------------------------------------------------------------------//

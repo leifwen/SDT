@@ -50,7 +50,7 @@ void CPaneCEdit::OnLButtonDblClk(UINT nFlags, CPoint point){
 
 
 //------------------------------------------------------------------------------------------//
-BEGIN_MESSAGE_MAP(CCaclViewDP, CDockablePane)
+BEGIN_MESSAGE_MAP(CCalcViewDP, CDockablePane)
 	ON_WM_CREATE()
 	ON_WM_SIZE()
 	ON_WM_CONTEXTMENU()
@@ -58,7 +58,7 @@ BEGIN_MESSAGE_MAP(CCaclViewDP, CDockablePane)
 	ON_WM_PAINT()
 END_MESSAGE_MAP()
 //------------------------------------------------------------------------------------------//
-int CCaclViewDP::OnCreate(LPCREATESTRUCT lpCreateStruct){
+int CCalcViewDP::OnCreate(LPCREATESTRUCT lpCreateStruct){
 	if (CDockablePane::OnCreate(lpCreateStruct) == -1)
 		return -1;
 
@@ -73,7 +73,7 @@ int CCaclViewDP::OnCreate(LPCREATESTRUCT lpCreateStruct){
 	return 0;
 }
 //------------------------------------------------------------------------------------------//
-void CCaclViewDP::AdjustLayout(void){
+void CCalcViewDP::AdjustLayout(void){
 	if (GetSafeHwnd() == NULL)
 		return;
 
@@ -82,16 +82,16 @@ void CCaclViewDP::AdjustLayout(void){
 	m_cView.SetWindowPos(NULL, rectT.left + 1, rectT.top + 1, rectT.Width() - 2, rectT.Height() - 2, SWP_NOACTIVATE | SWP_NOZORDER);
 }
 //------------------------------------------------------------------------------------------//
-void CCaclViewDP::OnSize(UINT nType, int cx, int cy){
+void CCalcViewDP::OnSize(UINT nType, int cx, int cy){
 	CDockablePane::OnSize(nType, cx, cy);
 	AdjustLayout();
 }
 //------------------------------------------------------------------------------------------//
-void CCaclViewDP::OnSetFocus(CWnd* pOldWnd){
+void CCalcViewDP::OnSetFocus(CWnd* pOldWnd){
 	CDockablePane::OnSetFocus(pOldWnd);
 }
 //------------------------------------------------------------------------------------------//
-void CCaclViewDP::OnPaint(void){
+void CCalcViewDP::OnPaint(void){
 	CPaintDC dc(this); // device context for painting
 
 	CRect rectTree;
@@ -102,7 +102,7 @@ void CCaclViewDP::OnPaint(void){
 	dc.Draw3dRect(rectTree, ::GetSysColor(COLOR_3DSHADOW), ::GetSysColor(COLOR_3DSHADOW));
 }
 //------------------------------------------------------------------------------------------//
-void CCaclViewDP::OnContextMenu(CWnd* pWnd, CPoint point){
+void CCalcViewDP::OnContextMenu(CWnd* pWnd, CPoint point){
 }
 //------------------------------------------------------------------------------------------//
 
@@ -116,23 +116,23 @@ void CCaclViewDP::OnContextMenu(CWnd* pWnd, CPoint point){
 
 
 //------------------------------------------------------------------------------------------/
-IMPLEMENT_DYNCREATE(CCaclPaneView, CView)
+IMPLEMENT_DYNCREATE(CCalcPaneView, CView)
 //------------------------------------------------------------------------------------------/
-BEGIN_MESSAGE_MAP(CCaclPaneView, CView)
+BEGIN_MESSAGE_MAP(CCalcPaneView, CView)
 	ON_WM_CREATE()
 	ON_WM_SIZE()
 	ON_WM_MOUSEACTIVATE()
-	ON_COMMAND(ID_CACLBOX_HEX, 		&CCaclPaneView::OnHex)
-	ON_COMMAND(ID_CACLBOX_ESCAPE, 	&CCaclPaneView::OnEscape)
-	ON_COMMAND(ID_CACLBOX_LENGTH, 	&CCaclPaneView::OnLength)
-	ON_COMMAND(ID_CACLBOX_H2A, 		&CCaclPaneView::OnH2A)
-	ON_COMMAND(ID_CACLBOX_A2H, 		&CCaclPaneView::OnA2H)
-	ON_COMMAND(ID_CACLBOX_XOR, 		&CCaclPaneView::OnXor)
-	ON_COMMAND(ID_CACLBOX_OSP, 		&CCaclPaneView::OnOsp)
-	ON_COMMAND(ID_CACLBOX_CACL, 	&CCaclPaneView::OnCacl)
+	ON_COMMAND(ID_CALCBOX_HEX, 		&CCalcPaneView::OnHex)
+	ON_COMMAND(ID_CALCBOX_ESCAPE, 	&CCalcPaneView::OnEscape)
+	ON_COMMAND(ID_CALCBOX_LENGTH, 	&CCalcPaneView::OnLength)
+	ON_COMMAND(ID_CALCBOX_H2A, 		&CCalcPaneView::OnH2A)
+	ON_COMMAND(ID_CALCBOX_A2H, 		&CCalcPaneView::OnA2H)
+	ON_COMMAND(ID_CALCBOX_XOR, 		&CCalcPaneView::OnXor)
+	ON_COMMAND(ID_CALCBOX_OSP, 		&CCalcPaneView::OnOsp)
+	ON_COMMAND(ID_CALCBOX_CALC, 	&CCalcPaneView::OnCalc)
 END_MESSAGE_MAP()
 //------------------------------------------------------------------------------------------//
-CCaclPaneView::CCaclPaneView(void) : CView(){
+CCalcPaneView::CCalcPaneView(void) : CView(){
 	m_ButtonFont.CreateFont
 		(13							// nHeight
 		,0							// nWidth
@@ -150,30 +150,30 @@ CCaclPaneView::CCaclPaneView(void) : CView(){
 		,_T("Tahoma"));//Courier New
 }
 //------------------------------------------------------------------------------------------//
-void CCaclPaneView::PostNcDestroy(void){   
+void CCalcPaneView::PostNcDestroy(void){   
 // CView::PostNcDestroy(); 
 }
 //------------------------------------------------------------------------------------------//
-int CCaclPaneView::OnMouseActivate(CWnd* pDesktopWnd, UINT nHitTest, UINT message){
+int CCalcPaneView::OnMouseActivate(CWnd* pDesktopWnd, UINT nHitTest, UINT message){
 	return 0;
 }
 //------------------------------------------------------------------------------------------//
-BOOL CCaclPaneView::PreCreateWindow(CREATESTRUCT& cs){
+BOOL CCalcPaneView::PreCreateWindow(CREATESTRUCT& cs){
 	// TODO: Modify the Window class or styles here by modifying
 	//  the CREATESTRUCT cs
 	return CView::PreCreateWindow(cs);
 }
 //------------------------------------------------------------------------------------------//
 #ifdef _DEBUG
-void CCaclPaneView::AssertValid() const{
+void CCalcPaneView::AssertValid() const{
 	CView::AssertValid();
 }
-void CCaclPaneView::Dump(CDumpContext& dc) const{
+void CCalcPaneView::Dump(CDumpContext& dc) const{
 	CView::Dump(dc);
 }
 #endif //_DEBUG
 //------------------------------------------------------------------------------------------//
-BOOL CCaclPaneView::PreTranslateMessage(MSG* pMsg){
+BOOL CCalcPaneView::PreTranslateMessage(MSG* pMsg){
 	if (pMsg->message == WM_KEYDOWN){
 		UINT  nCode = pMsg->wParam;
 		if ((nCode == _T('A') || nCode == _T('C') || nCode == _T('X') || nCode == _T('V') || nCode == _T('Z'))
@@ -186,14 +186,14 @@ BOOL CCaclPaneView::PreTranslateMessage(MSG* pMsg){
 			&& !(::GetKeyState(VK_CONTROL) & 0x8000)
 			&& !(::GetKeyState(VK_SHIFT) & 0x8000)
 			&& !(::GetKeyState(VK_MENU) & 0x8000)){
-			OnCacl();
+			OnCalc();
 			return TRUE;
 		}
 	}
 	return(CView::PreTranslateMessage(pMsg));
 }
 //------------------------------------------------------------------------------------------//
-void CCaclPaneView::OnDraw(CDC* pDC){
+void CCalcPaneView::OnDraw(CDC* pDC){
 	CRect rectTree;
 
 	m_cEdit.GetWindowRect(rectTree);
@@ -203,12 +203,12 @@ void CCaclPaneView::OnDraw(CDC* pDC){
 	pDC->Draw3dRect(rectTree, ::GetSysColor(COLOR_3DSHADOW), ::GetSysColor(COLOR_3DSHADOW));
 }
 //------------------------------------------------------------------------------------------//
-void CCaclPaneView::OnSize(UINT nType, int cx, int cy){
+void CCalcPaneView::OnSize(UINT nType, int cx, int cy){
 	CView::OnSize(nType, cx, cy);
 	AdjustLayout();
 }
 //------------------------------------------------------------------------------------------//
-int CCaclPaneView::OnCreate(LPCREATESTRUCT lpCreateStruct){
+int CCalcPaneView::OnCreate(LPCREATESTRUCT lpCreateStruct){
 	if (CView::OnCreate(lpCreateStruct) == -1)
 		return -1;
 	if (CreateEdit() == -1)
@@ -218,7 +218,7 @@ int CCaclPaneView::OnCreate(LPCREATESTRUCT lpCreateStruct){
 	return 0;
 }
 //------------------------------------------------------------------------------------------//
-int CCaclPaneView::CreateEdit(void){
+int CCalcPaneView::CreateEdit(void){
 	CRect rectDummy;
 	rectDummy.SetRectEmpty();
 	if (!m_cEdit.Create(ES_MULTILINE|ES_AUTOVSCROLL|WS_CHILD|WS_VISIBLE|WS_VSCROLL, rectDummy, this, 0)){
@@ -230,35 +230,35 @@ int CCaclPaneView::CreateEdit(void){
 		TRACE0("Failed to create file view\n");
 		return -1;      // fail to create
 	}
-	if (!m_CheckBoxHex.Create(_T("Hex"),WS_CHILD|WS_VISIBLE|BS_CHECKBOX, rectDummy, this, ID_CACLBOX_HEX)){
+	if (!m_CheckBoxHex.Create(_T("Hex"),WS_CHILD|WS_VISIBLE|BS_CHECKBOX, rectDummy, this, ID_CALCBOX_HEX)){
 		TRACE0("Failed to create file view\n");
 		return -1;      // fail to create
 	}
-	if (!m_CheckBoxEscape.Create(_T("EnEscape"),WS_CHILD|WS_VISIBLE|BS_CHECKBOX, rectDummy, this, ID_CACLBOX_ESCAPE)){
+	if (!m_CheckBoxEscape.Create(_T("EnEscape"),WS_CHILD|WS_VISIBLE|BS_CHECKBOX, rectDummy, this, ID_CALCBOX_ESCAPE)){
 		TRACE0("Failed to create file view\n");
 		return -1;      // fail to create
 	}
-	if (!m_RadioLength.Create(_T("Input Char Length"),WS_CHILD|WS_VISIBLE|BS_RADIOBUTTON, rectDummy, this, ID_CACLBOX_LENGTH)){
+	if (!m_RadioLength.Create(_T("Input Char Length"),WS_CHILD|WS_VISIBLE|BS_RADIOBUTTON, rectDummy, this, ID_CALCBOX_LENGTH)){
 		TRACE0("Failed to create file view\n");
 		return -1;      // fail to create
 	}
-	if (!m_RadioH2A.Create(_T("HEX To ASCII"),WS_CHILD|WS_VISIBLE|BS_RADIOBUTTON, rectDummy, this, ID_CACLBOX_H2A)){
+	if (!m_RadioH2A.Create(_T("HEX To ASCII"),WS_CHILD|WS_VISIBLE|BS_RADIOBUTTON, rectDummy, this, ID_CALCBOX_H2A)){
 		TRACE0("Failed to create file view\n");
 		return -1;      // fail to create
 	}
-	if (!m_RadioA2H.Create(_T("ASCII To HEX"),WS_CHILD|WS_VISIBLE|BS_RADIOBUTTON, rectDummy, this, ID_CACLBOX_A2H)){
+	if (!m_RadioA2H.Create(_T("ASCII To HEX"),WS_CHILD|WS_VISIBLE|BS_RADIOBUTTON, rectDummy, this, ID_CALCBOX_A2H)){
 		TRACE0("Failed to create file view\n");
 		return -1;      // fail to create
 	}
-	if (!m_RadioXor.Create(_T("XOR Checksum (NMEA)"),WS_CHILD|WS_VISIBLE|BS_RADIOBUTTON, rectDummy, this, ID_CACLBOX_XOR)){
+	if (!m_RadioXor.Create(_T("XOR Checksum (NMEA)"),WS_CHILD|WS_VISIBLE|BS_RADIOBUTTON, rectDummy, this, ID_CALCBOX_XOR)){
 		TRACE0("Failed to create file view\n");
 		return -1;      // fail to create
 	}
-	if (!m_RadioOSP.Create(_T("Sirf OSP Checksum"),WS_CHILD|WS_VISIBLE|BS_RADIOBUTTON, rectDummy, this, ID_CACLBOX_OSP)){
+	if (!m_RadioOSP.Create(_T("Sirf OSP Checksum"),WS_CHILD|WS_VISIBLE|BS_RADIOBUTTON, rectDummy, this, ID_CALCBOX_OSP)){
 		TRACE0("Failed to create file view\n");
 		return -1;      // fail to create
 	}
-	if (!m_ButtonCacl.Create(_T("Cacl"),WS_CHILD|WS_VISIBLE|BS_PUSHBUTTON, rectDummy, this, ID_CACLBOX_CACL)){
+	if (!m_ButtonCalc.Create(_T("Calc"),WS_CHILD|WS_VISIBLE|BS_PUSHBUTTON, rectDummy, this, ID_CALCBOX_CALC)){
 		TRACE0("Failed to create file view\n");
 		return -1;      // fail to create
 	}
@@ -273,12 +273,12 @@ int CCaclPaneView::CreateEdit(void){
 	m_RadioXor.SetFont(&m_ButtonFont);
 	m_RadioOSP.SetFont(&m_ButtonFont);
 	m_RadioXor.SetFont(&m_ButtonFont);
-	m_ButtonCacl.SetFont(&m_ButtonFont);
+	m_ButtonCalc.SetFont(&m_ButtonFont);
 	m_cEdit.SetFont(&m_ButtonFont);
 	return 0;
 }
 //------------------------------------------------------------------------------------------//
-void CCaclPaneView::AdjustLayout(void){
+void CCalcPaneView::AdjustLayout(void){
 	CRect rectClient,rectGroupS,rectGroupT;
 	GetClientRect(rectClient);
 
@@ -332,22 +332,22 @@ void CCaclPaneView::AdjustLayout(void){
 	rectGroupT.right -= 10;
 	rectGroupT.top += 40;
 	rectGroupT.bottom -= 10;
-	m_ButtonCacl.SetWindowPos(NULL, rectGroupT.left, rectGroupT.top, rectGroupT.Width(), rectGroupT.Height(), SWP_NOACTIVATE | SWP_NOZORDER);
+	m_ButtonCalc.SetWindowPos(NULL, rectGroupT.left, rectGroupT.top, rectGroupT.Width(), rectGroupT.Height(), SWP_NOACTIVATE | SWP_NOZORDER);
 }
 //------------------------------------------------------------------------------------------//
-void CCaclPaneView::OnHex(void){
+void CCalcPaneView::OnHex(void){
 	m_CheckBoxHex.SetCheck(!m_CheckBoxHex.GetCheck());
 	if (m_CheckBoxHex.GetCheck())
 		m_CheckBoxEscape.SetCheck(FALSE);
 }
 //------------------------------------------------------------------------------------------//
-void CCaclPaneView::OnEscape(void){
+void CCalcPaneView::OnEscape(void){
 	m_CheckBoxEscape.SetCheck(!m_CheckBoxEscape.GetCheck());
 	if (m_CheckBoxEscape.GetCheck())
 		m_CheckBoxHex.SetCheck(FALSE);
 }
 //------------------------------------------------------------------------------------------//
-void CCaclPaneView::OnLength(void){
+void CCalcPaneView::OnLength(void){
 	m_RadioLength.SetCheck(TRUE);
 	m_RadioH2A.SetCheck(FALSE);
 	m_RadioA2H.SetCheck(FALSE);
@@ -357,7 +357,7 @@ void CCaclPaneView::OnLength(void){
 	m_CheckBoxEscape.EnableWindow(TRUE);
 }
 //------------------------------------------------------------------------------------------//
-void CCaclPaneView::OnH2A(void){
+void CCalcPaneView::OnH2A(void){
 	m_RadioLength.SetCheck(FALSE);
 	m_RadioH2A.SetCheck(TRUE);
 	m_RadioA2H.SetCheck(FALSE);
@@ -369,7 +369,7 @@ void CCaclPaneView::OnH2A(void){
 	m_CheckBoxEscape.EnableWindow(FALSE);
 }
 //------------------------------------------------------------------------------------------//
-void CCaclPaneView::OnA2H(void){
+void CCalcPaneView::OnA2H(void){
 	m_RadioLength.SetCheck(FALSE);
 	m_RadioH2A.SetCheck(FALSE);
 	m_RadioA2H.SetCheck(TRUE);
@@ -379,7 +379,7 @@ void CCaclPaneView::OnA2H(void){
 	m_CheckBoxEscape.EnableWindow(TRUE);
 }
 //------------------------------------------------------------------------------------------//
-void CCaclPaneView::OnXor(void){
+void CCalcPaneView::OnXor(void){
 	m_RadioLength.SetCheck(FALSE);
 	m_RadioH2A.SetCheck(FALSE);
 	m_RadioA2H.SetCheck(FALSE);
@@ -390,7 +390,7 @@ void CCaclPaneView::OnXor(void){
 	m_CheckBoxEscape.SetCheck(FALSE);
 }
 //------------------------------------------------------------------------------------------//
-void CCaclPaneView::OnOsp(void){
+void CCalcPaneView::OnOsp(void){
 	m_RadioLength.SetCheck(FALSE);
 	m_RadioH2A.SetCheck(FALSE);
 	m_RadioA2H.SetCheck(FALSE);
@@ -402,7 +402,7 @@ void CCaclPaneView::OnOsp(void){
 	m_CheckBoxEscape.SetCheck(FALSE);
 }
 //------------------------------------------------------------------------------------------//
-void CCaclPaneView::OnCacl(void){
+void CCalcPaneView::OnCalc(void){
 	CString			cResult;
 	std::wstring	wstrText;
 	std::string		strResult, strOutput;
@@ -420,11 +420,11 @@ void CCaclPaneView::OnCacl(void){
 		if (m_CheckBoxHex.GetCheck())
 			strResult = Str_HEXToASCII(strResult);
 		cstdout->Write(nullptr,COL_clMaroon, IUD("XOR checksum = "));
-		cstdout->Write(nullptr, COL_clBlue, CaclNMEAChecksum(strResult));
+		cstdout->Write(nullptr, COL_clBlue, CalcNMEAChecksum(strResult));
 	}
 	else if (m_RadioOSP.GetCheck()){
 		cstdout->Write(nullptr, COL_clMaroon, IUD("SiRf Checksum = "));
-		cstdout->Write(nullptr, COL_clBlue, CaclSiRfChecksum(strResult));
+		cstdout->Write(nullptr, COL_clBlue, CalcSiRfChecksum(strResult));
 	}
 	else if (m_RadioA2H.GetCheck()){
 		if (m_CheckBoxHex.GetCheck()){
@@ -442,10 +442,10 @@ void CCaclPaneView::OnCacl(void){
 	}
 	else if (m_RadioLength.GetCheck()){
 		if (m_CheckBoxHex.GetCheck()){
-			strResult = Str_ToStr(CaclHEXLength(strResult));
+			strResult = Str_ToStr(CalcHEXLength(strResult));
 		}
 		else{
-			strResult = Str_ToStr(CaclASCIILength(strResult));
+			strResult = Str_ToStr(CalcASCIILength(strResult));
 		}
 		cstdout->Write(nullptr, COL_clMaroon, IUD("Input Character Length = "));
 		cstdout->Write(nullptr, COL_clBlue, strResult);
@@ -458,7 +458,7 @@ void CCaclPaneView::OnCacl(void){
 	cstdout->ToHome();
 }
 //------------------------------------------------------------------------------------------//
-std::string CCaclPaneView::CaclNMEAChecksum(const std::string &strInput){
+std::string CCalcPaneView::CalcNMEAChecksum(const std::string &strInput){
 	uint8		result,temp;
 	uint32		length;
 	ARRAY 		class_FIFO;
@@ -472,7 +472,7 @@ std::string CCaclPaneView::CaclNMEAChecksum(const std::string &strInput){
 	return(Str_CharToHEX(&result,1,G_SPACE_OFF));
 }
 //------------------------------------------------------------------------------------------//
-std::string CCaclPaneView::CaclSiRfChecksum(const std::string &strInput){
+std::string CCalcPaneView::CalcSiRfChecksum(const std::string &strInput){
 	uint32		result;
 	uint32		length;
 	ARRAY 		class_FIFO;
@@ -491,7 +491,7 @@ std::string CCaclPaneView::CaclSiRfChecksum(const std::string &strInput){
 	return(Str_CharToHEX(retChar, 2, G_SPACE_OFF));
 }
 //------------------------------------------------------------------------------------------//
-uint32 CCaclPaneView::CaclHEXLength(const std::string &strInput){
+uint32 CCalcPaneView::CalcHEXLength(const std::string &strInput){
 	uint32		length;
 	ARRAY		class_FIFO;
 
@@ -501,7 +501,7 @@ uint32 CCaclPaneView::CaclHEXLength(const std::string &strInput){
 	return(class_FIFO.Used());
 }
 //------------------------------------------------------------------------------------------//
-uint32 CCaclPaneView::CaclASCIILength(const std::string &strInput){
+uint32 CCalcPaneView::CalcASCIILength(const std::string &strInput){
 	uint32		length;
 	ARRAY 		class_FIFO;
 

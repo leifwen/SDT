@@ -6,6 +6,7 @@
 //  Copyright © 2018 Leif Wen. All rights reserved.
 //
 
+//------------------------------------------------------------------------------------------//
 #ifndef ADS_Crypto_hpp
 #define ADS_Crypto_hpp
 //------------------------------------------------------------------------------------------//
@@ -18,20 +19,20 @@ template <typename T_DIR> PNFSC_DIR<T_DIR>::PNFSC_DIR(void) : PNF_SC(){
 	cgDIR_R.InitSize(DSTF_ARRAY_SIZE);
 	PNF_SC::SetSelfName("PNFSC");
 	cgDIR_W.SetSelfName("DSTFW:" + cgDIR_W.selfName);
-	cgDIR_R.SetSelfName("DSTF1:" + cgDIR_R.selfName);
-	SetFatherName("");
+	cgDIR_R.SetSelfName("DSTFR:" + cgDIR_R.selfName);
+	SetUpName("");
 };
 //------------------------------------------------------------------------------------------//
 template <typename T_DIR> inline void PNFSC_DIR<T_DIR>::SetSelfName(const STDSTR& strName){
 	selfName = strName;
-	cgDIR_W.SetFatherName(GetFullName(this));
-	cgDIR_R.SetFatherName(GetFullName(this));
+	cgDIR_W.SetUpName(GetFullName(this));
+	cgDIR_R.SetUpName(GetFullName(this));
 };
 //------------------------------------------------------------------------------------------//
-template <typename T_DIR> inline void PNFSC_DIR<T_DIR>::SetFatherName(const STDSTR& strName){
+template <typename T_DIR> inline void PNFSC_DIR<T_DIR>::SetUpName(const STDSTR& strName){
 	fatherName = strName;
-	cgDIR_W.SetFatherName(GetFullName(this));
-	cgDIR_R.SetFatherName(GetFullName(this));
+	cgDIR_W.SetUpName(GetFullName(this));
+	cgDIR_R.SetUpName(GetFullName(this));
 };
 //------------------------------------------------------------------------------------------//
 template <typename T_DIR> inline PNFSC_DIR<T_DIR>& PNFSC_DIR<T_DIR>::InitCFG(uint32 cfg,const void* par){
@@ -43,7 +44,7 @@ template <typename T_DIR> inline PNFSC_DIR<T_DIR>& PNFSC_DIR<T_DIR>::InitCFG(uin
 };
 //------------------------------------------------------------------------------------------//
 template <typename T_DIR>
-ioss PNFSC_DIR<T_DIR>::DoTransform(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length){
+IOSE PNFSC_DIR<T_DIR>::DoTransform(IOS* _ios,const UVOut& _out,const uint8* data,const uint64& length){
 	if (_out.uvid == UVID_SELF){
 		return(PNF_SC::DoTransform(_ios,_out,data,length));
 	}
@@ -52,23 +53,27 @@ ioss PNFSC_DIR<T_DIR>::DoTransform(IOSTATUS* _ios,const UVOut& _out,const uint8*
 	}
 };
 //------------------------------------------------------------------------------------------//
-template <typename T_DIR> ioss PNFSC_DIR<T_DIR>::DoFinal(IOSTATUS* _ios,const UVOut& _out){
-	cgDIR_W.Final(_ios,OUD(this));
-	return(PNF_SC::DoFinal(_ios,_out));
+template <typename T_DIR> IOSE PNFSC_DIR<T_DIR>::DoFinal(IOS* _ios,const UVOut& _out){
+	IOSE rcode = IOS_FINISH;
+	IOS_update(&rcode,cgDIR_W.Final(_ios,OUD(this)));
+	IOS_update(&rcode,PNF_SC::DoFinal(_ios,_out));
+	return(rcode);
 };
 //------------------------------------------------------------------------------------------//
-template <typename T_DIR> inline ioss PNFSC_DIR<T_DIR>::_Begin(IOSTATUS* _ios){
+template <typename T_DIR> inline IOSE PNFSC_DIR<T_DIR>::_Begin(IOS* _ios){
 	return(PNF_SC::_Begin(_ios));
 };
 //------------------------------------------------------------------------------------------//
-template <typename T_DIR> ioss PNFSC_DIR<T_DIR>::Read(IOSTATUS* _ios,const UVOut& _out){
-	PNF_SC::Read(_ios, OUD(&cgDIR_R,_out));
-	return(cgDIR_R.Final(_ios,_out));
+template <typename T_DIR> IOSE PNFSC_DIR<T_DIR>::Read(IOS* _ios,const UVOut& _out){
+	IOSE rcode = IOS_OK;
+	IOS_update(&rcode,PNF_SC::Read(_ios, OUD(&cgDIR_R,_out)));
+	IOS_update(&rcode,cgDIR_R.Final(_ios,_out));
+	return(rcode);
 };
 //------------------------------------------------------------------------------------------//
 template <typename T_DIR>
 inline const PNFSC_DIR<T_DIR>& PNFSC_DIR<T_DIR>::operator =	(const UVIn& _in){
-	Write(nullptr, _in);
+	Write(cgStartup.ios, _in);
 	return(*this);
 };
 //------------------------------------------------------------------------------------------//
@@ -94,23 +99,23 @@ template <typename T_DIGEST> PNFS_MAIL<T_DIGEST>::PNFS_MAIL(void) : PNFB_SHELL()
 	cgSKey = " ";
 
 	TNFP::SetSelfName("PNFS_MAIL");
-	SetFatherName("");
+	SetUpName("");
 };
 //------------------------------------------------------------------------------------------//
 template <typename T_DIGEST> inline void PNFS_MAIL<T_DIGEST>::SetSelfName(const STDSTR& strName){
 	selfName = strName;
-	cgDigestW.SetFatherName(GetFullName(this));
-	cgDigestR.SetFatherName(GetFullName(this));
-	pnml_Text.SetFatherName(GetFullName(this));
-	pnml_KeyDigest.SetFatherName(GetFullName(this));
+	cgDigestW.SetUpName(GetFullName(this));
+	cgDigestR.SetUpName(GetFullName(this));
+	pnml_Text.SetUpName(GetFullName(this));
+	pnml_KeyDigest.SetUpName(GetFullName(this));
 };
 //------------------------------------------------------------------------------------------//
-template <typename T_DIGEST> inline void PNFS_MAIL<T_DIGEST>::SetFatherName(const STDSTR& strName){
+template <typename T_DIGEST> inline void PNFS_MAIL<T_DIGEST>::SetUpName(const STDSTR& strName){
 	fatherName = strName;
-	cgDigestW.SetFatherName(GetFullName(this));
-	cgDigestR.SetFatherName(GetFullName(this));
-	pnml_Text.SetFatherName(GetFullName(this));
-	pnml_KeyDigest.SetFatherName(GetFullName(this));
+	cgDigestW.SetUpName(GetFullName(this));
+	cgDigestR.SetUpName(GetFullName(this));
+	pnml_Text.SetUpName(GetFullName(this));
+	pnml_KeyDigest.SetUpName(GetFullName(this));
 };
 //------------------------------------------------------------------------------------------//
 template <typename T_DIGEST> void PNFS_MAIL<T_DIGEST>::InitPN(const ARRAY* _out,const ARRAY* _in){
@@ -134,43 +139,47 @@ template <typename T_DIGEST> inline PNFS_MAIL<T_DIGEST>& PNFS_MAIL<T_DIGEST>::In
 	return(*this);
 };
 //------------------------------------------------------------------------------------------//
-template <typename T_DIGEST> ioss PNFS_MAIL<T_DIGEST>::_Begin(IOSTATUS* _ios){
+template <typename T_DIGEST> IOSE PNFS_MAIL<T_DIGEST>::_Begin(IOS* _ios){
+	IOSE	rcode = IOS_OK;
 	cgDigestW.InitCFG();
 	cgSKey = ALG_CreateRandKey(32);
 
-	PNFB_SHELL::_Begin(_ios);
+	IOS_update(&rcode, PNFB_SHELL::_Begin(_ios));
 	pnml_Text.InitCFG(CFG_INIT_WR_PAR,&cgSKey);
-	return(pnml_Text._Begin(_ios));
+	IOS_update(&rcode, pnml_Text._Begin(_ios));
+	return(rcode);
 };
 //------------------------------------------------------------------------------------------//
-template <typename T_DIGEST> ioss PNFS_MAIL<T_DIGEST>::_Endl(void){
+template <typename T_DIGEST> IOSE PNFS_MAIL<T_DIGEST>::_Endl(IOS* _ios){
+	IOSE	rcode = IOS_OK;
 	STDSTR	strContent;
 	uint64	num = 0;
 
-	pnml_Text._Endl();
+	IOS_update(&rcode,pnml_Text._Endl(_ios));
 	
 	cgDigestW.Final(nullptr,_NONE());
 	cgDigestW.GetResult(nullptr,&cgSKey);
 	if (cgStartup.ios != nullptr)
 		num = cgStartup.ios->total_in;
 
-	pnml_KeyDigest.Write(cgStartup.ios,ALG_RSA_Encrypt_Puk(_EMPTY(&strContent),cgRSApuk,cgSKey));
+	IOS_update(&rcode,pnml_KeyDigest.Write(cgStartup.ios,ALG_RSA_Encrypt_Puk(_EMPTY(&strContent),cgRSApuk,cgSKey)));
 	
 	if (cgStartup.ios != nullptr)
 		cgStartup.ios->total_in = num;
 
-	return(PNFB_SHELL::_Endl());
+	IOS_update(&rcode,PNFB_SHELL::_Endl(_ios));
+	return(rcode);
 };
 //------------------------------------------------------------------------------------------//
 template <typename T_DIGEST>
-ioss PNFS_MAIL<T_DIGEST>::DoTransform(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length){
-	ioss iossta;
-	iossta = pnml_Text.Transform(_ios,data,length);
+IOSE PNFS_MAIL<T_DIGEST>::DoTransform(IOS* _ios,const UVOut& _out,const uint8* data,const uint64& length){
+	IOSE rcode;
+	rcode = pnml_Text.Transform(_ios,data,length);
 	cgDigestW.Transform(nullptr,_NONE(),data,length);
-	return(iossta);
+	return(rcode);
 };
 //------------------------------------------------------------------------------------------//
-template <typename T_DIGEST> bool32 PNFS_MAIL<T_DIGEST>::Read(IOSTATUS* _ios,const UVOut& _out){
+template <typename T_DIGEST> IOSE PNFS_MAIL<T_DIGEST>::Read(IOS* _ios,const UVOut& _out){
 	STDSTR	strContent,sKey,strDigest;
 	
 	pnml_KeyDigest.Read(nullptr,_EMPTY(&strContent));
@@ -188,7 +197,7 @@ template <typename T_DIGEST> bool32 PNFS_MAIL<T_DIGEST>::Read(IOSTATUS* _ios,con
 				return(Save(_ios, _out, strContent));
 		}
 	}
-	return IOS_ERR;
+	return(IOS_update(_ios, IOS_ERR));
 };
 //------------------------------------------------------------------------------------------//
 template <typename T_DIGEST> inline const PNFS_MAIL<T_DIGEST>& PNFS_MAIL<T_DIGEST>::operator = (const UVIn& _in){
@@ -214,15 +223,15 @@ template <typename T_DIGEST> MAIL<T_DIGEST>::MAIL(void) : PNFS_MAIL<T_DIGEST>(){
 	PNFS_MAIL<T_DIGEST>::InitPN	(&cgArrayW,&cgArrayR);
 	
 	TNFP::SetSelfName("MAIL");
-	SetFatherName("");
+	SetUpName("");
 };
 //------------------------------------------------------------------------------------------//
 template <typename T_DIGEST> inline void MAIL<T_DIGEST>::SetSelfName(const STDSTR& strName){
 	PNFS_MAIL<T_DIGEST>::SetSelfName(strName);
 };
 //------------------------------------------------------------------------------------------//
-template <typename T_DIGEST> inline void MAIL<T_DIGEST>::SetFatherName(const STDSTR& strName){
-	PNFS_MAIL<T_DIGEST>::SetFatherName(strName);
+template <typename T_DIGEST> inline void MAIL<T_DIGEST>::SetUpName(const STDSTR& strName){
+	PNFS_MAIL<T_DIGEST>::SetUpName(strName);
 };
 //------------------------------------------------------------------------------------------//
 template <typename T_DIGEST> MAIL<T_DIGEST>& MAIL<T_DIGEST>::Init(uint32 size,uint32 cfg){
@@ -230,7 +239,7 @@ template <typename T_DIGEST> MAIL<T_DIGEST>& MAIL<T_DIGEST>::Init(uint32 size,ui
 	cgArrayW.InitSize(size);
 	cgArrayR.InitSize(size);
 	return(*this);
-}
+};
 //------------------------------------------------------------------------------------------//
 template <typename T_DIGEST> const ARRAY& MAIL<T_DIGEST>::Write(const RSA* rsa_puk,const UVIn& _in){
 	cgArrayW.Reset();
@@ -238,9 +247,9 @@ template <typename T_DIGEST> const ARRAY& MAIL<T_DIGEST>::Write(const RSA* rsa_p
 	this->InitCFG(MAIL::CFG_INIT_WR_PAR,rsa_puk).Write(nullptr,_in);
 	
 	return(cgArrayW);
-}
+};
 //------------------------------------------------------------------------------------------//
-template <typename T_DIGEST> ioss MAIL<T_DIGEST>::Decode(const UVOut& _out,const RSA *rsa_prk,const UVIn& _in){
+template <typename T_DIGEST> IOSE MAIL<T_DIGEST>::Decode(const UVOut& _out,const RSA *rsa_prk,const UVIn& _in){
 	STDSTR	strContent,sKey,strDigest;
 	
 	cgArrayR.Reset();
@@ -251,7 +260,7 @@ template <typename T_DIGEST> ioss MAIL<T_DIGEST>::Decode(const UVOut& _out,const
 	if (this->Analysis(0) > 0)
 		return(this->Read(nullptr,_out));
 	return IOS_ERR;
-}
+};
 #endif
 //------------------------------------------------------------------------------------------//
 
@@ -266,25 +275,25 @@ template <typename T_DIGEST> ioss MAIL<T_DIGEST>::Decode(const UVOut& _out,const
 
 //------------------------------------------------------------------------------------------//
 template <typename T_DIGEST> PNFB_AESHASH<T_DIGEST>::PNFB_AESHASH(void) : PNF_BLOCK(){
-	Add(pn_Text) < pn_Hash;
+	AppendDown(pn_Text) < pn_Hash;
 	TNFP::SetSelfName("PNF_AESHASH");
-	SetFatherName("");
+	SetUpName("");
 };
 //------------------------------------------------------------------------------------------//
 template <typename T_DIGEST> inline void PNFB_AESHASH<T_DIGEST>::SetSelfName(const STDSTR& strName){
 	selfName = strName;
-	cgDigestW.SetFatherName(GetFullName(this));
-	cgDigestR.SetFatherName(GetFullName(this));
-	pn_Text.SetFatherName(GetFullName(this));
-	pn_Hash.SetFatherName(GetFullName(this));
+	cgDigestW.SetUpName(GetFullName(this));
+	cgDigestR.SetUpName(GetFullName(this));
+	pn_Text.SetUpName(GetFullName(this));
+	pn_Hash.SetUpName(GetFullName(this));
 };
 //------------------------------------------------------------------------------------------//
-template <typename T_DIGEST> inline void PNFB_AESHASH<T_DIGEST>::SetFatherName(const STDSTR& strName){
+template <typename T_DIGEST> inline void PNFB_AESHASH<T_DIGEST>::SetUpName(const STDSTR& strName){
 	fatherName = strName;
-	cgDigestW.SetFatherName(GetFullName(this));
-	cgDigestR.SetFatherName(GetFullName(this));
-	pn_Text.SetFatherName(GetFullName(this));
-	pn_Hash.SetFatherName(GetFullName(this));
+	cgDigestW.SetUpName(GetFullName(this));
+	cgDigestR.SetUpName(GetFullName(this));
+	pn_Text.SetUpName(GetFullName(this));
+	pn_Hash.SetUpName(GetFullName(this));
 };
 //------------------------------------------------------------------------------------------//
 template <typename T_DIGEST> void PNFB_AESHASH<T_DIGEST>::InitPN(const ARRAY* _out,const ARRAY* _in){
@@ -303,42 +312,46 @@ template <typename T_DIGEST> inline PNFB_AESHASH<T_DIGEST>& PNFB_AESHASH<T_DIGES
 	return(*this);
 };
 //------------------------------------------------------------------------------------------//
-template <typename T_DIGEST> ioss PNFB_AESHASH<T_DIGEST>::_Begin(IOSTATUS* _ios){
+template <typename T_DIGEST> IOSE PNFB_AESHASH<T_DIGEST>::_Begin(IOS* _ios){
+	IOSE	rcode = IOS_OK;
 	cgDigestW.InitCFG();
-	PNF_BLOCK::_Begin(_ios);
-	return(pn_Text._Begin(_ios));
+	IOS_update(&rcode,PNF_BLOCK::_Begin(_ios));
+	IOS_update(&rcode,pn_Text._Begin(_ios));
+	return(rcode);
 };
 //------------------------------------------------------------------------------------------//
-template <typename T_DIGEST> ioss PNFB_AESHASH<T_DIGEST>::_Endl(void){
-	pn_Text._Endl();
+template <typename T_DIGEST> IOSE PNFB_AESHASH<T_DIGEST>::_Endl(IOS* _ios){
+	IOSE	rcode = IOS_OK;
+	IOS_update(&rcode,pn_Text._Endl(_ios));
 	cgDigestW.Final(nullptr,_NONE());
-	pn_Hash.Write(cgStartup.ios, IUD(cgDigestW.cgArray.GetPointer(0),cgDigestW.GetResultSize()));
+	IOS_update(&rcode,pn_Hash.Write(cgStartup.ios, IUD(cgDigestW.cgArray.GetPointer(0),cgDigestW.GetResultSize())));
 	if (cgStartup.ios != nullptr)
 		cgStartup.ios->total_in -= cgDigestW.GetResultSize();
-	return(PNF_BLOCK::_Endl());
+	IOS_update(&rcode,PNF_BLOCK::_Endl(_ios));
+	return(rcode);
 };
 //------------------------------------------------------------------------------------------//
 template <typename T_DIGEST>
-ioss PNFB_AESHASH<T_DIGEST>::DoTransform(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length){
-	ioss iossta;
-	iossta = pn_Text.Transform(_ios,data,length);
+IOSE PNFB_AESHASH<T_DIGEST>::DoTransform(IOS* _ios,const UVOut& _out,const uint8* data,const uint64& length){
+	IOSE rcode;
+	rcode = pn_Text.Transform(_ios,data,length);
 	cgDigestW.Transform(nullptr,_NONE(),data,length);
-	return(iossta);
+	return(rcode);
 };
 //------------------------------------------------------------------------------------------//
-template <typename T_DIGEST> ioss PNFB_AESHASH<T_DIGEST>::Read(IOSTATUS* _ios,const UVOut& _out){
+template <typename T_DIGEST> IOSE PNFB_AESHASH<T_DIGEST>::Read(IOS* _ios,const UVOut& _out){
 	STDSTR	strO,strC,strContent;
-	
+
 	cgDigestR.InitCFG();
 	pn_Text.Read(nullptr, OUD(&cgDigestR,&strContent));
 
 	cgDigestR.GetResult(nullptr,OUD_HEX(_EMPTY(&strC)));
 	pn_Hash.Read(nullptr, OUD_HEX(_EMPTY(&strO)));
 
-	if ((strC == strO))
+	if (strC == strO)
 		return(Save(_ios, _out, strContent));
 	
-	return IOS_ERR;
+	return(IOS_update(_ios, IOS_ERR));
 };
 //------------------------------------------------------------------------------------------//
 
@@ -353,23 +366,23 @@ template <typename T_DIGEST> ioss PNFB_AESHASH<T_DIGEST>::Read(IOSTATUS* _ios,co
 #define T_AESMK PNFB_AESMK_PNFSC<T_DIGEST>
 //------------------------------------------------------------------------------------------//
 template <typename T_DIGEST> T_AESMK::PNFB_AESMK_PNFSC(void) : PNF_BLOCK(){
-	Add(pnaesmk_Key) < pnaesmk_Text;
+	AppendDown(pnaesmk_Key) < pnaesmk_Text;
 	cgMKeyW = "";
 	cgMKeyR = "";
 	TNFP::SetSelfName("PNFB_AESMK_PNFSC");
-	SetFatherName("");
+	SetUpName("");
 };
 //------------------------------------------------------------------------------------------//
 template <typename T_DIGEST> inline void T_AESMK::SetSelfName(const STDSTR& strName){
 	selfName = strName;
-	pnaesmk_Key.SetFatherName(GetFullName(this));
-	pnaesmk_Text.SetFatherName(GetFullName(this));
+	pnaesmk_Key.SetUpName(GetFullName(this));
+	pnaesmk_Text.SetUpName(GetFullName(this));
 };
 //------------------------------------------------------------------------------------------//
-template <typename T_DIGEST> inline void T_AESMK::SetFatherName(const STDSTR& strName){
+template <typename T_DIGEST> inline void T_AESMK::SetUpName(const STDSTR& strName){
 	fatherName = strName;
-	pnaesmk_Key.SetFatherName(GetFullName(this));
-	pnaesmk_Text.SetFatherName(GetFullName(this));
+	pnaesmk_Key.SetUpName(GetFullName(this));
+	pnaesmk_Text.SetUpName(GetFullName(this));
 };
 //------------------------------------------------------------------------------------------//
 template <typename T_DIGEST> void T_AESMK::InitPN(const ARRAY* _out,const ARRAY* _in){
@@ -395,16 +408,19 @@ template <typename T_DIGEST> inline T_AESMK& T_AESMK::InitCFG(uint32 cfg,const v
 	return(*this);
 };
 //------------------------------------------------------------------------------------------//
-template <typename T_DIGEST> ioss T_AESMK::_Begin(IOSTATUS* _ios){
+template <typename T_DIGEST> IOSE T_AESMK::_Begin(IOS* _ios){
 	//strMulitKey is in HEX, used '|' to split
 	STDSTR		randKey,sKey,mKey;
-	IOSTATUS	ios;
-	IOSTATUS_Clr(&ios);
+	IOSE		rcode = IOS_OK;
+	uint64		total_in = 0;
 	
-	PNF_BLOCK::_Begin(_ios);
+	if (_ios != nullptr)
+		total_in = _ios->total_in;
+	
+	IOS_update(&rcode, PNF_BLOCK::_Begin(_ios));
 	randKey = ALG_CreateRandKey(32);
 	
-	pnaesmk_Key._Begin(&ios);
+	IOS_update(&rcode, pnaesmk_Key._Begin(_ios));
 	mKey = cgMKeyW;
 	while(mKey.length() > 0){
 		sKey = Str_ReadSubItem(&mKey, "|");
@@ -414,36 +430,45 @@ template <typename T_DIGEST> ioss T_AESMK::_Begin(IOSTATUS* _ios){
 			pnaesmk_Key << randKey;
 		}
 	};
-	pnaesmk_Key._Endl();
-	ios.total_in = 0;
-	IOSTATUS_Add(_ios, ios);
+	IOS_update(&rcode, pnaesmk_Key._Endl(_ios));
+	
+	if (_ios != nullptr)
+		_ios->total_in = total_in;
+
 	pnaesmk_Text.InitCFG(DSTF::CFG_INIT_WR_PAR,&randKey);
-	return(pnaesmk_Text._Begin(_ios));
+	IOS_update(&rcode, pnaesmk_Text._Begin(_ios));
+	return(rcode);
 };
 //------------------------------------------------------------------------------------------//
-template <typename T_DIGEST> ioss T_AESMK::_Endl(void){
-	pnaesmk_Text._Endl();
-	return(PNF_BLOCK::_Endl());
+template <typename T_DIGEST> IOSE T_AESMK::_Endl(IOS* _ios){
+	IOSE	rcode = IOS_OK;
+	IOS_update(&rcode,pnaesmk_Text._Endl(_ios));
+	IOS_update(&rcode,PNF_BLOCK::_Endl(_ios));
+	return(rcode);
 };
 //------------------------------------------------------------------------------------------//
-template <typename T_DIGEST> ioss T_AESMK::Write(IOSTATUS* _ios,const UVIn& _in){
+template <typename T_DIGEST> IOSE T_AESMK::Write(IOS* _ios,const UVIn& _in){
 	return(PNF_BLOCK::Write(_ios,_in));
 };
 //------------------------------------------------------------------------------------------//
-template <typename T_DIGEST> ioss T_AESMK::Write(IOSTATUS* _ios,const STDSTR& mulitKey,const UVIn& _in){
+template <typename T_DIGEST> IOSE T_AESMK::Write(IOS* _ios,const STDSTR& mulitKey,const UVIn& _in){
 	//strMulitKey is in HEX, used '|' to split
 	cgMKeyW = mulitKey;
 	return(Write(_ios,_in));
 };
 //------------------------------------------------------------------------------------------//
-template <typename T_DIGEST> ioss T_AESMK::Read(IOSTATUS* _ios,const UVOut& _out){
+template <typename T_DIGEST> IOSE T_AESMK::Read(IOS* _ios,const UVOut& _out){
 	return(Read(_ios,_out,cgMKeyR));
 };
 //------------------------------------------------------------------------------------------//
-template <typename T_DIGEST> ioss T_AESMK::Read(IOSTATUS* _ios,const UVOut& _out,const STDSTR& mulitKey){
+template <typename T_DIGEST> IOSE T_AESMK::Read(IOS* _ios,const UVOut& _out,const STDSTR& mulitKey){
 	STDSTR	randKey,mKey,sKey;
 	uint32	num,i;
+	IOSE 	rcode;
 	
+	if ((_ios != nullptr) && (_ios->rcode <= 0))
+		return(_ios->rcode);
+
 	num = pnaesmk_Key.ReadQty();
 	i = 0;
 	while (i++ < num) {
@@ -452,10 +477,12 @@ template <typename T_DIGEST> ioss T_AESMK::Read(IOSTATUS* _ios,const UVOut& _out
 			sKey = Str_ReadSubItem(&mKey, "|");
 			pnaesmk_Key.InitCFG(DSTF::CFG_INIT_RE_PAR,&sKey).Read(nullptr,_EMPTY(&randKey),i);
 			pnaesmk_Text.InitCFG(DSTF::CFG_INIT_RE_PAR,&randKey);
-			return(pnaesmk_Text.Read(_ios,_out));
+			rcode = pnaesmk_Text.Read(IOS_reset(_ios),_out);
+			if (rcode > 0)
+				return(IOS_update(_ios, IOS_OK));
 		};
 	};
-	return IOS_ERR;
+	return(IOS_update(_ios, IOS_ERR));
 };
 //------------------------------------------------------------------------------------------//
 
@@ -469,8 +496,8 @@ template <typename T_DIGEST> ioss T_AESMK::Read(IOSTATUS* _ios,const UVOut& _out
 
 
 //------------------------------------------------------------------------------------------//
-template <typename T_SHELL> void DSTF_TEST::AESMK_Test(IOSTATUS* _ios,T_SHELL* _shell,STDSTR* _out,STDSTR mKey,const STDSTR& _in){
-	bool32 retbl;
+template <typename T_SHELL> bool32 DSTF_TEST::AESMK_Test(IOS* _ios,T_SHELL* _shell,STDSTR* _out,STDSTR mKey,const STDSTR& _in){
+	bool32 retbl,result;
 	STDSTR sKey;
 	
 	_shell[0].GetDefArrayWR()->Reset();
@@ -479,31 +506,43 @@ template <typename T_SHELL> void DSTF_TEST::AESMK_Test(IOSTATUS* _ios,T_SHELL* _
 	_shell[1].GetDefArrayRE()->Reset();
 
 	printf("----------------------------------------------------------\n");
-	_shell[0].Write(IOSTATUS_Clr(_ios), mKey, _in);
+	_shell[0].Write(IOS_clr(_ios), mKey, _in);
 	PrintResult(_shell[0].selfName + " Write   ",ShowINOUT(_ios),1);
 	
 	PrintResult(_shell[1].selfName + " Analysis","",_shell[1].Analysis(0));
 	
+	result = G_TRUE;
 	sKey = mKey;
-	retbl = _shell[1].Read(IOSTATUS_Clr(_ios), _EMPTY(_out), sKey);
+	retbl = _shell[1].Read(IOS_clr(_ios), _EMPTY(_out), sKey) > 0;
+	result &= retbl;
 	PrintResult(_shell[1].selfName + " Key     ",sKey,G_TRUE);
 	PrintResult(_shell[1].selfName + " Read    ",ShowINOUT(_ios),retbl);
 	PrintResult(_shell[1].selfName + " in==out ",ShowINOUT("",_in.length(),_out->length()),(*_out == _in));
-
+	result &= (*_out == _in);
 	do{
 		sKey = Str_ReadSubItem(&mKey, "|");
-		retbl = _shell[1].Read(IOSTATUS_Clr(_ios), _EMPTY(_out), sKey);
+		retbl = _shell[1].Read(IOS_clr(_ios), _EMPTY(_out), sKey) > 0;
+		result &= retbl;
 		PrintResult(_shell[1].selfName + " Key     ",sKey,G_TRUE);
 		PrintResult(_shell[1].selfName + " Read    ",ShowINOUT(_ios),retbl);
 		PrintResult(_shell[1].selfName + " in==out ",ShowINOUT("",_in.length(),_out->length()),(*_out == _in));
+		result &= (*_out == _in);
 	}while (mKey.length() > 0);
 	
+	sKey = "testkey";
+	retbl = _shell[1].Read(IOS_clr(_ios), _EMPTY(_out), sKey) > 0;
+	result &= (retbl <= 0);
+	PrintResult(_shell[1].selfName + " Key     ",sKey,G_TRUE);
+	PrintResult(_shell[1].selfName + " Read    ",ShowINOUT(_ios),retbl);
+	PrintResult(_shell[1].selfName + " in==out ",ShowINOUT("",_in.length(),_out->length()),(*_out == _in));
+	result &= (*_out != _in);
 
 	_shell[0].GetDefArrayWR()->Reset();
 	_shell[0].GetDefArrayRE()->Reset();
 	_shell[1].GetDefArrayWR()->Reset();
 	_shell[1].GetDefArrayRE()->Reset();
-}
+	return(result);
+};
 //------------------------------------------------------------------------------------------//
 #endif /* ADS_Crypto_h */
 #endif /* ADS_Crypto_hpp */

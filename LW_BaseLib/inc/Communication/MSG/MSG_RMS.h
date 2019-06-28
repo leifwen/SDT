@@ -8,17 +8,33 @@
 
 #include "Commu_Socket.h"
 #include "MSG_Center.h"
-#if defined MSG_Center_h && defined Commu_Socket_h
+#include "Commu_SSL.h"
+#if defined MSG_Center_h && defined Commu_Socket_h && defined Commu_SSL_h
 //------------------------------------------------------------------------------------------//
 #ifndef MSG_RMS_h
 #define MSG_RMS_h
 #ifdef MSG_RMS_h
 //------------------------------------------------------------------------------------------//
+/*
+			RSTBServer<========LINK=========>RSTBSocket
+			  /    \							|
+			 /      \							|
+			/        \							|
+		   /		  \							|
+	  MAPBSERVER	   \						|
+		  |				\						|
+		  |				 \						|
+	   BSocket<----->RSTBSocket<============>RSocket<----->BScoket
+ 		  |													 |
+		  |													 |
+		Socket											Local Server
+*/
+//------------------------------------------------------------------------------------------//
 class MSG_RMS;
-class MAPBSERVER : public BSOCKETSERVER{
+class CORE_MAPBSERVER : public CORE_SOCKETSERVER{
 	public:
-				 MAPBSERVER(uint32 size,const ODEV_SYSTEM* logSys);
-		virtual ~MAPBSERVER(void){;};
+				 CORE_MAPBSERVER(void);
+		virtual ~CORE_MAPBSERVER(void){;};
 	private:
 		OPEN_PAR			cgMapPar;
 		MSG_RMS*			cgMsgRMS;
@@ -30,9 +46,21 @@ class MAPBSERVER : public BSOCKETSERVER{
 				bool32		Open			(CMD_ENV* env,MSG_RMS* msg,uint32 localPort,const OPEN_PAR& mapPar);
 };
 //------------------------------------------------------------------------------------------//
+typedef COMMU<TMEM|TBIRDGE|TFORWARD,COMMU_FRAME_NOSMC,CORE_SOCKET>		BSOCKET;
+typedef	COMMU_POOL<COMMU<0,COMMU_FRAME_NOSMC,CORE_MAPBSERVER>,BSOCKET>	MAPBSERVER_BASE;
+//------------------------------------------------------------------------------------------//
+class MAPBSERVER : public MAPBSERVER_BASE{
+	public:
+				 MAPBSERVER(uint32 rxSize,uint32 txSize,const ODEV_SYSTEM* logSys);
+		virtual ~MAPBSERVER(void){;};
+	public:
+		const	OPEN_PAR&	GetMapPar		(void);
+				bool32		Open			(CMD_ENV* env,MSG_RMS* msg,uint32 localPort,const OPEN_PAR& mapPar);
+};
+//------------------------------------------------------------------------------------------//
 class MSG_RMS : public MSG_NODE{
 	public:
-		typedef COMMU_NOSMC<COMMU_MSG<COMMU_SOCKET<COMMU_SSL>,MSG_RMS>>		RMSBSOCKET;
+		typedef COMMU<TMEM|TBIRDGE|TFORWARD,COMMU_FRAME_NOSMC,CORE_SOCKET,MEM_MSG<MSG_RMS>>	RMSBSOCKET;
 	protected:
 		enum	{RFLAG_C = 8, RFLAG_S = MSG_NODE::RFLAG_S + MSG_NODE::RFLAG_C};
 		enum	{RMS_blSetupMServerY	= RFLAG_CREATE(0)
@@ -45,18 +73,19 @@ class MSG_RMS : public MSG_NODE{
 				,RMS_blLinkN			= RFLAG_CREATE(7)
 		};
 	public:
-				 MSG_RMS(uint32 size,void* logSys);
+				 MSG_RMS(void);
 		virtual	~MSG_RMS(void){;};
 	protected:
-		COMMU_POOL<MAPBSERVER>						cgMSPool;
-		COMMU_CPPOOL<RMSBSOCKET,BSOCKET>			cgCPPool;
+		COMMU_POOL<COMMU<0,COMMU_FRAME,COMMU_CORE>,MAPBSERVER>	cgMSPool;
+		COMMU_CPPOOL<RMSBSOCKET,BSOCKET>						cgCPPool;
 	private:
-		virtual	CMDID	MessageProcessing			(CMD_ENV* env,const uint32& mID,const STDSTR& msg,void* commu);
+		virtual	void	Init						(uint32 rxSize,uint32 txSize);
+		virtual	CMDID	MessageProcessing			(CMD_ENV* env,const uint32& mID,const STDSTR& msg,void* _team);
 	public:
 		virtual	void	SetSelfName					(const STDSTR& strName);
-		virtual	void	SetFatherName				(const STDSTR& strName);
-		virtual	void	Reset						(void* commu);
-		virtual	void	Close						(void* commu);
+		virtual	void	SetUpName					(const STDSTR& strName);
+		virtual	void	Reset						(void* _team);
+		virtual	void	Close						(void* _team);
 	private:
 				bool32	OpenMServer					(CMD_ENV* env,MAPBSERVER** mServer, const STDSTR& strMesg);
 				bool32	CloseMServer				(									const STDSTR& strMesg);

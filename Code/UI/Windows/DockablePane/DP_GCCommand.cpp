@@ -72,9 +72,9 @@ void CGCCommandListCtrl::LoadData(COMMAND_GROUP *group,int32 blenforce){
 		m_SelectSubItem = -1;
 		m_Group = group;
 
-		m_Group->InUse_set();
+		m_Group->rwLock.R_set();
 		i = 0;
-		TREE_LChildRChain_Traversal_LINE(COMMAND_NODE,m_Group,
+		TREE_DownChain_Traversal_LINE(COMMAND_NODE, m_Group,
 			InsertItem(i, Str_ANSIToUnicode(_opNode->StrCommand).c_str());
 			SetCheck(i, (_opNode->blEnableSend != 0));
 			SetItemText(i, 1, Str_ANSIToUnicode(_opNode->StrTimeout).c_str());
@@ -88,10 +88,10 @@ void CGCCommandListCtrl::LoadData(COMMAND_GROUP *group,int32 blenforce){
 			SetItemText(i, 4, Str_ANSIToUnicode(_opNode->StrResend).c_str());
 			SetItemText(i, 5, Str_ANSIToUnicode(_opNode->StrStop).c_str());
 			SetItemText(i, 6, Str_ANSIToUnicode(_opNode->StrCatch).c_str());
-			SetItemData(i, TREE_NODE::GetdRNodeID(_opNode));
+			SetItemData(i, TNF::GetDRNodeID(_opNode));
 			++i;
 		);
-		m_Group->InUse_clr();
+		m_Group->rwLock.R_clr();
 	}
 }
 //------------------------------------------------------------------------------------------//

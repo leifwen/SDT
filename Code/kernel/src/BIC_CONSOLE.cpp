@@ -7,6 +7,7 @@
 //
 
 #include "stdafx.h"
+//------------------------------------------------------------------------------------------//
 #include "BIC_CONSOLE.h"
 #ifdef BIC_CONSOLE_h
 #include "License_Checker.h"
@@ -14,13 +15,15 @@
 #ifdef Console_h
 //------------------------------------------------------------------------------------------//
 AppConsole::AppConsole(uint32 size) : CONSOLE(size){
-}
+};
 //------------------------------------------------------------------------------------------//
 bool32 AppConsole::BICThreadFun(void* p){
 #ifdef CommonDefH_VC
 	bool32 err = G_TRUE;
+	
 	CHK_CheckerInit();
 	err = CHK_CheckTime();
+	
 	CONSOLE::BICThreadFun(p);
 	return(err);
 #else

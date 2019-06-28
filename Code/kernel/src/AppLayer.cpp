@@ -7,28 +7,22 @@
 //
 
 #include "stdafx.h"
+//------------------------------------------------------------------------------------------//
 #include "AppLayer.h"
 #ifdef AppLayer_h
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
-KERNEL::KERNEL(uint32 sizeCache,uint32 sizeBuffer) : COMMU_FRAME(sizeBuffer)
+KERNEL::KERNEL(uint32 sizeCache,uint32 sizeBuffer) : COMMU_FRAME()
 #ifdef ODEV_System_h
 			,m_Cache(sizeCache)
 #endif
 #ifdef Device_h
-			,m_DeviceM(sizeBuffer,&m_Cache)
-			,m_DeviceA(sizeBuffer,&m_Cache)
-			,m_DeviceS(sizeBuffer,&m_Cache)
+			,m_DeviceM(sizeBuffer,sizeBuffer,&m_Cache)
+			,m_DeviceA(sizeBuffer,sizeBuffer,&m_Cache)
+			,m_DeviceS(sizeBuffer,sizeBuffer,&m_Cache)
 #endif
 #ifdef Commu_AEXE_h
-			,m_AExePool(sizeBuffer < 1024 * 8 ? sizeBuffer : 1024 * 8,nullptr)
-#endif
-#ifdef Commu_Terminal_h
-			,m_TS(sizeBuffer,&m_env,&m_BIC)
-#endif
-#ifdef Commu_RST_h
-			,m_RSTServer(sizeBuffer,&m_env,&m_BIC)
-			,m_RSTClient(sizeBuffer,nullptr,&m_BIC)
+			,m_AExePool(sizeBuffer < 1024 * 8 ? sizeBuffer : 1024 * 8,sizeBuffer < 1024 * 8 ? sizeBuffer : 1024 * 8)
 #endif
 #ifdef Console_h
 			,m_Console(sizeBuffer < 1024 * 8 ? sizeBuffer : 1024 * 8)
@@ -36,11 +30,7 @@ KERNEL::KERNEL(uint32 sizeCache,uint32 sizeBuffer) : COMMU_FRAME(sizeBuffer)
 #ifdef SWVERSION_SCRIPT
 			,m_Script(sizeBuffer < 1024 * 16 ? sizeBuffer : 1024 * 16)
 #endif
-#ifdef SWVERSION_CMUX
-			,m_CMUXDriver(sizeBuffer,nullptr)
-#endif
 {
-	SetSFlag(CF_blNoInitSize);
 	SetSelfName("SDT");
 };
 //------------------------------------------------------------------------------------------//
@@ -73,11 +63,11 @@ void KERNEL::Init(const STDSTR& fileName){
 	m_DeviceA.SetSelfName("DeviceA");
 	B_SetFLAG64(m_DeviceA.GetLogSystem()->envcfg, 0 | ODEV_FLAG_EnView | ODEV_FLAG_EnRecMsg | ODEV_FLAG_EnEscape);
 	B_ClrFLAG64(m_DeviceA.GetLogSystem()->envcfg, 0 | ODEV_FLAG_EnHEXViewMode | ODEV_FLAG_EnOSPMsgLine | ODEV_FLAG_EnMSReport);
-	m_DeviceA.cgEDA.aCOM.name = "/dev/ttySDT";
+	m_DeviceA.EDA()->aCOM.name = "/dev/ttySDT";
 	
-	m_DeviceM.LinkCoupleNode(&m_DeviceA);
+	COMMU_NODE::LinkCouple(&m_DeviceM,&m_DeviceA);
 	
-	Add(m_DeviceM) < m_DeviceA;
+	AppendDown(m_DeviceM) < m_DeviceA;
 	
 	m_DeviceS.SetSelfName("DeviceS");
 	B_SetFLAG64(m_DeviceS.GetLogSystem()->envcfg, 0 | ODEV_FLAG_EnView | ODEV_FLAG_EnOSPMsgLine | ODEV_FLAG_EnMSReport);
@@ -85,7 +75,8 @@ void KERNEL::Init(const STDSTR& fileName){
 
 #endif
 #if defined	SWVERSION_CMUX && defined BIC_Device_h
-	m_CMUXDriver.Init(&m_DeviceM);
+	m_CMUXDriver.Init(1024 * 8,1024 * 8,&m_DeviceM);
+	m_CMUXDriver.SetSelfName("CMUXDriver");
 #endif
 #ifndef CommonDefH_VC
 	#ifdef ODEV_System_h
@@ -145,10 +136,10 @@ void KERNEL::Init(const STDSTR& fileName){
 #endif
 #ifdef BIC_Dev_h
 	#ifdef Device_h
-	BIC_ENV_DEV::SetEDA			(&m_env,&m_DeviceM.cgEDA);
-	BIC_ENV_DEV::SetEDA_M		(&m_env,&m_DeviceM.cgEDA);
-	BIC_ENV_DEV::SetEDA_A		(&m_env,&m_DeviceA.cgEDA);
-	BIC_ENV_DEV::SetEDA_S		(&m_env,&m_DeviceS.cgEDA);
+	BIC_ENV_DEV::SetEDA			(&m_env,m_DeviceM.EDA());
+	BIC_ENV_DEV::SetEDA_M		(&m_env,m_DeviceM.EDA());
+	BIC_ENV_DEV::SetEDA_A		(&m_env,m_DeviceA.EDA());
+	BIC_ENV_DEV::SetEDA_S		(&m_env,m_DeviceS.EDA());
 	#endif
 
 	#ifdef Commu_ComEnum_h
@@ -164,10 +155,15 @@ void KERNEL::Init(const STDSTR& fileName){
 	BIC_ENV_DEV::SetCMUX		(&m_env,&m_CMUXDriver);
 	#endif
 #endif
-#ifdef Commu_RST_h
-	m_RSTClient.Init(&m_env);
+#ifdef Commu_Terminal_h
+	m_TS.InitBIC(1024*8,&m_env,&m_BIC);
 #endif
-}
+#ifdef Commu_RST_h
+	m_RSTServer.InitBIC(1024*8,&m_env,&m_BIC);
+	m_RSTClient.Init(1024*8,1024*8,nullptr);
+	static_cast<CORE_TSOCKET*>(m_RSTClient.Core())->InitBIC(&m_env,&m_BIC);
+#endif
+};
 //------------------------------------------------------------------------------------------//
 #ifdef CommonDefH_VC
 //------------------------------------------------------------------------------------------//
@@ -198,13 +194,13 @@ void KERNEL::Run(const STDSTR& cmd){
 		m_Console.ExecBIC(cmd);
 	m_Console.StartWithBIC(&m_env,&m_BIC);
 #endif
-}
+};
 //------------------------------------------------------------------------------------------//
 bool32 KERNEL::ExecBIC(const STDSTR& cmd){
 #ifdef CommonDefH_VC
 	CHK_CheckTime();
 #endif
-#ifdef BIC_CONSOLE_h
+#ifdef Console_h
 	m_Console.ExecBIC(cmd);
 	return G_TRUE;
 #else
@@ -240,7 +236,7 @@ void KERNEL::Exit(const STDSTR& fileName){
 	m_DeviceM.RemoveSelf();
 	m_DeviceA.Close();
 	m_DeviceM.Close();
-	m_DeviceM.UnlinkCoupleNode();
+	COMMU_NODE::UnlinkCouple(&m_DeviceM);
 	m_DeviceS.Close();
 #endif
 #ifdef ODEV_System_h
@@ -279,13 +275,15 @@ void KERNEL::Exit(const STDSTR& fileName){
 	CRYPTO_cleanup_all_ex_data();
 	EVP_cleanup();
 #endif
-}
+};
 //------------------------------------------------------------------------------------------//
 void KERNEL::CloseChild(COMMU_FRAME* commu){
 	commu->Close();
 #ifdef SWVERSION_SCRIPT
-	if (m_Script.IsServiceTo((DEVICE*)commu))
-		m_Script.Stop();
+	if (m_Script.IsServiceTo((DEVICE*)commu)){
+		if (m_Script.IsStopSelf())
+			m_Script.Stop();
+	}
 #endif
 #ifdef SendFile_h
 	if (m_FileSend.IsServiceTo((DEVICE*)commu))
@@ -306,7 +304,7 @@ void KERNEL::ParRecordLoad(const STDSTR& fileName){
 	m_ParRecord.Load(fileName,cfg);
 #endif
 #endif
-}
+};
 //------------------------------------------------------------------------------------------//
 void KERNEL::ParRecordSave(const STDSTR& fileName){
 #ifdef SWVERSION_SCRIPT
@@ -320,7 +318,7 @@ void KERNEL::ParRecordSave(const STDSTR& fileName){
 	m_ParRecord.Save(fileName,cfg);
 #endif
 #endif
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 #endif /* AppLayer_h */

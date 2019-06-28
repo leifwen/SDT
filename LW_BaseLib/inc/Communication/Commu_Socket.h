@@ -6,8 +6,8 @@
 //  Copyright © 2018 Leif Wen. All rights reserved.
 //
 
-#include "Commu_DBuf.h"
-#ifdef Commu_DBuf_h
+#include "Commu_Base.h"
+#ifdef Commu_Base_h
 //------------------------------------------------------------------------------------------//
 #ifndef Commu_Socket_h
 #define Commu_Socket_h
@@ -23,13 +23,15 @@
 #endif
 	#ifdef CommonDefH_VC
 	#include <WINSOCK2.H>
-	static inline bool32	CheckWSAStartup(void);
+	bool32	CheckWSAStartup(void);
 #endif
 //------------------------------------------------------------------------------------------//
-template <typename T_COMMU> class COMMU_SOCKET : public T_COMMU{//default is TCP
+class CORE_SOCKET : public COMMU_CORE{//default is TCP
 	public:
-				 COMMU_SOCKET(uint32 size,const ODEV_SYSTEM* logSys);
-		virtual ~COMMU_SOCKET(void);
+		enum	{PACKAGE_MAX_SIZE = 1024 * 8};
+	public:
+				 CORE_SOCKET(void);
+		virtual ~CORE_SOCKET(void);
 	protected:
 		virtual	bool32	OpenDev				(const OPEN_PAR& par);
 		virtual	void	CloseDev			(void);
@@ -37,72 +39,54 @@ template <typename T_COMMU> class COMMU_SOCKET : public T_COMMU{//default is TCP
 		virtual	bool32	SendToDevice		(uint32* retNum,const uint8 *buffer,uint32 length);
 		virtual	bool32	ReadFromDevice		(uint32* retNum,	  uint8 *buffer,uint32 length);
 	private:
-		virtual void	DoPrintOnOpenSuccess(void);
-		virtual void	DoPrintOnClose		(void);
+		virtual void	PrintOpenSuccess	(const STDSTR& strTitle = "");
+		virtual void	PrintClose			(const uint64& rxBytes,const uint64& txBytes,const uint64& fwBytes);
 	private:
 		SOCKET			osHandle;
 		sockaddr_in		cgUDPS_RemoteAddr;
+		ARRAY			cgArrayUDPSrx;
 	protected:
-				bool32	Socket_OpenDev		(const OPEN_PAR& par);
-				void	Socket_CloseDev		(void);
-				bool32	Server_OpenDev		(const OPEN_PAR& par);
-				void	Server_CloseDev		(void);
-				bool32	UDPS_SendToDevice	(uint32* retNum,const uint8* buffer,uint32 length);
+				bool32	OpenDev_socket		(const OPEN_PAR& par);
+				bool32	OpenDev_server		(const OPEN_PAR& par);
+				void	CloseDev_socket		(void);
+				void	CloseDev_server		(void);
 	public:
-				bool32	OpenD				(const SOCKET& sID,const sockaddr_in& addr,uint32 type,uint32 cfg);
+				bool32	Open				(const SOCKET& sID,const sockaddr_in& addr,uint32 type,uint32 cfg);
 		
 				void	SetSocketBufferSize	(void);
-				void	UDPS_ReadFromDevice	(const uint8* buffer,uint32 num);
+				void	UDPS_recv			(const uint8* buffer,uint32 num);
 };
 //------------------------------------------------------------------------------------------//
-template <typename T_COMMU> class COMMU_SOCKETSERVER : public COMMU_FRAME_LOGSYS{
+class CORE_SOCKETSERVER : public COMMU_CORE{
 	public:
-				 COMMU_SOCKETSERVER(uint32 size,const ODEV_SYSTEM* logSys);
-		virtual ~COMMU_SOCKETSERVER(void);
+				 CORE_SOCKETSERVER(void);
+		virtual ~CORE_SOCKETSERVER(void);
 	public:
-				virtual	void	SetSelfName			(const STDSTR& strName);
-				virtual	void	SetFatherName		(const STDSTR& strName);
-	public:
-				virtual	void	ChildSetSel			(DBUF* sdb);
-				virtual	void	ChildClrSel			(DBUF* sdb);
+		virtual	void	Init				(const COMMU_TEAM* _team);
+		virtual	void	SetSelfName			(const STDSTR& strName);
+		virtual	void	SetUpName			(const STDSTR& strName);
 	protected:
-				virtual	bool32	OpenDev				(const OPEN_PAR& par);
-				virtual	void	CloseDev			(void);
-				virtual	void	DoClose				(void);
+		virtual	bool32	OpenDev				(const OPEN_PAR& par);
+		virtual	void	CloseDev			(void);
 	private:
-				virtual void	DoPrintOnClose		(void);
-				virtual void	DoPrintOnOpenSuccess(void);
-				virtual void	DoPrintOnOpenFail	(void);
-	public:
-				virtual	void	EnableEcho			(void);
-				virtual	void	DisableEcho			(void);
+		virtual void	PrintOpenSuccess	(const STDSTR& strTitle = "");
+		virtual void	PrintOpenFail		(const STDSTR& strTitle = "");
+		virtual void	PrintClose			(const uint64& rxBytes,const uint64& txBytes,const uint64& fwBytes);
 	protected:
-		SYS_Thread<COMMU_SOCKETSERVER>	listionThread;
+		SYS_Thread<CORE_SOCKETSERVER>		listionThread;
+		SOCKET								listionSocket;
 	private:
-						bool32	ListionThreadFun	(void* commu);
-				virtual bool32	ListionTCP			(void* commu);
-				virtual bool32	ListionUDP			(void* commu);
-	
-				virtual	bool32	OnDoDisconnect		(COMMU_FRAME* delSocket);
-				virtual bool32	OnOpenTCPSocket		(COMMU_FRAME* newSocket);
-				virtual bool32	OnOpenUDPSocket		(COMMU_FRAME* newSocket);
-				virtual	TNFP*	CreateNode			(void);
-	protected:
-		SOCKET			listionSocket;
+				bool32	ListionThreadFun	(void* _team);
+		virtual bool32	ListionTCP			(void* _team);
+		virtual bool32	ListionUDP			(void* _team);
+		
+		virtual bool32	OnOpenTCPSocket		(COMMU_FRAME* newSocket);
+		virtual bool32	OnOpenUDPSocket		(COMMU_FRAME* newSocket);
 };
 //------------------------------------------------------------------------------------------//
-typedef COMMU_SOCKET<COMMU_THREAD>						ASOCKET;
-typedef COMMU_SOCKETSERVER<ASOCKET>						ASOCKETSERVER;
-
-#ifdef ADS_SSL_h
-typedef COMMU_SOCKET<COMMU_SSL>							ASOCKETSSL;
-typedef COMMU_SOCKETSERVER<ASOCKETSSL>					ASOCKETSERVERSSL;
-#endif
-
-typedef COMMU_NOSMC<COMMU_SOCKET<COMMU_THREAD>> 		BSOCKET;
-typedef COMMU_NOSMC<COMMU_SOCKETSERVER<BSOCKET>>		BSOCKETSERVER;
+typedef COMMU<TDEFALL,COMMU_FRAME,CORE_SOCKET>										ASOCKET;
+typedef	COMMU_POOL<COMMU<TLOGSYS|TFORWARD,COMMU_FRAME,CORE_SOCKETSERVER>,ASOCKET>	ASOCKETSERVER;
 //------------------------------------------------------------------------------------------//
-#include "Commu_Socket.hpp"
 #endif /* Commu_Socket_h */
 #endif /* Commu_Socket_h */
-#endif /* Commu_DBuf_h */
+#endif /* Commu_Base_h */

@@ -6,6 +6,7 @@
 //  Copyright © 2018 Leif Wen. All rights reserved.
 //
 
+//------------------------------------------------------------------------------------------//
 #include "BIF_Define.h"
 //------------------------------------------------------------------------------------------//
 #ifdef BIF_Define_h
@@ -13,9 +14,9 @@
 #ifndef BIF_Transform_h
 #define BIF_Transform_h
 #ifdef BIF_Transform_h
+//------------------------------------------------------------------------------------------//
 #include "ALG_Digest.h"
 #include "ALG_BASE64.h"
-#include "ALG_zlib.h"
 //------------------------------------------------------------------------------------------//
 struct BIF_RETSTR{
 	STDSTR	forPrint;
@@ -54,7 +55,7 @@ BIF_COMBINETYPE(REPLACE,	"rep,:/replace,:");
 BIF_CLASSTYPE  (SEARCH,		"search,=");
 BIF_COMBINETYPE(RET,		"ret,(,)");
 //------------------------------------------------------------------------------------------//
-#ifdef ALG_Digest_h
+#ifdef ALG_DS_DIGEST
 	BIF_COMBINETYPE(CALC_MD5,	"MD5,(,)/MD5,=");
 	BIF_COMBINETYPE(CALC_SHA1,	"SHA1,(,)/SHA1,=");
 	BIF_COMBINETYPE(CALC_SHA224,"SHA224,(,)/SHA224,=");
@@ -87,7 +88,7 @@ class BIF_COMBINE : public BIF_BASE{
 		BIF_REPLACE		cgSubC_REPLACE;
 	
 		BIF_RET			cgSubC_RET;
-#ifdef ALG_Digest_h
+#ifdef ALG_DS_DIGEST
 		BIF_CALC_MD5	cgSubC_CALC_MD5;
 		BIF_CALC_SHA1	cgSubC_CALC_SHA1;
 		BIF_CALC_SHA224	cgSubC_CALC_SHA224;
@@ -107,3 +108,6 @@ CMDID	BIF_Transform	(CMD_ENV* env,STDSTR* retForSend,STDSTR* retForPrint,const S
 #endif /* BIF_Transform_h */
 #endif /* BIF_Transform_h */
 #endif /* BIF_Define_h */
+#ifndef BIF_Transform_h
+#define	BIF_Transform(x,y,z,a,b,c)	0
+#endif

@@ -7,6 +7,7 @@
 //
 
 #include "stdafx.h"
+//------------------------------------------------------------------------------------------//
 #include "Console.h"
 //------------------------------------------------------------------------------------------//
 #ifdef Console_h
@@ -27,7 +28,7 @@ Line_Edit::Line_Edit(void){
 void Line_Edit::Init(void){
 	cgEditContent = "";
 	cgEditCur = 0;
-}
+};
 //------------------------------------------------------------------------------------------//
 uint32 Line_Edit::KeyLeft(void){
 	if (cgEditCur > 0){
@@ -35,7 +36,7 @@ uint32 Line_Edit::KeyLeft(void){
 		return 1;
 	}
 	return 0;
-}
+};
 //------------------------------------------------------------------------------------------//
 uint32 Line_Edit::KeyRight(void){
 	if (cgEditCur < cgEditContent.length()){
@@ -43,21 +44,21 @@ uint32 Line_Edit::KeyRight(void){
 		return 1;
 	}
 	return 0;
-}
+};
 //------------------------------------------------------------------------------------------//
 uint32 Line_Edit::KeyHome(void){
 	uint32	ret;
 	ret = cgEditCur;
 	cgEditCur = 0;
 	return(ret);
-}
+};
 //------------------------------------------------------------------------------------------//
 uint32 Line_Edit::KeyEnd(void){
 	uint32	ret;
 	ret = (uint32)cgEditContent.length() - (uint32)cgEditCur;
 	cgEditCur = (uint32)cgEditContent.length();
 	return(ret);
-}
+};
 //------------------------------------------------------------------------------------------//
 uint32 Line_Edit::KeyBK(void){
 	if (cgEditCur > 0){
@@ -66,7 +67,7 @@ uint32 Line_Edit::KeyBK(void){
 		return 1;
 	}
 	return 0;
-}
+};
 //------------------------------------------------------------------------------------------//
 uint32 Line_Edit::KeyDel(void){
 	if (cgEditCur < cgEditContent.length()){
@@ -74,25 +75,25 @@ uint32 Line_Edit::KeyDel(void){
 		return 1;
 	}
 	return 0;
-}
+};
 //------------------------------------------------------------------------------------------//
 uint32 Line_Edit::Insert(uint8 key){
 	cgEditContent.insert(cgEditCur,(char*)&key,1);
 	KeyRight();
 	return(cgEditCur - 1);
-}
+};
 //------------------------------------------------------------------------------------------//
 uint32 Line_Edit::Insert(const uint8* key,uint32 length){
 	cgEditContent.insert(cgEditCur, (char*)key, length);
 	cgEditCur += length;
 	return(cgEditCur - 1);
-}
+};
 //------------------------------------------------------------------------------------------//
 const STDSTR& Line_Edit::SetData(const STDSTR& newInput){
 	cgEditContent = newInput;
 	cgEditCur = (uint32)newInput.length();
 	return(newInput);
-}
+};
 //------------------------------------------------------------------------------------------//
 const STDSTR& Line_Edit::GetData(void)const{
 	return(cgEditContent);
@@ -130,7 +131,7 @@ void Line_History::Init(void){
 	cgTop = 0;
 	cgHead = 0;
 	cgHistoryCur = 0;
-}
+};
 //------------------------------------------------------------------------------------------//
 bool32 Line_History::SetPrior(void){
 	if (cgHistoryCur == cgHead)
@@ -148,7 +149,7 @@ bool32 Line_History::SetPrior(void){
 		}
 	}
 	return G_TRUE;
-}
+};
 //------------------------------------------------------------------------------------------//
 bool32 Line_History::SetNext(void){
 	if (cgHistoryCur == cgTop)
@@ -166,7 +167,7 @@ bool32 Line_History::SetNext(void){
 		}
 	}
 	return G_TRUE;
-}
+};
 //------------------------------------------------------------------------------------------//
 void Line_History::Add(const STDSTR& newInput){
 	STDSTR	strTemp;
@@ -206,7 +207,7 @@ void Line_History::Add(const STDSTR& newInput){
 			cgHead = 0;
 	}
 	cgHistoryCur = cgTop;
-}
+};
 //------------------------------------------------------------------------------------------//
 STDSTR Line_History::GetHistory(void){
 	STDSTR		strRet;
@@ -229,7 +230,7 @@ STDSTR Line_History::GetHistory(void){
 		cur %= MaxRecord;
 	}
 	return(strRet);
-}
+};
 //------------------------------------------------------------------------------------------//
 STDSTR Line_History::GetSimilar(const STDSTR& inputStr){
 	STDSTR		strT,strS,strR;
@@ -283,7 +284,7 @@ STDSTR Line_History::GetSimilar(const STDSTR& inputStr){
 	if (strR == "")
 		strR = inputStr;
 	return(strR);
-}
+};
 //------------------------------------------------------------------------------------------//
 STDSTR Line_History::GetSimilarGroup(const STDSTR& inputStr){
 	STDSTR		strRet,strT,strS;
@@ -312,7 +313,7 @@ STDSTR Line_History::GetSimilarGroup(const STDSTR& inputStr){
 		cur %= MaxRecord;
 	}
 	return(strRet);
-}
+};
 //------------------------------------------------------------------------------------------//
 
 
@@ -338,7 +339,7 @@ CONSOLE::CONSOLE(uint32 size) : BASE_FLAG(){
 	cgLastKey.lParam = 0;
 	cgLastKey.wParam = 0;
 	
-	cgCMDSBUF.InitSize(size);
+	cgCMDArray.InitSize(size);
 	
 	SwitchToMain();
 	bicThread.ThreadInit(this, &CONSOLE::BICThreadFun, "CONSOLE_BIC");
@@ -346,7 +347,7 @@ CONSOLE::CONSOLE(uint32 size) : BASE_FLAG(){
 };
 //------------------------------------------------------------------------------------------//
 CONSOLE::~CONSOLE(void){
-	SetExit();
+	SetblExit();
 	bicThread.ThreadStop();
 };
 //------------------------------------------------------------------------------------------//
@@ -362,7 +363,7 @@ void	CONSOLE::ClrInOnlineMode		(void)		{ClrSFlag(CON_blInOnlineMode);};
 void	CONSOLE::SetblDisplayAuto		(void)		{SetSFlag(CON_blDisplayAuto);};
 void	CONSOLE::ClrblDisplayAuto		(void)		{ClrSFlag(CON_blDisplayAuto);};
 bool32	CONSOLE::IsDisplayAuto			(void)const	{return(CheckSFlag(CON_blDisplayAuto));};
-void	CONSOLE::SetExit				(void)		{SetSFlag(CON_blExit);};
+void	CONSOLE::SetblExit				(void)		{SetSFlag(CON_blExit);};
 //------------------------------------------------------------------------------------------//
 bool32 CONSOLE::LoadDefault(const STDSTR& filename){
 	STDSTR			strResult;
@@ -384,7 +385,7 @@ bool32 CONSOLE::LoadDefault(const STDSTR& filename){
 	}while(!fileStream.eof());
 	fileStream.close();
 	return G_TRUE;
-}
+};
 //------------------------------------------------------------------------------------------//
 void CONSOLE::AddToMain(const STDSTR& newInput){
 	cgHistoryMain.Add(newInput);
@@ -415,7 +416,7 @@ void CONSOLE::KeyLeft(void){
 #endif
 	}
 #endif
-}
+};
 //------------------------------------------------------------------------------------------//
 void CONSOLE::KeyRight(void){
 	int32	offset;
@@ -430,7 +431,7 @@ void CONSOLE::KeyRight(void){
 #endif
 	}
 #endif
-}
+};
 //------------------------------------------------------------------------------------------//
 void CONSOLE::KeyHome(void){
 	int32	offset;
@@ -445,7 +446,7 @@ void CONSOLE::KeyHome(void){
 #endif
 	}
 #endif
-}
+};
 //------------------------------------------------------------------------------------------//
 void CONSOLE::KeyEnd(void){
 	int32	offset;
@@ -460,7 +461,7 @@ void CONSOLE::KeyEnd(void){
 #endif
 	}
 #endif
-}
+};
 //------------------------------------------------------------------------------------------//
 void CONSOLE::KeyBK(void){
 	if (cgCInput.KeyBK() != 0){
@@ -475,7 +476,7 @@ void CONSOLE::KeyBK(void){
 		}
 #endif
 	}
-}
+};
 //------------------------------------------------------------------------------------------//
 void CONSOLE::KeyDel(void){
 	if (cgCInput.KeyDel() != 0){
@@ -490,7 +491,7 @@ void CONSOLE::KeyDel(void){
 		}
 #endif
 	}
-}
+};
 //------------------------------------------------------------------------------------------//
 void CONSOLE::KeyUp(void){
 	if (cgHistory->SetPrior()){
@@ -509,7 +510,7 @@ void CONSOLE::KeyUp(void){
 		}
 #endif
 	}
-}
+};
 //------------------------------------------------------------------------------------------//
 void CONSOLE::KeyDown(void){
 	if (cgHistory->SetNext()){
@@ -528,13 +529,13 @@ void CONSOLE::KeyDown(void){
 		}
 #endif
 	}
-}
+};
 //------------------------------------------------------------------------------------------//
 void CONSOLE::KeyReturn(void){
 	if (cgCInput.GetData() == "LETQUIT")
-		SetExit();
+		SetblExit();
 	
-	cgCMDSBUF.Put(nullptr,cgCInput.GetData() + "\n");
+	cgCMDArray.Put(cgCInput.GetData() + "\n",G_ESCAPE_OFF);
 #ifdef ODEV_STDOUT_h
 	OUTPUT_NODE::PrintStr(cgOdevSTDOUT, "\n");
 #endif
@@ -542,11 +543,11 @@ void CONSOLE::KeyReturn(void){
 		cgHistory->Add(cgCInput.GetData());
 	
 	cgCInput.Init();
-}
+};
 //------------------------------------------------------------------------------------------//
 void CONSOLE::KeyEscape(void){
-	cgCMDSBUF.Put(nullptr,IUD('\x1b'));
-}
+	cgCMDArray.Put('\x1b');
+};
 //------------------------------------------------------------------------------------------//
 void CONSOLE::KeyTab(void){
 #ifdef ODEV_STDOUT_h
@@ -563,7 +564,7 @@ void CONSOLE::KeyTab(void){
 #endif
 	}
 #endif
-}
+};
 //------------------------------------------------------------------------------------------//
 void CONSOLE::KeyDBTab(void){
 	STDSTR	newData;
@@ -578,11 +579,11 @@ void CONSOLE::KeyDBTab(void){
 		<< Endl();
 	}
 #endif
-}
+};
 //------------------------------------------------------------------------------------------//
 bool32 CONSOLE::InsertChar(uint8 data){
 	if (CheckSFlag(CON_blInPressAnyKeyMode)){
-		cgCMDSBUF.Put(nullptr,IUD(data));
+		cgCMDArray.Put(data);
 		return G_TRUE;
 	}
 	if ((data >= 32) && (data <= 126)){
@@ -605,7 +606,7 @@ bool32 CONSOLE::InsertChar(uint8 data){
 		return G_TRUE;
 	}
 	return G_FALSE;
-}
+};
 //------------------------------------------------------------------------------------------//
 bool32 CONSOLE::InsertChar(const uint8* data,uint32 length){
 	cgCInput.Insert(data,length);
@@ -627,7 +628,7 @@ bool32 CONSOLE::InsertChar(const uint8* data,uint32 length){
 		return G_TRUE;
 	}
 	return G_FALSE;
-}
+};
 //------------------------------------------------------------------------------------------//
 bool32 CONSOLE::DoControl(const KEYMSG* keyMsg){
 	uint8	key;
@@ -641,7 +642,7 @@ bool32 CONSOLE::DoControl(const KEYMSG* keyMsg){
 		else if (key != ' '){
 			key = '\n';
 		}
-		cgCMDSBUF.Put(nullptr,IUD(key));
+		cgCMDArray.Put(key);
 		return G_TRUE;
 	}
 	if (CheckSFlag(CON_blInDBEscMode) && (key == VK_RETURN) && (cgOdevSTDOUT != nullptr)){//change display mode
@@ -704,7 +705,7 @@ bool32 CONSOLE::DoControl(const KEYMSG* keyMsg){
 				break;
 		}
 		#endif
-		cgCMDSBUF.Put(nullptr,IUD(key));
+		cgCMDArray.Put(key);
 		if (key != 0x1b){
 			STDSTR strT;
 			if (key == 0x80)
@@ -786,7 +787,7 @@ bool32 CONSOLE::DoControl(const KEYMSG* keyMsg){
 			return G_FALSE;
 	}
 	return G_TRUE;
-}
+};
 //------------------------------------------------------------------------------------------//
 KEYMSG* CONSOLE::AnalyzeKey(const MSG* keyMsg){
 	DTIME	dT,newKeyTime;
@@ -834,7 +835,7 @@ KEYMSG* CONSOLE::AnalyzeKey(const MSG* keyMsg){
 		return(&cgLastKey);
 	}
 	return(nullptr);
-}
+};
 //------------------------------------------------------------------------------------------//
 #ifdef CommonDefH_Unix
 const MSG* CONSOLE::GetKey(MSG* keyMsg){
@@ -959,7 +960,7 @@ bool32 CONSOLE::ReceiveKey(const MSG* keyMsg){
 	}
 #endif
 	return err;
-}
+};
 //------------------------------------------------------------------------------------------//
 #ifdef CommonDefH_Unix
 bool32 CONSOLE::ReceiveKey(void){
@@ -993,16 +994,16 @@ bool32 CONSOLE::BICThreadFun(void* p){
 	CMD_BASE::ClrblExit(cgBICENV);
 	bic->Command(cgBICENV, "", nullptr);
 	
-	SetExit();
+	SetblExit();
 #endif
 	return G_TRUE;
-}
+};
 //------------------------------------------------------------------------------------------//
 void CONSOLE::StartWithBIC(CMD_ENV* env,BIC_BASE_S* bic){
 #ifdef BIC_Define_h
 	ClearAllFlag();
 	BIC_ENV::SetConsole(env,this);
-	BIC_ENV::SetSTDIN(env,&cgCMDSBUF);
+	BIC_ENV::SetSTDIN(env,&cgCMDArray);
 	
 	cgBICENV = env;
 	bicThread.ThreadRun(bic);
@@ -1011,19 +1012,19 @@ void CONSOLE::StartWithBIC(CMD_ENV* env,BIC_BASE_S* bic){
 	CMD_BASE::SetblExit(env);
 #endif
 #endif
-}
+};
 //------------------------------------------------------------------------------------------//
 void CONSOLE::ExecBIC(const STDSTR& cmd){
-	cgCMDSBUF.Put(nullptr, cmd + "\n");
-}
+	cgCMDArray.Put(cmd + "\n",G_ESCAPE_OFF);
+};
 //------------------------------------------------------------------------------------------//
 void CONSOLE::Stop(void){
 #ifdef CMD_h
 	CMD_BASE::SetblExit(cgBICENV);
 #endif
-	SetExit();
+	SetblExit();
 	bicThread.ThreadStop();
 	cgBICENV = nullptr;
-}
+};
 //------------------------------------------------------------------------------------------//
 #endif /* Console_h */

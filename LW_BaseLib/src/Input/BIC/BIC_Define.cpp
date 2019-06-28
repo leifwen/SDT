@@ -7,6 +7,7 @@
 //
 
 #include "stdafx.h"
+//------------------------------------------------------------------------------------------//
 #include "BIC_Define.h"
 #ifdef BIC_Define_h
 #include "Console.h"
@@ -14,8 +15,8 @@
 uint8 BIC_BASE::ReadChar(CMD_ENV* env,bool32 blWait){
 	uint8	charGet = 0;
 	
-	while(ChkblExit(env) == G_FALSE){
-		if (BIC_ENV::GetSTDIN(env)->Get(nullptr,OUD_CHARS(&charGet),1) > 0)
+	while(IsExit(env) == G_FALSE){
+		if (BIC_ENV::GetSTDIN(env)->Get(&charGet,1) > 0)
 			break;
 		charGet = 0;
 		if (blWait == G_FALSE)
@@ -23,12 +24,12 @@ uint8 BIC_BASE::ReadChar(CMD_ENV* env,bool32 blWait){
 		SYS_SleepMS(10);
 	}
 	return(charGet);
-}
+};
 //------------------------------------------------------------------------------------------//
 bool32 BIC_BASE::ReadCommand(CMD_ENV* env,STDSTR* retCMD){
 	uint8	charGet = 0;
 	
-	while(ChkblExit(env) == G_FALSE){
+	while(IsExit(env) == G_FALSE){
 		charGet = ReadChar(env,G_TRUE);
 		if ((charGet >= 0x20) && (charGet <= 0x7e)){
 			*retCMD += charGet;
@@ -38,7 +39,7 @@ bool32 BIC_BASE::ReadCommand(CMD_ENV* env,STDSTR* retCMD){
 		}
 	}
 	return G_FALSE;
-}
+};
 //------------------------------------------------------------------------------------------//
 CMDID BIC_BASE::Execute(CMD_ENV* env,const uint32& mID,const STDSTR& msg,void* p)const{
 	if (mID == (uint32)cgCommandID){
@@ -48,27 +49,27 @@ CMDID BIC_BASE::Execute(CMD_ENV* env,const uint32& mID,const STDSTR& msg,void* p
 		}
 	}
 	return(CMD_NODE::Execute(env,mID,msg,p));
-}
+};
 //------------------------------------------------------------------------------------------//
 uint8 BIC_BASE::PrintPressAnyKey(CMD_ENV* env){
 	uint8	retChar = 0;
 	SetInPressAnyKeyMode(env);
-	if (ChkblExit(env) == G_FALSE){
+	if (IsExit(env) == G_FALSE){
 		PrintALine(env,COLOR(COL_clDYellow,IUD("Press any key to continue.")));
 		retChar = ReadChar(env,G_TRUE);
 	}
 	ClrInPressAnyKeyMode(env);
 	return(retChar);
-}
+};
 //------------------------------------------------------------------------------------------//
-bool32 BIC_BASE::InPressKeyMode(CMD_ENV* env)const{
+bool32 BIC_BASE::IntoPressKeyMode(CMD_ENV* env)const{
 	uint8	chKey;
 	bool32	ret = G_FALSE;
 	
 	SetInPressAnyKeyMode(env);
 	PrintEnable(env);
 	
-	while((ChkblExit(env) == G_FALSE) && (InPressKeyModeExit(env) == G_FALSE)){
+	while((IsExit(env) == G_FALSE) && (IsExitPressKeyMode(env) == G_FALSE)){
 		SYS_SleepMS(10);
 		chKey = ReadChar(env,G_FALSE);
 		if (chKey == '\n'){
@@ -81,9 +82,9 @@ bool32 BIC_BASE::InPressKeyMode(CMD_ENV* env)const{
 	}
 	ClrInPressAnyKeyMode(env);
 	return(ret);
-}
+};
 //------------------------------------------------------------------------------------------//
-bool32 BIC_BASE::InPressKeyModeExit(CMD_ENV* env)const{
+bool32 BIC_BASE::IsExitPressKeyMode(CMD_ENV* env)const{
 	return G_FALSE;
 };
 //------------------------------------------------------------------------------------------//
@@ -106,7 +107,7 @@ CMDID BIC_VERSION::Help(CMD_ENV* env,uint32 flag)const{
 CMDID BIC_VERSION::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 	PrintResult(env, SWVERSION_SHORTNAME, SWVERSION_VER);
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIC_EXIT::Help(CMD_ENV* env,uint32 flag)const{
@@ -123,7 +124,7 @@ CMDID BIC_EXIT::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 	PrintStr(env,"\n");
 	return(cgCommandID);
 #endif
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIC_RETURN::Help(CMD_ENV* env,uint32 flag)const{
@@ -134,7 +135,7 @@ CMDID BIC_RETURN::Help(CMD_ENV* env,uint32 flag)const{
 CMDID BIC_RETURN::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 	PrintStr(env,"\n");
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIC_DISPLAY::Help(CMD_ENV* env,uint32 flag)const{
@@ -172,7 +173,7 @@ CMDID BIC_DISPLAY::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 		PrintResult(env,"Display is disable");
 	}
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIC_NEWRECORD::Help(CMD_ENV* env,uint32 flag)const{
@@ -189,7 +190,7 @@ CMDID BIC_NEWRECORD::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 	PrintResult(env,"Set new record file:\n",BIC_ENV::GetCache(env)->GetG2_File()->GetFileName());
 #endif
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIC_SELFNAME::Help(CMD_ENV* env,uint32 flag)const{
@@ -202,7 +203,7 @@ CMDID BIC_SELFNAME::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 	if (msg.length() > 0)
 		BIC_ENV::SelfName(env) += ".";
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 #ifdef CommonDefH_Unix
@@ -257,7 +258,7 @@ bool32 DeamonExecuteCommand(const STDSTR& cmd){
 		return(ret);
 	}
 	return G_FALSE;
-}
+};
 //------------------------------------------------------------------------------------------//
 CMDID BIC_DAEMON::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 	int		status,fd_Child;
@@ -295,7 +296,7 @@ CMDID BIC_DAEMON::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 		PrintFail(env,"fork() failed");
 	}
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 #endif
 //------------------------------------------------------------------------------------------//
@@ -310,7 +311,7 @@ CMDID BIC_DAEMON::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 
 //------------------------------------------------------------------------------------------//
 BIC_BASE_S::BIC_BASE_S(void) : BIC_BASE(){
-	Add(cgSub_EXIT) < cgSub_VERSION < cgSub_RETURN < cgSub_DISPLAY;
+	AppendDown(cgSub_EXIT) < cgSub_VERSION < cgSub_RETURN < cgSub_DISPLAY;
 	cgConsoleName = "";
 	cgHelpName = "";
 	fatherName = "";
@@ -321,14 +322,14 @@ BIC_BASE_S::BIC_BASE_S(void) : BIC_BASE(){
 	cgSub_DISPLAY.SetHidenHelp();
 };
 //------------------------------------------------------------------------------------------//
-BIC_BASE_S* BIC_BASE_S::AddNode(TNF* tnfNode){
+BIC_BASE_S* BIC_BASE_S::AppendDownNode(TNF* tnfNode){
 	TNFP *node = static_cast<TNFP*>(tnfNode);
-	BIC_BASE::AddNode(node);
+	BIC_BASE::AppendDownNode(node);
 	if (fatherName.length() > 0){
-		node->SetFatherName(fatherName + "/" + Str_UpperCase((cgConsoleName.length() > 0)?cgConsoleName:cgCommand));
+		node->SetUpName(fatherName + "/" + Str_UpperCase((cgConsoleName.length() > 0)?cgConsoleName:cgCommand));
 	}
 	else{
-		node->SetFatherName(Str_UpperCase((cgConsoleName.length() > 0)?cgConsoleName:cgCommand));
+		node->SetUpName(Str_UpperCase((cgConsoleName.length() > 0)?cgConsoleName:cgCommand));
 	}
 	return(this);
 };
@@ -363,7 +364,7 @@ CMDID BIC_BASE_S::Execute(CMD_ENV* env,const uint32& mID,const STDSTR& msg,void*
 		}
 	}
 	return(CMD_NODE::Execute(env,mID,msg,p));
-}
+};
 //------------------------------------------------------------------------------------------//
 CMDID BIC_BASE_S::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 	CMDID	retCode = cgCommandID;
@@ -372,7 +373,7 @@ CMDID BIC_BASE_S::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 		retCode = TraversalChildExecute(env,CMD_ID_NO,msg,p);
 	}
 	else{
-		while(ChkblExit(env) == G_FALSE){
+		while(IsExit(env) == G_FALSE){
 			PrintConsoleName(env);
 			if (ReadCommand(env,_EMPTY(&cmd)) == G_FALSE)
 				return(BIC_ID_NO);

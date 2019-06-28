@@ -7,6 +7,7 @@
 //
 
 #include "stdafx.h"
+//------------------------------------------------------------------------------------------//
 #include "DS_STRING.hpp"
 #include <iomanip>
 #include <algorithm>
@@ -22,7 +23,7 @@ const STDSTR& Str_LTrimSelf(STDSTR& str){
 		str = str.erase(0,ret);
 	}
 	return(str);
-}
+};
 //------------------------------------------------------------------------------------------//
 const STDSTR& Str_LTrim(STDSTR* _out,const STDSTR& str){
 	STRSIZE	ret;
@@ -38,12 +39,12 @@ const STDSTR& Str_LTrim(STDSTR* _out,const STDSTR& str){
 		*_out = str;
 	}
 	return(*_out);
-}
+};
 //------------------------------------------------------------------------------------------//
 STDSTR Str_LTrim(const STDSTR& str){
 	STDSTR		retStr;
 	return(Str_LTrim(&retStr,str));
-}
+};
 //------------------------------------------------------------------------------------------//
 const STDSTR& Str_RTrimSelf(STDSTR& str){
 	STRSIZE	ret;
@@ -56,7 +57,7 @@ const STDSTR& Str_RTrimSelf(STDSTR& str){
 		str.erase(ret + 1);
 	}
 	return(str);
-}
+};
 //------------------------------------------------------------------------------------------//
 const STDSTR& Str_RTrim(STDSTR* _out,const STDSTR& str){
 	STRSIZE	ret;
@@ -72,12 +73,12 @@ const STDSTR& Str_RTrim(STDSTR* _out,const STDSTR& str){
 		*_out = str;
 	}
 	return(*_out);
-}
+};
 //------------------------------------------------------------------------------------------//
 STDSTR Str_RTrim(const STDSTR& str){
 	STDSTR		retStr;
 	return(Str_RTrim(&retStr,str));
-}
+};
 //------------------------------------------------------------------------------------------//
 const STDSTR& Str_TrimSelf(STDSTR& str){
 	STRSIZE	s;
@@ -94,7 +95,7 @@ const STDSTR& Str_TrimSelf(STDSTR& str){
 			str.erase(0,s);
 	}
 	return(str);
-}
+};
 //------------------------------------------------------------------------------------------//
 const STDSTR& Str_Trim(STDSTR* _out,const STDSTR& str){
 	STRSIZE	s,e;
@@ -113,17 +114,17 @@ const STDSTR& Str_Trim(STDSTR* _out,const STDSTR& str){
 		}
 	}
 	return(*_out);
-}
+};
 //------------------------------------------------------------------------------------------//
 STDSTR Str_Trim(const STDSTR& str){
 	STDSTR		retStr;
 	return(Str_Trim(&retStr,str));
-}
+};
 //------------------------------------------------------------------------------------------//
 const STDSTR& Str_UpperCaseSelf(STDSTR& str){
 	std::transform(str.begin(), str.end(), str.begin(), toupper);
 	return(str);
-}
+};
 //------------------------------------------------------------------------------------------//
 const STDSTR& Str_UpperCase(STDSTR* _out,const STDSTR& str){
 	STRSIZE	i,length;
@@ -140,17 +141,17 @@ const STDSTR& Str_UpperCase(STDSTR* _out,const STDSTR& str){
 		++ i;
 	}
 	return(*_out);
-}
+};
 //------------------------------------------------------------------------------------------//
 STDSTR Str_UpperCase(const STDSTR& str){
 	STDSTR	retStr;
 	return(Str_UpperCase(&retStr,str));
-}
+};
 //------------------------------------------------------------------------------------------//
 const STDSTR& Str_LowerCaseSelf(STDSTR& str){
 	std::transform(str.begin(), str.end(), str.begin(), tolower);
 	return(str);
-}
+};
 //------------------------------------------------------------------------------------------//
 const STDSTR& Str_LowerCase(STDSTR* _out,const STDSTR& str){
 	STRSIZE	i,length;
@@ -167,12 +168,12 @@ const STDSTR& Str_LowerCase(STDSTR* _out,const STDSTR& str){
 		++ i;
 	}
 	return(*_out);
-}
+};
 //------------------------------------------------------------------------------------------//
 STDSTR Str_LowerCase(const STDSTR& str){
 	STDSTR	retStr;
 	return(Str_LowerCase(&retStr,str));
-}
+};
 //------------------------------------------------------------------------------------------//
 STDSTR Str_Replace(const STDSTR& str,const STDSTR& strS,const STDSTR& strD){
 	STDSTR	retStr;
@@ -195,7 +196,7 @@ STDSTR Str_Replace(const STDSTR& str,const STDSTR& strS,const STDSTR& strD){
 		}
 	}
 	return(retStr);
-}
+};
 //------------------------------------------------------------------------------------------//
 STDSTR Str_SplitSubItem(STDSTR* strIn,uint8 subChar){
 	STDSTR	retStr;
@@ -230,7 +231,7 @@ STDSTR Str_SplitSubItem(STDSTR* strIn,uint8 subChar){
 	}
 	*strIn = "";
 	return(retStr);
-}
+};
 //------------------------------------------------------------------------------------------//
 STDSTR Str_ReadSubItem(STDSTR* strIn,const STDSTR& subChar,bool32 blReturnSubChar){
 	STDSTR	retStr = "";
@@ -252,7 +253,7 @@ STDSTR Str_ReadSubItem(STDSTR* strIn,const STDSTR& subChar,bool32 blReturnSubCha
 	retStr = *strIn;
 	*strIn = "";
 	return(retStr);
-}
+};
 //------------------------------------------------------------------------------------------//
 STDSTR Str_ReadSubItemR(STDSTR* strIn,const STDSTR& subChar,bool32 blReturnSubChar){
 	STDSTR	retStr;
@@ -272,13 +273,13 @@ STDSTR Str_ReadSubItemR(STDSTR* strIn,const STDSTR& subChar,bool32 blReturnSubCh
 		return(retStr);
 	}
 	return("");
-}
+};
 //------------------------------------------------------------------------------------------//
 const STDSTR& Str_AddSpaceInFront(STDSTR* strIn,uint32 length){
 	if (strIn->length() < length)
 		strIn->insert(0,length - strIn->length(),' ');
 	return(*strIn);
-}
+};
 //------------------------------------------------------------------------------------------//
 STDSTR Str_FloatToStr(double fZ,int32 blNozero,int32 slen,int32 alen){
 	char 	tmpstr[256];
@@ -300,11 +301,12 @@ STDSTR Str_FloatToStr(double fZ,int32 blNozero,int32 slen,int32 alen){
 			if (pos < pos1)
 				pos = pos1 + 1;
 		}
-		result.erase(pos);
+		if (pos != STDSTR::npos)
+			result.erase(pos);
 	}
 	
 	return(result);
-}
+};
 //------------------------------------------------------------------------------------------//
 uint64 Str_HexToDec(const STDSTR& str){
 	uint8	charP;
@@ -338,7 +340,7 @@ uint64 Str_HexToDec(const STDSTR& str){
 		i += 4;
 	}
 	return(result);
-}
+};
 //------------------------------------------------------------------------------------------//
 STDSTR Str_DecToHex(uint64 fZ){
 	std::stringstream tStream;
@@ -346,7 +348,7 @@ STDSTR Str_DecToHex(uint64 fZ){
 	tStream << std::setiosflags(std::ios::uppercase) << std::hex << std::setw(4) << std::setfill('0') << fZ;
 	tStream >> retStr;
 	return(retStr);
-}
+};
 //------------------------------------------------------------------------------------------//
 STDSTR Str_DecToHex(const STDSTR& str){
 	std::stringstream tStream;
@@ -360,7 +362,7 @@ STDSTR Str_DecToHex(const STDSTR& str){
 	tStream << std::setiosflags(std::ios::uppercase) << std::hex << std::setw(4) << std::setfill('0') << num;
 	tStream >> retStr;
 	return(retStr);
-}
+};
 //------------------------------------------------------------------------------------------//
 uint64 Str_CharToUint64(const uint8* data,G_ENDIAN endianType){
 	uint64 ret;
@@ -387,7 +389,7 @@ uint64 Str_CharToUint64(const uint8* data,G_ENDIAN endianType){
 		ret |= (*data);
 	}
 	return(ret);
-}
+};
 //------------------------------------------------------------------------------------------//
 uint32 Str_CharToUint32(const uint8* data,G_ENDIAN endianType){
 	uint32 ret;
@@ -406,7 +408,7 @@ uint32 Str_CharToUint32(const uint8* data,G_ENDIAN endianType){
 		ret |= (*data);
 	}
 	return(ret);
-}
+};
 //------------------------------------------------------------------------------------------//
 uint16 Str_CharToUint16(const uint8* data,G_ENDIAN endianType){
 	uint16 ret;
@@ -421,7 +423,7 @@ uint16 Str_CharToUint16(const uint8* data,G_ENDIAN endianType){
 		ret |= (*data);
 	}
 	return(ret);
-}
+};
 //------------------------------------------------------------------------------------------//
 const uint8* Str_Uint64ToChar(uint8* _out,uint64 data,G_ENDIAN endianType){
 	if (endianType == G_ENDIAN_LITTLE){
@@ -446,7 +448,7 @@ const uint8* Str_Uint64ToChar(uint8* _out,uint64 data,G_ENDIAN endianType){
 		*_out = (uint8)(data);
 	}
 	return(_out);
-}
+};
 //------------------------------------------------------------------------------------------//
 const uint8* Str_Uint32ToChar(uint8* _out,uint32 data,G_ENDIAN endianType){
 	if (endianType == G_ENDIAN_LITTLE){
@@ -463,7 +465,7 @@ const uint8* Str_Uint32ToChar(uint8* _out,uint32 data,G_ENDIAN endianType){
 		*_out = (uint8)(data);
 	}
 	return(_out);
-}
+};
 //------------------------------------------------------------------------------------------//
 const uint8* Str_Uint16ToChar(uint8* _out,uint16 data,G_ENDIAN endianType){
 	if (endianType == G_ENDIAN_LITTLE){
@@ -475,7 +477,7 @@ const uint8* Str_Uint16ToChar(uint8* _out,uint16 data,G_ENDIAN endianType){
 		*_out = (uint8)(data);
 	}
 	return(_out);
-}
+};
 //------------------------------------------------------------------------------------------//
 
 
@@ -502,7 +504,7 @@ bool32 HToD(uint8& retChar,const uint8*& data){
 		return G_TRUE;
 	}
 	return G_FALSE;
-}
+};
 //------------------------------------------------------------------------------------------//
 template <typename TYPE_INT>
 uint32 Escape_xhh(uint8& retChar,const uint8*& data,TYPE_INT& num){
@@ -521,7 +523,7 @@ uint32 Escape_xhh(uint8& retChar,const uint8*& data,TYPE_INT& num){
 		return 1;
 	}
 	return 0;
-}
+};
 //------------------------------------------------------------------------------------------//
 uint32 Str_Escape_xhh(uint8& retChar,const uint8*& data,uint32& num){return(Escape_xhh(retChar,data,num));};
 uint32 Str_Escape_xhh(uint8& retChar,const uint8*& data,uint64& num){return(Escape_xhh(retChar,data,num));};
@@ -533,7 +535,7 @@ inline bool32 OToD(uint8& retChar,const uint8*& data){
 		return G_TRUE;
 	}
 	return G_FALSE;
-}
+};
 //------------------------------------------------------------------------------------------//
 template <typename TYPE_INT>
 inline uint32 Escape_ooo(uint8& retChar,const uint8*& data,TYPE_INT& num){
@@ -560,7 +562,7 @@ inline uint32 Escape_ooo(uint8& retChar,const uint8*& data,TYPE_INT& num){
 		return 1;
 	}
 	return 0;
-}
+};
 //------------------------------------------------------------------------------------------//
 template <typename TYPE_INT>
 uint32 EscapeToChar(uint8& retChar,const uint8*& data,TYPE_INT& num){
@@ -587,7 +589,7 @@ uint32 EscapeToChar(uint8& retChar,const uint8*& data,TYPE_INT& num){
 			return(Escape_ooo(retChar,data,num));
 	}
 	return 0;
-}
+};
 //------------------------------------------------------------------------------------------//
 uint32	Str_EscapeToChar	(uint8& retChar,const uint8*& data,uint32& num){return(EscapeToChar(retChar,data,num));};
 uint32	Str_EscapeToChar	(uint8& retChar,const uint8*& data,uint64& num){return(EscapeToChar(retChar,data,num));};
@@ -615,7 +617,7 @@ void Str_CharToHex(STDSTR* _out,uint8 data){
 	}
 	
 	*_out += charData;
-}
+};
 //------------------------------------------------------------------------------------------//
 
 
@@ -628,7 +630,7 @@ void Str_CharToHex(STDSTR* _out,uint8 data){
 
 
 //------------------------------------------------------------------------------------------//
-const STDSTR& Str_UnEscapeToStr(STDSTR* _out,const uint8 data){
+const STDSTR& Str_EscapeToASCII(STDSTR* _out,const uint8 data){
 	switch (data) {
 		case '\\':
 			*_out += "\\\\";
@@ -662,15 +664,15 @@ const STDSTR& Str_UnEscapeToStr(STDSTR* _out,const uint8 data){
 			break;
 	}
 	return(*_out);
-}
+};
 //------------------------------------------------------------------------------------------//
-const STDSTR& Str_UnEscapeToStr(STDSTR* _out,const uint8* data,uint64 num){
+const STDSTR& Str_EscapeToASCII(STDSTR* _out,const uint8* data,uint64 num){
 	while(num-- > 0){
-		Str_UnEscapeToStr(_out,*data);
+		Str_EscapeToASCII(_out,*data);
 		++ data;
 	};
 	return(*_out);
-}
+};
 //------------------------------------------------------------------------------------------//
 
 
@@ -711,7 +713,7 @@ const STDSTR& Str_CharToStrEscape(STDSTR* _out,const uint8* data,uint64 num){
 	_out->append((char*)data,count);
 	
 	return(*_out);
-}
+};
 //------------------------------------------------------------------------------------------//
 const STDSTR& Str_CharToStr(STDSTR* _out,const uint8* data,uint64 num,G_HA blHA,G_SPACE blSpace,G_ESCAPE blEscape){
 	uint8	chardata;
@@ -754,7 +756,7 @@ const STDSTR& Str_CharToStr(STDSTR* _out,const uint8* data,uint64 num,G_HA blHA,
 		_out->append((char*)data,num);
 	}
 	return(*_out);
-}
+};
 //------------------------------------------------------------------------------------------//
 const STDSTR &Str_HEXToStr(STDSTR* _out,const uint8* data,uint64 num,G_HA blHA,G_SPACE blSpace){
 	uint8	chardata;
@@ -776,7 +778,7 @@ const STDSTR &Str_HEXToStr(STDSTR* _out,const uint8* data,uint64 num,G_HA blHA,G
 		}
 	}
 	return(*_out);
-}
+};
 //------------------------------------------------------------------------------------------//
 
 
@@ -824,7 +826,7 @@ bool32 Str_Find(STDSTR* _out,const STDSTR& strContent,const STDSTR& searchString
 	if (_out != nullptr)
 		*_out = result;
 	return(result.length() > 0);
-}
+};
 //------------------------------------------------------------------------------------------//
 static void STRFIND::FormatString(STDSTR* retStr,const STDSTR& strIn){
 	//formate to HEX without space
@@ -856,7 +858,7 @@ static void STRFIND::FormatString(STDSTR* retStr,const STDSTR& strIn){
 		}
 	}
 	*retStr += Str_ASCIIToHEX(strData,G_ESCAPE_ON);
-}
+};
 //------------------------------------------------------------------------------------------//
 static STDSTR STRFIND::SplitLetter(STRSIZE* offset,const STDSTR& searchStr){
 	STDSTR	subStr;
@@ -876,7 +878,7 @@ static STDSTR STRFIND::SplitLetter(STRSIZE* offset,const STDSTR& searchStr){
 	if (subStr.length() > 0)
 		*offset = i;
 	return(Str_HEXToASCII(subStr));
-}
+};
 //------------------------------------------------------------------------------------------//
 static bool32 STRFIND::SplitSymbol(const STDSTR& strSearch,STRSIZE* offset,STRSIZE* symbolLength,bool32* blOnlyQuestionMark){
 	//3 type symbol 1-->*,2-->*?,3--?
@@ -913,7 +915,7 @@ static bool32 STRFIND::SplitSymbol(const STDSTR& strSearch,STRSIZE* offset,STRSI
 		break;
 	}while(++(*offset) < length);
 	return(blSymbol);
-}
+};
 //------------------------------------------------------------------------------------------//
 static bool32 STRFIND::SearchSubString(STDSTR*			result
 									   ,const STDSTR&	strContent
@@ -1004,7 +1006,7 @@ static bool32 STRFIND::SearchSubString(STDSTR*			result
 	}
 	*returnContentPostion = strContentPostion;
 	return G_TRUE;
-}
+};
 //------------------------------------------------------------------------------------------//
 
 
@@ -1032,7 +1034,7 @@ std::wstring Str_ANSIToUnicode(const STDSTR &strIn){
 	ret = (wchar_t*)pUnicode;
 	delete  []pUnicode;
 	return  ret;
-}
+};
 //------------------------------------------------------------------------------------------//
 STDSTR Str_UnicodeToANSI(const std::wstring &strIn){
 	char*		pElementText;
@@ -1047,7 +1049,7 @@ STDSTR Str_UnicodeToANSI(const std::wstring &strIn){
 	strText = pElementText;
 	delete []pElementText;
 	return(strText);
-}
+};
 //------------------------------------------------------------------------------------------//
 std::wstring Str_UTF8ToUnicode(const STDSTR &strIn){
 	int32			unicodeLen;
@@ -1063,7 +1065,7 @@ std::wstring Str_UTF8ToUnicode(const STDSTR &strIn){
 	ret = (wchar_t*)pUnicode;
 	delete  []pUnicode;
 	return(ret);
-}
+};
 //------------------------------------------------------------------------------------------//
 STDSTR Str_UnicodeToUTF8(const std::wstring &strIn){
 	char*		pElementText;
@@ -1077,7 +1079,7 @@ STDSTR Str_UnicodeToUTF8(const std::wstring &strIn){
 	strText = pElementText;
 	delete []pElementText;
 	return(strText);
-}
+};
 //------------------------------------------------------------------------------------------//
 #endif
 //------------------------------------------------------------------------------------------//

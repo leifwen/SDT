@@ -6,28 +6,62 @@
 //  Copyright © 2018 Leif Wen. All rights reserved.
 //
 
+//------------------------------------------------------------------------------------------//
+#include "BasicDefine.h"
+#include "DS_BaseClass.h"
+#include "DS_Lock.h"
+//------------------------------------------------------------------------------------------//
+#if defined DS_Lock_h
 #ifndef DS_Tree_h
 #define DS_Tree_h
 #ifdef DS_Tree_h
 //------------------------------------------------------------------------------------------//
-#include "BasicDefine.h"
-#include "DS_BaseClass.h"
+class TREE_FLAG : public BASE_FLAG{
+	protected:
+		enum	{RFLAG_C = 2, RFLAG_S = BASE_FLAG::RFLAG_S + BASE_FLAG::RFLAG_C};
+	private:
+		enum	{TN_blEnable = RFLAG_CREATE(0),TN_blUpdate = RFLAG_CREATE(1)};
+	public:
+				 TREE_FLAG(void) : BASE_FLAG(){;};
+		virtual	~TREE_FLAG(void){;};
+	public:
+		static	inline	void		SetblUpdate	(TREE_FLAG* tf);
+		static	inline	void		ClrblUpdate	(TREE_FLAG* tf);
+		static	inline	bool32		IsUpdate	(TREE_FLAG* tf);
+		static	inline	void		Enable		(TREE_FLAG* tf);
+		static	inline	void		Disable		(TREE_FLAG* tf);
+		static	inline	bool32		IsEnable	(TREE_FLAG* tf);
+};
 //------------------------------------------------------------------------------------------//
 class	TREE_NODE_FRAME;
 typedef TREE_NODE_FRAME TNF;
-class TREE_NODE_FRAME : public BASE_FLAG{
+class TREE_NODE_FRAME : public TREE_FLAG{
+	/*
+		FN
+		||\
+		|| \
+		||  -<------<-------<-------<-------<----
+		|| /	^		^		^		^		^
+		||/		|		|		|		|		|
+		CH<---->CN<---->N<----->N<----->N<----->T
+		  \		||								|
+		   ->------->------->------->------->----
+		 		||
+		 		||
+		 		CH<----->N<----->N<----->N<----->T
+	*/
 	public:
 				 TREE_NODE_FRAME(void);
 		virtual	~TREE_NODE_FRAME(void);
 	private:
-		static	std::atomic_uint	cgID_NextNode;
-				std::atomic_uint	nodeID;			//no changed,be setted when create.
-				std::atomic_uint	cgID_NextDRNode;
-				std::atomic_uint	dRNodeID;		//Right dynamic ID
+		static	std::atomic_uint	cgNextUniqueID;
+				std::atomic_uint	cgUniqueID;		//no changed,be setted when create.
+				std::atomic_uint	cgNextDRNodeID;
+				std::atomic_uint	cgDRNodeID;		//Right dynamic ID
 	public:
-		static	inline	uint32	GetNodeID		(const TNF* tnfNode);
-		static			STDSTR	GetHEXID		(const TNF* tnfNode);
-		static	inline	uint32	GetdRNodeID		(const TNF* tnfNode);
+		static	inline	uint32	GetUniqueID		(const TNF* tnfNode);
+		static			STDSTR	GetHEXUniqueID	(const TNF* tnfNode);
+		static	inline	uint32	GetDRNodeID		(const TNF* tnfNode);
 	private:
 		TNF*	cgHead;
 		TNF*	cgTail;
@@ -43,53 +77,55 @@ class TREE_NODE_FRAME : public BASE_FLAG{
 		static	inline 	TNF*	GetUp			(const TNF* tnfNode);
 		static	inline 	TNF*	GetDown			(const TNF* tnfNode);
 	private:
-		DS_Lock			cgChildLock;
+		DS_RWLock		cgNodeLock;
+	protected:
+				inline	void	Modify_set		(void);
+				inline	void	Modify_clr		(void);
+				inline	bool32	Modify_try		(void);
+		static	inline	void	Modify_set		(TNF* tnfNode);
+		static	inline	void	Modify_clr		(TNF* tnfNode);
+		static	inline	bool32	Modify_try		(TNF* tnfNode);
 	public:
-		inline			void	LockChild_set	(G_LOCK blVaild = G_LOCK_ON);
-		inline			void	LockChild_clr	(G_LOCK blVaild = G_LOCK_ON);
-		inline			bool32	LockChild_try	(G_LOCK blVaild = G_LOCK_ON);
-		
-		static	inline	void	LockChild_set	(TNF* tnfNode,G_LOCK blVaild = G_LOCK_ON);
-		static	inline	void	LockChild_clr	(TNF* tnfNode,G_LOCK blVaild = G_LOCK_ON);
-		static	inline	bool32	LockChild_try	(TNF* tnfNode,G_LOCK blVaild = G_LOCK_ON);
-		
-		static	inline	void	LockFather_set	(TNF* tnfNode,G_LOCK blVaild = G_LOCK_ON);
-		static	inline	void	LockFather_clr	(TNF* tnfNode,G_LOCK blVaild = G_LOCK_ON);
-		static	inline	bool32	LockFather_try	(TNF* tnfNode,G_LOCK blVaild = G_LOCK_ON);
+				inline	void	Traversal_set	(void);
+				inline	void	Traversal_clr	(void);
+				inline	bool32	Traversal_try	(void);
+		static	inline	void	Traversal_set	(TNF* tnfNode);
+		static	inline	void	Traversal_clr	(TNF* tnfNode);
+		static	inline	bool32	Traversal_try	(TNF* tnfNode);
 	private:
 		static	void	UpdateInstert_nolock	(TNF* tInsertNode,TNF* rChainHead,bool32 blUpdatedRNodeID);
 		static	void	UpdateHead_nolock		(TNF* tHeadNode,bool32 blUpdatedRNodeID);
 	public:
 		static	TNF*	InsertAfter_nolock		(TNF* tOpNode,TNF* tInsertNode,bool32 blUpdatedRNodeID = G_TRUE);
 		static	TNF*	InsertBefore_nolock		(TNF* tOpNode,TNF* tInsertNode,bool32 blUpdatedRNodeID = G_TRUE);
-		static	TNF*	AddSubNode_nolock		(TNF* tOpNode,TNF* tInsertNode);
-		static	TNF*	Remove_nolock			(TNF* tFirstNode,TNF* tEndNode = nullptr,bool32 blUpdatedRNodeID = G_TRUE);
-		static	void	MoveUp_nolock			(TNF* tFirstNode,TNF* tEndNode = nullptr);
-		static	void	MoveDown_nolock			(TNF* tFirstNode,TNF* tEndNode = nullptr);
-		static	void	MoveAfter_nolock		(TNF* tFirstNode,TNF* tEndNode = nullptr,TNF* tAfterNode = nullptr);
-		static	TNF*	BreakChild_nolock		(TNF* tnfNode);
-		static	TNF*	BreakNext_nolock		(TNF* tnfNode);
+		static	TNF*	InsertDownTail_nolock	(TNF* tOpNode,TNF* tInsertNode);
+		static	void	MovePrior_nolock		(TNF* tFirstNode,TNF* tEndNode);//tEndNode = nullptr means tEndNode = tail
+		static	void	MoveNext_nolock			(TNF* tFirstNode,TNF* tEndNode);//tEndNode = nullptr means tEndNode = tail
+		static	void	MoveAfter_nolock		(TNF* tFirstNode,TNF* tEndNode,TNF* tAfterNode);//tEndNode/tAfterNode = nullptr means tEndNode/tAfterNode = tail
+		static	TNF*	DetachUpPriorNext_nolock(TNF* tFirstNode,TNF* tEndNode,bool32 blUpdatedRNodeID = G_TRUE);//tEndNode = nullptr means tEndNode = tail
+		static	TNF*	DetachDown_nolock		(TNF* tnfNode);
+		static	TNF*	DetachNext_nolock		(TNF* tnfNode);
 		
 		static	TNF*	InsertAfter				(TNF* tOpNode,TNF* tInsertNode,bool32 blUpdatedRNodeID = G_TRUE);
 		static	TNF*	InsertBefore			(TNF* tOpNode,TNF* tInsertNode,bool32 blUpdatedRNodeID = G_TRUE);
-		static	TNF*	AddSubNode				(TNF* tOpNode,TNF* tInsertNode);
-		static	TNF*	Remove					(TNF* tFirstNode,TNF* tEndNode = nullptr,bool32 blUpdatedRNodeID = G_TRUE);
-		static	void	MoveUp					(TNF* tFirstNode,TNF* tEndNode = nullptr);
-		static	void	MoveDown				(TNF* tFirstNode,TNF* tEndNode = nullptr);
-		static	void	MoveAfter				(TNF* tFirstNode,TNF* tEndNode = nullptr,TNF* tAfterNode = nullptr);
-		static	TNF*	BreakChild				(TNF* tnfNode);
-		static	TNF*	BreakNext				(TNF* tnfNode);
+		static	TNF*	InsertDownTail			(TNF* tOpNode,TNF* tInsertNode);
+		static	void	MovePrior				(TNF* tFirstNode,TNF* tEndNode);//tEndNode = nullptr means tEndNode = tail
+		static	void	MoveNext				(TNF* tFirstNode,TNF* tEndNode);//tEndNode = nullptr means tEndNode = tail
+		static	void	MoveAfter				(TNF* tFirstNode,TNF* tEndNode,TNF* tAfterNode);//tEndNode/tAfterNode = nullptr means tEndNode/tAfterNode = tail
+		static	TNF*	DetachUpPriorNext		(TNF* tFirstNode,TNF* tEndNode,bool32 blUpdatedRNodeID = G_TRUE);//tEndNode = nullptr means tEndNode = tail
+		static	TNF*	DetachDown				(TNF* tnfNode);
+		static	TNF*	DetachNext 				(TNF* tnfNode);
 	public:
-		inline			TNF&	Add				(TNF& tnfNode);
-		inline	virtual	TNF*	AddNode			(TNF* tnfNode);
+		inline			TNF&	AppendDown		(TNF& tnfNode);
+		inline	virtual	TNF*	AppendDownNode	(TNF* tnfNode);
 		inline	virtual	void	RemoveSelf		(void);
 	public:
 		template <typename T_TNF> inline friend	T_TNF& operator < (T_TNF& _tnf,TNF& tnfNode){
-			_tnf.Add(tnfNode);
+			_tnf.AppendDown(tnfNode);
 			return(_tnf);
 		};
 	
-		static	TNF*	FindInLChildRChainByDRNodeID	(TNF* tnNode,uint32 tDRNodeID);
+		static	TNF*	FindInDownChainByDRNodeID(TNF* tnNode,uint32 tDRNodeID);
 };
 //------------------------------------------------------------------------------------------//
 class	TREE_NODE_FRAME_POOL;
@@ -102,65 +138,30 @@ class TREE_NODE_FRAME_POOL : public TNF{
 		STDSTR	fatherName;
 		STDSTR	selfName;
 	public:
-		inline	virtual void	SetFatherName		(const STDSTR& strName);
+		inline	virtual void	SetUpName			(const STDSTR& strName);
 		inline	virtual void	SetSelfName			(const STDSTR& strName);
 		static	inline	STDSTR	GetFullName			(const TNFP* tnfpNode);
-				virtual TNFP*	SetSubNodeFatherName(TNFP* tnfpNode);
+				virtual TNFP*	SetNodeUpName		(TNFP* tnfpNode);
 	private:
-		TNFP	*cgTrash;
+		DS_SpinLock	cgTrashLock;
+		TNFP*		cgTrash;
 	private:
 				inline	TNFP*	CreateTrash			(void);
 				inline	void	DestroyTrash		(void);
 	public:
 		static			void	DestroyTree			(TNF* tnfNode);
-		static			void	DestroySubTree		(TNF* tnfNode);
+		static			void	DestroyDownNextTree	(TNF* tnfNode);
 	public:
 		virtual	inline	TNFP*	GetTrash			(void);
 		static			void	CleanTrash			(TNFP* trashOwner);
-		static	inline	TNF*	CleanChild			(TNFP* trashOwner,TNF* tnfNode);
-		static			void	MoveNodesToTrash	(TNFP* trashOwner,TNF* tFirstNode,TNF* tEndNode = nullptr);
-	
+		static	inline	TNF*	CleanDownTree		(TNFP* trashOwner,TNF* tnfNode);
+		static			void	MoveNodesToTrash	(TNFP* trashOwner,TNF* tFirstNode,TNF* tEndNode);//tEndNode = nullptr means tEndNode = tail
+	public:
 						TNF*	GetNewNode			(void);
 		inline	virtual	TNF*	CreateNode			(void);
 };
 //------------------------------------------------------------------------------------------//
-//------------------------------------------------------------------------------------------//
-class TREE_NODE : public TNFP{
-	protected:
-		enum		{RFLAG_C = 3, RFLAG_S = TNFP::RFLAG_S + TNFP::RFLAG_C};
-	private:
-		enum		{TN_blEnable = RFLAG_CREATE(0),TN_blSelected = RFLAG_CREATE(1),TN_blUpdate = RFLAG_CREATE(2),};
-	public:
-		enum CNType	{CN_None = 0,CN_M,CN_S};
-	public:
-				 TREE_NODE(void);
-		virtual	~TREE_NODE(void){;};
-	private:
-		CNType			cgCNType;
-		TREE_NODE		*cgCoupleNode;
-	public:
-		static	inline 	CNType		GetCNType				(const TREE_NODE* tnNode);
-		static	inline 	TREE_NODE*	GetCoupleNode			(const TREE_NODE* tnNode);
-	
-						void		LinkCoupleNode			(TREE_NODE* slaveNode);
-						void		LinkCoupleNode_nolock	(TREE_NODE* slaveNode);
-						TREE_NODE*	UnlinkCoupleNode		(void);
-	public:
-		inline	virtual	void		Enable					(void);
-		inline	virtual	void		Disable					(void);
-		inline			bool32		CheckEnable				(void)const;
-		
-		inline	virtual	void		SetblSelected			(void);
-		inline	virtual	void		ClrblSelected			(void);
-		inline			bool32		CheckSelected			(void)const;
-		
-		inline	virtual	void		SetblUpdate				(void);
-		inline	virtual	void		ClrblUpdate				(void);
-		inline			bool32		CheckUpdate				(void)const;
-};
-typedef TREE_NODE::CNType CNType;
-//------------------------------------------------------------------------------------------//
-//------------------------------------------------------------------------------------------//
 #include "DS_Tree.hpp"
 #endif /* DS_Tree_h */
 #endif /* DS_Tree_h */
+#endif

@@ -7,6 +7,7 @@
 //
 
 #include "stdafx.h"
+//------------------------------------------------------------------------------------------//
 #include "BIC_EXE.h"
 #ifdef BIC_EXE_h
 //------------------------------------------------------------------------------------------//
@@ -37,12 +38,12 @@ CMDID BIC_EXEC::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 		BIC_ENV_COMMU::GetAExePool(env)->CloseChild(aexe);
 	}
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 AEXE* BIC_EXEC::ExecuteCMD(CMD_ENV* env,const STDSTR& cmd)const{
 	
 	return(BIC_ENV_COMMU::GetAExePool(env)->Execute("BIC_EXEC", cmd));
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIC_EXE_BASH::Help(CMD_ENV* env,uint32 flag)const{
@@ -53,7 +54,7 @@ CMDID BIC_EXE_BASH::Help(CMD_ENV* env,uint32 flag)const{
 AEXE* BIC_EXE_BASH::ExecuteCMD(CMD_ENV* env,const STDSTR& cmd)const{
 	
 	return(BIC_ENV_COMMU::GetAExePool(env)->BASH("BIC_EXE_BASH", cmd));
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIC_EXE_SH::Help(CMD_ENV* env,uint32 flag)const{
@@ -64,7 +65,7 @@ CMDID BIC_EXE_SH::Help(CMD_ENV* env,uint32 flag)const{
 AEXE* BIC_EXE_SH::ExecuteCMD(CMD_ENV* env,const STDSTR& cmd)const{
 	
 	return(BIC_ENV_COMMU::GetAExePool(env)->SH("BIC_EXE_SH", cmd));
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 #endif /* BIC_EXE_h */

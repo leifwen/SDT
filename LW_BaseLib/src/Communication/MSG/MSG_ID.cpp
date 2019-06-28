@@ -7,6 +7,7 @@
 //
 
 #include "stdafx.h"
+//------------------------------------------------------------------------------------------//
 #include "MSG_ID.h"
 #ifdef MSG_ID_h
 //------------------------------------------------------------------------------------------//
@@ -53,9 +54,13 @@ STDSTR _GetMesgText(uint32 mID){
 		case MESG_REQ_License			:retStr += "MESG_REQ_License ";			break;
 		case MESG_ANS_Approve			:retStr += "MESG_ANS_Approve ";			break;
 		case MESG_ANS_Reject			:retStr += "MESG_ANS_Reject ";			break;
+			
+		case MESG_REQ_FileCHSetup		:retStr += "MESG_REQ_FileCHSetup ";		break;
+		case MESG_ANS_FileCHSetup		:retStr += "MESG_ANS_FileCHSetup ";		break;
+
 		default							:retStr = "";							break;
 	}
 	return(retStr);
-}
+};
 //------------------------------------------------------------------------------------------//
 #endif /* MSG_ID_h */

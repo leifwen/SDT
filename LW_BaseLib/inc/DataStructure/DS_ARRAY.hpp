@@ -6,13 +6,12 @@
 //  Copyright © 2018 Leif Wen. All rights reserved.
 //
 
+//------------------------------------------------------------------------------------------//
 #ifndef DS_ARRAY_hpp
 #define DS_ARRAY_hpp
 //------------------------------------------------------------------------------------------//
 #include "DS_ARRAY.h"
 #ifdef DS_ARRAY_h
-//------------------------------------------------------------------------------------------//
-template <typename DS_T> DS_ARRAY_FRAME<DS_T>::DS_ARRAY_FRAME(const DS_ARRAY_FRAME& C) : DS_ARRAY_FRAME() {status = DSAF_blNormal;};
 //------------------------------------------------------------------------------------------//
 template <typename DS_T> DS_ARRAY_FRAME<DS_T>::DS_ARRAY_FRAME(void){
 	cgDataBuffer = nullptr;
@@ -25,9 +24,7 @@ template <typename DS_T> DS_ARRAY_FRAME<DS_T>::DS_ARRAY_FRAME(void){
 	countPreIn = 0;
 	
 	status = DSAF_blNormal;
-}
-//------------------------------------------------------------------------------------------//
-template <typename DS_T> DS_ARRAY_FRAME<DS_T>::DS_ARRAY_FRAME(uint32 size) : DS_ARRAY_FRAME()	{InitSize(size);}
+};
 //------------------------------------------------------------------------------------------//
 template <typename DS_T> DS_ARRAY_FRAME<DS_T>::~DS_ARRAY_FRAME(void){
 	if (cgDataBuffer != nullptr){
@@ -37,7 +34,7 @@ template <typename DS_T> DS_ARRAY_FRAME<DS_T>::~DS_ARRAY_FRAME(void){
 		catch(...){}
 	}
 	cgDataBuffer = nullptr;
-}
+};
 //------------------------------------------------------------------------------------------//
 template <typename DS_T> uint32 DS_ARRAY_FRAME<DS_T>::InitSize(uint32 size){
 	int32	i;
@@ -85,7 +82,7 @@ template <typename DS_T> uint32 DS_ARRAY_FRAME<DS_T>::InitSize(uint32 size){
 		}
 	}
 	return(maxSize);
-}
+};
 //------------------------------------------------------------------------------------------//
 template <typename DS_T> inline void 	DS_ARRAY_FRAME<DS_T>::Empty(void){
 	
@@ -132,26 +129,21 @@ template <typename DS_T> inline bool32 	DS_ARRAY_FRAME<DS_T>::IsNoMEM(void)const
 	return(status == DSAF_blNoMem);
 };
 //------------------------------------------------------------------------------------------//
-template <typename DS_T> void DS_ARRAY_FRAME<DS_T>::Prepare_Set(void){
-	if (countPreIn < 0)
-		countPreIn = 0;
+template <typename DS_T> uint32 DS_ARRAY_FRAME<DS_T>::Prepare_Set(void){
 	if (countPreIn == 0)
 		offsetPreIn = offsetIn;
 	++ countPreIn;
-}
+	return(countPreIn);
+};
 //------------------------------------------------------------------------------------------//
-template <typename DS_T> void DS_ARRAY_FRAME<DS_T>::Prepare_Clr(void){
-	-- countPreIn;
-	if (countPreIn < 0)
-		countPreIn = 0;
-	if (countPreIn == 0)
+template <typename DS_T> uint32 DS_ARRAY_FRAME<DS_T>::Prepare_Clr(bool32 blGiveUp){
+	if (--countPreIn == 0){
+		if (blGiveUp != G_FALSE)
+			offsetPreIn = offsetIn;
 		offsetIn = offsetPreIn;
-}
-//------------------------------------------------------------------------------------------//
-template <typename DS_T> void DS_ARRAY_FRAME<DS_T>::Prepare_Giveup(void){
-	if (countPreIn > 0)
-		offsetPreIn = offsetIn;
-}
+	}
+	return(countPreIn);
+};
 //------------------------------------------------------------------------------------------//
 template <typename DS_T> inline	uint32 DS_ARRAY_FRAME<DS_T>::GetOffsetPreIn	(void)const			{return(offsetPreIn);};
 template <typename DS_T> inline	uint32 DS_ARRAY_FRAME<DS_T>::GetPreInNum	(void)const			{return(offsetPreIn - offsetIn);};
@@ -307,7 +299,7 @@ template <typename DS_T> uint32 DS_ARRAY_FRAME<DS_T>::Copy(DS_T*& to_addr,uint32
 	to_length -= copyNum;
 	in_length -= copyNum;
 	return(copyNum);
-}
+};
 //------------------------------------------------------------------------------------------//
 template <typename DS_T> uint32 DS_ARRAY_FRAME<DS_T>::Put(const DS_T* data,uint32 num){
 	uint32	length,offset;
@@ -337,7 +329,7 @@ template <typename DS_T> uint32 DS_ARRAY_FRAME<DS_T>::Put(const DS_T* data,uint3
 		}
 	}
 	return(copyNum);
-}
+};
 //------------------------------------------------------------------------------------------//
 template <typename DS_T> inline uint32 DS_ARRAY_FRAME<DS_T>::Put(const DS_T& data){return(Put(&data,1));};
 //------------------------------------------------------------------------------------------//
@@ -361,14 +353,14 @@ template <typename DS_T> uint32 DS_ARRAY_FRAME<DS_T>::Read(DS_T* dataOut,uint32 
 		}
 	}
 	return(copyNum);
-}
+};
 //------------------------------------------------------------------------------------------//
 template <typename DS_T> uint32 DS_ARRAY_FRAME<DS_T>::Get(DS_T *dataOut,uint32 num){
 	uint32	copyNum;
 	copyNum = Read(dataOut,num,0);
 	offsetOut += copyNum;
 	return(copyNum);
-}
+};
 //------------------------------------------------------------------------------------------//
 template <typename DS_T> uint32 DS_ARRAY_FRAME<DS_T>::Put(const DS_ARRAY_FRAME<DS_T>& _in,uint32 num,uint32 offset){
 	uint32	copyNum;
@@ -416,7 +408,7 @@ template <typename DS_T> uint32 DS_ARRAY_FRAME<DS_T>::Put(const DS_ARRAY_FRAME<D
 		}
 	}
 	return(copyNum);
-}
+};
 //------------------------------------------------------------------------------------------//
 template <typename DS_T> inline	uint32 DS_ARRAY_FRAME<DS_T>::Get (DS_ARRAY_FRAME<DS_T>* _out,uint32 num){
 	
@@ -448,7 +440,7 @@ template <typename DS_T> uint32 DS_ARRAY_FRAME<DS_T>::UpdateByOffsetOut(const DS
 		}
 	}
 	return(copyNum);
-}
+};
 //------------------------------------------------------------------------------------------//
 template <typename DS_T>
 uint32 DS_ARRAY_FRAME<DS_T>::UpdateByOffsetIn(const DS_T* data,uint32 num,uint32 offset){
@@ -471,7 +463,7 @@ uint32 DS_ARRAY_FRAME<DS_T>::UpdateByOffsetIn(const DS_T* data,uint32 num,uint32
 		}
 	}
 	return(copyNum);
-}
+};
 //------------------------------------------------------------------------------------------//
 template <typename DS_T> uint32 DS_ARRAY_FRAME<DS_T>::ReadByOffsetIn(DS_T* dataOut,uint32 num,uint32 offset){
 	uint32		length;
@@ -493,7 +485,7 @@ template <typename DS_T> uint32 DS_ARRAY_FRAME<DS_T>::ReadByOffsetIn(DS_T* dataO
 		}
 	}
 	return(copyNum);
-}
+};
 //------------------------------------------------------------------------------------------//
 template <typename DS_T> inline uint32 DS_ARRAY_FRAME<DS_T>::Out(uint32 num){
 	uint32	i;
@@ -504,7 +496,7 @@ template <typename DS_T> inline uint32 DS_ARRAY_FRAME<DS_T>::Out(uint32 num){
 	
 	offsetOut += num;
 	return(num);
-}
+};
 //------------------------------------------------------------------------------------------//
 template <typename DS_T> inline uint32 DS_ARRAY_FRAME<DS_T>::In(uint32 num){
 	uint32	i;
@@ -520,7 +512,7 @@ template <typename DS_T> inline uint32 DS_ARRAY_FRAME<DS_T>::In(uint32 num){
 		offsetPreIn += num;
 	}
 	return(num);
-}
+};
 //------------------------------------------------------------------------------------------//
 template <typename DS_T> inline uint32 DS_ARRAY_FRAME<DS_T>::Out_RollBack(uint32 num){
 	uint32	i;
@@ -531,7 +523,7 @@ template <typename DS_T> inline uint32 DS_ARRAY_FRAME<DS_T>::Out_RollBack(uint32
 	
 	offsetOut -= num;
 	return(num);
-}
+};
 //------------------------------------------------------------------------------------------//
 template <typename DS_T> inline uint32 DS_ARRAY_FRAME<DS_T>::In_RollBack(uint32 num){
 	uint32	i;
@@ -542,7 +534,7 @@ template <typename DS_T> inline uint32 DS_ARRAY_FRAME<DS_T>::In_RollBack(uint32 
 	
 	offsetIn -= num;
 	return(num);
-}
+};
 //------------------------------------------------------------------------------------------//
 
 

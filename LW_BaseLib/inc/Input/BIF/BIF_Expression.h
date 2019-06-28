@@ -6,6 +6,7 @@
 //  Copyright © 2018 Leif Wen. All rights reserved.
 //
 
+//------------------------------------------------------------------------------------------//
 #include "BIF_Define.h"
 //------------------------------------------------------------------------------------------//
 #ifdef BIF_Define_h
@@ -44,9 +45,13 @@ class BIF_CONDITION : public BIF_BASE{
 		static	BIF_CONDITION& 	GetCondition	(void);
 };
 //------------------------------------------------------------------------------------------//
-bool32 BIF_CheckResult		(SBUF* _in,const STDSTR& expressions,int32 timeoutMS);
+bool32 BIF_CheckResult		(ARRAY* _in,const STDSTR& expressions,int32 timeoutMS);
 bool32 BIF_Expression		(CMD_ENV* env,const STDSTR& expressions);
 //------------------------------------------------------------------------------------------//
 #endif /* BIF_Expression_h */
 #endif /* BIF_Expression_h */
 #endif /* CMD_h */
+#ifndef BIF_Expression_h
+#define BIF_CheckResult(x,y,z)	0
+#define BIF_Expression(x,y)		0
+#endif

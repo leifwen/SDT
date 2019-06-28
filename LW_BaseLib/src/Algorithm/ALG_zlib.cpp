@@ -7,6 +7,7 @@
 //
 
 #include "stdafx.h"
+//------------------------------------------------------------------------------------------//
 #include "Config.h"
 //------------------------------------------------------------------------------------------//
 //#define NOZLIBTEST
@@ -38,9 +39,9 @@ void ALG_Zlib_Init(ALG_ZLIB_CTX* ctx,uint32 cfg){
 	
 	ALG_Zlib_ReInit(ctx);
 #endif
-}
+};
 //------------------------------------------------------------------------------------------//
-bool32 ALG_Zlib_ReInit(ALG_ZLIB_CTX* ctx){
+IOSE ALG_Zlib_ReInit(ALG_ZLIB_CTX* ctx){
 #ifndef	NOZLIBTEST
 	
 	ALG_Zlib_Release(ctx);
@@ -64,16 +65,16 @@ bool32 ALG_Zlib_ReInit(ALG_ZLIB_CTX* ctx){
 	}
 	ctx->cfg |= DSTF::CFG_INIT;
 #endif
-	return G_TRUE;
-}
+	return IOS_OK;
+};
 //------------------------------------------------------------------------------------------//
-bool32 ALG_Zlib_Update(ALG_ZLIB_CTX* ctx,uint8* _out,const uint64& outSize,const uint8* data,const uint64& length){
+IOSE ALG_Zlib_Update(ALG_ZLIB_CTX* ctx,uint8* _out,const uint64& outSize,const uint8* data,const uint64& length){
 #ifdef NOZLIBTEST
-	IOSTATUS ios;
+	IOS ios;
 	ctx->avail_in = length;
 	ctx->avail_out = outSize;
 
-	DS_IO_NODE::GetDSIOList().Save(IOSTATUS_Clr(&ios), OUD_CHARS(_out,outSize), IUD(data,length));
+	DS_IO_NODE::GetDSIOList().Save(IOS_clr(&ios), OUD_CHARS(_out,outSize), IUD(data,length));
 	
 	ctx->avail_in	-= ios.total_in;
 	ctx->total_in	+= ios.total_in;
@@ -83,7 +84,7 @@ bool32 ALG_Zlib_Update(ALG_ZLIB_CTX* ctx,uint8* _out,const uint64& outSize,const
 	
 	ctx->next_in	= (uint8*)(data + ios.total_in);
 	ctx->next_out	= (uint8*)(_out + ios.total_out);
-	return ZLIB_OK;
+	return IOS_OK;
 #else
 	bool32 err;
 
@@ -115,11 +116,12 @@ bool32 ALG_Zlib_Update(ALG_ZLIB_CTX* ctx,uint8* _out,const uint64& outSize,const
 	
 	ctx->next_in	=  ctx->ctx.next_in;
 	ctx->next_out	=  ctx->ctx.next_out;
-	return(err + 1);
+
+	return(err == Z_OK ? IOS_OK : (err == Z_STREAM_END ? IOS_FINISH : (err == Z_BUF_ERROR ? IOS_NO_MEM : IOS_ERR)));
 #endif
 };
 //------------------------------------------------------------------------------------------//
-bool32 ALG_Zlib_Final(ALG_ZLIB_CTX* ctx,uint8* _out,const uint64& outSize){
+IOSE ALG_Zlib_Final(ALG_ZLIB_CTX* ctx,uint8* _out,const uint64& outSize){
 #ifdef NOZLIBTEST
 	ctx->avail_in = 0;
 	ctx->total_in = 0;
@@ -129,7 +131,7 @@ bool32 ALG_Zlib_Final(ALG_ZLIB_CTX* ctx,uint8* _out,const uint64& outSize){
 	
 	ctx->next_in	= nullptr;
 	ctx->next_out	= _out;
-	return ZLIB_FINISH;
+	return IOS_FINISH;
 #else
 	bool32 err;
 	
@@ -157,16 +159,16 @@ bool32 ALG_Zlib_Final(ALG_ZLIB_CTX* ctx,uint8* _out,const uint64& outSize){
 		
 		ctx->avail_out	-= ctx->ctx.total_out;
 		ctx->total_out	+= ctx->ctx.total_out;
-	}while((ctx->avail_out > 0) && (err == Z_OK));
+	}while((ctx->avail_out > 0) && ((err == Z_OK) || (err == Z_BUF_ERROR)));
 	
 	ctx->next_in	=  ctx->ctx.next_in;
 	ctx->next_out	=  ctx->ctx.next_out;
 
-	return(err + 1);
+	return(err == Z_OK ? IOS_OK : (err == Z_STREAM_END ? IOS_FINISH : (err == Z_BUF_ERROR ? IOS_NO_MEM : IOS_ERR)));
 #endif
 };
 //------------------------------------------------------------------------------------------//
-bool32 ALG_Zlib_Release(ALG_ZLIB_CTX* ctx){
+IOSE ALG_Zlib_Release(ALG_ZLIB_CTX* ctx){
 #ifndef NOZLIBTEST
 	if (B_ChkFLAG32(ctx->cfg, ALG_ZLIB::CFG_INIT)){
 		if (B_ChkFLAG32(ctx->cfg, (~DSTF::CFG_INIT_CFG) & ALG_ZLIB::CFG_Compress)){
@@ -181,8 +183,8 @@ bool32 ALG_Zlib_Release(ALG_ZLIB_CTX* ctx){
 	ctx->ctx.zfree = Z_NULL;
 	ctx->ctx.opaque = Z_NULL;
 #endif
-	return ZLIB_OK;
-}
+	return IOS_OK;
+};
 //------------------------------------------------------------------------------------------//
 
 
@@ -201,28 +203,28 @@ static inline void ALG_Zlib_Init(void* ctx,uint32 cfg,const void* p){
 		 << (B_ChkFLAG32(((ALG_ZLIB_CTX*)ctx)->cfg, (~DSTF::CFG_INIT_CFG) & ALG_ZLIB::CFG_Compress) ? "Compress  " : "Uncompress"));
 };
 //------------------------------------------------------------------------------------------//
-static inline bool32 ALG_Zlib_Update(void* ctx,uint8* _out,const uint64& outSize,const uint8* data,const uint64& length){
+static inline IOSE ALG_Zlib_Update(void* ctx,uint8* _out,const uint64& outSize,const uint8* data,const uint64& length){
 	ELog(((ALG_ZLIB_CTX*)ctx)->dstf << "Update():"
 		 << (B_ChkFLAG32(((ALG_ZLIB_CTX*)ctx)->cfg, (~DSTF::CFG_INIT_CFG) & ALG_ZLIB::CFG_Compress) ? "Compress  " : "Uncompress") << ",len=" << length);
 	return(ALG_Zlib_Update((ALG_ZLIB_CTX*)ctx,_out,outSize,data,length));
 };
 //------------------------------------------------------------------------------------------//
-static inline bool32 ALG_Zlib_Final(void* ctx,uint8* _out,const uint64& outSize,const uint8* data,const uint64& length){
+static inline IOSE ALG_Zlib_Final(void* ctx,uint8* _out,const uint64& outSize,const uint8* data,const uint64& length){
 	ELog(((ALG_ZLIB_CTX*)ctx)->dstf << "Final(): "
 		 << (B_ChkFLAG32(((ALG_ZLIB_CTX*)ctx)->cfg, (~DSTF::CFG_INIT_CFG) & ALG_ZLIB::CFG_Compress) ? "Compress  " : "Uncompress"));
 	return(ALG_Zlib_Final((ALG_ZLIB_CTX*)ctx,_out,outSize));
 };
 //------------------------------------------------------------------------------------------//
-static inline bool32 ALG_Zlib_Release(void* ctx){
+static inline IOSE ALG_Zlib_Release(void* ctx){
 	ELog(((ALG_ZLIB_CTX*)ctx)->dstf << "Release()");
 	ALG_Zlib_Release((ALG_ZLIB_CTX*)ctx);
-	return G_TRUE;
+	return IOS_OK;
 };
 //------------------------------------------------------------------------------------------//
-static inline bool32 ALG_Zlib_ReInit(void* ctx){
+static inline IOSE ALG_Zlib_ReInit(void* ctx){
 	ELog(((ALG_ZLIB_CTX*)ctx)->dstf << "ReInit()");
 	ALG_Zlib_ReInit((ALG_ZLIB_CTX*)ctx);
-	return G_TRUE;
+	return IOS_OK;
 };
 //------------------------------------------------------------------------------------------//
 ALG_ZLIB::ALG_ZLIB(void) : DSTF_DIR(){
@@ -232,10 +234,10 @@ ALG_ZLIB::ALG_ZLIB(void) : DSTF_DIR(){
 	cgCTX.Release	= ALG_Zlib_Release;
 	cgCTX.ReInit	= ALG_Zlib_ReInit;
 	TNFP::SetSelfName("ZLIB");
-}
+};
 //------------------------------------------------------------------------------------------//
 ALG_ZLIB::~ALG_ZLIB(void){
 	ALG_Zlib_Release(&cgCTX);
-}
+};
 //------------------------------------------------------------------------------------------//
 #endif

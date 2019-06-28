@@ -7,6 +7,7 @@
 //
 
 #include "stdafx.h"
+//------------------------------------------------------------------------------------------//
 #include "BIC_License.h"
 #include "MSG_Register.h"
 #ifdef BIC_License_h
@@ -24,8 +25,8 @@ CMDID BIC_PATCH::Help(CMD_ENV* env,uint32 flag)const{
 CMDID BIC_PATCH::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 	STDSTR		strPrint;
 	STDSTR		fileName;
-	PATCHCODE	pc;
 	bool32		err = G_FALSE;
+	PATCHCODE	pc;
 	
 	fileName = msg;
 	fileName = Str_SplitSubItem(&fileName, ' ');
@@ -41,7 +42,7 @@ CMDID BIC_PATCH::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 		PrintFail(env);
 	}
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIC_APPROVE::Help(CMD_ENV* env,uint32 flag)const{
@@ -69,7 +70,7 @@ CMDID BIC_APPROVE::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 	if (array->IsEmpty() == G_FALSE){
 		Str_ReadSubItemR(&fileName, "/");
 		fileName += "/License.key";
-		DS_IO_NODE::GetDSIOList().Save(nullptr, OUD_FILEWR(fileName), IUD(array));
+		DS_IO_NODE::GetDSIOList().Save(nullptr, OUD_FILEWR(fileName), array);
 		PrintStrNL(env,COLOR(COL_clBlue,IUD("Create")),COL_Result,fileName,COL_clBlue,"successful.");
 		PrintSuccess(env);
 	}
@@ -77,7 +78,7 @@ CMDID BIC_APPROVE::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 		PrintFail(env);
 	}
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIC_LSERVER::Help(CMD_ENV* env,uint32 flag)const{
@@ -92,12 +93,13 @@ CMDID BIC_LSERVER::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 	STDSTR		strPar,strPar1,strPar2,strPrint,strCommand;
 	uint8		chkey;
 	DTIME		tNow;
-	LicenseBServer	m_LServer(1024 * 8);
+#ifdef Commu_License_h
+	LicServer	m_LServer(1024 * 8);
 	
 	strPar = Str_Trim(msg);
 	if (strPar.length() == 0)
 		strPar = "16385";
-	if (m_LServer.Open(SetOpenSSL(OPEN_TCPS, "", atoi(strPar.c_str())))){
+	if (m_LServer.Open(SetOpenPar(OPEN_TCPS, "", atoi(strPar.c_str()),0))){
 		//PrintEnable(env);
 		PrintResult(env,"License server is started at Port",strPar);
 		PrintResult(env,"Press Esc to quit and stop the server");
@@ -109,7 +111,7 @@ CMDID BIC_LSERVER::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 				PrintResult(env,m_LServer.RequestSocketInfo(&strPrint));
 				PrintResult(env,COL_clBlue,"Input reject/r or approve/a [hours] to response registration");
 				PrintResult(env,COL_clBlue,"[720H = 1M,8760H = 1Y,867240H = 99Y]");
-				while(ReadCommand(env,&strCommand)){
+				while(ReadCommand(env,_EMPTY(&strCommand))){
 					Str_TrimSelf(strCommand);
 					Str_LowerCaseSelf(strCommand);
 					if (strCommand.length() > 0){
@@ -148,8 +150,9 @@ CMDID BIC_LSERVER::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 	}
 	ClrInPressAnyKeyMode(env);
 	PrintSuccess(env,"License server is stopped");
+#endif
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIC_REGISTRATION::Help(CMD_ENV* env,uint32 flag)const{
@@ -162,12 +165,13 @@ CMDID BIC_REGISTRATION::Help(CMD_ENV* env,uint32 flag)const{
 };
 //------------------------------------------------------------------------------------------//
 CMDID BIC_REGISTRATION::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
-	STDSTR				strReg;
-	STDSTR				strPar1, strPar2, strPrint;
-	LicenseBSocket		lSocket(1024 * 8,nullptr);
-	bool32				retUpdate;
-	REG_SIGN			regSign;
-	ARRAY				*array;
+#ifdef	Commu_License_h
+	STDSTR		strReg;
+	STDSTR		strPar1, strPar2, strPrint;
+	LicSocket	lSocket(1024 * 8,1024 * 8,nullptr);
+	bool32		retUpdate;
+	REG_SIGN	regSign;
+	ARRAY		*array;
 	
 	if (msg.length() == 0){
 		if (regSign.CreateREGFILE(_EMPTY(&strPrint)) > 0){
@@ -185,13 +189,13 @@ CMDID BIC_REGISTRATION::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 			strPar2 = "16385";
 		
 		PrintResult(env,"In doing pls wait...");
-		if (lSocket.Open(SetOpenSSL(OPEN_TCP, strPar1, atoi(strPar2.c_str())))){
+		if (lSocket.Open(SetOpenPar(OPEN_TCP, strPar1, atoi(strPar2.c_str()),0))){
 			PrintResult(env,"Connect to server successful");
 			array = regSign.Create(_EMPTY(&strPrint));
 			if (array->Used() > 0){
 				PrintResult(env,"Create registration data successful");
 				PrintResult(env,"Send registration data to server");
-				retUpdate = lSocket.cgMsg.Send_REQ_License(env,array,20);
+				retUpdate = static_cast<MEM_MSG<MSG_Rerister>*>(lSocket.unitTeam.mem)->cgMsg.Send_REQ_License(env,array,20);
 				if (retUpdate > 0){
 					PrintSuccess(env,"Update License.key successful");
 				}
@@ -211,8 +215,9 @@ CMDID BIC_REGISTRATION::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 		}
 		lSocket.Close();
 	}
+#endif
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 
 
@@ -233,11 +238,11 @@ BIC_BIN::BIC_BIN(void) : BIC_BASE_S(){
 	cgHelpName = "BIN manage";
 	
 #ifdef CommonDefH_MAC
-	Add(cgSub_patch) < cgSub_approve < cgSub_lserver;
+	AppendDown(cgSub_patch) < cgSub_approve < cgSub_lserver;
 #endif
-#ifdef CommonDefH_VC
-	Add(cgSub_registraion);
-#endif
+//#ifdef CommonDefH_VC
+	AppendDown(cgSub_registraion);
+//#endif
 };
 //------------------------------------------------------------------------------------------//
 #endif /* BIC_License_h */

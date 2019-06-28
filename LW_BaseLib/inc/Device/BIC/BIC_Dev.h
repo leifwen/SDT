@@ -8,6 +8,7 @@
 
 #include "BIC_Commu.h"
 #include "Device.h"
+#include "CMUX.h"
 #if defined BIC_Commu_h && defined Device_h
 //------------------------------------------------------------------------------------------//
 #ifndef BIC_Dev_h
@@ -17,7 +18,9 @@ class ExpandDeviceAttr;
 class IPCOMLIST;
 class SCRIPT;
 class TFileSend;
-class CMUXDriver;
+#ifndef CMUX_h
+typedef void	CMUXDriver;
+#endif
 //------------------------------------------------------------------------------------------//
 namespace BIC_ENV_DEV {
 	enum	{CMD_VID_EDA = BIC_ENV_COMMU::CMD_VID_NEXT

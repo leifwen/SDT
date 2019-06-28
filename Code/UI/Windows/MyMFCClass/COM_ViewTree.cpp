@@ -190,7 +190,7 @@ void CMyCTreeCtrl::DrawOneItem(CDC& pDc,HTREEITEM ItemNode){
 	}
 	CloseThemeData(hTheme);
 
-	textRect.left += CaclRectLeft(ItemNode);
+	textRect.left += CalcRectLeft(ItemNode);
 
 	if(ItemHasChildren(ItemNode)){//has child
 		DrawGroupExpand(pDc,textRect,GetItemState(ItemNode,TVIS_EXPANDED) & TVIS_EXPANDED);
@@ -240,7 +240,7 @@ void CMyCTreeCtrl::DrawOneItem(CDC& pDc,HTREEITEM ItemNode){
 			}
 		}
 
-		textRect.left += CaclRectLeft(hTreeItem);
+		textRect.left += CalcRectLeft(hTreeItem);
 		if(ItemHasChildren(hTreeItem)){//has child
 			if (hTreeItem != NULL){
 				DrawGroupExpand(dc,textRect,GetItemState(hTreeItem,TVIS_EXPANDED) & TVIS_EXPANDED);
@@ -292,12 +292,12 @@ void CMyCTreeCtrl::DrawGroupExpand(CDC& dc,CRect DrawRect,BOOL blExpand){
 	CloseThemeData(hTheme);
 }
 //------------------------------------------------------------------------------------------//
-INT32 CMyCTreeCtrl::CaclRectLeft(HTREEITEM treeItem){
+INT32 CMyCTreeCtrl::CalcRectLeft(HTREEITEM treeItem){
 	HTREEITEM	treeItemT;
 	treeItemT = GetParentItem(treeItem);
 	if (treeItemT == NULL)
 		return(4);
-	return(CaclRectLeft(treeItemT) + 16);
+	return(CalcRectLeft(treeItemT) + 16);
 }
 //------------------------------------------------------------------------------------------//
 void CMyCTreeCtrl::OnMouseMove(UINT nFlags, CPoint point){
@@ -394,7 +394,7 @@ BOOL CMyCTreeCtrl::DoShowEdit(HTREEITEM hItem){
 
 			m_EditItem = hItem;
 			GetItemRect(m_EditItem,&editRect,0);
-			editRect.left += CaclRectLeft(m_EditItem);
+			editRect.left += CalcRectLeft(m_EditItem);
 			editRect.left += 20;
 			m_Edit.Create(ES_LEFT|ES_AUTOHSCROLL|WS_BORDER|WS_CHILD,editRect,this,ID_CLASS_MYTREE_EDIT);
 			m_Edit.SetFont(&m_EditFont);
@@ -537,7 +537,7 @@ BOOL CMyCTreeCtrl::DoECClick(HTREEITEM hItem, CPoint point){
 	CRect	textRect;
 	if (hItem != NULL){
 		GetItemRect(hItem,&textRect,0);
-		offsize = CaclRectLeft(hItem);
+		offsize = CalcRectLeft(hItem);
 		textRect.left += offsize;
 		textRect.right = textRect.left + 16;
 		if ((point.x >= textRect.left) && (point.x <= textRect.right)

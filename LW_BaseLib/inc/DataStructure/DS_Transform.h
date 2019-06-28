@@ -17,24 +17,27 @@
 #define DS_Transform_h
 #ifdef DS_Transform_h
 //------------------------------------------------------------------------------------------//
-struct IOSTATUS{
+enum IOSE{
+	IOS_TIMEOUT = -4,
+	IOS_NO_MEM = -3,
+	IOS_NO_OBJECT = -1,
+	IOS_ERR = G_FALSE,
+	IOS_OK = G_TRUE,
+	IOS_FINISH = 2,
+};
+struct IOS{
 	uint64	avail_in;	// number of bytes available at next_in
 	uint64	total_in;	// total number of input bytes read so far
 	uint64	avail_out;	// remaining free space at next_out
 	uint64	total_out;	// total number of bytes output so far
-	bool32	status;
+	IOSE	rcode;
 };
-enum {
-	IOS_NOCONVERT = -2,
-	IOS_ERR = -1,
-	IOS_NOMEM = G_FALSE,
-	IOS_OK = G_TRUE,
-	IOS_FINISH = 2,
-};
-typedef	bool32	ioss;
-static inline IOSTATUS* IOSTATUS_Add(IOSTATUS* _out,const IOSTATUS& _in);
-static inline IOSTATUS* IOSTATUS_Clr(IOSTATUS* _ios);
-static inline ioss*		IOSTATUS_STA(ioss* _out,const ioss& _in);
+						STDSTR 	_GetIOSEMesg	(IOSE 	code);
+static inline			IOS* 	IOS_clr			(IOS* 	_ios);
+static inline			IOS* 	IOS_reset		(IOS* 	_ios);
+static inline	const	IOSE&	IOS_update		(IOS* 	_out,const IOS& _in);
+static inline	const	IOSE&	IOS_update		(IOS* 	_ios,const IOSE& _in);
+static inline	const	IOSE&	IOS_update		(IOSE* 	_out,const IOSE& _in);
 //------------------------------------------------------------------------------------------//
 class DS_IO_NODE : public TNFP{
 	public:
@@ -46,28 +49,32 @@ class DS_IO_NODE : public TNFP{
 				 DS_IO_NODE(void);
 		virtual ~DS_IO_NODE(void){;};
 	protected:
-						ioss	BaseConvert		(DSIO* ioNode,	IOSTATUS* _ios,const UVOut& _out,const UVIn& _in);
-						ioss	BaseSave		(				IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length);
-						ioss	BaseGetInLength	(uint64* num,									 const UVIn& _in);
-						ioss	ArrayConvert	(DSIO* ioNode,	IOSTATUS* _ios,const UVOut& _out,const ARRAY* _array,uint32 length,uint32 offset);
-						ioss	FileConvert		(DSIO* ioNode,	IOSTATUS* _ios,const UVOut& _out,const STDSTR& name,uint64 length,uint64 offset);
-						ioss	FileAdd			(				IOSTATUS* _ios,const STDSTR& name,const uint8* data,const uint64& length);
-						ioss	FileWrite		(				IOSTATUS* _ios,const STDSTR& name,const uint8* data,const uint64& length);
+						IOSE	BaseConvert		(DSIO* ioNode,	IOS* _ios,const UVOut& _out,const UVIn& _in);
+						IOSE	BaseSave		(				IOS* _ios,const UVOut& _out,const uint8* data,const uint64& length);
+						IOSE	BaseGetUVInLen	(uint64* num,								const UVIn& _in);
+						IOSE	BaseAddUVInOffset(											const UVIn& _in,const int64& length);
+						IOSE	ArrayConvert	(DSIO* ioNode,	IOS* _ios,const UVOut& _out,const ARRAY* _array,uint32 length,uint32 offset);
+						IOSE	FileConvert		(DSIO* ioNode,	IOS* _ios,const UVOut& _out,const STDSTR& name,uint64 length,const uint64& offset);
+						IOSE	FileAdd			(				IOS* _ios,const STDSTR& name,const uint8* data,const uint64& length);
+						IOSE	FileWrite		(				IOS* _ios,const STDSTR& name,const uint8* data,const uint64& length);
+						IOSE	FileUpdate		(				IOS* _ios,const STDSTR& name,const uint8* data,const uint64& length,const uint64& offset);
 	protected:
-		inline	virtual	ioss	DoTransform		(				IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length);
-		inline	virtual	ioss	DoFinal			(				IOSTATUS* _ios,const UVOut& _out);
+		inline	virtual	IOSE	DoTransform		(				IOS* _ios,const UVOut& _out,const uint8* data,const uint64& length);
+		inline	virtual	IOSE	DoFinal			(				IOS* _ios,const UVOut& _out);
 	private:
-				virtual	ioss	DoConvert		(DSIO* ioNode,	IOSTATUS* _ios,const UVOut& _out,const UVIn& _in);
-				virtual	ioss	DoSave			(				IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length);
-				virtual	ioss	DoGetInLength	(uint64* num,									 const UVIn& _in);
+				virtual	IOSE	DoConvert		(DSIO* ioNode,	IOS* _ios,const UVOut& _out,const UVIn& _in);
+				virtual	IOSE	DoSave			(				IOS* _ios,const UVOut& _out,const uint8* data,const uint64& length);
+				virtual	IOSE	DoGetUVInLength	(uint64* num,								const UVIn& _in);
+				virtual	IOSE	DoAddUVInOffset	(											const UVIn& _in,const int64& length);
 	public:
-		inline	virtual	uint64	GetInLength		(												 const UVIn& _in);
-		inline			ioss	Save			(				IOSTATUS* _ios,const UVOut& _out,const UVIn& _in);
-		inline			ioss	Save			(				IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length);
+		inline	virtual	uint64	GetUVInLength	(											const UVIn& _in);
+		inline			IOSE	AddUVInOffset	(											const UVIn& _in,const int64& length);
+		inline			IOSE	Save			(				IOS* _ios,const UVOut& _out,const UVIn& _in);
+		inline			IOSE	Save			(				IOS* _ios,const UVOut& _out,const uint8* data,const uint64& length);
 	public:
-		inline			ioss	Transform		(				IOSTATUS* _ios,const UVOut& _out,const UVIn& _in);
-		inline			ioss	Transform		(				IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length);
-		inline			ioss	Final			(				IOSTATUS* _ios,const UVOut& _out);
+		inline			IOSE	Transform		(				IOS* _ios,const UVOut& _out,const UVIn& _in);
+		inline			IOSE	Transform		(				IOS* _ios,const UVOut& _out,const uint8* data,const uint64& length);
+		inline			IOSE	Final			(				IOS* _ios,const UVOut& _out);
 	public:
 		static	inline	DSIO& 	GetDSIOList		(void);
 };
@@ -76,12 +83,45 @@ class	DS_TRANSFORM_FRAME;
 typedef DS_TRANSFORM_FRAME DSTF;
 //------------------------------------------------------------------------------------------//
 struct	STARTUP	{
-	IOSTATUS*	ios;
+	IOS*	ios;
 	UVOut*		uvOut;
 };
-static inline STARTUP	Startup		(IOSTATUS* _ios, const UVOut& _out);
-struct _FinishF{void *p;};
-static inline _FinishF	Finish		(void)	{return{(void*)nullptr};};
+#define CreateOperatorSetUint32(x) \
+	struct 					_##x							{uint32 value;};\
+	static inline _##x		Set##x	(const uint32 &value)	{return{value};};
+
+#define CreateOperatorClrUint32(x) \
+	struct					_Clr##x							{uint32 value;};\
+	static inline _Clr##x	Clr##x	(const uint32 &value)	{return{value};};
+
+#define CreateOperatorFun(x) \
+	struct 			_##x##F				{void* p;};\
+	static inline	_##x##F	x	(void)	{return{(void*)nullptr};};
+
+#define CreateOperatorFun2(x) \
+	template <typename T>static inline T& x(T& _tn){_tn._##x();return(_tn);};
+
+struct 			_SetUVOut									{UVOut value;};
+static inline	_SetUVOut	SetOut	(const UVOut& _uvout)	{return{_uvout};};
+
+struct 			_BeginIOS 							{IOS* value;};
+static inline	_BeginIOS	Begin	(IOS* _ios)		{return{_ios};};
+
+struct 			_EndIOS 							{IOS* value;};
+static inline	_EndIOS		Endl	(IOS* _ios)		{return{_ios};};
+
+CreateOperatorFun(Begin);
+CreateOperatorFun(Endl);
+//------------------------------------------------------------------------------------------//
+#define CreateOperatorFun3(x) \
+template <typename T>static inline T& x(T& _tn){_tn._##x(nullptr);return(_tn);};
+
+CreateOperatorFun3(Begin);
+//------------------------------------------------------------------------------------------//
+#define CreateOperatorFun4(x) \
+template <typename T>static inline T& x(T& _tn){_tn._##x(_tn.cgStartup.ios);return(_tn);};
+
+CreateOperatorFun4(Endl);
 //------------------------------------------------------------------------------------------//
 #define CGF_CREATE(offset)	(((uint64)0x01) << (CFG_S + (offset)))
 //------------------------------------------------------------------------------------------//
@@ -118,23 +158,48 @@ class DS_TRANSFORM_FRAME : public DS_IO_NODE{
 	public:
 		inline	virtual	DSTF&	InitSize	(uint32 size);
 		inline	virtual	DSTF&	InitCFG		(uint32 cfg,const void* par = nullptr);
-		inline	virtual	DSTF&	_Startup	(IOSTATUS* _ios,const UVOut& _out);
+		inline	virtual	DSTF&	_SetOut		(const UVOut& _out);
+		inline	virtual	DSTF&	_SetIOS		(IOS* _ios);
 	public:
-		inline			ioss	AllIn		(IOSTATUS* _ios,const UVOut& _out,const UVIn& _in);
+		inline	virtual	IOSE	_Begin		(IOS* _ios);
+		inline	virtual	IOSE	_Endl		(IOS* _ios);
 	public:
-		template <typename T_DSTF> inline	friend	T_DSTF& operator <<	(T_DSTF& _dstf,const STARTUP& sp){
-			_dstf._Startup(sp.ios,sp.uvOut);
+		inline			IOSE	AllIn		(IOS* _ios,const UVOut& _out,const UVIn& _in);
+	public:
+		template <typename T_DSTF> inline friend T_DSTF&	operator <<	(T_DSTF& _dstf,const IOS& _ios){
+			_dstf._SetIOS(&_ios);
 			return(_dstf);
 		};
-		template <typename T_DSTF> inline	friend	T_DSTF& operator << (T_DSTF& _dstf,const _FinishF& _fun){
-			_dstf.Final(_dstf.cgStartup.ios,_dstf.cgStartup.uvOut);
+		template <typename T_DSTF> inline friend T_DSTF&	operator <<	(T_DSTF& _dstf,IOS* _ios){
+			_dstf._SetIOS(_ios);
 			return(_dstf);
 		};
-		template <typename T_DSTF> inline	friend	T_DSTF& operator <<	(T_DSTF& _dstf,const UVIn& _in){
+		template <typename T_DSTF> inline friend T_DSTF&	operator <<	(T_DSTF& _dstf,const _SetUVOut& _out){
+			_dstf._SetOut(_out.value);
+			return(_dstf);
+		};
+		template <typename T_DSTF>	inline friend T_DSTF&	operator << (T_DSTF& _dstf,T_DSTF& (*fun)(T_DSTF&)){
+			return((*fun)(_dstf));
+		};
+		template <typename T_DSTF>	inline friend T_DSTF&	operator << (T_DSTF& _dstf,const _BeginIOS& _sios){
+			_dstf._Begin(_sios.value);
+			return(_dstf);
+		};
+		template <typename T_DSTF>	inline friend T_DSTF&	operator << (T_DSTF& _dstf,const _BeginF& _fun){
+			_dstf._Begin(nullptr);
+			return(_dstf);
+		};
+		template <typename T_DSTF>	inline	friend	IOSE	operator << (T_DSTF& _dstf,const _EndIOS& _sios){
+			return(_dstf._Endl(_sios.value));
+		};
+		template <typename T_DSTF>	inline	friend	IOSE	operator << (T_DSTF& _dstf,const _EndlF& _fun){
+			return(_dstf._Endl(_dstf.cgStartup.ios));
+		};
+		template <typename T_DSTF>	inline	friend	T_DSTF&	operator <<	(T_DSTF& _dstf,const UVIn& _in){
 			_dstf.DSTF::Transform(_dstf.cgStartup.ios,_dstf.cgStartup.uvOut,_in);
 			return(_dstf);
 		};
-		template <typename T_DSTF> inline	friend	T_DSTF& operator <<	(T_DSTF& _dstf,const char* _in){
+		template <typename T_DSTF>	inline	friend	T_DSTF&	operator <<	(T_DSTF& _dstf,const char* _in){
 			_dstf.DSTF::Transform(_dstf.cgStartup.ios,_dstf.cgStartup.uvOut,IUD(_in));
 			return(_dstf);
 		};
@@ -148,11 +213,11 @@ class DS_TRANSFORM_FRAME : public DS_IO_NODE{
 //------------------------------------------------------------------------------------------//
 namespace DSTF_DIR_FUN{
 	typedef void(*Init)		(void* ctx,uint32 cfg,const void* p);
-	typedef int (*Release)	(void* ctx);
-	typedef int (*Execute)	(void* ctx,uint8* _out,const uint64& outSize,const uint8* data,const uint64& length);
-}
+	typedef IOSE (*Release)	(void* ctx);
+	typedef IOSE (*Execute)	(void* ctx,uint8* _out,const uint64& outSize,const uint8* data,const uint64& length);
+};
 //------------------------------------------------------------------------------------------//
-struct DSTF_DIR_CTX : public IOSTATUS{
+struct DSTF_DIR_CTX : public IOS{
 	uint8*	next_in;	// next input byte
 	uint8*	next_out;	// next output byte should be put there
 	
@@ -183,9 +248,9 @@ template <typename DS_CTX> class DSTF_DIR : public DSTF{
 		inline	virtual void		SetSelfName		(const STDSTR& strName);
 		inline	virtual	DSTF_DIR&	InitCFG			(uint32 cfg,const void* par = nullptr);
 	protected:
-		inline	virtual	ioss		DoTransform		(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length);
-		inline	virtual	ioss		DoFinal			(IOSTATUS* _ios,const UVOut& _out);
-						ioss		Save			(DS_CTX* _ctx,IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length);
+		inline	virtual	IOSE		DoTransform		(IOS* _ios,const UVOut& _out,const uint8* data,const uint64& length);
+		inline	virtual	IOSE		DoFinal			(IOS* _ios,const UVOut& _out);
+						IOSE		Save			(DS_CTX* _ctx,IOS* _ios,const UVOut& _out,const uint8* data,const uint64& length);
 };
 //------------------------------------------------------------------------------------------//
 typedef DSTF_DIR<DSTF_DIR_CTX> DSTF_DIRBASE;
@@ -205,27 +270,28 @@ class DSTF_AB_FRAME : public DSTF_DIR<DSTF_DIR_CTX>{
 		T_B		cgB;
 	public:
 		inline	virtual void			SetSelfName		(const STDSTR& strName);
-		inline	virtual	void			SetFatherName	(const STDSTR& strName);
+		inline	virtual	void			SetUpName		(const STDSTR& strName);
 	public:
 		inline	virtual	DSTF_AB_FRAME&	InitSize		(uint32 size);
 		inline	virtual	DSTF_AB_FRAME&	InitCFG 		(uint32 cfg,const void* par);
-		inline	virtual	DSTF_AB_FRAME&	_Startup		(IOSTATUS* _ios, const UVOut& _out);
+		inline	virtual	DSTF_AB_FRAME&	_SetOut			(const UVOut& _out);
+		inline	virtual	DSTF_AB_FRAME&	_SetIOS			(IOS* _ios);
 		inline			void			DisableA		(void);
 		inline			void			DisableB		(void);
 		inline			void			EnableAB		(void);
 	protected:
-		inline	virtual	ioss			DoTransform		(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length);
-		inline	virtual	ioss			DoFinal			(IOSTATUS* _ios,const UVOut& _out);
+		inline	virtual	IOSE			DoTransform		(IOS* _ios,const UVOut& _out,const uint8* data,const uint64& length);
+		inline	virtual	IOSE			DoFinal			(IOS* _ios,const UVOut& _out);
 };
 //------------------------------------------------------------------------------------------//
 namespace DSTF_TEST {
 	template <typename T_DIR> 	T_DIR* DIR_Create	(const STDSTR& name,T_DIR* _nullptr,uint32 size,uint32 cfg,void* p);
 	
-	template <typename T_DIR>	bool32 DIR_Test		(IOSTATUS* _ios,STDSTR* _out,const STDSTR& _in
+	template <typename T_DIR>	bool32 DIR_Test		(IOS* _ios,STDSTR* _out,const STDSTR& _in
 													 ,const STDSTR& name,uint32 layer,uint32 round
 													 ,T_DIR* _nullptr,uint32 size,uint32 cfg,void* p);
 	
-	template<typename... Args>	bool32 DIR_Test		(IOSTATUS* _ios,STDSTR* _out,const STDSTR& _in
+	template<typename... Args>	bool32 DIR_Test		(IOS* _ios,STDSTR* _out,const STDSTR& _in
 													 ,const STDSTR& name,uint32 round
 													 ,Args* ...args);
 };

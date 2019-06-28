@@ -7,6 +7,7 @@
 //
 
 #include "stdafx.h"
+//------------------------------------------------------------------------------------------//
 #include "BIF_CMD.h"
 #ifdef BIF_CMD_h
 #include "BIF_Expression.h"
@@ -20,8 +21,6 @@ BIF_CMD::BIF_CMD(void) : BIF_BASE(){
 	*this
 #ifdef BIF_Transform_h
 	< cgSubC_Print
-#endif
-#ifdef SBIC_SearchH
 	< cgSubC_Search
 #endif
 #ifdef BIF_Control_h

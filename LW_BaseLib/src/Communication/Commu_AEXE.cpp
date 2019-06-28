@@ -7,6 +7,7 @@
 //
 
 #include "stdafx.h"
+//------------------------------------------------------------------------------------------//
 #include "Commu_AEXE.h"
 #ifdef Commu_AEXE_h
 //------------------------------------------------------------------------------------------//
@@ -21,35 +22,38 @@
 //#define LOGTHREAD_ENABLE
 #include "SYS_Log.h"
 //------------------------------------------------------------------------------------------//
-AEXE::AEXE(uint32 size,const ODEV_SYSTEM* logSys) : COMMU_THREAD(size,logSys){
-	monitorThread.ThreadInit(this, &AEXE::MonitorThreadFun,"monitor");
-	cgThreadList < monitorThread;
+CORE_AEXE::CORE_AEXE(void) : COMMU_CORE(){
+	monitorThread.ThreadInit(this, &CORE_AEXE::MonitorThreadFun,"monitor");
+
 	cgCommand = "";
 	cgSH = "";
 	childpid = -1;
 
-	SetGetDataByRead();
-	TNFP::SetSelfName("AEXE");
-	SetSelfName(selfName);
-	SetFatherName("");
+	SetSelfName("CORE_AEXE");
+	SetUpName("");
 };
 //------------------------------------------------------------------------------------------//
-AEXE::~AEXE(void){
-	Close();
+CORE_AEXE::~CORE_AEXE(void){
+	CloseDev();
 	monitorThread.RemoveSelf();
 };
 //------------------------------------------------------------------------------------------//
-void AEXE::SetSelfName(const STDSTR& strName){
-	COMMU_THREAD::SetSelfName(strName);
-	monitorThread.SetFatherName(GetFullName(this));
+void CORE_AEXE::SetSelfName(const STDSTR& strName){
+	COMMU_CORE::SetSelfName(strName);
+	monitorThread.SetUpName(GetFullName(this));
 };
 //------------------------------------------------------------------------------------------//
-void AEXE::SetFatherName(const STDSTR& strName){
-	COMMU_THREAD::SetFatherName(strName);
-	monitorThread.SetFatherName(GetFullName(this));
+void CORE_AEXE::SetUpName(const STDSTR& strName){
+	COMMU_CORE::SetUpName(strName);
+	monitorThread.SetUpName(GetFullName(this));
 };
 //------------------------------------------------------------------------------------------//
-bool32 AEXE::ExecuteCommand(const STDSTR& cmd){
+void CORE_AEXE::Init(const COMMU_TEAM* _team){
+	COMMU_CORE::Init(_team);
+	unitTeam->commu->ThreadAccept(&monitorThread);
+};
+//------------------------------------------------------------------------------------------//
+bool32 CORE_AEXE::ExecuteCommand(const STDSTR& cmd){
 	char	**argv;
 	STDSTR	strCMD,strArg;
 	int32	num,ret;
@@ -84,49 +88,49 @@ bool32 AEXE::ExecuteCommand(const STDSTR& cmd){
 		return(ret);
 	}
 	return G_FALSE;
-}
+};
 //------------------------------------------------------------------------------------------//
-bool32 AEXE::Execute(const STDSTR &name,const STDSTR& cmd){
+bool32 CORE_AEXE::Execute(const STDSTR &name,const STDSTR& cmd){
 	int32 ret;
 	ret = 0;
-	if (InDoing_try() != G_FALSE){
+	if (unitTeam->commu->cgOpenLock.Try() != G_FALSE){
 		cgCommand = cmd;
 		cgSH = "";
-		ret = COMMU_THREAD::Open(SetOpenPar(OPEN_None,name,0,0),G_LOCK_OFF);
-		InDoing_clr();
+		ret = unitTeam->commu->Open(SetOpenPar(OPEN_None,name,0,0));
+		unitTeam->commu->cgOpenLock.Clr();
 	}
 	return(ret);
-}
+};
 //------------------------------------------------------------------------------------------//
-bool32 AEXE::SH(const STDSTR &name,const STDSTR& cmd){
+bool32 CORE_AEXE::SH(const STDSTR &name,const STDSTR& cmd){
 	int32 ret;
 	ret = 0;
-	if (InDoing_try() != G_FALSE){
+	if (unitTeam->commu->cgOpenLock.Try() != G_FALSE){
 		cgCommand = cmd;
 		cgSH = "/bin/sh";
-		ret = COMMU_THREAD::Open(SetOpenPar(OPEN_None,name,0,0),G_LOCK_OFF);
-		InDoing_clr();
+		ret = unitTeam->commu->Open(SetOpenPar(OPEN_None,name,0,0));
+		unitTeam->commu->cgOpenLock.Clr();
 	}
 	return(ret);
-}
+};
 //------------------------------------------------------------------------------------------//
-bool32 AEXE::BASH(const STDSTR &name,const STDSTR& cmd){
+bool32 CORE_AEXE::BASH(const STDSTR &name,const STDSTR& cmd){
 	int32 ret;
 	ret = 0;
-	if (InDoing_try() != G_FALSE){
+	if (unitTeam->commu->cgOpenLock.Try() != G_FALSE){
 		cgCommand = cmd;
 		cgSH = "/bin/bash";
-		ret = COMMU_THREAD::Open(SetOpenPar(OPEN_None,name,0,0),G_LOCK_OFF);
-		InDoing_clr();
+		ret = unitTeam->commu->Open(SetOpenPar(OPEN_None,name,0,0));
+		unitTeam->commu->cgOpenLock.Clr();
 	}
 	return(ret);
-}
+};
 //------------------------------------------------------------------------------------------//
-const STDSTR& AEXE::GetCommand(void)const{
+const STDSTR& CORE_AEXE::GetCommand(void)const{
 	return(cgCommand);
 };
 //------------------------------------------------------------------------------------------//
-bool32 AEXE::OpenDev(const OPEN_PAR& par){
+bool32 CORE_AEXE::OpenDev(const OPEN_PAR& par){
 	int32			oldf;
 	struct termios	oldt, newt;
 	int				status;
@@ -162,14 +166,13 @@ bool32 AEXE::OpenDev(const OPEN_PAR& par){
 	else if (childpid > 0){			//enter to fater process.
 		close(fd_pipeChildIn[0]);
 		close(fd_pipeChildOut[1]);
-		return 1;
+		return(COMMU_CORE::OpenDev(par));
 	}
-	return 0;
-}
+	return G_FALSE;
+};
 //------------------------------------------------------------------------------------------//
-void AEXE::CloseDev(void){
+void CORE_AEXE::CloseDev(void){
 	int	status;
-	COMMU_THREAD::CloseDev();
 	cgCommand = "";
 	close(fd_pipeChildIn[0]);	//close read pipe.
 	close(fd_pipeChildIn[1]);	//close write pipe.
@@ -181,9 +184,10 @@ void AEXE::CloseDev(void){
 		waitpid(childpid,&status,0);
 	}
 	childpid = -1;
-}
+	COMMU_CORE::CloseDev();
+};
 //------------------------------------------------------------------------------------------//
-bool32 AEXE::ReadFromDevice(uint32* retNum,uint8* buffer,uint32 length){
+bool32 CORE_AEXE::ReadFromDevice(uint32* retNum,uint8* buffer,uint32 length){
 	int64	retCode;
 	*retNum = 0;
 	
@@ -195,9 +199,9 @@ bool32 AEXE::ReadFromDevice(uint32* retNum,uint8* buffer,uint32 length){
 		return G_TRUE;
 	}
 	return G_FALSE;
-}
+};
 //------------------------------------------------------------------------------------------//
-bool32 AEXE::SendToDevice(uint32* retNum,const uint8* buffer,uint32 length){
+bool32 CORE_AEXE::SendToDevice(uint32* retNum,const uint8* buffer,uint32 length){
 	int64		retCode = 0;
 	uint32		alreadySend;
 	
@@ -210,9 +214,11 @@ bool32 AEXE::SendToDevice(uint32* retNum,const uint8* buffer,uint32 length){
 	}
 	*retNum = alreadySend;
 	return(!((alreadySend < length) || retCode));
-}
+};
 //------------------------------------------------------------------------------------------//
-bool32 AEXE::MonitorThreadFun(void* commu){
+bool32 CORE_AEXE::MonitorThreadFun(void* _team){
+	COMMU_TEAM*		team = static_cast<COMMU_TEAM*>(_team);
+	COMMU_FRAME*	commu = team->commu;
 	int	childRet,status;
 	SYS_SleepMS(2);
 	ETLogThreadStart(monitorThread);
@@ -220,14 +226,14 @@ bool32 AEXE::MonitorThreadFun(void* commu){
 		childRet = waitpid(childpid,&status,WNOHANG);
 		if (childRet == childpid || childRet == -1){
 			childpid = -1;
-			DoSelfClose();
+			commu->CloseSelf(0);
 			break;
 		}
 		SYS_SleepMS(50);
 	}
 	ETLogThreadStop(monitorThread);
 	return G_TRUE;
-}
+};
 //------------------------------------------------------------------------------------------//
 
 
@@ -240,20 +246,14 @@ bool32 AEXE::MonitorThreadFun(void* commu){
 
 
 //------------------------------------------------------------------------------------------//
-AEXEPOOL::AEXEPOOL(uint32 size,const ODEV_SYSTEM* logSys) : COMMU_FRAME_LOGSYS(size,logSys){
-	SetSFlag(CF_blNoInitSize);
-	
+AEXEPOOL::AEXEPOOL(uint32 rxSize,uint32 txSize) : AEXEPOOL_BASE(rxSize,txSize,nullptr){
 	TNFP::SetSelfName("AEXEPOOL");
 	SetSelfName(selfName);
-	SetFatherName("");
+	SetUpName("");
 };
 //------------------------------------------------------------------------------------------//
 AEXEPOOL::~AEXEPOOL(void){
 	Close();
-};
-//------------------------------------------------------------------------------------------//
-TNFP* AEXEPOOL::CreateNode(void){
-	return(SetSubNodeFatherName(new AEXE(cgMaxSize,GetLogSystem())));
 };
 //------------------------------------------------------------------------------------------//
 AEXE* AEXEPOOL::Execute(const STDSTR& name,const STDSTR& cmd){
@@ -261,61 +261,53 @@ AEXE* AEXEPOOL::Execute(const STDSTR& name,const STDSTR& cmd){
 	
 	newExe = static_cast<AEXE*>(GetNewChild());
 	if (newExe != nullptr){
-		if (newExe->Execute(name, cmd))
+		if (static_cast<CORE_AEXE*>(newExe->Core())->Execute(name, cmd))
 			return(newExe);
 		CloseChild(newExe);
 	}
 	return(nullptr);
-}
+};
 //------------------------------------------------------------------------------------------//
 AEXE* AEXEPOOL::SH(const STDSTR& name,const STDSTR& cmd){
 	AEXE	*newExe;
 	
 	newExe = static_cast<AEXE*>(GetNewChild());
 	if (newExe != nullptr){
-		if (newExe->SH(name, cmd))
+		if (static_cast<CORE_AEXE*>(newExe->Core())->SH(name, cmd))
 			return(newExe);
 		CloseChild(newExe);
 	}
 	return(nullptr);
-}
+};
 //------------------------------------------------------------------------------------------//
 AEXE* AEXEPOOL::BASH(const STDSTR& name,const STDSTR& cmd){
 	AEXE	*newExe;
 	
 	newExe = static_cast<AEXE*>(GetNewChild());
 	if (newExe != nullptr){
-		if (newExe->BASH(name, cmd))
+		if (static_cast<CORE_AEXE*>(newExe->Core())->BASH(name, cmd))
 			return(newExe);
 		CloseChild(newExe);
 	}
 	return(nullptr);
-}
+};
 //------------------------------------------------------------------------------------------//
 AEXE* AEXEPOOL::Find(const STDSTR& name,const STDSTR& cmd){
 	AEXE	*exe;
 	exe = nullptr;
-	TREE_LChildRChain_Find(AEXE,this,exe,((_opNode->GetOpenPar().name == name) && (_opNode->GetCommand() == cmd)));
+	TREE_DownChain_Find(AEXE,this,exe,((_opNode->Core()->GetOpenPar().name == name) && (static_cast<CORE_AEXE*>(_opNode->Core())->GetCommand() == cmd)));
 	return(exe);
-}
+};
 //------------------------------------------------------------------------------------------//
 AEXE* AEXEPOOL::Find(const STDSTR& name){
 	AEXE	*exe;
 	exe = nullptr;
-	TREE_LChildRChain_Find(AEXE,this,exe,(_opNode->GetOpenPar().name == name));
+	TREE_DownChain_Find(AEXE,this,exe,(_opNode->Core()->GetOpenPar().name == name));
 	return(exe);
-}
-//------------------------------------------------------------------------------------------//
-void AEXEPOOL::DoClose(void){
-	ELog(this << "AEXEPOOL::DoClose()");
-	COMMU_FRAME_LOGSYS::DoClose();
-	ChildClrSel(GetSelDB());
-	CleanChild(this, this);
-	SetblUpdate();
-}
+};
 //------------------------------------------------------------------------------------------//
 void AEXEPOOL::CloseChild(COMMU_FRAME *commu){
-	COMMU_FRAME_LOGSYS::CloseChild(commu);
+	AEXEPOOL_BASE::CloseChild(commu);
 };
 //------------------------------------------------------------------------------------------//
 bool32 AEXEPOOL::CloseChild(const STDSTR& name,const STDSTR& cmd,uint32 timeoutMS){
@@ -327,7 +319,7 @@ bool32 AEXEPOOL::CloseChild(const STDSTR& name,const STDSTR& cmd,uint32 timeoutM
 		return(exe->CloseSelf(timeoutMS));
 	
 	return G_TRUE;
-}
+};
 //------------------------------------------------------------------------------------------//
 bool32 AEXEPOOL::CloseChild(const STDSTR& name,uint32 timeoutMS){
 	AEXE	*exe;
@@ -338,7 +330,7 @@ bool32 AEXEPOOL::CloseChild(const STDSTR& name,uint32 timeoutMS){
 		return(exe->CloseSelf(timeoutMS));
 	
 	return G_TRUE;
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 #endif /* Commu_AEXE_h */

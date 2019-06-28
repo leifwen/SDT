@@ -7,6 +7,7 @@
 //
 
 #include "stdafx.h"
+//------------------------------------------------------------------------------------------//
 #include "ODEV_FILE.h"
 //------------------------------------------------------------------------------------------//
 #ifdef ODEV_FILE_h
@@ -104,7 +105,6 @@ ODEV_FILE::ODEV_FILE(OUTPUT_CACHE* cache,uint32 group) : OUTPUT_NODE(COLType_RAW
 };
 //------------------------------------------------------------------------------------------//
 void ODEV_FILE::Init(const STDSTR& filename,uint64 colType){
-	InUse_set();
 	cgfileName = filename;
 	cgContentRAW = "";
 	cgContentTXT = "";
@@ -112,7 +112,6 @@ void ODEV_FILE::Init(const STDSTR& filename,uint64 colType){
 	SYS_Delay_SetTS(&cgTimeS, FREQUENCY);
 	ClrSFlag(ODEV_blRAW | ODEV_blTXT | ODEV_blRTF);
 	SetSFlag(colType);
-	InUse_clr();
 };
 //------------------------------------------------------------------------------------------//
 bool32 ODEV_FILE::CheckPrint(uint32 ctrl)const{
@@ -132,16 +131,14 @@ void ODEV_FILE::Print(uint32 ctrl,COLORENUM col,const uint8* data, uint32 num){
 		PrintTXT(ctrl,col,data,num);
 	if (CheckSFlag(ODEV_blRTF))
 		PrintRTF(ctrl,col,data,num);
-	if (SYS_Delay_CheckTS(&cgTimeS) != G_FALSE)
+	if (SYS_Delay_IsTimeout(&cgTimeS) != G_FALSE)
 		SYS_Delay_SetTS(&cgTimeS, FREQUENCY);
-}
+};
 //------------------------------------------------------------------------------------------//
 void ODEV_FILE::PrintRTF(uint32 ctrl,COLORENUM col,const uint8* data, uint32 num){
 	STDSTR	strName;
 	uint32  length;
 	uint8   *p;
-	
-	InUse_set();
 	
 	if (num > 0){
 		ctrl &= COLRECORD::CRD_NL;
@@ -214,7 +211,7 @@ void ODEV_FILE::PrintRTF(uint32 ctrl,COLORENUM col,const uint8* data, uint32 num
 		}
 		Str_CharToStr(&cgContentRTF, data, length - 1, G_ASCII, G_SPACE_OFF, G_ESCAPE_OFF);
 	}
-	if ((cgContentRTF.length() > UNWRITESIZE) || (SYS_Delay_CheckTS(&cgTimeS) != G_FALSE)){
+	if ((cgContentRTF.length() > UNWRITESIZE) || (SYS_Delay_IsTimeout(&cgTimeS) != G_FALSE)){
 #ifdef CommonDefH_VC
 		strName = CreateLOGDIR() + "\\" + cgfileName + ".rtf";
 #endif
@@ -224,15 +221,13 @@ void ODEV_FILE::PrintRTF(uint32 ctrl,COLORENUM col,const uint8* data, uint32 num
 		AddToRTFFile(strName,cgContentRTF);
 		cgContentRTF = "";
 	}
-	InUse_clr();
-}
+};
 //------------------------------------------------------------------------------------------//
 void ODEV_FILE::PrintTXT(uint32 ctrl,COLORENUM col,const uint8* data, uint32 num){
 	STDSTR	strName;
 	uint32  length;
 	uint8   *p;
 	
-	InUse_set();
 	if (num > 0){
 		ctrl &= COLRECORD::CRD_NL;
 		
@@ -280,7 +275,7 @@ void ODEV_FILE::PrintTXT(uint32 ctrl,COLORENUM col,const uint8* data, uint32 num
 		}
 		Str_CharToStr(&cgContentTXT, data, length - 1, G_ASCII, G_SPACE_OFF, G_ESCAPE_OFF);
 	}
-	if ((cgContentTXT.length() > UNWRITESIZE) || (SYS_Delay_CheckTS(&cgTimeS) != G_FALSE)){
+	if ((cgContentTXT.length() > UNWRITESIZE) || (SYS_Delay_IsTimeout(&cgTimeS) != G_FALSE)){
 #ifdef CommonDefH_VC
 		strName = CreateLOGDIR() + "\\" + cgfileName + ".txt";
 #endif
@@ -290,17 +285,15 @@ void ODEV_FILE::PrintTXT(uint32 ctrl,COLORENUM col,const uint8* data, uint32 num
 		AddToTXTFile(strName,cgContentTXT);
 		cgContentTXT = "";
 	}
-	InUse_clr();
-}
+};
 //------------------------------------------------------------------------------------------//
 void ODEV_FILE::PrintRAW(uint32 ctrl,COLORENUM col,const uint8* data, uint32 num){
 	STDSTR	strName;
-	InUse_set();
 	
 	if (num > 0)
 		Str_CharToStr(&cgContentRAW, data, num, G_ASCII, G_SPACE_OFF, G_ESCAPE_OFF);
 	
-	if ((cgContentRAW.length() > UNWRITESIZE) || (SYS_Delay_CheckTS(&cgTimeS) != G_FALSE)){
+	if ((cgContentRAW.length() > UNWRITESIZE) || (SYS_Delay_IsTimeout(&cgTimeS) != G_FALSE)){
 #ifdef CommonDefH_VC
 		strName = CreateLOGDIR() + "\\" + cgfileName + ".bin";
 #endif
@@ -310,15 +303,14 @@ void ODEV_FILE::PrintRAW(uint32 ctrl,COLORENUM col,const uint8* data, uint32 num
 		AddToTXTFile(strName,cgContentRAW);
 		cgContentRAW = "";
 	}
-	InUse_clr();
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 STDSTR	ODEV_FILE::CreateFileTime(void){
 	DTIME 	dtDate;
 	dtDate.Now();
 	return(dtDate.Format("YYYY.MM.DD@hh.mm.ss(zzz)"));
-}
+};
 //------------------------------------------------------------------------------------------//
 STDSTR ODEV_FILE::CreateLOGDIR(void){
 #ifdef CommonDefH_Unix
@@ -354,7 +346,7 @@ STDSTR ODEV_FILE::CreateLOGDIR(void){
 		return(Str_UnicodeToANSI(strfileDir));
 	}
 #endif
-}
+};
 //------------------------------------------------------------------------------------------//
 STDSTR ODEV_FILE::GetLOGDIR(void){
 #ifdef CommonDefH_Unix
@@ -386,7 +378,7 @@ STDSTR ODEV_FILE::GetLOGDIR(void){
 		return(Str_UnicodeToANSI(strfileDir));
 	}
 #endif
-}
+};
 //------------------------------------------------------------------------------------------//
 STDSTR ODEV_FILE::CreateNewLOGFileName(void){
 	STDSTR		strName,strTemp,fileDir,strRet;
@@ -426,7 +418,7 @@ STDSTR ODEV_FILE::CreateNewLOGFileName(void){
 #endif
 	}
 	return(strRet);
-}
+};
 //------------------------------------------------------------------------------------------//
 STDSTR ODEV_FILE::CreateNewLOGFileName(const STDSTR& tIP,int32 tPort){
 	STDSTR		strName,strTemp,fileDir,strRet,strNameEx;
@@ -467,7 +459,7 @@ STDSTR ODEV_FILE::CreateNewLOGFileName(const STDSTR& tIP,int32 tPort){
 #endif
 	}
 	return(strRet);
-}
+};
 //------------------------------------------------------------------------------------------//
 void ODEV_FILE::CreateEmptyRTFFile(const STDSTR& fName){
 	STDSTR		strResult;
@@ -477,7 +469,7 @@ void ODEV_FILE::CreateEmptyRTFFile(const STDSTR& fName){
 	strResult += RICH_TEXT_HEAD;
 	strResult += RICH_END;
 	CFS_WriteFile(fName,strResult);
-}
+};
 //------------------------------------------------------------------------------------------//
 void ODEV_FILE::AddToRTFFile(const STDSTR& fName,const STDSTR& content){
 	std::fstream	fileStream;
@@ -495,7 +487,7 @@ void ODEV_FILE::AddToRTFFile(const STDSTR& fName,const STDSTR& content){
 	fileStream << content << RICH_END;
 	fileStream.flush();
 	fileStream.close();
-}
+};
 //------------------------------------------------------------------------------------------//
 void ODEV_FILE::AddToTXTFile(const STDSTR& fName,const STDSTR& content){
 	if (content.length() == 0)
@@ -507,6 +499,6 @@ void ODEV_FILE::AddToTXTFile(const STDSTR& fName,const STDSTR& content){
 	else{
 		CFS_AddToFile(fName, content);
 	}
-}
+};
 //------------------------------------------------------------------------------------------//
 #endif /* ODEV_FILE_h */

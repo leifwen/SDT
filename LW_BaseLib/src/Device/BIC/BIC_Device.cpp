@@ -7,6 +7,7 @@
 //
 
 #include "stdafx.h"
+//------------------------------------------------------------------------------------------//
 #include "BIC_Device.h"
 #include "SYS_File.h"
 #ifdef BIC_Device_h
@@ -33,12 +34,12 @@ CMDID BIC_SC_SEND::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 	if (attr->IsOpened()){
 		if (msg.length() > 0){
 			sDID = (uint32)strtol(msg.c_str(),nullptr,10);
-			nextNode = (SC_NODE*)FindInLChildRChainByDRNodeID(BIC_ENV::GetSCList(env), sDID);
+			nextNode = (SC_NODE*)FindInDownChainByDRNodeID(BIC_ENV::GetSCList(env), sDID);
 			if (nextNode != nullptr){
-				nextNode->InUse_set();
+				nextNode->rwLock.R_set();
 				StrCommand = nextNode->StrCommand;
 				blEnableSendCR = nextNode->blEnableSendCR;
-				nextNode->InUse_clr();
+				nextNode->rwLock.R_clr();
 				PrintEnable(env);
 				attr->device->SendCommandWithPrint(StrCommand,(CMD_TAIL)blEnableSendCR,G_ESCAPE_ON);
 				BIC_CONNECT::PressAnyKey(env,attr,nullptr);
@@ -53,7 +54,7 @@ CMDID BIC_SC_SEND::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 		PrintFail(env,"no connect");
 	}
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 #endif
 #if defined BIC_GCM_h && defined Script_h
@@ -75,16 +76,16 @@ CMDID BIC_GC_GROUP_SEND::Command(CMD_ENV* env,const STDSTR& msg,void* cg)const{
 	
 	if (msg.length() > 0){
 		cDID = (uint32)strtol(msg.c_str(),nullptr,10);
-		node = (COMMAND_NODE*)FindInLChildRChainByDRNodeID(group, cDID);
+		node = (COMMAND_NODE*)FindInDownChainByDRNodeID(group, cDID);
 		if (node != nullptr){
-			COMMAND_NODE::CopyCOMMAND_NODE(&command,node);
+			COMMAND_NODE::CopyCommandNode(&command,node);
 			command.blEnableSend = 1;
 			PrintEnable(env);
 			if (BIC_ENV_DEV::GetScript(env)->Execute(BIC_ENV_DEV::GetEDA(env)->device,&command) == G_FALSE){
 				PrintFail(env,"script is running");
 				return(cgCommandID);
 			}
-			if (InPressKeyMode(env) > 0){
+			if (IntoPressKeyMode(env) > 0){
 				BIC_ENV_DEV::GetScript(env)->Stop();
 				PrintSuccess(env,"Pressed ESC key, stopped script");
 			}
@@ -93,11 +94,11 @@ CMDID BIC_GC_GROUP_SEND::Command(CMD_ENV* env,const STDSTR& msg,void* cg)const{
 	}
 	PrintFail(env);
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
-bool32 BIC_GC_GROUP_SEND::InPressKeyModeExit(CMD_ENV* env)const{
+bool32 BIC_GC_GROUP_SEND::IsExitPressKeyMode(CMD_ENV* env)const{
 	return(BIC_ENV_DEV::GetScript(env)->IsStop());
-}
+};
 //------------------------------------------------------------------------------------------//
 #endif
 //------------------------------------------------------------------------------------------//
@@ -123,7 +124,7 @@ CMDID BIC_SEND::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 		PrintFail(env,"no connect");
 	}
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 #ifdef SendFile_h
 //------------------------------------------------------------------------------------------//
@@ -151,14 +152,14 @@ CMDID BIC_SENDFILE::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 			PrintFail(env,"file is sending");
 			return(cgCommandID);
 		}
-		InPressKeyMode(env);
+		IntoPressKeyMode(env);
 	}
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
-bool32 BIC_SENDFILE::InPressKeyModeExit(CMD_ENV* env)const{
+bool32 BIC_SENDFILE::IsExitPressKeyMode(CMD_ENV* env)const{
 	return(BIC_ENV_DEV::GetFileSend(env)->IsStop());
-}
+};
 //------------------------------------------------------------------------------------------//
 #endif
 //------------------------------------------------------------------------------------------//
@@ -180,7 +181,7 @@ CMDID BIC_STOP::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 		return(cgCommandID);
 	}
 	return(Help(env,0));
-}
+};
 //------------------------------------------------------------------------------------------//
 #ifdef Script_h
 //------------------------------------------------------------------------------------------//
@@ -209,6 +210,7 @@ CMDID BIC_SENDA::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 		
 		commandNode.StrCommand = strPar2;
 		commandNode.StrTimeout = strPar1;
+		commandNode.StrResend = "'timeout";
 		commandNode.StrCycle = '0';
 		commandNode.cmdTail = CMD_NONE;
 		
@@ -217,7 +219,7 @@ CMDID BIC_SENDA::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 			PrintFail(env,"script is running");
 			return(cgCommandID);
 		}
-		if (InPressKeyMode(env) > 0){
+		if (IntoPressKeyMode(env) > 0){
 			BIC_ENV_DEV::GetScript(env)->Stop();
 			PrintSuccess(env,"Pressed ESC key, stopped script");
 		}
@@ -226,11 +228,11 @@ CMDID BIC_SENDA::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 		PrintFail(env,"no connect");
 	}
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
-bool32 BIC_SENDA::InPressKeyModeExit(CMD_ENV* env)const{
+bool32 BIC_SENDA::IsExitPressKeyMode(CMD_ENV* env)const{
 	return(BIC_ENV_DEV::GetScript(env)->IsStop());
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIC_RUN::Help(CMD_ENV* env,uint32 flag)const{
@@ -261,8 +263,9 @@ CMDID BIC_RUN::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 		
 		num = (uint32)strtol(strPar1.c_str(),nullptr,10);
 		
-		group = (COMMAND_GROUP*)FindInLChildRChainByDRNodeID(BIC_ENV::GetGCList(env), num);
+		group = (COMMAND_GROUP*)FindInDownChainByDRNodeID(BIC_ENV::GetGCList(env), num);
 		if (group != nullptr){
+			group->autoRunTimes = 1;
 			if (strPar2.length() > 0)
 				group->autoRunTimes = atoi(strPar2.c_str());
 			PrintEnable(env);
@@ -276,13 +279,13 @@ CMDID BIC_RUN::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 			return(cgCommandID);
 		}
 	}
-	InPressKeyMode(env);
+	IntoPressKeyMode(env);
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
-bool32 BIC_RUN::InPressKeyModeExit(CMD_ENV* env)const{
+bool32 BIC_RUN::IsExitPressKeyMode(CMD_ENV* env)const{
 	return(BIC_ENV_DEV::GetScript(env)->IsStop());
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIC_SCRIPT::Help(CMD_ENV* env,uint32 flag)const{
@@ -353,7 +356,7 @@ CMDID BIC_SCRIPT::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 				,((BIC_ENV_DEV::GetScript(env)->CheckPrintSBICinfo() == G_FALSE)?"disable":"enable"),"show script BIC excution,"
 				,((BIC_ENV_DEV::GetScript(env)->CheckCommandExplain() == G_FALSE)?"disable":"enable"),"show script BIC explain");
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 #endif
 
@@ -374,7 +377,7 @@ BIC_CONN::BIC_CONN(void) : BIC_BASE_S() {
 	cgConsoleName = cgCommand;
 	cgHelpName = "Connection";
 	
-	Add(cgC_MAIN) < cgC_SECOND
+	AppendDown(cgC_MAIN) < cgC_SECOND
 #ifdef SWVERSION_AUXDEVICE
 	< cgC_AUX
 #endif

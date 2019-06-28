@@ -44,7 +44,7 @@ class PORTLIST{
 		bool32		DeviceEnumCommPort	(void);
 };
 //------------------------------------------------------------------------------------------//
-class IPCOMNAME : public TREE_NODE{
+class IPCOMNAME : public TNF{
 	public:
 				 IPCOMNAME(void);
 		virtual ~IPCOMNAME(void){;};
@@ -57,6 +57,7 @@ class IPCOMNAME : public TREE_NODE{
 	public:
 		STDSTR		strShowName;				//
 		bool32		blAvailable;				//only use for COM
+		DS_RWLock	rwLock;
 	private:
 				STDSTR&		ExportV0_4		(uint32 ver,STDSTR* strOut);
 				void		ImportV0_4		(uint32 ver,STDSTR* strIn);
@@ -65,11 +66,11 @@ class IPCOMNAME : public TREE_NODE{
 				STDSTR&		Export			(uint32 ver,STDSTR* strOut);
 				void		Import			(uint32 ver,STDSTR* strIn);
 	
-				void		CreateShowName	(G_LOCK blLock = G_LOCK_ON);
+				void		CreateShowName	(void);
 		static	void		Copy			(IPCOMNAME* node1,const IPCOMNAME* node2,G_LOCK blLock = G_LOCK_ON);//copy 2 to 1
 };
 //------------------------------------------------------------------------------------------//
-class IPCOMLIST : public TREE_NODE{
+class IPCOMLIST : public TNFP{
 	public:
 				 IPCOMLIST(void);
 		virtual ~IPCOMLIST(void);

@@ -7,6 +7,7 @@
 //
 
 #include "stdafx.h"
+//------------------------------------------------------------------------------------------//
 #include "ParRecord.h"
 //------------------------------------------------------------------------------------------//
 #ifdef ParRecord_h
@@ -17,13 +18,13 @@ PR_Record::PR_Record(void){
 	cgIPComList = nullptr;
 	cgSCList = nullptr;
 	cgGCList = nullptr;
-}
+};
 //------------------------------------------------------------------------------------------//
 void PR_Record::Init(IPCOMLIST *iplist,SC_LIST *sclist,GC_LIST *gclist){
 	cgIPComList = iplist;
 	cgSCList = sclist;
 	cgGCList = gclist;
-}
+};
 //------------------------------------------------------------------------------------------//
 void PR_Record::Load(const STDSTR& fileName,uint32 cfg){
 	STDSTR	strResult,strLine;
@@ -71,13 +72,13 @@ void PR_Record::Load(const STDSTR& fileName,uint32 cfg){
 		}
 		return;
 	}
-}
+};
 //------------------------------------------------------------------------------------------//
 void PR_Record::Save(const STDSTR& fileName,uint32 cfg){
 	STDSTR	strResult = "[V0.6]\n";
 
 	CFS_WriteFile(fileName,ExportV0_4(6,&strResult,cfg));
-}
+};
 //------------------------------------------------------------------------------------------//
 void PR_Record::ImportV0_4(uint32 ver,STDSTR* strIn,uint32 cfg){
 	STDSTR		strLine;
@@ -97,7 +98,7 @@ void PR_Record::ImportV0_4(uint32 ver,STDSTR* strIn,uint32 cfg){
 				cgGCList->Import(ver,strIn);
 		}
 	}
-}
+};
 //------------------------------------------------------------------------------------------//
 STDSTR& PR_Record::ExportV0_4(uint32 ver,STDSTR* strOut,uint32 cfg){
 	if (cfg & READINITYPE_AddDeviceList)
@@ -107,6 +108,6 @@ STDSTR& PR_Record::ExportV0_4(uint32 ver,STDSTR* strOut,uint32 cfg){
 	if (cfg & READINITYPE_AddGroupCommand)
 		cgGCList->Export(ver,strOut);
 	return(*strOut);
-}
+};
 //------------------------------------------------------------------------------------------//
 #endif /* ParRecord_h */

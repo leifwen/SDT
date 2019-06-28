@@ -7,6 +7,7 @@
 //
 
 #include "stdafx.h"
+//------------------------------------------------------------------------------------------//
 #include "ADS_Crypto.h"
 //------------------------------------------------------------------------------------------//
 #ifdef ADS_Crypto_h
@@ -15,7 +16,7 @@ AES_ZLIB::AES_ZLIB(void) : DSTF_AB_FRAME<ALG_ZLIB,ALG_AES>(){
 	TNFP::SetSelfName("AES_ZLIB");
 	cgA.selfName = "ZLIB";
 	cgB.selfName = "AES";
-	SetFatherName("");
+	SetUpName("");
 };
 //------------------------------------------------------------------------------------------//
 AES_ZLIB& AES_ZLIB::InitCFG(uint32 cfg,const void* key){

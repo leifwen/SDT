@@ -7,6 +7,7 @@
 //
 
 #include "stdafx.h"
+//------------------------------------------------------------------------------------------//
 #include "ALG_AES.h"
 #include "ALG_Digest.h"
 //------------------------------------------------------------------------------------------//
@@ -36,7 +37,7 @@ STDSTR ALG_AES_FormatKey(uint32 cfg,const STDSTR& sKey){
 		key = ALG_Digest_SHA256(sKey);
 	}
 	return(key);
-}
+};
 //------------------------------------------------------------------------------------------//
 void ALG_AES_Init(ALG_AES_CTX* ctx,uint32 cfg,const STDSTR& sKey){
 #ifndef NOAESTEST
@@ -54,11 +55,11 @@ void ALG_AES_Init(ALG_AES_CTX* ctx,uint32 cfg,const STDSTR& sKey){
 	
 	ALG_AES_ReInit(ctx);
 #endif
-}
+};
 //------------------------------------------------------------------------------------------//
 #ifdef USE_MAC_Crypto
 //------------------------------------------------------------------------------------------//
-bool32 ALG_AES_ReInit(ALG_AES_CTX* ctx){
+IOSE ALG_AES_ReInit(ALG_AES_CTX* ctx){
 #ifndef NOAESTEST
 	size_t		KeySize;
 	CCOperation op;
@@ -103,14 +104,14 @@ bool32 ALG_AES_ReInit(ALG_AES_CTX* ctx){
 	}
 	ctx->cfg |= DSTF::CFG_INIT;
 #endif
-	return G_TRUE;
+	return IOS_OK;
 }
 #else
 #ifdef USE_OPENSSL
 //------------------------------------------------------------------------------------------//
 typedef int(*AES_UpdateFun)	(EVP_CIPHER_CTX *ctx, unsigned char *out, int *outl,const unsigned char *in, int inl);
 //------------------------------------------------------------------------------------------//
-bool32 ALG_AES_ReInit(ALG_AES_CTX* ctx){
+IOSE ALG_AES_ReInit(ALG_AES_CTX* ctx){
 #ifndef NOAESTEST
 	EVP_CIPHER*		evpCipher;
 	
@@ -148,8 +149,8 @@ bool32 ALG_AES_ReInit(ALG_AES_CTX* ctx){
 	}
 	ctx->cfg |= DSTF::CFG_INIT;
 #endif
-	return G_TRUE;
-}
+	return IOS_OK;
+};
 //------------------------------------------------------------------------------------------//
 #endif
 #endif
@@ -161,13 +162,13 @@ typedef		int32	DATA_LEN;
 #endif
 #endif
 //------------------------------------------------------------------------------------------//
-bool32 ALG_AES_Update(ALG_AES_CTX* ctx,uint8* _out,const uint64& outSize,const uint8* data,const uint64& length){
+IOSE ALG_AES_Update(ALG_AES_CTX* ctx,uint8* _out,const uint64& outSize,const uint8* data,const uint64& length){
 #ifdef NOAESTEST
-	IOSTATUS ios;
+	IOS ios;
 	ctx->avail_in = length;
 	ctx->avail_out = outSize;
 	
-	DS_IO_NODE::GetDSIOList().Save(IOSTATUS_Clr(&ios), OUD_CHARS(_out,outSize), IUD(data,length));
+	DS_IO_NODE::GetDSIOList().Save(IOS_clr(&ios), OUD_CHARS(_out,outSize), IUD(data,length));
 	
 	ctx->avail_in	-= ios.total_in;
 	ctx->total_in	+= ios.total_in;
@@ -188,7 +189,7 @@ bool32 ALG_AES_Update(ALG_AES_CTX* ctx,uint8* _out,const uint64& outSize,const u
 
 	while(ctx->avail_in > 0){
 		if (ctx->avail_out <= 16)
-			return AES_NOMEM;
+			return IOS_NO_MEM;
 		avail_in = (ctx->avail_in < package) ? (int32)ctx->avail_in : package;
 
 		if (avail_in > (int32)(ctx->avail_out - 16))
@@ -214,10 +215,10 @@ bool32 ALG_AES_Update(ALG_AES_CTX* ctx,uint8* _out,const uint64& outSize,const u
 		ctx->total_out += total_out;
 	};
 #endif
-	return AES_OK;
-}
+	return IOS_OK;
+};
 //------------------------------------------------------------------------------------------//
-bool32 ALG_AES_Final(ALG_AES_CTX* ctx,uint8* _out,const uint64& outSize){
+IOSE ALG_AES_Final(ALG_AES_CTX* ctx,uint8* _out,const uint64& outSize){
 #ifdef NOAESTEST
 	ctx->avail_in = 0;
 	ctx->total_in = 0;
@@ -237,7 +238,7 @@ bool32 ALG_AES_Final(ALG_AES_CTX* ctx,uint8* _out,const uint64& outSize){
 	ctx->avail_out = outSize;
 
 	if (ctx->avail_out < 16)
-		return AES_NOMEM;
+		return IOS_NO_MEM;
 #ifdef USE_MAC_Crypto
 	CCCryptorFinal(ctx->ctx, ctx->next_out, ctx->avail_out, &total_out);
 #else
@@ -253,10 +254,10 @@ bool32 ALG_AES_Final(ALG_AES_CTX* ctx,uint8* _out,const uint64& outSize){
 	ctx->total_out += total_out;
 	ctx->avail_out -= total_out;
 #endif
-	return AES_FINISH;
-}
+	return IOS_FINISH;
+};
 //------------------------------------------------------------------------------------------//
-bool32 ALG_AES_Release(ALG_AES_CTX* ctx){
+IOSE ALG_AES_Release(ALG_AES_CTX* ctx){
 #ifndef NOAESTEST
 	if (B_ChkFLAG32(ctx->cfg, ALG_AES::CFG_INIT)){
 #ifdef USE_MAC_Crypto
@@ -269,8 +270,8 @@ bool32 ALG_AES_Release(ALG_AES_CTX* ctx){
 		B_ClrFLAG32(ctx->cfg, ALG_AES::CFG_INIT);
 	}
 #endif
-	return AES_OK;
-}
+	return IOS_OK;
+};
 //------------------------------------------------------------------------------------------//
 
 
@@ -290,28 +291,28 @@ static inline void ALG_AES_Init(void* ctx,uint32 cfg,const void* key){
 		 << (B_ChkFLAG32(((ALG_AES_CTX*)ctx)->cfg, ALG_AES::CFG_Encrypt) ? "Encrpyt" : "Decrpyt"));
 };
 //------------------------------------------------------------------------------------------//
-static inline bool32 ALG_AES_Update(void* ctx,uint8* _out,const uint64& outSize,const uint8* data,const uint64& length){
+static inline IOSE ALG_AES_Update(void* ctx,uint8* _out,const uint64& outSize,const uint8* data,const uint64& length){
 	ELog(((ALG_AES_CTX*)ctx)->dstf << "Update(): "
 		 << (B_ChkFLAG32(((ALG_AES_CTX*)ctx)->cfg, ALG_AES::CFG_Encrypt) ? "Encrpyt" : "Decrpyt") << "   ,len=" << length);
 	return(ALG_AES_Update((ALG_AES_CTX*)ctx,_out,outSize,data,length));
 };
 //------------------------------------------------------------------------------------------//
-static inline bool32 ALG_AES_Final(void* ctx,uint8* _out,const uint64& outSize,const uint8* data,const uint64& length){
+static inline IOSE ALG_AES_Final(void* ctx,uint8* _out,const uint64& outSize,const uint8* data,const uint64& length){
 	ELog(((ALG_AES_CTX*)ctx)->dstf << "Final():  "
 		 << (B_ChkFLAG32(((ALG_AES_CTX*)ctx)->cfg, ALG_AES::CFG_Encrypt) ? "Encrpyt" : "Decrpyt"));
 	return(ALG_AES_Final((ALG_AES_CTX*)ctx,_out,outSize));
 };
 //------------------------------------------------------------------------------------------//
-static inline bool32 ALG_AES_Release(void* ctx){
+static inline IOSE ALG_AES_Release(void* ctx){
 	ELog(((ALG_AES_CTX*)ctx)->dstf << "Release()");
 	ALG_AES_Release((ALG_AES_CTX*)ctx);
-	return G_TRUE;
+	return IOS_OK;
 };
 //------------------------------------------------------------------------------------------//
-static inline bool32 ALG_AES_ReInit(void* ctx){
+static inline IOSE ALG_AES_ReInit(void* ctx){
 	ELog(((ALG_AES_CTX*)ctx)->dstf << "ReInit()");
 	ALG_AES_ReInit((ALG_AES_CTX*)ctx);
-	return G_TRUE;
+	return IOS_OK;
 };
 //------------------------------------------------------------------------------------------//
 ALG_AES::ALG_AES(void) : DSTF_DIR(){
@@ -321,10 +322,10 @@ ALG_AES::ALG_AES(void) : DSTF_DIR(){
 	cgCTX.Release	= ALG_AES_Release;
 	cgCTX.ReInit	= ALG_AES_ReInit;
 	TNFP::SetSelfName("AES");
-}
+};
 //------------------------------------------------------------------------------------------//
 ALG_AES::~ALG_AES(void){
 	ALG_AES_Release(&cgCTX);
-}
+};
 //------------------------------------------------------------------------------------------//
 #endif /* ALG_AES_h */

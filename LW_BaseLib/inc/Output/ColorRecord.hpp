@@ -6,40 +6,41 @@
 //  Copyright © 2018 Leif Wen. All rights reserved.
 //
 
+//------------------------------------------------------------------------------------------//
+#include "ColorRecord.h"
+//------------------------------------------------------------------------------------------//
 #ifndef ColorRecord_hpp
 #define ColorRecord_hpp
 //------------------------------------------------------------------------------------------//
-#include "ColorRecord.h"
+#ifdef ColorRecord_h
 //------------------------------------------------------------------------------------------//
 template <typename UV>	static inline _ColData COLOR	(COLORENUM col,const UV&	_in){UVIn uv(_in);return{col,uv};};
 						static inline _ColData COLOR	(COLORENUM col,const UVIn&	_in){return{col,_in};};
 //------------------------------------------------------------------------------------------//
-#ifdef ColorRecord_h
-//------------------------------------------------------------------------------------------//
 inline uint32 CRD::CheckNL		(uint32 ctrl)					{return(B_ChkFLAG32(ctrl,CRD_NL));};
 inline uint32 CRD::CheckGroup	(uint32 ctrl,uint32 group)		{return(B_ChkFLAG32(ctrl,group & CRD_GROUPMASK));};
 //------------------------------------------------------------------------------------------//
-inline ioss CRD::DoTransform(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length){
-	ioss iossta;
+inline IOSE CRD::DoTransform(IOS* _ios,const UVOut& _out,const uint8* data,const uint64& length){
+	IOSE rcode;
 	SetSFlag(CRD_blAddData);
-	iossta = pn_Text.Transform(_ios,data,length);
-	POS_Update(&cgPosWR);
-	return(iossta);
+	rcode = pn_Text.Transform(_ios,data,length);
+	POS_update(&cgPosWR);
+	return(rcode);
 };
 //------------------------------------------------------------------------------------------//
-inline ioss CRD::_Begin(IOSTATUS* _ios){
+inline IOSE CRD::_Begin(IOS* _ios){
 	SetS(_ios,-1,COL_FF);
 	return(pn_Text._Begin(_ios));
 };
 //------------------------------------------------------------------------------------------//
-inline ioss CRD::_Endl(void){
-	pn_Text._Endl();
+inline IOSE CRD::_Endl(IOS* _ios){
+	pn_Text._Endl(_ios);
 	pn_CTRL.Update(cgDefCtrl);
 	pn_COL.Update (cgDefCol);
 	return(SetE());
 };
 //------------------------------------------------------------------------------------------//
-inline CRD& CRD::SetS(IOSTATUS* _ios,uint32 ctrl,COLORENUM col){
+inline CRD& CRD::SetS(IOS* _ios,uint32 ctrl,COLORENUM col){
 	ClrSFlag(CRD_blAddData);
 	PNFB_SHELL::_Begin(_ios);
 	pn_CTRL.Write(_ios,ctrl);
@@ -47,14 +48,14 @@ inline CRD& CRD::SetS(IOSTATUS* _ios,uint32 ctrl,COLORENUM col){
 	return(*this);
 };
 //------------------------------------------------------------------------------------------//
-inline ioss CRD::SetE(void){
-	return(PNFB_SHELL::_Endl());
+inline IOSE CRD::SetE(void){
+	return(PNFB_SHELL::_Endl(nullptr));
 };
 //------------------------------------------------------------------------------------------//
 inline uint32 CRD::ReadCtrl	(void)const	{return(pn_CTRL.GetValueCalcRE());};
 inline uint32 CRD::ReadCOL	(void)const	{return(pn_COL.GetValueCalcRE());};
 //------------------------------------------------------------------------------------------//
-inline ioss CRD::Write(IOSTATUS* _ios,uint32 ctrl,COLORENUM col,const UVIn& _in){
+inline IOSE CRD::Write(IOS* _ios,uint32 ctrl,COLORENUM col,const UVIn& _in){
 	SetS(_ios,ctrl,col);
 	pn_Text.Write(_ios,_in);
 	return(SetE());
@@ -77,15 +78,15 @@ inline uint32 CRDC::MakeCtrl(uint32 ctrl,uint32 enforce){
 };
 //------------------------------------------------------------------------------------------//
 inline void CRDC::DisableGroup(uint32 group){
-	InUse_set();
+	cgPrintLock.Set();
 	B_SetFLAG32(cgGroupDisableStatus,group & CRD_GROUPMASK);
-	InUse_clr();
+	cgPrintLock.Clr();
 };
 //------------------------------------------------------------------------------------------//
 inline void CRDC::EnableGroup(uint32 group){
-	InUse_set();
+	cgPrintLock.Set();
 	B_ClrFLAG32(cgGroupDisableStatus,group & CRD_GROUPMASK);
-	InUse_clr();
+	cgPrintLock.Clr();
 };
 //------------------------------------------------------------------------------------------//
 inline bool32 CRDC::CheckDisableGroup(uint32 group){
@@ -93,32 +94,32 @@ inline bool32 CRDC::CheckDisableGroup(uint32 group){
 	return(B_ChkFLAG32(cgGroupDisableStatus,group & CRD_GROUPMASK));
 };
 //------------------------------------------------------------------------------------------//
-inline void CRDC::Write(IOSTATUS* _ios,COLORENUM col,const UVIn& _in,G_LOCK blLock,uint32 enforce,uint32 addr){
-	InUse_set(blLock);
+inline void CRDC::Write(IOS* _ios,COLORENUM col,const UVIn& _in,G_LOCK blLock,uint32 enforce,uint32 addr){
+	cgPrintLock.Set(blLock);
 	CRD::Write(_ios, MakeCtrl(addr,enforce), col, _in);
-	InUse_clr(blLock);
+	cgPrintLock.Clr(blLock);
 };
 //------------------------------------------------------------------------------------------//
-inline void CRDC::WriteNL(IOSTATUS* _ios,COLORENUM col,const UVIn& _in,G_LOCK blLock,uint32 enforce,uint32 addr){
-	InUse_set(blLock);
+inline void CRDC::WriteNL(IOS* _ios,COLORENUM col,const UVIn& _in,G_LOCK blLock,uint32 enforce,uint32 addr){
+	cgPrintLock.Set(blLock);
 	CRD::Write(_ios, MakeCtrl(addr,enforce | CRD_NL), col, _in);
-	InUse_clr(blLock);
+	cgPrintLock.Clr(blLock);
 };
 //------------------------------------------------------------------------------------------//
-inline ioss CRDC::_Begin(IOSTATUS* _ios){
-	InUse_set();
+inline IOSE CRDC::_Begin(IOS* _ios){
+	cgPrintLock.Set();
 	cgDefCtrl = MakeCtrl(CRD_DEFGROUP,0);
 	cgDefCol = COL_clDefault;
 	return(CRD::_Begin(_ios));
 };
 //------------------------------------------------------------------------------------------//
-inline ioss CRDC::_Endl(void){
-	ioss iossta;
-	iossta = CRD::_Endl();
-	InUse_clr();
+inline IOSE CRDC::_Endl(IOS* _ios){
+	IOSE rcode;
+	rcode = CRD::_Endl(_ios);
+	cgPrintLock.Clr();
 	cgInNL = 0;
 	cgInClrGroup = 0;
-	return(iossta);
+	return(rcode);
 };
 //------------------------------------------------------------------------------------------//
 
@@ -133,12 +134,10 @@ inline ioss CRDC::_Endl(void){
 
 //------------------------------------------------------------------------------------------//
 inline void CRDN::SetAddress(const CRDC* cache,uint32 addr,uint32 mask,uint32 exGroup){
-	InUse_set();
 	cgCache = (CRDC*)cache;
 	cgAddress = B_ClrFLAG32(addr, CRD::CRD_NL);
 	cgMask = B_ClrFLAG32(mask, CRD::CRD_NL | CRD::CRD_GROUPMASK);
 	cgExtraGroup = exGroup;
-	InUse_clr();
 };
 //------------------------------------------------------------------------------------------//
 inline uint32 CRDN::GetAddress(void)const{
@@ -182,19 +181,19 @@ inline bool32 CRDN::CheckPrintDisable(void){
 	return G_FALSE;
 };
 //------------------------------------------------------------------------------------------//
-inline ioss CRDN::DoTransform(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length){
+inline IOSE CRDN::DoTransform(IOS* _ios,const UVOut& _out,const uint8* data,const uint64& length){
 	if (cgCache != nullptr)
 		return(cgCache->Transform(_ios, data, length));
 	return IOS_OK;
 };
 //------------------------------------------------------------------------------------------//
-inline ioss CRDN::DoFinal(IOSTATUS* _ios,const UVOut& _out){
+inline IOSE CRDN::DoFinal(IOS* _ios,const UVOut& _out){
 	if (cgCache != nullptr)
 		return(cgCache->Final(_ios));
-	return IOS_OK;
+	return IOS_FINISH;
 };
 //------------------------------------------------------------------------------------------//
-inline ioss CRDN::_Begin(IOSTATUS* _ios){
+inline IOSE CRDN::_Begin(IOS* _ios){
 	if (cgCache != nullptr){
 		cgCache->_Begin(_ios);
 		cgCache->SetAddr(cgAddress | cgExtraGroup);
@@ -203,39 +202,39 @@ inline ioss CRDN::_Begin(IOSTATUS* _ios){
 	return IOS_OK;
 };
 //------------------------------------------------------------------------------------------//
-inline ioss CRDN::_Endl(void) {
+inline IOSE CRDN::_Endl(IOS* _ios) {
 	if (cgCache != nullptr)
-		return(cgCache->_Endl());
-	return IOS_OK;
+		return(cgCache->_Endl(_ios));
+	return IOS_FINISH;
 };
 //------------------------------------------------------------------------------------------//
-inline void CRDN::Write(IOSTATUS* _ios,COLORENUM col,const UVIn& _in,G_LOCK blLock,uint32 extraGroup)const{
+inline void CRDN::Write(IOS* _ios,COLORENUM col,const UVIn& _in,G_LOCK blLock,uint32 extraGroup)const{
 	if (cgCache != nullptr)
 		cgCache->Write(_ios, col, _in, blLock, cgAddress | extraGroup, cgAddress | cgExtraGroup);
 };
 //------------------------------------------------------------------------------------------//
-inline void CRDN::WriteNL(IOSTATUS* _ios,COLORENUM col,const UVIn& _in,G_LOCK blLock,uint32 extraGroup)const{
+inline void CRDN::WriteNL(IOS* _ios,COLORENUM col,const UVIn& _in,G_LOCK blLock,uint32 extraGroup)const{
 	if (cgCache != nullptr)
 		cgCache->WriteNL(_ios, col, _in, blLock, cgAddress | extraGroup, cgAddress | cgExtraGroup);
 };
 //------------------------------------------------------------------------------------------//
-inline uint64 CRDN::GetInLength(const UVIn& _in){
-	return (DSTF::GetInLength(_in));
+inline uint64 CRDN::GetUVInLength(const UVIn& _in){
+	return (DSTF::GetUVInLength(_in));
 };
 //------------------------------------------------------------------------------------------//
-inline uint64 CRDN::GetInLength(const _ColData& _in){
-	return (DSTF::GetInLength(_in.uvin));
+inline uint64 CRDN::GetUVInLength(const _ColData& _in){
+	return (DSTF::GetUVInLength(_in.uvin));
 };
 //------------------------------------------------------------------------------------------//
-inline uint64 CRDN::GetInLength(const char* _in){
+inline uint64 CRDN::GetUVInLength(const char* _in){
 	if (_in != nullptr)
 		return (strlen(_in));
 	return 0;
 };
 //------------------------------------------------------------------------------------------//
-inline uint64 CRDN::GetInLength(const COLORENUM col){
+inline uint64 CRDN::GetUVInLength(const COLORENUM col){
 	return 0;
-}
+};
 //------------------------------------------------------------------------------------------//
 inline CRDN& CRDN::_NL(void){
 	if (cgCache != nullptr)

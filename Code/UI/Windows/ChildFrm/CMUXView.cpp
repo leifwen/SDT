@@ -471,7 +471,7 @@ void CCMUXCOMCtrl::InitBR(void){
 //------------------------------------------------------------------------------------------//
 void CCMUXCOMCtrl::InitComboBox_COM(void){
 	CreateComboBox_COMList();
-	m_ValidAuxComList.selectedNode = (IPCOMNAME*)TREE_NODE::GetTail(TREE_NODE::GetDown(&m_ValidAuxComList));
+	m_ValidAuxComList.selectedNode = (IPCOMNAME*)TNF::GetTail(TNF::GetDown(&m_ValidAuxComList));
 	SetSelectComboBox_COM();
 }
 //------------------------------------------------------------------------------------------//
@@ -517,9 +517,8 @@ void CCMUXCOMCtrl::CreateComboBox_COMList(void){
 	theApp.GSDTApp.m_IPComList.Refresh();
 	theApp.GSDTApp.m_IPComList.ExportCOM(&m_ValidAuxComList);
 
-	m_ValidAuxComList.InUse_set();
 	i = 0;
-	TREE_LChildRChain_Traversal_LINE(IPCOMNAME, (&m_ValidAuxComList),
+	TREE_DownChain_Traversal_LINE(IPCOMNAME, (&m_ValidAuxComList),
 		if (_opNode->typeID == PublicDevice_DEVID_APICOM)
 			sstrPortName = _opNode->strIPComName.c_str();
 		if (_opNode->typeID == PublicDevice_DEVID_TCPClient){
@@ -536,12 +535,12 @@ void CCMUXCOMCtrl::CreateComboBox_COMList(void){
 			sstrPortName = "UDP SERVER";
 		sstrShowName = _opNode->strShowName.c_str();
 		m_ComboCOM.InsertString(i,sstrShowName);
-		m_ComboCOM.SetItemData(i, TREE_NODE::GetdRNodeID(_opNode));
+		m_ComboCOM.SetItemData(i, TNF::GetDRNodeID(_opNode));
 		++ i;
 		if (sstrBackup == sstrShowName)
 			m_ValidAuxComList.selectedNode = _opNode;
 	);
-	m_ValidAuxComList.InUse_clr();
+
 	if (m_ValidAuxComList.selectedNode != NULL){
 		sstrShowName = m_ValidAuxComList.selectedNode->strShowName.c_str();
 		m_ComboCOM.SetCurSel(m_ComboCOM.FindString(0,sstrShowName));
@@ -557,7 +556,7 @@ void CCMUXCOMCtrl::OnCOMBO_COM(void){
 	id = m_ComboCOM.FindString(0,cText);
 	if (id >= 0){
 		id = m_ComboCOM.GetItemData(id);
-		m_ValidAuxComList.selectedNode = (IPCOMNAME*)m_ValidAuxComList.FindInLChildRChainByDRNodeID(&m_ValidAuxComList,id);
+		m_ValidAuxComList.selectedNode = (IPCOMNAME*)m_ValidAuxComList.FindInDownChainByDRNodeID(&m_ValidAuxComList,id);
 		SetSelectComboBox_COM();
 	}
 	else{
@@ -623,10 +622,8 @@ void CCMUXCOMCtrl::OnDTR(void){
 	}
 	if (m_CMUXCOM == NULL)
 		return;
-	theApp.GSDTApp.m_CMUXDriver.InUse_set();
-	m_CMUXCOM->Update_DTR(m_CMUXCOM->Check_DTR() == 0);
-	theApp.GSDTApp.m_CMUXDriver.SendMSC(m_ComNumber,m_CMUXCOM->Check_DTR(),m_CMUXCOM->Check_RTS());
-	theApp.GSDTApp.m_CMUXDriver.InUse_clr();
+	CORE_VCOM::Update_DTR(m_CMUXCOM,CORE_VCOM::Check_DTR(m_CMUXCOM) == 0);
+	theApp.GSDTApp.m_CMUXDriver.SendMSC(m_ComNumber,CORE_VCOM::Check_DTR(m_CMUXCOM),CORE_VCOM::Check_RTS(m_CMUXCOM));
 #endif
 }
 //------------------------------------------------------------------------------------------//
@@ -639,10 +636,8 @@ void CCMUXCOMCtrl::OnRTS(void){
 	}
 	if (m_CMUXCOM == NULL)
 		return;
-	theApp.GSDTApp.m_CMUXDriver.InUse_set();
-	m_CMUXCOM->Update_RTS(m_CMUXCOM->Check_RTS() == 0);
-	theApp.GSDTApp.m_CMUXDriver.SendMSC(m_ComNumber,m_CMUXCOM->Check_DTR(),m_CMUXCOM->Check_RTS());
-	theApp.GSDTApp.m_CMUXDriver.InUse_clr();
+	CORE_VCOM::Update_RTS(m_CMUXCOM,CORE_VCOM::Check_RTS(m_CMUXCOM) == 0);
+	theApp.GSDTApp.m_CMUXDriver.SendMSC(m_ComNumber,CORE_VCOM::Check_DTR(m_CMUXCOM),CORE_VCOM::Check_RTS(m_CMUXCOM));
 #endif
 }
 //------------------------------------------------------------------------------------------//
@@ -654,11 +649,9 @@ void CCMUXCOMCtrl::OnHEX(void){
 	}
 	if (m_CMUXCOM == NULL)
 		return;
-	theApp.GSDTApp.m_CMUXDriver.InUse_set();
-	m_CMUXCOM->Update_HEX(m_CMUXCOM->Check_HEX() == 0);
-	if (m_CMUXCOM->Check_HEX() != 0)
-		m_CMUXCOM->Update_Escape(0);
-	theApp.GSDTApp.m_CMUXDriver.InUse_clr();
+	CORE_VCOM::Update_HEX(m_CMUXCOM,CORE_VCOM::Check_HEX(m_CMUXCOM) == 0);
+	if (CORE_VCOM::Check_HEX(m_CMUXCOM) != 0)
+		CORE_VCOM::Update_Escape(m_CMUXCOM,0);
 #endif
 }
 //------------------------------------------------------------------------------------------//
@@ -670,11 +663,9 @@ void CCMUXCOMCtrl::OnEscape(void){
 	}
 	if (m_CMUXCOM == NULL)
 		return;
-	theApp.GSDTApp.m_CMUXDriver.InUse_set();
-	m_CMUXCOM->Update_Escape(m_CMUXCOM->Check_Escape() == 0);
-	if (m_CMUXCOM->Check_Escape() != 0)
-		m_CMUXCOM->Update_HEX(0);
-	theApp.GSDTApp.m_CMUXDriver.InUse_clr();
+	CORE_VCOM::Update_Escape(m_CMUXCOM,CORE_VCOM::Check_Escape(m_CMUXCOM) == 0);
+	if (CORE_VCOM::Check_Escape(m_CMUXCOM) != 0)
+		CORE_VCOM::Update_HEX(m_CMUXCOM,0);
 #endif
 }
 //------------------------------------------------------------------------------------------//
@@ -685,17 +676,16 @@ void  CCMUXCOMCtrl::RefreshCOM(void){
 			if (m_CMUXCOM->IsOpened() != 0){
 				std::string	strTemp;
 				m_blConnect = TRUE;
-				theApp.GSDTApp.m_CMUXDriver.InUse_set();
-				m_CheckDSR.SetCheck(m_CMUXCOM->Check_DSR() != 0);
-				m_CheckCTS.SetCheck(m_CMUXCOM->Check_CTS() != 0);
-				m_CheckDCD.SetCheck(m_CMUXCOM->Check_DCD() != 0);
-				m_CheckRING.SetCheck(m_CMUXCOM->Check_RING() != 0);
+				m_CheckDSR.SetCheck(CORE_VCOM::Check_DSR(m_CMUXCOM) != 0);
+				m_CheckCTS.SetCheck(CORE_VCOM::Check_CTS(m_CMUXCOM) != 0);
+				m_CheckDCD.SetCheck(CORE_VCOM::Check_DCD(m_CMUXCOM) != 0);
+				m_CheckRING.SetCheck(CORE_VCOM::Check_RING(m_CMUXCOM) != 0);
 					
-				m_CheckDTR.SetCheck(m_CMUXCOM->Check_DTR() != 0);
-				m_CheckRTS.SetCheck(m_CMUXCOM->Check_RTS() != 0);
+				m_CheckDTR.SetCheck(CORE_VCOM::Check_DTR(m_CMUXCOM) != 0);
+				m_CheckRTS.SetCheck(CORE_VCOM::Check_RTS(m_CMUXCOM) != 0);
 
-				m_CheckEscape.SetCheck(m_CMUXCOM->Check_Escape() != 0);
-				m_CheckHEX.SetCheck(m_CMUXCOM->Check_HEX() != 0);
+				m_CheckEscape.SetCheck(CORE_VCOM::Check_Escape(m_CMUXCOM) != 0);
+				m_CheckHEX.SetCheck(CORE_VCOM::Check_HEX(m_CMUXCOM) != 0);
 
 				strTemp = "Rx:";
 				strTemp += Str_ToStr(m_CMUXCOM->RxBytes());
@@ -705,7 +695,6 @@ void  CCMUXCOMCtrl::RefreshCOM(void){
 				strTemp = "Tx:";
 				strTemp += Str_ToStr(m_CMUXCOM->TxBytes());
 				m_StaticTx.SetValue(strTemp);
-				theApp.GSDTApp.m_CMUXDriver.InUse_clr();
 				return;
 			}
 			else{

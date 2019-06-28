@@ -6,12 +6,14 @@
 //  Copyright © 2018 Leif Wen. All rights reserved.
 //
 
-#ifndef CMD_h
-#define CMD_h
-#ifdef CMD_h
 //------------------------------------------------------------------------------------------//
 #include "DS_BaseClass.h"
 #include "DS_Tree.h"
+//------------------------------------------------------------------------------------------//
+#ifdef DS_Tree_h
+#ifndef CMD_h
+#define CMD_h
+#ifdef CMD_h
 //------------------------------------------------------------------------------------------//
 #ifndef Output_h
 class OUTPUT_NODE;
@@ -42,7 +44,7 @@ class CMD_ENV : public BASE_FLAG{
 		inline	void	SetblExitForce	(void);
 		inline	void	SetblExit		(void);
 		inline	void	ClrblExit		(void);
-		inline	bool32	ChkblExit		(void)const;
+		inline	bool32	IsExit			(void)const;
 	private:
 		void**			buffer;
 		uint32			bufferSize;
@@ -72,7 +74,7 @@ class CMD_BASE : public TNFP{
 		static	inline		void		SetblExitForce				(CMD_ENV* env);
 		static	inline		void		SetblExit					(CMD_ENV* env);
 		static	inline		void		ClrblExit					(CMD_ENV* env);
-		static	inline		bool32		ChkblExit					(CMD_ENV* env);
+		static	inline		bool32		IsExit						(CMD_ENV* env);
 	
 		static				void		DelayMS						(CMD_ENV* env,uint32 timeMS);
 	public:
@@ -87,12 +89,14 @@ class CMD_BASE : public TNFP{
 		static inline		bool32		IsPrintEnable				(CMD_ENV* env);
 		static inline		void 		PrintEnable					(CMD_ENV* env);
 		static inline		void 		PrintDisable				(CMD_ENV* env);
-
+		static inline		void 		CleanLastLine				(CMD_ENV* env);
+	
 		template<typename... Args>	static void 	PrintStr				(CMD_ENV* env,const Args&... args);
 		template<typename... Args>	static void 	PrintStrNL				(CMD_ENV* env,const Args&... args);
 		template<typename... Args>	static void 	PrintALine				(CMD_ENV* env,const Args&... args);
 		template<typename... Args>	static void 	PrintALineDot			(CMD_ENV* env,const Args&... args);
 		template<typename... Args>	static void		PrintWithTime			(CMD_ENV* env,const Args&... args);
+		template<typename... Args>	static void		PrintWithTime_noNL		(CMD_ENV* env,const Args&... args);
 		template<typename... Args>	static void 	PrintWithDividingLine	(CMD_ENV* env,const Args&... args);
 };
 //------------------------------------------------------------------------------------------//
@@ -157,3 +161,4 @@ template <typename T_FUN_CLASS> class CMD_NODE_T : public CMD_NODE{
 #include "CMD.hpp"
 #endif /* CMD_h */
 #endif /* CMD_h */
+#endif

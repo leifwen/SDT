@@ -7,7 +7,6 @@
 //
 
 #include "BIC_Commu.h"
-#include "Commu_RST.h"
 #if defined BIC_Commu_h && defined Commu_RST_h
 //------------------------------------------------------------------------------------------//
 #ifndef BIC_RST_h
@@ -17,6 +16,7 @@
 BIC_CLASSTYPE	(RST_ON,		"on");
 BIC_CLASSTYPE	(RST_OFF,		"off");
 BIC_CLASSTYPE	(RST_LINK,		"link");
+BIC_CLASSTYPE	(RST_SFS,		"sfs");
 BIC_CLASSTYPE	(RST_MAPPING,	"map");
 //------------------------------------------------------------------------------------------//
 class BIC_RST_LOGIN : public BIC_COMMU{
@@ -41,6 +41,7 @@ class BIC_RST : public BIC_BASE_S{
 		BIC_RST_ON				cgSub_on;
 		BIC_RST_OFF				cgSub_off;
 		BIC_RST_LINK			cgSub_link;
+		BIC_RST_SFS				cgSub_sfs;
 		BIC_RST_MAPPING			cgSub_mapping;
 		BIC_RST_LOGIN			cgSub_login;
 		BIC_RST_TS				cgSub_ts;

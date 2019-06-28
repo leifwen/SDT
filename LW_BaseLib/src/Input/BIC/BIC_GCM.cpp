@@ -7,6 +7,7 @@
 //
 
 #include "stdafx.h"
+//------------------------------------------------------------------------------------------//
 #include "BIC_GCM.h"
 #ifdef BIC_GCM_h
 #include "SYS_File.h"
@@ -48,7 +49,7 @@ CMDID BIC_GC_EG::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 			   ,COLOR(COL_clDefault,IUD(DEV_LINE_STAR)));
 	PrintSuccess(env);
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 CMDID BIC_GC_LOAD::Help(CMD_ENV* env,uint32 flag)const{
 	PrintHelpItem(env, cgCommand, "Load group command from file");
@@ -70,14 +71,14 @@ CMDID BIC_GC_LOAD::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 	if (CFS_CheckFile(fileName)){
 		BIC_ENV::GetGCList(env)->Empty();
 		BIC_ENV::GetGCList(env)->Load(fileName);
-		BIC_ENV::GetGCList(env)->SetblUpdate();
+		SetblUpdate(BIC_ENV::GetGCList(env));
 		PrintSuccess(env,"Read from <" + fileName + ">");
 	}
 	else{
 		PrintFail(env);
 	}
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIC_GC_SAVE::Help(CMD_ENV* env,uint32 flag)const{
@@ -101,7 +102,7 @@ CMDID BIC_GC_SAVE::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 		PrintFail(env);
 	}
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 namespace BIC_ENV {
@@ -181,13 +182,13 @@ CMDID BIC_GC_LS::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 			}
 			else {
 				groupNum = (uint32)strtol(strPar1.c_str(),nullptr,10);
-				BIC_ENV::GC_LS_PringGroup(env,(COMMAND_GROUP*)FindInLChildRChainByDRNodeID(BIC_ENV::GetGCList(env), groupNum),flag_gl);
+				BIC_ENV::GC_LS_PringGroup(env,(COMMAND_GROUP*)FindInDownChainByDRNodeID(BIC_ENV::GetGCList(env), groupNum),flag_gl);
 			}
 		}
 	}
 	PrintSuccess(env);
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 bool32 BIC_ENV::GC_LS_PrintGroupList(CMD_ENV* env,GC_LIST* tGroupList,uint32 flag){
 	COMMAND_GROUP	*fromNode,*breakNode;
@@ -216,9 +217,9 @@ bool32 BIC_ENV::GC_LS_PrintGroupList(CMD_ENV* env,GC_LIST* tGroupList,uint32 fla
 		}
 		else{
 			breakNode = nullptr;
-			fromNode = (COMMAND_GROUP*)TNF::FindInLChildRChainByDRNodeID(tGroupList, fromNodeDRID);
+			fromNode = (COMMAND_GROUP*)TNF::FindInDownChainByDRNodeID(tGroupList, fromNodeDRID);
 		}
-		TREE_RChain_Traversal_LINE(COMMAND_GROUP,fromNode,
+		TREE_NextChain_Traversal_LINE(COMMAND_GROUP,fromNode,
 			do{
 				if (flag & GL_showCL){
 					j = 0;
@@ -236,13 +237,13 @@ bool32 BIC_ENV::GC_LS_PrintGroupList(CMD_ENV* env,GC_LIST* tGroupList,uint32 fla
 				++j;
 			}while(0);
 								   
-			if ((BIC_BASE::ChkblExit(env) == G_FALSE) && (j > 19) && (_nextNode != nullptr)){
+			if ((BIC_BASE::IsExit(env) == G_FALSE) && (j > 19) && (_nextNode != nullptr)){
 				breakNode = _nextNode;
-				fromNodeDRID = TNF::GetdRNodeID(_nextNode);
+				fromNodeDRID = TNF::GetDRNodeID(_nextNode);
 				break;
 			}
 		);
-		if ((BIC_BASE::ChkblExit(env) == G_FALSE) && (blSpace == G_FALSE)&& (j > 19) && (breakNode != nullptr)){
+		if ((BIC_BASE::IsExit(env) == G_FALSE) && (blSpace == G_FALSE)&& (j > 19) && (breakNode != nullptr)){
 			uint8 retChar;
 			j = 0;
 			retChar = BIC_BASE::PrintPressAnyKey(env);
@@ -256,28 +257,28 @@ bool32 BIC_ENV::GC_LS_PrintGroupList(CMD_ENV* env,GC_LIST* tGroupList,uint32 fla
 	}while(breakNode != nullptr);
 	BIC_BASE::PrintStrNL(env,COLOR(COL_clDefault,IUD(DEV_LINE_STAR)));
 	return G_TRUE;
-}
+};
 //------------------------------------------------------------------------------------------//
 bool32 BIC_ENV::GC_LS_PringGroup(CMD_ENV* env,COMMAND_GROUP* tGroup,uint32 flag){
 	STDSTR	strPrintData;
 	if (tGroup != nullptr){
-		tGroup->InUse_set();
+		tGroup->rwLock.R_set();
 #ifdef Output_h
 		*CMD_ENV::GetSTDOUT(env) << Begin() << NL()
 		<< COL_DivStar_Default
-		<< COL_clDYellow << " gID      : " << COL_clBlue << Str_ToStr(TNF::GetdRNodeID(tGroup)) << "\n"
+		<< COL_clDYellow << " gID      : " << COL_clBlue << Str_ToStr(TNF::GetDRNodeID(tGroup)) << "\n"
 		<< COL_clDYellow << " Name     : " << COL_clBlue << tGroup->name << "\n"
 		<< COL_clDYellow << " Interval : " << COL_clBlue << Str_ToStr(tGroup->intervalTime) << "ms\n"
 		<< COL_DivStar_Default
 		<< " " << COMMAND_NODE::GetTitle(&strPrintData, flag)
 		<< Endl();
 #endif
-		tGroup->InUse_clr();
-		TREE_LChildRChain_Traversal_LINE(COMMAND_NODE, tGroup,GC_LS_PringCommand(env,_opNode,flag););
+		tGroup->rwLock.R_clr();
+		TREE_DownChain_Traversal_LINE(COMMAND_NODE, tGroup,GC_LS_PringCommand(env,_opNode,flag););
 		BIC_BASE::PrintStrNL(env,COLOR(COL_clDefault,IUD(DEV_LINE_STAR)));
 	}
 	return G_TRUE;
-}
+};
 //------------------------------------------------------------------------------------------//
 bool32 BIC_ENV::GC_LS_PringCommand(CMD_ENV* env,COMMAND_NODE* command,uint32 flag){
 	STDSTR	strPrintData;
@@ -290,7 +291,7 @@ bool32 BIC_ENV::GC_LS_PringCommand(CMD_ENV* env,COMMAND_NODE* command,uint32 fla
 			BIC_BASE::PrintStrNL(env,COLOR(COL_clCyan,command->ComposeDetail(&strPrintData)));
 	}
 	return G_TRUE;
-}
+};
 //------------------------------------------------------------------------------------------//
 
 
@@ -311,7 +312,7 @@ namespace BIC_ENV {
 	static	int32	SetPar		(CMD_ENV* env, COMMAND_GROUP* tGroup, BIC_GCM_SET_PAR* tPar);
 	static	int32	SetPar		(CMD_ENV* env, GC_LIST* tGroupList, BIC_GCM_SET_PAR* tPar);
 	static	void	ClearSetPar	(BIC_GCM_SET_PAR* tPar);
-}
+};
 //------------------------------------------------------------------------------------------//
 CMDID BIC_GC_SET::Help(CMD_ENV* env,uint32 flag)const{
 	PrintHelpItem(env, cgCommand, "Set group");
@@ -385,7 +386,7 @@ CMDID BIC_GC_SET::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 			}
 			else{
 				groupDID = (uint32)strtol(strPar1.c_str(),nullptr,10);
-				group = (COMMAND_GROUP*)FindInLChildRChainByDRNodeID(BIC_ENV::GetGCList(env),groupDID);
+				group = (COMMAND_GROUP*)FindInDownChainByDRNodeID(BIC_ENV::GetGCList(env),groupDID);
 				tSetPar.flag &= (~GL_Select);
 				BIC_ENV::SetPar(env,group,&tSetPar);
 				blupdate = G_TRUE;
@@ -394,10 +395,10 @@ CMDID BIC_GC_SET::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 		SplitPar1(&strPar1, &strPar2);
 	}
 	if (blupdate == G_TRUE)
-		BIC_ENV::GetGCList(env)->SetblUpdate();
+		SetblUpdate(BIC_ENV::GetGCList(env));
 	PrintSuccess(env);
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 static void BIC_ENV::ClearSetPar(BIC_GCM_SET_PAR *tPar){
 	if (tPar->blnum){
@@ -407,35 +408,35 @@ static void BIC_ENV::ClearSetPar(BIC_GCM_SET_PAR *tPar){
 		tPar->s = 0;
 		tPar->blnum = G_FALSE;
 	}
-}
+};
 //------------------------------------------------------------------------------------------//
 static bool32 BIC_ENV::SetPar(CMD_ENV* env, COMMAND_GROUP* tGroup, BIC_GCM_SET_PAR* tPar){
 	STDSTR strPrintData;
 	if (tGroup != nullptr){
-		tGroup->InUse_set();
+		tGroup->rwLock.W_set();
 		if ((tPar->flag & GL_setSelect))
 			tGroup->blEnableAutoRun = tPar->s;
 		if ((tPar->flag & GL_setCycle))
 			tGroup->autoRunTimes = tPar->c;
 		if ((tPar->flag & GL_setInterval))
 			tGroup->intervalTime = tPar->t;
-		tGroup->InUse_clr();
+		tGroup->rwLock.W_clr();
 		BIC_BASE::PrintResult(env,COLOR(COL_clDefault,tGroup->Compose(&strPrintData,GL_showCycle | GL_showInterval)));
 	}
 	return G_TRUE;
-}
+};
 //------------------------------------------------------------------------------------------//
 static bool32 BIC_ENV::SetPar(CMD_ENV* env, GC_LIST* tGroupList, BIC_GCM_SET_PAR* tPar){
 	if (tGroupList == nullptr)
 		return G_FALSE;
-	TREE_LChildRChain_Traversal_LINE(COMMAND_GROUP,tGroupList,
+	TREE_DownChain_Traversal_LINE(COMMAND_GROUP,tGroupList,
 		if ((tPar->flag & GL_Select) && _opNode->blEnableAutoRun)
 			SetPar(env,_opNode,tPar);
 		if (((tPar->flag & GL_Select) == G_FALSE) && (_opNode->blEnableAutoRun == G_FALSE))
 			SetPar(env,_opNode,tPar);
 	);
 	return G_TRUE;
-}
+};
 //------------------------------------------------------------------------------------------//
 
 
@@ -467,17 +468,17 @@ CMDID BIC_GC_CLONE::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 		SplitPar1(strPar1, strPar2, msg);
 		while(strPar1.length() > 0){
 			groupDID = (uint32)strtol(strPar1.c_str(),nullptr,10);
-			nextGroup = (COMMAND_GROUP*)FindInLChildRChainByDRNodeID(BIC_ENV::GetGCList(env),groupDID);
+			nextGroup = (COMMAND_GROUP*)FindInDownChainByDRNodeID(BIC_ENV::GetGCList(env),groupDID);
 			if (nextGroup != nullptr){
 				if (newGroup == nullptr){
 					newGroup = (COMMAND_GROUP*)BIC_ENV::GetGCList(env)->GetNewNode();
 					if (newGroup != nullptr){
 						newGroup->name = "new copy group";
-						COMMAND_GROUP::CopyCOMMAND_GROUP(newGroup,nextGroup,G_FALSE);
+						COMMAND_GROUP::CopyCommandGroup_nolook(newGroup,nextGroup,G_FALSE);
 					}
 				}
 				else{
-					COMMAND_GROUP::CopyCOMMAND_GROUP(newGroup,nextGroup,G_FALSE);
+					COMMAND_GROUP::CopyCommandGroup_nolook(newGroup,nextGroup,G_FALSE);
 				}
 			}
 			SplitPar1(&strPar1, &strPar2);
@@ -487,21 +488,21 @@ CMDID BIC_GC_CLONE::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 		newGroup = (COMMAND_GROUP*)BIC_ENV::GetGCList(env)->GetNewNode();
 		if (newGroup != nullptr){
 			newGroup->name = "new group";
-			COMMAND_GROUP::CopyCOMMAND_GROUP(newGroup,nextGroup,G_FALSE);
+			COMMAND_GROUP::CopyCommandGroup_nolook(newGroup,nextGroup,G_FALSE);
 		}
 	}
 	
 	if (newGroup != nullptr){
-		BIC_ENV::GetGCList(env)->AddNode(newGroup);
+		BIC_ENV::GetGCList(env)->AppendDownNode(newGroup);
 		BIC_ENV::GC_LS_PringGroup(env,newGroup, CL_showCycle | CL_showTimeout);
-		BIC_ENV::GetGCList(env)->SetblUpdate();
+		SetblUpdate(BIC_ENV::GetGCList(env));
 		PrintSuccess(env);
 	}
 	else{
 		PrintFail(env);
 	}
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIC_GC_DEL::Help(CMD_ENV* env,uint32 flag)const{
@@ -515,22 +516,31 @@ CMDID BIC_GC_DEL::Help(CMD_ENV* env,uint32 flag)const{
 CMDID BIC_GC_DEL::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 	STDSTR		strPar1,strPar2;
 	uint32		groupDID;
+	TNF			*node;
 	
 	if (msg.length() == 0){
 		PrintFail(env);
 		return(cgCommandID);
 	}
 	SplitPar1(strPar1, strPar2, msg);
-	while(strPar1.length() > 0){
-		groupDID = (uint32)strtol(strPar1.c_str(),nullptr,10);
-		BIC_ENV::GetGCList(env)->MoveToTrash(FindInLChildRChainByDRNodeID(BIC_ENV::GetGCList(env), groupDID));
-		PrintResult(env,"Delete gID:",Str_ToStr(groupDID));
-		SplitPar1(&strPar1, &strPar2);
-	};
-	BIC_ENV::GetGCList(env)->SetblUpdate();
+	if (strPar1 == "all"){
+		BIC_ENV::GetGCList(env)->Empty();
+		PrintResult(env,"Delete gID:all");
+		SetblUpdate(BIC_ENV::GetGCList(env));
+	}
+	else{
+		while(strPar1.length() > 0){
+			groupDID = (uint32)strtol(strPar1.c_str(),nullptr,10);
+			node = FindInDownChainByDRNodeID(BIC_ENV::GetGCList(env), groupDID);
+			BIC_ENV::GetGCList(env)->MoveToTrash(node,node);
+			PrintResult(env,"Delete gID:",Str_ToStr(groupDID));
+			SplitPar1(&strPar1, &strPar2);
+		};
+		SetblUpdate(BIC_ENV::GetGCList(env));
+	}
 	PrintSuccess(env);
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIC_GC_MVUP::Help(CMD_ENV* env,uint32 flag)const{
@@ -553,18 +563,18 @@ CMDID BIC_GC_MVUP::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 		step = (uint32)strtol(strPar2.c_str(),nullptr,10);
 		if (step == 0)
 			step = 1;
-		nextGroup = (COMMAND_GROUP*)FindInLChildRChainByDRNodeID(BIC_ENV::GetGCList(env), groupDID);
+		nextGroup = (COMMAND_GROUP*)FindInDownChainByDRNodeID(BIC_ENV::GetGCList(env), groupDID);
 		if (nextGroup != nullptr){
 			while(step-- > 0)
-				MoveUp(nextGroup);
-			BIC_ENV::GetGCList(env)->SetblUpdate();
+				MovePrior(nextGroup,nextGroup);
+			TNF::SetblUpdate(BIC_ENV::GetGCList(env));
 			PrintSuccess(env);
 			return(cgCommandID);
 		}
 	}
 	PrintFail(env);
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIC_GC_MVDN::Help(CMD_ENV* env,uint32 flag)const{
@@ -587,18 +597,18 @@ CMDID BIC_GC_MVDN::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 		step = (uint32)strtol(strPar2.c_str(),nullptr,10);
 		if (step == 0)
 			step = 1;
-		nextGroup = (COMMAND_GROUP*)FindInLChildRChainByDRNodeID(BIC_ENV::GetGCList(env), groupDID);
+		nextGroup = (COMMAND_GROUP*)FindInDownChainByDRNodeID(BIC_ENV::GetGCList(env), groupDID);
 		if (nextGroup != nullptr){
 			while(step-- > 0)
-				MoveDown(nextGroup);
-			BIC_ENV::GetGCList(env)->SetblUpdate();
+				MoveNext(nextGroup,nextGroup);
+			TNF::SetblUpdate(BIC_ENV::GetGCList(env));
 			PrintSuccess(env);
 			return(cgCommandID);
 		}
 	}
 	PrintFail(env);
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIC_GC_NAME::Help(CMD_ENV* env,uint32 flag)const{
@@ -619,20 +629,20 @@ CMDID BIC_GC_NAME::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 	if (msg.length() > 0){
 		SplitPar1(strPar1, strPar2, msg);
 		gDID = (uint32)strtol(strPar1.c_str(),nullptr,10);
-		nextGroup = (COMMAND_GROUP*)FindInLChildRChainByDRNodeID(BIC_ENV::GetGCList(env), gDID);
+		nextGroup = (COMMAND_GROUP*)FindInDownChainByDRNodeID(BIC_ENV::GetGCList(env), gDID);
 		if (nextGroup != nullptr){
-			nextGroup->InUse_set();
+			nextGroup->rwLock.W_set();
 			nextGroup->name = strPar2;
-			nextGroup->InUse_clr();
+			nextGroup->rwLock.W_clr();
 			PrintResult(env,COLOR(COL_clDefault,nextGroup->Compose(&strPrintData,GL_showCycle | GL_showInterval)));
-			BIC_ENV::GetGCList(env)->SetblUpdate();
+			TNF::SetblUpdate(BIC_ENV::GetGCList(env));
 			PrintSuccess(env);
 			return(cgCommandID);
 		}
 	}
 	PrintFail(env);
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 
 
@@ -661,15 +671,15 @@ CMDID GC_GROUP_BASE::Execute(CMD_ENV* env,const uint32& mID,const STDSTR& msg,vo
 	uint32 gDID = *static_cast<uint32*>(gID);
 	COMMAND_GROUP	*group;
 	if (mID == (uint32)cgCommandID){
-		group = (COMMAND_GROUP*)FindInLChildRChainByDRNodeID(BIC_ENV::GetGCList(env), gDID);
+		group = (COMMAND_GROUP*)FindInDownChainByDRNodeID(BIC_ENV::GetGCList(env), gDID);
 		if (group == nullptr){
 			PrintFail(env,"ERROR gID");
 			return BIC_ID_RETURN;
 		}
-		return(Command(env,msg,group));
+		return(BIC_BASE::Execute(env,mID,msg,group));
 	}
 	return(CMD_ID_NO);
-}
+};
 //------------------------------------------------------------------------------------------//
 CMDID BIC_GC_GROUP_LS::Help(CMD_ENV* env,uint32 flag)const{
 	PrintHelpItem(env, cgCommand, "List command");
@@ -729,7 +739,7 @@ CMDID BIC_GC_GROUP_LS::Command(CMD_ENV* env,const STDSTR& msg,void* cg)const{
 		while(strcDID.length() > 0){
 			strPar1 = Str_ReadSubItem(&strcDID," ");
 			cDID = (uint32)strtol(strPar1.c_str(),nullptr,10);
-			BIC_ENV::GC_LS_PringCommand(env,(COMMAND_NODE*)FindInLChildRChainByDRNodeID(group, cDID),flag_gl);
+			BIC_ENV::GC_LS_PringCommand(env,(COMMAND_NODE*)FindInDownChainByDRNodeID(group, cDID),flag_gl);
 		}
 		PrintStrNL(env,COLOR(COL_clDefault,IUD(DEV_LINE_STAR)));
 	}
@@ -737,7 +747,7 @@ CMDID BIC_GC_GROUP_LS::Command(CMD_ENV* env,const STDSTR& msg,void* cg)const{
 	PrintSuccess(env);
 
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 struct BIC_GCM_GROUP_SET_PAR{
 	bool32	s,r,n,blnum;
@@ -850,7 +860,7 @@ CMDID BIC_GC_GROUP_SET::Command(CMD_ENV* env,const STDSTR& msg,void* cg)const{
 			}
 			else{
 				cDID = (uint32)strtol(strPar1.c_str(),nullptr,10);
-				command = (COMMAND_NODE*)FindInLChildRChainByDRNodeID(group, cDID);
+				command = (COMMAND_NODE*)FindInDownChainByDRNodeID(group, cDID);
 				setPar.flag &= (~CL_Select);
 				BIC_ENV::SetPar(env,command,&setPar);
 				blupdate = G_TRUE;
@@ -859,10 +869,10 @@ CMDID BIC_GC_GROUP_SET::Command(CMD_ENV* env,const STDSTR& msg,void* cg)const{
 		SplitPar1(&strPar1, &strPar2);
 	}
 	if (blupdate)
-		BIC_ENV::GetGCList(env)->SetblUpdate();
+		TNF::SetblUpdate(BIC_ENV::GetGCList(env));
 	PrintSuccess(env);
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 static void BIC_ENV::ClearSetPar(BIC_GCM_GROUP_SET_PAR* tPar){
 	if (tPar->blnum != 0){
@@ -874,12 +884,12 @@ static void BIC_ENV::ClearSetPar(BIC_GCM_GROUP_SET_PAR* tPar){
 		tPar->n = 0;
 		tPar->blnum = 0;
 	}
-}
+};
 //------------------------------------------------------------------------------------------//
 static bool32 BIC_ENV::SetPar(CMD_ENV* env, COMMAND_NODE* tCommand, BIC_GCM_GROUP_SET_PAR* tPar){
 	STDSTR strPrintData;
 	if (tCommand != nullptr){
-		tCommand->InUse_set();
+		tCommand->rwLock.W_set();
 		if (tPar->flag & CL_setSelect)
 			tCommand->blEnableSend = tPar->s;
 		if (tPar->flag & CL_setCycle)
@@ -904,24 +914,24 @@ static bool32 BIC_ENV::SetPar(CMD_ENV* env, COMMAND_NODE* tCommand, BIC_GCM_GROU
 				}
 			}
 		}
-		tCommand->InUse_clr();
+		tCommand->rwLock.W_clr();
 		BIC_BASE::PrintResult(env,COLOR(COL_clDefault,tCommand->Compose(&strPrintData, CL_showCycle | CL_showTimeout)));
 	}
 	return G_TRUE;
-}
+};
 //------------------------------------------------------------------------------------------//
 static bool32 BIC_ENV::SetPar(CMD_ENV* env, COMMAND_GROUP* tGroup, BIC_GCM_GROUP_SET_PAR* tPar){
 	
 	if (tGroup == nullptr)
 		return 0;
-	TREE_LChildRChain_Traversal_LINE(COMMAND_NODE,tGroup,
+	TREE_DownChain_Traversal_LINE(COMMAND_NODE,tGroup,
 		if ((tPar->flag & CL_Select) && _opNode->blEnableSend)
 			SetPar(env,_opNode,tPar);
 			if (((tPar->flag & CL_Select) == G_FALSE) && (_opNode->blEnableSend == G_FALSE))
 				SetPar(env,_opNode,tPar);
 	);
 	return G_TRUE;
-}
+};
 //------------------------------------------------------------------------------------------//
 
 
@@ -959,21 +969,21 @@ CMDID BIC_GC_GROUP_CLONE::Command(CMD_ENV* env,const STDSTR& msg,void* cg)const{
 		newNode->StrCommand = "new command";
 		if (msg.length() > 0){
 			cDID = (uint32)strtol(msg.c_str(),nullptr,10);
-			command = (COMMAND_NODE*)FindInLChildRChainByDRNodeID(group, cDID);
+			command = (COMMAND_NODE*)FindInDownChainByDRNodeID(group, cDID);
 			if (command != nullptr)
-				COMMAND_NODE::CopyCOMMAND_NODE(newNode,command);
+				COMMAND_NODE::CopyCommandNode(newNode,command);
 		}
-		group->AddNode(newNode);
+		group->AppendDownNode(newNode);
 		PrintStrNL(env
 				   ,COLOR(COL_clDefault,IUD(DEV_LINE_STAR))
 				   ,COMMAND_NODE::GetTitle(&strPrintData, CL_showCycle | CL_showTimeout | CL_showDetail));
 		BIC_ENV::GC_LS_PringCommand(env,newNode, CL_showCycle | CL_showTimeout | CL_showDetail);
 		PrintStrNL(env,COLOR(COL_clDefault,IUD(DEV_LINE_STAR)));
-		BIC_ENV::GetGCList(env)->SetblUpdate();
+		TNF::SetblUpdate(BIC_ENV::GetGCList(env));
 		PrintSuccess(env);
 	}
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIC_GC_GROUP_DEL::Help(CMD_ENV* env,uint32 flag)const{
@@ -988,24 +998,33 @@ CMDID BIC_GC_GROUP_DEL::Command(CMD_ENV* env,const STDSTR& msg,void* cg)const{
 	COMMAND_GROUP*	group = static_cast<COMMAND_GROUP*>(cg);
 	STDSTR			strPar1,strPar2;
 	uint32			cDID;
+	TNF				*node;
 	
 	if (msg.length() == 0){
 		PrintFail(env);
 	}
 	else{
 		SplitPar1(strPar1, strPar2, msg);
-		while(strPar1.length() > 0){
-			cDID = (uint32)strtol(strPar1.c_str(),nullptr,10);
-			BIC_ENV::GetGCList(env)->MoveToTrash(FindInLChildRChainByDRNodeID(group, cDID));
-			BIC_ENV::GetGCList(env)->SetblUpdate();
-			PrintResult(env,"Delete cID:",Str_ToStr(cDID));
-			SplitPar1(&strPar1, &strPar2);
+		if (strPar1 == "all"){
+			if (group != nullptr)
+				CleanDownTree(group, group);
+			PrintResult(env,"Delete gID:all");
+			SetblUpdate(BIC_ENV::GetGCList(env));
 		}
-		BIC_ENV::GetGCList(env)->SetblUpdate();
+		else{
+			while(strPar1.length() > 0){
+				cDID = (uint32)strtol(strPar1.c_str(),nullptr,10);
+				node = FindInDownChainByDRNodeID(group, cDID);
+				BIC_ENV::GetGCList(env)->MoveToTrash(node,node);
+				PrintResult(env,"Delete cID:",Str_ToStr(cDID));
+				SplitPar1(&strPar1, &strPar2);
+			};
+			SetblUpdate(BIC_ENV::GetGCList(env));
+		}
 		PrintSuccess(env);
 	}
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIC_GC_GROUP_MVUP::Help(CMD_ENV* env,uint32 flag)const{
@@ -1029,18 +1048,18 @@ CMDID BIC_GC_GROUP_MVUP::Command(CMD_ENV* env,const STDSTR& msg,void* cg)const{
 		step = (uint32)strtol(strPar2.c_str(),nullptr,10);
 		if (step == 0)
 			step = 1;
-		command = (COMMAND_NODE*)FindInLChildRChainByDRNodeID(group, cDID);
+		command = (COMMAND_NODE*)FindInDownChainByDRNodeID(group, cDID);
 		if (command != nullptr){
 			while(step-- > 0)
-				MoveUp(command);
-			BIC_ENV::GetGCList(env)->SetblUpdate();
+				MovePrior(command,command);
+			TNF::SetblUpdate(BIC_ENV::GetGCList(env));
 			PrintSuccess(env);
 			return(cgCommandID);
 		}
 	}
 	PrintFail(env);
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIC_GC_GROUP_MVDN::Help(CMD_ENV* env,uint32 flag)const{
@@ -1064,18 +1083,18 @@ CMDID BIC_GC_GROUP_MVDN::Command(CMD_ENV* env,const STDSTR& msg,void* cg)const{
 		step = (uint32)strtol(strPar2.c_str(),nullptr,10);
 		if (step == 0)
 			step = 1;
-		command = (COMMAND_NODE*)FindInLChildRChainByDRNodeID(group, cDID);
+		command = (COMMAND_NODE*)FindInDownChainByDRNodeID(group, cDID);
 		if (command != nullptr){
 			while(step-- > 0)
-				MoveDown(command);
-			BIC_ENV::GetGCList(env)->SetblUpdate();
+				MoveNext(command,command);
+			TNF::SetblUpdate(BIC_ENV::GetGCList(env));
 			PrintSuccess(env);
 			return(cgCommandID);
 		}
 	}
 	PrintFail(env);
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 #define BIC_GC_GROUP_SET(_name,text,var) \
 CMDID BIC_GC_GROUP_##_name::Help(CMD_ENV* env,uint32 flag)const{\
@@ -1095,24 +1114,24 @@ CMDID BIC_GC_GROUP_##_name::Command(CMD_ENV* env,const STDSTR& msg,void* cg)cons
 	if (msg.length() > 0){\
 		SplitPar1(strPar1, strPar2, msg);\
 		cDID = (uint32)strtol(strPar1.c_str(),nullptr,10);\
-		command = (COMMAND_NODE*)FindInLChildRChainByDRNodeID(group, cDID);\
+		command = (COMMAND_NODE*)FindInDownChainByDRNodeID(group, cDID);\
 		if (command != nullptr){\
-			command->InUse_set();\
+			command->rwLock.W_set();\
 			command->var = strPar2;\
-			command->InUse_clr();\
+			command->rwLock.W_clr();\
 			PrintStrNL(env\
 						,COLOR(COL_clDefault,IUD(DEV_LINE_STAR))\
 						,COMMAND_NODE::GetTitle(&strPrintData, CL_showCycle | CL_showTimeout | CL_showDetail));\
 			BIC_ENV::GC_LS_PringCommand(env,command, CL_showCycle | CL_showTimeout | CL_showDetail);\
 			PrintStrNL(env,COLOR(COL_clDefault,IUD(DEV_LINE_STAR)));\
-			BIC_ENV::GetGCList(env)->SetblUpdate();\
+			TNF::SetblUpdate(BIC_ENV::GetGCList(env));\
 			PrintSuccess(env);\
 			return(cgCommandID);\
 		}\
 	}\
 	PrintFail(env);\
 	return(cgCommandID);\
-}
+};
 //------------------------------------------------------------------------------------------//
 BIC_GC_GROUP_SET(COMMAND,	"Set command by cID",StrCommand);
 BIC_GC_GROUP_SET(CONTINUE,	"Set continue by cID",StrContinue);
@@ -1137,7 +1156,7 @@ BIC_GC_GROUP::BIC_GC_GROUP(void) : BIC_BASE_S(){
 	cgConsoleName = "";
 	cgHelpName = "Into group by gID";
 	
-	Add(cgSub_ls)
+	AppendDown(cgSub_ls)
 	< cgSub_set < cgSub_clone < cgSub_del
 	< cgSub_mvup < cgSub_mvdn
 	< cgSub_command < cgSub_continue < cgSub_resend < cgSub_cstop < cgSub_catch;
@@ -1174,7 +1193,7 @@ CMDID BIC_GC_GROUP::MessageProcessing(CMD_ENV* env,const uint32& mID,const STDST
 			
 			SplitPar1(strPar1, strPar2, msg);
 			gDID = (uint32)strtol(strPar1.c_str(),nullptr,10);
-			if (FindInLChildRChainByDRNodeID(BIC_ENV::GetGCList(env), gDID) == nullptr){
+			if (FindInDownChainByDRNodeID(BIC_ENV::GetGCList(env), gDID) == nullptr){
 				PrintFail(env,"ERROR gID");
 			}
 			else{
@@ -1188,7 +1207,7 @@ CMDID BIC_GC_GROUP::MessageProcessing(CMD_ENV* env,const uint32& mID,const STDST
 		}
 	}
 	return(retCode);
-}
+};
 //------------------------------------------------------------------------------------------//
 
 
@@ -1207,7 +1226,7 @@ BIC_GCM::BIC_GCM(void) : BIC_BASE_S(){
 	cgConsoleName = cgCommand;
 	cgHelpName = "GCM";
 	
-	Add(cgSub_eg)
+	AppendDown(cgSub_eg)
 	< cgSub_load < cgSub_save
 	< cgSub_ls< cgSub_set< cgSub_clone< cgSub_del
 	< cgSub_mvup< cgSub_mvdn

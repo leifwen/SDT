@@ -128,7 +128,7 @@ void CGCPropertyGridCtrl::LoadGroup(HTREEITEM hItem, COMMAND_GROUP *group, int32
 		m_command = NULL;
 		if (group == NULL)
 			return;
-		group->InUse_set();
+		group->rwLock.R_set();
 		if (m_type == GCP_GROUP){
 			LoadGroupP(group);
 		}
@@ -138,7 +138,7 @@ void CGCPropertyGridCtrl::LoadGroup(HTREEITEM hItem, COMMAND_GROUP *group, int32
 			LoadGroupP(group);
 			m_type = GCP_GROUP;
 		}
-		group->InUse_clr();
+		group->rwLock.R_clr();
 	}
 }
 //------------------------------------------------------------------------------------------//
@@ -176,7 +176,7 @@ void CGCPropertyGridCtrl::LoadCommand(HTREEITEM hItem, COMMAND_NODE *command, in
 		m_command = command;
 		if (command == NULL)
 			return;
-		command->InUse_set();
+		command->rwLock.R_set();
 		if (m_type == GCP_COMMAND){
 			LoadCommandP(command);
 		}
@@ -186,7 +186,7 @@ void CGCPropertyGridCtrl::LoadCommand(HTREEITEM hItem, COMMAND_NODE *command, in
 			LoadCommandP(command);
 			m_type = GCP_COMMAND;
 		}
-		command->InUse_clr();
+		command->rwLock.R_clr();
 	}
 }
 //------------------------------------------------------------------------------------------//
@@ -276,7 +276,7 @@ void CGCPropertyGridCtrl::OnPropertyChanged(CMFCPropertyGridProperty* pProp) con
 	command = NULL;
 	selectItemFormGCTree = CGCViewDP::GetGCTree().GetSelectedItem();
 	level = CGCViewDP::GetGCTree().CheckNodeLevel(selectItemFormGCTree);
-	CGCViewDP::GetGCTree().m_GCList->InUse_set();
+	CGCViewDP::GetGCTree().m_GCList->Traversal_set();
 	switch (level){
 		case 0:
 		case 1:
@@ -405,7 +405,7 @@ void CGCPropertyGridCtrl::OnPropertyChanged(CMFCPropertyGridProperty* pProp) con
 			break;
 	}
 End_Changed:
-	CGCViewDP::GetGCTree().m_GCList->InUse_clr();
+	CGCViewDP::GetGCTree().m_GCList->Traversal_clr();
 	CMFCPropertyGridCtrl::OnPropertyChanged(pProp);
 }
 //------------------------------------------------------------------------------------------//

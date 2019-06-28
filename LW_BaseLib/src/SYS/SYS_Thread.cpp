@@ -7,13 +7,14 @@
 //
 
 #include "stdafx.h"
-#include "SYS_Thread.h"
 //------------------------------------------------------------------------------------------//
-#ifdef SYS_Thread_h
+#include "SYS_Thread.h"
 #include "SYS_Time.h"
 //------------------------------------------------------------------------------------------//
-SYS_AThread::SYS_AThread(void) : TREE_NODE(){
-	Enable();
+#ifdef SYS_Thread_h
+//------------------------------------------------------------------------------------------//
+SYS_AThread::SYS_AThread(void) : TNFP(){
+	Enable(this);
 	SetSFlag(SYS_blIsTerminated | SYS_blThreadFinish);
 	cgExecutePar = nullptr;
 };
@@ -33,7 +34,7 @@ void* SYS_AThread::CallExecute(void* p){
 };
 //------------------------------------------------------------------------------------------//
 void SYS_AThread::ThreadRun(void* exep){
-	if ((CheckSFlag(SYS_blThreadCreated) == G_FALSE) && CheckEnable()){
+	if ((CheckSFlag(SYS_blThreadCreated) == G_FALSE) && IsEnable(this)){
 		if (exep != nullptr)
 			cgExecutePar = exep;
 		if (CheckSFlag(SYS_blThreadFinish) == G_FALSE)
@@ -89,10 +90,22 @@ void SYS_AThread::ThreadStop(void* exep){
 	}
 };
 //------------------------------------------------------------------------------------------//
-void SYS_Thread_List::ThreadRun		(void* exep){TREE_LChildRChain_T(SYS_AThread,ThreadRun(exep));};
-void SYS_Thread_List::ThreadStop	(void)		{TREE_LChildRChain_T(SYS_AThread,ThreadStop());};
-void SYS_Thread_List::Enable		(void)		{TREE_LChildRChain_T(SYS_AThread,Enable());};
-void SYS_Thread_List::Disable		(void)		{TREE_LChildRChain_T(SYS_AThread,Disable());};
+void SYS_Thread_List::ThreadRun		(void* exep){TREE_DownChain_Traversal(SYS_AThread,ThreadRun(exep));};
+void SYS_Thread_List::ThreadStop	(void)		{TREE_DownChain_Traversal(SYS_AThread,ThreadStop());};
+void SYS_Thread_List::Enable		(void)		{TREE_DownChain_Traversal(SYS_AThread,Enable(_opNode));};
+void SYS_Thread_List::Disable		(void)		{TREE_DownChain_Traversal(SYS_AThread,Disable(_opNode));};
+//------------------------------------------------------------------------------------------//
+SYS_AThread* SYS_Thread_List::GetThread(const STDSTR& name){
+	SYS_AThread* ret = nullptr;
+	TREE_DownChain_Traversal_LINE
+	(SYS_AThread, this,
+		if (_opNode->selfName == name){
+			ret = _opNode;
+			break;
+		}
+	);
+	return(ret);
+};
 //------------------------------------------------------------------------------------------//
 #endif /* SYS_Thread_h */
 

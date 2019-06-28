@@ -16,10 +16,12 @@
 //------------------------------------------------------------------------------------------//
 class AEXEPOOL;
 class ExpandDeviceAttr;
+class SCRIPT;
 //------------------------------------------------------------------------------------------//
 namespace BIF_ENV_DEV {
 	enum	{CMD_VID_EDA = BIF_ENV::CMD_VID_NEXT
 			,CMD_VID_AEXEPOOL
+			,CMD_VID_SCRIPT
 			,CMD_VID_NEXT
 	};
 	void				InitQuantity	(CMD_ENV* env);
@@ -28,9 +30,11 @@ namespace BIF_ENV_DEV {
 	
 	ExpandDeviceAttr*	GetEDA			(CMD_ENV* env);
 	AEXEPOOL*			GetAExePool		(CMD_ENV* env);
+	SCRIPT*				GetScript		(CMD_ENV* env);
 	
 	CMD_SETVAR(SetEDA,			CMD_VID_EDA,			ExpandDeviceAttr*);
 	CMD_SETVAR(SetAExePool,		CMD_VID_AEXEPOOL,		AEXEPOOL*);
+	CMD_SETVAR(SetScript,		CMD_VID_SCRIPT,			SCRIPT*);
 };
 //------------------------------------------------------------------------------------------//
 BIF_CLASSTYPE(OPEN,				"Open,=");

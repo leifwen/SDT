@@ -7,6 +7,7 @@
 //
 
 #include "stdafx.h"
+//------------------------------------------------------------------------------------------//
 #include "ODEV_STDOUT.h"
 //------------------------------------------------------------------------------------------//
 #ifdef ODEV_STDOUT_h
@@ -59,7 +60,7 @@ namespace{
 		}
 		return("");
 	}
-}
+};
 //------------------------------------------------------------------------------------------//
 void FlushCout(void){
 	std::cout.flush();
@@ -69,7 +70,7 @@ void FlushCout(void){
 		std::cout.clear();
 		std::cout.flush();
 	}
-}
+};
 //------------------------------------------------------------------------------------------//
 void ODEV_STDOUT::Print(uint32 ctrl,COLORENUM col,const uint8* data,uint32 num){
 	uint32  length;
@@ -120,7 +121,7 @@ void ODEV_STDOUT::Print(uint32 ctrl,COLORENUM col,const uint8* data,uint32 num){
 	}
 	std::cout.write((char*)data, length - 1);
 	FlushCout();
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 #endif
@@ -153,7 +154,7 @@ COLORREF ColorConvert(COLORENUM col){
 		default:;
 	}
 	return(COL_RGB_clDefault);
-}
+};
 //------------------------------------------------------------------------------------------//
 void ODEV_STDOUT::Init(const void* tRichEdit,COLType colType){
 	cgRichEdit = (CMyRichView*)tRichEdit;
@@ -163,12 +164,12 @@ void ODEV_STDOUT::Init(const void* tRichEdit,COLType colType){
 void ODEV_STDOUT::SetCurFromEnd(int32 offset){
 	if (cgRichEdit != nullptr)
 		cgRichEdit->SetCurFromEnd(offset);
-}
+};
 //------------------------------------------------------------------------------------------//
 void ODEV_STDOUT::DelCharFromEnd(int32 offset,int32 length){
 	if (cgRichEdit != nullptr)
 		cgRichEdit->DelCharFromEnd(offset, length);
-}
+};
 //------------------------------------------------------------------------------------------//
 void ODEV_STDOUT::RewriteCharFromEnd(int32 offset, COLORENUM col, const STDSTR& strIn){
 	uint8 data;
@@ -177,36 +178,41 @@ void ODEV_STDOUT::RewriteCharFromEnd(int32 offset, COLORENUM col, const STDSTR& 
 		data = strIn[strIn.length() - 1];
 		UpdataLastStatus(col,&data);
 	}
-}
+};
 //------------------------------------------------------------------------------------------//
 void ODEV_STDOUT::InsterCharFromEnd(int32 offset, COLORENUM col, const STDSTR& strIn){
 	if (cgRichEdit != nullptr)
 		cgRichEdit->InsterCharFromEnd(offset, ColorConvert(col),strIn);
-}
+};
 //------------------------------------------------------------------------------------------//
 void ODEV_STDOUT::AppendChar(COLORENUM col, const STDSTR& strIn){
 	if (cgRichEdit != nullptr)
 		cgRichEdit->AppendChar(ColorConvert(col),strIn);
-}
+};
 //------------------------------------------------------------------------------------------//
 void ODEV_STDOUT::Clean(G_LOCK blLock){
 	if (cgRichEdit != nullptr)
 		cgRichEdit->Clean(blLock);
-}
+};
 //------------------------------------------------------------------------------------------//
 void ODEV_STDOUT::Print(uint32 ctrl,COLORENUM col,const uint8* data, uint32 num){
 	STDSTR	strOut;
 	uint32  length;
 	uint8   *p;
 	
-	if (num  == 0)
-		return;
-	
 	if (col == COL_FF){
 		if (cgRichEdit != nullptr)
 			cgRichEdit->ToHome();
 		return;
 	}
+	if (col == COL_FE){
+		if (cgRichEdit != nullptr)
+			cgRichEdit->CleanLastLine();
+		return;
+	}
+	
+	if (num  == 0)
+		return;
 	
 	ctrl &= COLRECORD::CRD_NL;
 	
@@ -242,7 +248,7 @@ void ODEV_STDOUT::Print(uint32 ctrl,COLORENUM col,const uint8* data, uint32 num)
 	Str_CharToStr(&strOut, data, length - 1, G_ASCII, G_SPACE_OFF, G_ESCAPE_OFF);
 	
 	AppendChar(col,strOut);
-}
+};
 //------------------------------------------------------------------------------------------//
 #endif
 //------------------------------------------------------------------------------------------//

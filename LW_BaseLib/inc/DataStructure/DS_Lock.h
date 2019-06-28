@@ -6,11 +6,14 @@
 //  Copyright © 2018 Leif Wen. All rights reserved.
 //
 
+//------------------------------------------------------------------------------------------//
 #ifndef DS_Lock_h
 #define DS_Lock_h
+#ifdef DS_Lock_h
 //------------------------------------------------------------------------------------------//
 #include "BasicDefine.h"
 #include <atomic>
+#include <thread>
 #ifdef  CommonDefH_Unix
 #include <pthread.h>
 #endif
@@ -102,4 +105,45 @@ class DS_Lock{
 };
 #endif
 //------------------------------------------------------------------------------------------//
-#endif /* SYS_Lock_h */
+static	inline const	std::thread::id&	GetNullThreadID(void);
+//------------------------------------------------------------------------------------------//
+class DS_SpinLock{
+	public:
+				 DS_SpinLock(void);
+	 			 DS_SpinLock(const DS_SpinLock&) = delete;
+		virtual ~DS_SpinLock(void){;};
+		DS_SpinLock& operator=(const DS_SpinLock&) = delete;
+	private:
+		std::thread::id		cgThreadID;
+		std::atomic_int		cgLockCount;
+		std::atomic_flag	cgSpin;
+	public:
+		inline	void	Set	(G_LOCK blVaild = G_LOCK_ON);
+		inline	bool32	Try	(G_LOCK blVaild = G_LOCK_ON);
+		inline	void	Clr	(G_LOCK blVaild = G_LOCK_ON);
+};
+//------------------------------------------------------------------------------------------//
+class DS_RWLock{
+	public:
+		inline	 DS_RWLock(bool32 blWriteFirst = G_FALSE);
+				 DS_RWLock(const DS_RWLock&) = delete;
+		virtual ~DS_RWLock(void){;};	
+		DS_RWLock& operator=(const DS_RWLock&) = delete;
+	private:
+						const	bool32				cgblWriteFirst;
+								std::thread::id		cgWThreadID;
+								std::atomic_int		cgLockCount;
+								std::atomic_int		cgWriteWaitCount;
+	public:
+				inline	void	W_set		(G_LOCK blVaild = G_LOCK_ON);
+				inline	bool32	W_try		(G_LOCK blVaild = G_LOCK_ON);
+				inline	void	W_clr		(G_LOCK blVaild = G_LOCK_ON);
+	
+				inline	void	R_set		(G_LOCK blVaild = G_LOCK_ON);
+				inline	bool32	R_try		(G_LOCK blVaild = G_LOCK_ON);
+				inline	void	R_clr		(G_LOCK blVaild = G_LOCK_ON);
+};
+//------------------------------------------------------------------------------------------//
+#include "DS_Lock.hpp"
+#endif /* DS_Lock_h */
+#endif /* DS_Lock_h */

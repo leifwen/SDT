@@ -6,12 +6,12 @@
 //  Copyright © 2018 Leif Wen. All rights reserved.
 //
 
+//------------------------------------------------------------------------------------------//
 #include "SYS_Time.h"
 #include "SYS_Thread.h"
-#include "ADS_Buffer.h"
+#include "DS_ARRAY.h"
 //------------------------------------------------------------------------------------------//
-#ifdef ADS_Buffer_h
-//------------------------------------------------------------------------------------------//
+#if defined SYS_Thread_h && defined SYS_Time_h && defined DS_ARRAY_h
 #ifndef Console_h
 #define Console_h
 #ifdef Console_h
@@ -129,7 +129,7 @@ class CONSOLE : public BASE_FLAG{
 		Line_History*		cgHistory;
 		Line_Edit			cgCInput;
 		KEYMSG				cgLastKey;
-		SBUF				cgCMDSBUF;
+		ARRAY				cgCMDArray;
 		CMD_ENV*			cgBICENV;
 		SYS_Thread<CONSOLE>	bicThread;
 	protected:
@@ -174,7 +174,7 @@ class CONSOLE : public BASE_FLAG{
 					void		SetblDisplayAuto		(void);
 					void		ClrblDisplayAuto		(void);
 					bool32		IsDisplayAuto			(void)const;
-					void		SetExit					(void);
+					void		SetblExit					(void);
 	public:
 					CONSOLE&	Init					(const ODEV_STDOUT* oDevSTDOUT);
 					void		StartWithBIC			(CMD_ENV* env,BIC_BASE_S* bic);

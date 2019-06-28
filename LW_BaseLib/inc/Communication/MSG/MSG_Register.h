@@ -9,6 +9,7 @@
 #include "MSG_Center.h"
 #include "PatchCode.h"
 #include "Commu_Socket.h"
+#include "Commu_SSL.h"
 #if defined MSG_Center_h && defined PatchCode_h
 //------------------------------------------------------------------------------------------//
 #ifndef MSG_Register_h
@@ -23,40 +24,47 @@ class MSG_Rerister : public MSG_NODE{
 				,REG_blReject	= RFLAG_CREATE(2)
 		};
 	public:
-				 MSG_Rerister(uint32 size,void* p);
+				 MSG_Rerister(void);
 		virtual ~MSG_Rerister(void){;};
 	private:
 		uint32			cgApproveHours;
 		REG_SIGN		cgRegSign;
 		LINENSE_SIGN	cgLS;
 	private:
-		virtual	CMDID	MessageProcessing			(CMD_ENV* env,const uint32& mID,const STDSTR& msg,void* commu);
+		virtual	CMDID	MessageProcessing			(CMD_ENV* env,const uint32& mID,const STDSTR& msg,void* _team);
 	public:
 		virtual	void	Reset						(void* commu);
 				bool32	Approve						(CMD_ENV* env,uint32 approveHours);
 				bool32	Send_REQ_License			(CMD_ENV* env,ARRAY *array,uint32 waitTimeS);
 };
 //------------------------------------------------------------------------------------------//
-typedef COMMU_NOSMC<COMMU_SOCKET<COMMU_MSG<COMMU_SSL,MSG_Rerister>>>	LicenseBSocket;
-class LicenseBServer : public COMMU_NOSMC<COMMU_SOCKETSERVER<LicenseBSocket>>{
-		typedef COMMU_NOSMC<COMMU_SOCKETSERVER<LicenseBSocket>> LBServer;
+#if defined Commu_Socket_h && defined Commu_SSL_h
+#ifndef Commu_License_h
+#define Commu_License_h
+#ifdef Commu_License_h
+typedef COMMU<TMEM|TBIRDGE,COMMU_FRAME_NOSMC,CORE_SOCKET,MEM_MSG<MSG_Rerister>>	LicSocket;
+typedef	COMMU_POOL<COMMU<0,COMMU_FRAME_NOSMC,CORE_SOCKETSERVER>,LicSocket>		LicServer_BASE;
+class LicServer : public LicServer_BASE{
 	protected:
-		enum	{RFLAG_C = 2, RFLAG_S = LBServer::RFLAG_S + LBServer::RFLAG_C};
+		enum	{RFLAG_C = 2, RFLAG_S = LicServer_BASE::RFLAG_S + LicServer_BASE::RFLAG_C};
 		enum	{LB_blAnswer = RFLAG_CREATE(0),LB_blRequest	= RFLAG_CREATE(1),};
 	public:
-				 LicenseBServer(int32 size);
-		virtual ~LicenseBServer(void){;};
+				 LicServer(uint32 size);
+		virtual ~LicServer(void){;};
 	private:
 		DS_Lock				cgRequestLock;
-		COMMU_THREAD*		cgRequestSocket;
+		COMMU_FRAME*		cgRequestSocket;
 		uint32*				cgApproveHours;
 	public:
 				bool32	CheckblRequest		(void)const;
-				bool32	CheckApprove		(COMMU_THREAD* tSocket,uint32* retHours);
+				bool32	CheckApprove		(COMMU_FRAME* tSocket,uint32* retHours);
 				void	ApproveRegistration	(const uint32& approveHours);
 				void	RejectRegistration	(void);
 		const	STDSTR&	RequestSocketInfo	(STDSTR* strPrint);
 };
+#endif
+#endif
+#endif
 //------------------------------------------------------------------------------------------//
 #endif /* MSG_Register_h */
 #endif /* MSG_Register_h */

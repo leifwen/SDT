@@ -6,6 +6,7 @@
 //  Copyright © 2018 Leif Wen. All rights reserved.
 //
 
+//------------------------------------------------------------------------------------------//
 #ifndef DS_STRING_hpp
 #define DS_STRING_hpp
 //------------------------------------------------------------------------------------------//
@@ -18,15 +19,15 @@ template <typename outType,typename inType> outType& Str_Convert(outType *result
 	tStream << value;
 	tStream >> *result;
 	return(*result);
-}
+};
 template <typename inType> STDSTR	Str_ToStr(const inType &value){
 	STDSTR	result;
 	return(Str_Convert(&result,value));
-}
+};
 //------------------------------------------------------------------------------------------//
-static inline const	STDSTR& Str_UnEscapeToStr	(STDSTR* _out,	const STDSTR& _in){
+static inline const	STDSTR& Str_EscapeToASCII	(STDSTR* _out,	const STDSTR& _in){
 	
-	return(Str_UnEscapeToStr(_out,(uint8*)_in.c_str(),_in.length()));
+	return(Str_EscapeToASCII(_out,(uint8*)_in.c_str(),_in.length()));
 };
 static inline const	STDSTR& Str_CharToStr		(STDSTR* _out,	const STDSTR& _in,G_HA blHA,G_SPACE blSpace,G_ESCAPE blEscape){
 	

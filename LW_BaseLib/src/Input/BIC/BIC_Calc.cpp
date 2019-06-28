@@ -7,6 +7,7 @@
 //
 
 #include "stdafx.h"
+//------------------------------------------------------------------------------------------//
 #include "BIC_Calc.h"
 #ifdef BIC_Calc_h
 //------------------------------------------------------------------------------------------//
@@ -26,11 +27,11 @@ CMDID BIC_CALC_HEX2DEC::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 	uint64		calcRet;
 	calcRet = Str_HexToDec(msg);
 	
-	PrintALine(env,COL_clDefault
-			   ,"\nHEX:",Str_DecToHex(calcRet)
-			   ,"\nDEC:",Str_ToStr(calcRet));
+	PrintALine(env
+			   , "\n", COL_clBlue, "HEX:", COL_clCyan, Str_DecToHex(calcRet)
+			   , "\n", COL_clBlue, "DEC:", COL_clCyan, Str_ToStr(calcRet));
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIC_CALC_DEC2HEX::Help(CMD_ENV* env,uint32 flag)const{
@@ -42,11 +43,11 @@ CMDID BIC_CALC_DEC2HEX::Help(CMD_ENV* env,uint32 flag)const{
 };
 //------------------------------------------------------------------------------------------//
 CMDID BIC_CALC_DEC2HEX::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
-	PrintALine(env,COL_clDefault
-			   ,"\nDEC:",Str_Trim(msg)
-			   ,"\nHEX:",Str_DecToHex(msg));
+	PrintALine(env
+			   , "\n", COL_clBlue, "DEC:", COL_clCyan, Str_Trim(msg)
+			   , "\n", COL_clBlue, "HEX:", COL_clCyan, Str_DecToHex(msg));
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 #ifdef BIF_Transform_h
@@ -60,14 +61,14 @@ CMDID BIC_CALC_##mode::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{\
 			PrintALine(env\
 					   , "\n", COL_clBlue, "FileName:", COL_clCyan, msg\
 					   , "\n", COL_clBlue, "FileSize:", COL_clCyan, Str_ToStr(CFS_CheckFileSize(strPar))\
-					   , "\n", COL_clBlue, text		   , COL_clCyan, Str_ASCIIToHEX(ALG_Digest_##mode(IUD_FILE(strPar)),G_ESCAPE_OFF));\
+					   , "\n", COL_clBlue, text		  , COL_clCyan, Str_ASCIIToHEX(ALG_Digest_##mode(IUD_FILE(strPar)),G_ESCAPE_OFF));\
 		}\
 		else{\
 			BIF_Transform(nullptr, _EMPTY(&strPar), nullptr,msg,CMD_NONE,G_ESCAPE_ON);\
 			PrintALine(env\
 					   , "\n", COL_clBlue, "Input   :", COL_clCyan, msg\
 					   , "\n", COL_clBlue, "Length  :", COL_clCyan, Str_ToStr(strPar.length())\
-					   , "\n", COL_clBlue, text		 , COL_clCyan, Str_ASCIIToHEX(ALG_Digest_##mode(strPar),G_ESCAPE_OFF));\
+					   , "\n", COL_clBlue, text		  , COL_clCyan, Str_ASCIIToHEX(ALG_Digest_##mode(strPar),G_ESCAPE_OFF));\
 		}\
 	}\
 	return(cgCommandID);\
@@ -83,13 +84,13 @@ CMDID BIC_CALC_##mode::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{\
 			PrintALine(env\
 					   , "\n", COL_clBlue, "FileName:", COL_clCyan, msg\
 					   , "\n", COL_clBlue, "FileSize:", COL_clCyan, Str_ToStr(CFS_CheckFileSize(strPar))\
-					   , "\n", COL_clBlue, text		   , COL_clCyan, Str_ASCIIToHEX(ALG_Digest_##mode(IUD_FILE(strPar)),G_ESCAPE_OFF));\
+					   , "\n", COL_clBlue, text		  , COL_clCyan, Str_ASCIIToHEX(ALG_Digest_##mode(IUD_FILE(strPar)),G_ESCAPE_OFF));\
 		}\
 		else{\
 			PrintALine(env\
 					   , "\n", COL_clBlue, "Input   :", COL_clCyan, msg\
 					   , "\n", COL_clBlue, "Length  :", COL_clCyan, Str_ToStr(msg.length())\
-					   , "\n", COL_clBlue, text		 , COL_clCyan, Str_ASCIIToHEX(ALG_Digest_##mode(msg),G_ESCAPE_OFF));\
+					   , "\n", COL_clBlue, text		  , COL_clCyan, Str_ASCIIToHEX(ALG_Digest_##mode(msg),G_ESCAPE_OFF));\
 		}\
 	}\
 	return(cgCommandID);\
@@ -105,7 +106,7 @@ CMDID	BIC_CALC_##mode::Help(CMD_ENV* env,uint32 flag)const{\
 	return(cgCommandID);\
 };
 //------------------------------------------------------------------------------------------//
-#ifdef ALG_Digest_h
+#ifdef ALG_DS_DIGEST
 BIC_CALC_T(MD5,		"MD5     :");
 BIC_CALC_T(SHA1,	"SHA1    :");
 BIC_CALC_T(SHA224,	"SHA224  :");
@@ -197,7 +198,7 @@ CMDID BIC_CALC_BASE64::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 		PrintFail(env,"Input error");
 	}
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 #endif
 //------------------------------------------------------------------------------------------//
@@ -209,8 +210,8 @@ BIC_CALC::BIC_CALC(void) : BIC_BASE_S(){
 	cgConsoleName = cgCommand;
 	cgHelpName = "Calculator";
 	
-	Add(cgSub_hex2dec) < cgSub_dec2hex
-#ifdef ALG_Digest_h
+	AppendDown(cgSub_hex2dec) < cgSub_dec2hex
+#ifdef ALG_DS_DIGEST
 	< cgSub_md5 < cgSub_sha1 < cgSub_sha224 < cgSub_sha256 < cgSub_sha384 < cgSub_sha512
 #endif
 #ifdef ALG_BASE64_h

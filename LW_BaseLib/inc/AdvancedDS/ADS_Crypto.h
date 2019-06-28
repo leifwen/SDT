@@ -6,6 +6,7 @@
 //  Copyright © 2018 Leif Wen. All rights reserved.
 //
 
+//------------------------------------------------------------------------------------------//
 #include "ADS_Protocol.h"
 #include "ALG_BASE64.h"
 #include "ALG_zlib.h"
@@ -13,7 +14,7 @@
 #include "ALG_AES.h"
 #include "ALG_RSA.h"
 #include "ALG_CRC.h"
-#if defined ADS_Protocol_h && defined ALG_BASE64_h && defined ALG_zlib_h && defined ALG_Digest_h && defined ALG_AES_h
+#if defined ADS_Protocol_h && defined ALG_BASE64_h && defined ALG_zlib_h && defined ALG_DS_DIGEST && defined ALG_AES_h && defined ALG_DS_CRC
 //------------------------------------------------------------------------------------------//
 #ifndef ADS_Crypto_h
 #define ADS_Crypto_h
@@ -61,15 +62,15 @@ template <typename T_DIR> class PNFSC_DIR : public PNF_SC{
 		T_DIR			cgDIR_R;
 	public:
 		inline	virtual void		SetSelfName		(const STDSTR& strName);
-		inline	virtual	void		SetFatherName	(const STDSTR& strName);
+		inline	virtual	void		SetUpName		(const STDSTR& strName);
 	public:
 		inline	virtual	PNFSC_DIR&	InitCFG			(uint32 cfg,const void* par);
 	protected:
-				virtual	ioss		DoTransform		(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length);
-				virtual	ioss		DoFinal			(IOSTATUS* _ios,const UVOut& _out);
+				virtual	IOSE		DoTransform		(IOS* _ios,const UVOut& _out,const uint8* data,const uint64& length);
+				virtual	IOSE		DoFinal			(IOS* _ios,const UVOut& _out);
 	public:
-		inline	virtual	ioss		_Begin			(IOSTATUS* _ios);
-				virtual	ioss		Read			(IOSTATUS* _ios,const UVOut& _out);
+		inline	virtual	IOSE		_Begin			(IOS* _ios);
+				virtual	IOSE		Read			(IOS* _ios,const UVOut& _out);
 	
 		inline	const	PNFSC_DIR&	operator =		(const UVIn& _in);
 };
@@ -89,7 +90,6 @@ typedef PNFS_MESG<PNFSC_AES>				MESG_AES;
 typedef PNFS_MESG<PNFSC_ZLIB>				MESG_ZLIB;
 typedef PNFS_MESG<PNFSC_AZ>					MESG_AZ;
 //------------------------------------------------------------------------------------------//
-#ifdef ALG_CRC_h
 typedef PNFS_MESG_CRC<PNFSC_B64	,ALG_CRC8>	MESG8_B64;
 typedef PNFS_MESG_CRC<PNFSC_AES	,ALG_CRC8>	MESG8_AES;
 typedef PNFS_MESG_CRC<PNFSC_ZLIB,ALG_CRC8>	MESG8_ZLIB;
@@ -104,7 +104,6 @@ typedef PNFS_MESG_CRC<PNFSC_B64	,ALG_CRC32>	MESG32_B64;
 typedef PNFS_MESG_CRC<PNFSC_AES	,ALG_CRC32>	MESG32_AES;
 typedef PNFS_MESG_CRC<PNFSC_ZLIB,ALG_CRC32>	MESG32_ZLIB;
 typedef PNFS_MESG_CRC<PNFSC_AZ	,ALG_CRC32>	MESG32_AZ;
-#endif
 //------------------------------------------------------------------------------------------//
 #ifdef ALG_RSA_h
 template <typename T_DIGEST> class PNFS_MAIL : public PNFB_SHELL{
@@ -139,17 +138,17 @@ template <typename T_DIGEST> class PNFS_MAIL : public PNFB_SHELL{
 		STDSTR			cgSKey;
 	public:
 		inline	virtual void			SetSelfName		(const STDSTR& strName);
-		inline	virtual	void			SetFatherName	(const STDSTR& strName);
+		inline	virtual	void			SetUpName		(const STDSTR& strName);
 	public:
 						void			InitPN			(const ARRAY* _out,const ARRAY* _in);
 		inline	virtual	PNFS_MAIL&		InitCFG			(uint32 cfg,const void* _rsa = nullptr);
 	protected:
-				virtual	ioss			DoTransform		(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length);
+				virtual	IOSE			DoTransform		(IOS* _ios,const UVOut& _out,const uint8* data,const uint64& length);
 	public:
-				virtual	ioss			_Begin			(IOSTATUS* _ios);
-				virtual	ioss			_Endl			(void);
+				virtual	IOSE			_Begin			(IOS* _ios);
+				virtual	IOSE			_Endl			(IOS* _ios);
 	public:
-				virtual	ioss			Read			(IOSTATUS* _ios,const UVOut& _out);
+				virtual	IOSE			Read			(IOS* _ios,const UVOut& _out);
 		inline	const	PNFS_MAIL&		operator =		(const UVIn& _in);
 };
 //------------------------------------------------------------------------------------------//
@@ -187,12 +186,12 @@ template <typename T_DIGEST> class MAIL : protected PNFS_MAIL<T_DIGEST>{
 		ARRAY	cgArrayR;
 	public:
 		inline	virtual void			SetSelfName		(const STDSTR& strName);
-		inline	virtual	void			SetFatherName	(const STDSTR& strName);
+		inline	virtual	void			SetUpName		(const STDSTR& strName);
 	public:
 		inline			MAIL&			Init			(uint32 size,uint32 cfg = CFG_AES256 | CFG_AES_CFB8);
 	public:
 				const	ARRAY&			Write			(					const RSA* rsa_puk,const UVIn& _in);
-						ioss			Decode			(const UVOut& _out,	const RSA* rsa_prk,const UVIn& _in);
+						IOSE			Decode			(const UVOut& _out,	const RSA* rsa_prk,const UVIn& _in);
 };
 //------------------------------------------------------------------------------------------//
 typedef MAIL<ALG_SHA1>		MAIL_SHA1;
@@ -215,17 +214,17 @@ template <typename T_DIGEST> class PNFB_AESHASH : public PNF_BLOCK{
 		PNF_CONTENT	pn_Hash;
 	public:
 		inline	virtual void			SetSelfName		(const STDSTR& strName);
-		inline	virtual	void			SetFatherName	(const STDSTR& strName);
+		inline	virtual	void			SetUpName		(const STDSTR& strName);
 	public:
 						void			InitPN			(const ARRAY* _out,const ARRAY* _in);
 		inline	virtual	PNFB_AESHASH&	InitCFG			(uint32 cfg,const void* par);
 	protected:
-				virtual	ioss			DoTransform		(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length);
+				virtual	IOSE			DoTransform		(IOS* _ios,const UVOut& _out,const uint8* data,const uint64& length);
 	public:
-				virtual	ioss			_Begin			(IOSTATUS* _ios);
-				virtual	ioss			_Endl			(void);
+				virtual	IOSE			_Begin			(IOS* _ios);
+				virtual	IOSE			_Endl			(IOS* _ios);
 	public:
-				virtual	ioss			Read			(IOSTATUS* _ios,const UVOut& _out);
+				virtual	IOSE			Read			(IOS* _ios,const UVOut& _out);
 };
 //------------------------------------------------------------------------------------------//
 typedef PNFB_AESHASH<ALG_SHA1>		AES_SHA1;
@@ -253,18 +252,18 @@ template <typename T_DIGEST> class PNFB_AESMK_PNFSC: public PNF_BLOCK{
 		PNFB_AESHASH<T_DIGEST>		pnaesmk_Text;
 	public:
 		inline	virtual void				SetSelfName		(const STDSTR& strName);
-		inline	virtual	void				SetFatherName	(const STDSTR& strName);
+		inline	virtual	void				SetUpName		(const STDSTR& strName);
 	public:
 						void				InitPN			(const ARRAY* _out,const ARRAY* _in);
 		inline	virtual	PNFB_AESMK_PNFSC&	InitCFG			(uint32 cfg,const void* mKey);
 	public:
-				virtual	ioss				_Begin			(IOSTATUS* _ios);
-				virtual	ioss				_Endl			(void);
+				virtual	IOSE				_Begin			(IOS* _ios);
+				virtual	IOSE				_Endl			(IOS* _ios);
 	public:
-				virtual	ioss				Write			(IOSTATUS* _ios,const UVIn&  _in);
-				virtual	bool32				Read			(IOSTATUS* _ios,const UVOut& _out);
-						ioss				Write			(IOSTATUS* _ios,					const STDSTR& mulitKey,const UVIn&  _in);
-						ioss				Read			(IOSTATUS* _ios,const UVOut& _out,	const STDSTR& mulitKey);
+				virtual	IOSE				Write			(IOS* _ios,const UVIn&  _in);
+				virtual	IOSE				Read			(IOS* _ios,const UVOut& _out);
+						IOSE				Write			(IOS* _ios,					const STDSTR& mulitKey,const UVIn&  _in);
+						IOSE				Read			(IOS* _ios,const UVOut& _out,	const STDSTR& mulitKey);
 };
 //------------------------------------------------------------------------------------------//
 typedef PNFB_AESMK_PNFSC<ALG_SHA1>		AESMK_SHA1;
@@ -282,7 +281,7 @@ typedef PNFB_LIST<AESMK_SHA512>			LIST_AESMK_SHA512;
 typedef PNFB_LIST<AESMK_MD5>			LIST_AESMK_MD5;
 //------------------------------------------------------------------------------------------//
 namespace DSTF_TEST {
-	template <typename T_SHELL> void	AESMK_Test	(IOSTATUS* _ios,T_SHELL* _shell,STDSTR* _out,STDSTR mKey,const STDSTR& _in);
+	template <typename T_SHELL> bool32	AESMK_Test	(IOS* _ios,T_SHELL* _shell,STDSTR* _out,STDSTR mKey,const STDSTR& _in);
 };
 //------------------------------------------------------------------------------------------//
 #include "ADS_Crypto.hpp"

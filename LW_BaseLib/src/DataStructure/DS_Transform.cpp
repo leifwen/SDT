@@ -7,61 +7,99 @@
 //
 
 #include "stdafx.h"
-#include "DS_Transform.h"
 //------------------------------------------------------------------------------------------//
-#ifdef DS_Transform_h
+#include "DS_Transform.h"
 #include "DS_STRING.h"
 #include "SYS_File.h"
+//------------------------------------------------------------------------------------------//
+#ifdef DS_Transform_h
+//------------------------------------------------------------------------------------------//
+STDSTR _GetIOSEMesg(IOSE code){
+	STDSTR retStr;
+	retStr = "(" + Str_ToStr(code)+ ")";
+
+	switch(code){
+		case IOS_TIMEOUT 	:retStr += "IOS_TIMEOUT";	break;
+		case IOS_NO_MEM		:retStr += "IOS_NO_MEM";	break;
+		case IOS_NO_OBJECT	:retStr += "IOS_NO_OBJECT";	break;
+		case IOS_ERR		:retStr += "IOS_ERR";		break;
+		case IOS_OK			:retStr += "IOS_OK";		break;
+		case IOS_FINISH		:retStr += "IOS_FINISH";	break;
+		default				:retStr += "IOS_UNDEFINE";	break;
+	}
+	return(retStr);
+};
 //------------------------------------------------------------------------------------------//
 DS_IO_NODE::DS_IO_NODE(void) : TNFP(){
 	ClrSFlag(DSTF_blStart);
 	TNFP::SetSelfName("DS_IO_NODE");
 };
 //------------------------------------------------------------------------------------------//
-ioss DS_IO_NODE::DoConvert(DSIO* ioNode,IOSTATUS* _ios,const UVOut& _out,const UVIn& _in){
-	ioss iossta;
-	iossta = BaseConvert(ioNode,_ios,_out,_in);
-	if (iossta == IOS_NOCONVERT){
-		TREE_LChildRChain_Traversal_LINE_nolock(DS_IO_NODE,this,
-			iossta = _opNode->DoConvert(ioNode,_ios,_out,_in);
-			if (iossta != IOS_NOCONVERT)
+IOSE DS_IO_NODE::DoConvert(DSIO* ioNode,IOS* _ios,const UVOut& _out,const UVIn& _in){
+	IOSE rcode;
+	rcode = BaseConvert(ioNode,_ios,_out,_in);
+	if (rcode == IOS_NO_OBJECT){
+		rcode = IOS_OK;
+		TREE_DownChain_Traversal_LINE_nolock(DS_IO_NODE,this,
+			rcode = _opNode->DoConvert(ioNode,_ios,_out,_in);
+			if (rcode != IOS_NO_OBJECT)
 				break;
+			rcode = IOS_OK;
 		);
 	}
-	return(iossta);
+	return(IOS_update(_ios, rcode));
 };
 //------------------------------------------------------------------------------------------//
-ioss DS_IO_NODE::DoSave(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length){
-	ioss iossta;
-	iossta = BaseSave(_ios,_out,data,length);
-	if (iossta == IOS_NOCONVERT){
-		TREE_LChildRChain_Traversal_LINE_nolock(DS_IO_NODE,this,
-			iossta = _opNode->DoSave(_ios,_out,data,length);
-			if (iossta != IOS_NOCONVERT)
+IOSE DS_IO_NODE::DoSave(IOS* _ios,const UVOut& _out,const uint8* data,const uint64& length){
+	IOSE rcode;
+	rcode = BaseSave(_ios,_out,data,length);
+	if (rcode == IOS_NO_OBJECT){
+		rcode = IOS_FINISH;
+		TREE_DownChain_Traversal_LINE_nolock(DS_IO_NODE,this,
+			rcode = _opNode->DoSave(_ios,_out,data,length);
+			if (rcode != IOS_NO_OBJECT)
 				break;
+			rcode = IOS_FINISH;
 		);
 	}
-	return(iossta);
+	return(IOS_update(_ios, rcode));
 };
 //------------------------------------------------------------------------------------------//
-ioss DS_IO_NODE::DoGetInLength(uint64* num,const UVIn& _in){
-	ioss iossta;
-	iossta = BaseGetInLength(num,_in);
-	if (iossta == G_FALSE){
-		TREE_LChildRChain_Traversal_LINE_nolock(DS_IO_NODE,this,
-			iossta = _opNode->DoGetInLength(num,_in);
-			if (iossta != IOS_NOCONVERT)
+IOSE DS_IO_NODE::DoGetUVInLength(uint64* num,const UVIn& _in){
+	IOSE rcode;
+	rcode = BaseGetUVInLen(num,_in);
+	if (rcode == IOS_NO_OBJECT){
+		rcode = IOS_OK;
+		TREE_DownChain_Traversal_LINE_nolock(DS_IO_NODE,this,
+			rcode = _opNode->DoGetUVInLength(num,_in);
+			if (rcode != IOS_NO_OBJECT)
 				break;
+			rcode = IOS_OK;
 		);
 	}
-	return(iossta);;
+	return(rcode);
 };
 //------------------------------------------------------------------------------------------//
-ioss DS_IO_NODE::BaseConvert(DSIO* ioNode,IOSTATUS* _ios,const UVOut& _out,const UVIn& _in){
-	ioss iossta;
-	iossta = IOS_OK;
+IOSE DS_IO_NODE::DoAddUVInOffset(const UVIn& _in,const int64& length){
+	IOSE rcode;
+	rcode = BaseAddUVInOffset(_in,length);
+	if (rcode == IOS_NO_OBJECT){
+		rcode = IOS_OK;
+		TREE_DownChain_Traversal_LINE_nolock(DS_IO_NODE,this,
+			rcode = _opNode->DoAddUVInOffset(_in,length);
+			if (rcode != IOS_NO_OBJECT)
+				break;
+			rcode = IOS_OK;
+		);
+	}
+	return(rcode);
+};
+//------------------------------------------------------------------------------------------//
+IOSE DS_IO_NODE::BaseConvert(DSIO* ioNode,IOS* _ios,const UVOut& _out,const UVIn& _in){
+	IOSE	rcode = IOS_OK;
+	
 	if (_in.uvp == nullptr){
-		iossta = ioNode->DoTransform(_ios,_out,nullptr,0);
+		rcode = ioNode->DoTransform(_ios,_out,nullptr,0);
 	}
 	else{
 		switch (_in.uvid) {
@@ -69,232 +107,300 @@ ioss DS_IO_NODE::BaseConvert(DSIO* ioNode,IOSTATUS* _ios,const UVOut& _out,const
 				break;
 			case UVID_CHARS:{
 				_UVCHARS* uvp = (_UVCHARS*)_in.uvp;
-				iossta = ioNode->DoTransform(_ios,_out,(uint8*)uvp->p,uvp->num);
+				uint8*	buf = (uint8*)uvp->p;
+				buf += uvp->offset;
+				rcode = ioNode->DoTransform(_ios,_out,buf,uvp->num - uvp->offset);
 				break;
 			}
 			case UVID_STR:{
+				UVIn* uvIn = (UVIn*)&_in;
 				STDSTR* str = (STDSTR*)_in.uvp;
-				iossta = ioNode->DoTransform(_ios,_out,(uint8*)str->c_str(),str->length());
+				uint8*	buf = (uint8*)str->c_str();
+				buf += uvIn->uvOffset;
+				rcode = ioNode->DoTransform(_ios,_out,buf,str->length() - uvIn->uvOffset);
 				break;
 			}
-			case UVID_ARRAY:{
+			case UVID_ARRAY0:{
+				UVIn* uvIn = (UVIn*)&_in;
+				ARRAY* array = (ARRAY*)_in.uvp;
+				rcode = ArrayConvert(ioNode,_ios,_out,array,array->Used() - (uint32)uvIn->uvOffset,(uint32)uvIn->uvOffset);
+				break;
+			}
+			case UVID_ARRAY1:{
 				_UVARRAY* uvp = (_UVARRAY*)_in.uvp;
-				iossta = ArrayConvert(ioNode,_ios,_out,(ARRAY*)uvp->p,uvp->num,uvp->offset);
+				rcode = ArrayConvert(ioNode,_ios,_out,(ARRAY*)uvp->p,uvp->num - uvp->offset,uvp->offset);
 				break;
 			}
 			case UVID_FILE:{
 				_UVFILE* uvp = (_UVFILE*)_in.uvp;
-				iossta = FileConvert(ioNode,_ios,_out,*((STDSTR*)uvp->p),uvp->num,uvp->offset);
+				rcode = FileConvert(ioNode,_ios,_out,*((STDSTR*)uvp->p),uvp->num - uvp->offset,uvp->offset);
 				break;
 			}
 			default:;
-				iossta = IOS_NOCONVERT;
+				return IOS_NO_OBJECT;
 		};
 	}
-	return(iossta);
+	return(IOS_update(_ios, rcode));
 };
 //------------------------------------------------------------------------------------------//
-ioss DS_IO_NODE::ArrayConvert(DSIO* ioNode,IOSTATUS* _ios,const UVOut& _out,const ARRAY* _array,uint32 length,uint32 offset){
+IOSE DS_IO_NODE::ArrayConvert(DSIO* ioNode,IOS* _ios,const UVOut& _out,const ARRAY* _array,uint32 length,uint32 offset){
 	uint32	slength;
-	ioss iossta;
-	iossta = IOS_OK;
+	IOSE	rcode = IOS_OK;
 	slength = _array->CalcOutLength(length,offset);
-	if (length > 0){
-		iossta = ioNode->DoTransform(_ios,_out,_array->GetPointer(offset),length);
+	if ((length > 0) || (_ios != nullptr)){
+		IOS_update(&rcode,ioNode->DoTransform(_ios,_out,_array->GetPointer(offset),length));
 		if (slength > 0)
-			iossta = ioNode->DoTransform(_ios,_out,_array->GetPointer(0),slength);
+			IOS_update(&rcode,ioNode->DoTransform(_ios,_out,_array->GetPointer(0),slength));
 	}
-	return(iossta);
-}
+	return(rcode);
+};
 //------------------------------------------------------------------------------------------//
-ioss DS_IO_NODE::FileConvert(DSIO* ioNode, IOSTATUS* _ios,const UVOut& _out,const STDSTR& name,uint64 length,uint64 offset){
+IOSE DS_IO_NODE::FileConvert(DSIO* ioNode, IOS* _ios,const UVOut& _out,const STDSTR& name,uint64 length,const uint64& offset){
 	uint32			num;
 	uint8			data[1024];
 	std::fstream	fileStream;
-	ioss iossta;
+	IOSE			rcode;
 
-	if (CFS_CheckFile(name) == G_FALSE){
-		if (_ios != nullptr)
-			_ios->status = IOS_ERR;
-		return IOS_ERR;
-	}
+	if (CFS_CheckFile(name) == G_FALSE)
+		return(IOS_update(_ios,IOS_ERR));
 
 	fileStream.open(name.c_str(),std::ios::in|std::ios::binary);
 	if (offset > 0)
 		fileStream.seekp(offset,std::ios::beg);
+	rcode = IOS_OK;
 	do{
 		num = (sizeof(data) < length) ? sizeof(data) : (uint32)length;
 		fileStream.read((char*)data,num);
 		num = (uint32)fileStream.gcount();
 		length -= num;
-		iossta = ioNode->DoTransform(_ios,_out,data,num);
-	}while((iossta >= IOS_OK) && (!fileStream.eof()) && (length > 0));
+		IOS_update(&rcode,ioNode->DoTransform(_ios,_out,data,num));
+	}while((rcode >= IOS_OK) && (!fileStream.eof()) && (length > 0));
 	fileStream.close();
-	return(iossta);
-}
+	return(rcode);
+};
 //------------------------------------------------------------------------------------------//
-ioss DS_IO_NODE::BaseSave(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length){
-	IOSTATUS	ioStatus;
-	G_SPACE		space;
-	
-	IOSTATUS_Clr(&ioStatus);
-	
+IOSE DS_IO_NODE::BaseSave(IOS* _ios,const UVOut& _out,const uint8* data,const uint64& length){
+	G_SPACE	space;
+	IOS		ios;
+	IOS_clr(&ios);
+	ios.rcode = IOS_FINISH;
 	if (_out.uvid == UVID_UVVTRAN){
 		DSIO* io = (DSIO*)((_UVTRAN*)_out.uvp)->iop;
 		if (data != nullptr){
-			ioStatus.avail_in = length;
-			io->Transform(&ioStatus,((_UVTRAN*)_out.uvp)->uvb,data,length);
+			ios.rcode = io->Transform(_ios,((_UVTRAN*)_out.uvp)->uvb,data,length);
 		}
 		else{
-			io->Final(&ioStatus,((_UVTRAN*)_out.uvp)->uvb);
+			ios.rcode = io->Final(_ios,((_UVTRAN*)_out.uvp)->uvb);
 		}
-		IOSTATUS_Add(_ios,ioStatus);
 	}
 	else if (data != nullptr){
-		ioStatus.avail_in = length;
+		ios.avail_in = length;
 		space = G_SPACE_ON;
 		switch (_out.uvid) {
 			case UVID_NONE:
-				ioStatus.total_in = ioStatus.avail_in;
-				ioStatus.avail_in -= ioStatus.total_in;
-				ioStatus.total_out = ioStatus.total_in;
+				ios.total_in = ios.avail_in;
+				ios.avail_in -= ios.total_in;
+				ios.avail_out = -1;
+				ios.total_out = ios.total_in;
 				break;
 			case UVID_CHARS:{
 				_UVCHARS	*array = (_UVCHARS*)_out.uvp;
-				ioStatus.total_in = (ioStatus.avail_in < (array->num - array->offset)) ? ioStatus.avail_in : (array->num - array->offset);
-				if (ioStatus.total_in > 0)
-					memcpy((uint8*)array->p + array->offset,data,ioStatus.total_in);
-				ioStatus.avail_in -= ioStatus.total_in;
-				ioStatus.avail_out = array->num - array->offset - ioStatus.total_in;
-				ioStatus.total_out = ioStatus.total_in;
-				array->offset += ioStatus.total_out;
-				ioStatus.status = (ioStatus.avail_in > 0) ? IOS_NOMEM : IOS_OK;
+				ios.total_in = (ios.avail_in < (array->num - array->offset)) ? ios.avail_in : (array->num - array->offset);
+				if (ios.total_in > 0)
+					memcpy((uint8*)array->p + array->offset,data,ios.total_in);
+				ios.avail_in -= ios.total_in;
+				ios.avail_out = array->num - array->offset - ios.total_in;
+				ios.total_out = ios.total_in;
+				array->offset += ios.total_out;
+				ios.rcode = (ios.avail_in > 0) ? IOS_NO_MEM : IOS_OK;
 				break;
 			}
 			case UVID_STR:{
 				STDSTR* str = (STDSTR*)_out.uvp;
-				str->append((char*)data, length);
-				ioStatus.total_in = ioStatus.avail_in;
-				ioStatus.avail_in -= ioStatus.total_in;
-				ioStatus.avail_out = -1;
-				ioStatus.total_out = ioStatus.total_in;
+				if (ios.avail_in > 0)
+					str->append((char*)data, ios.avail_in);
+				ios.total_in = ios.avail_in;
+				ios.avail_in -= ios.total_in;
+				ios.avail_out = -1;
+				ios.total_out = ios.total_in;
 				break;
 			}
 			case UVID_STRHEX:
 				space = G_SPACE_OFF;
 			case UVID_STRHEXs:{
 				STDSTR* str = (STDSTR*)_out.uvp;
-				ioStatus.total_in = ioStatus.avail_in;
-				ioStatus.avail_in -= ioStatus.total_in;
-				ioStatus.total_out = str->length();
-				Str_CharToStr(str, data, length, G_HEX, space, G_ESCAPE_OFF);
-				ioStatus.avail_out = -1;
-				ioStatus.total_out = str->length() - ioStatus.total_out;
+				ios.total_out = str->length();
+				if (ios.avail_in > 0)
+					Str_CharToStr(str, data, ios.avail_in, G_HEX, space, G_ESCAPE_OFF);
+				ios.total_in = ios.avail_in;
+				ios.avail_in -= ios.total_in;
+				ios.avail_out = -1;
+				ios.total_out = str->length() - ios.total_out;
 				break;
 			}
-			case UVID_ARRAY:
-				ioStatus.total_in = ((ARRAY*)_out.uvp)->Put(data, (uint32)length);
-				ioStatus.avail_in -= ioStatus.total_in;
-				ioStatus.avail_out = ((ARRAY*)_out.uvp)->Unused();
-				ioStatus.total_out = ioStatus.total_in;
-				ioStatus.status = ((ARRAY*)_out.uvp)->IsNoMEM() ? IOS_NOMEM : IOS_OK;
+			case UVID_ARRAY1:
+				if ((_ios != nullptr) && (_ios->rcode == IOS_NO_MEM))
+					break;
+				ios.total_in = 0;
+				if (ios.avail_in > 0)
+					ios.total_in = ((ARRAY*)_out.uvp)->Put(data, (uint32)ios.avail_in);
+				ios.avail_in -= ios.total_in;
+				ios.avail_out = ((ARRAY*)_out.uvp)->Unused();
+				ios.total_out = ios.total_in;
+				ios.rcode = ((ARRAY*)_out.uvp)->IsNoMEM() ? IOS_NO_MEM : IOS_OK;
 				break;
 			case UVID_FILE_ADD:
-				FileAdd(&ioStatus,*((STDSTR*)((_UVFILE*)_out.uvp)->p),data,length);
+				FileAdd(&ios,*((STDSTR*)((_UVFILE*)_out.uvp)->p),data,length);
 				break;
 			case UVID_FILE_WR:{
 				_UVFILE	*uvfile = (_UVFILE*)_out.uvp;
 				if (uvfile->cfg == 0){
-					FileAdd(&ioStatus,*((STDSTR*)uvfile->p),data,length);
+					FileAdd(&ios,*((STDSTR*)uvfile->p),data,length);
 				}
 				else{
-					FileWrite(&ioStatus,*((STDSTR*)uvfile->p),data,length);
+					FileWrite(&ios,*((STDSTR*)uvfile->p),data,length);
 				}
 				uvfile->cfg = 0;
 				break;
 			}
+			case UVID_FILE:
+				FileUpdate(&ios,*((STDSTR*)((_UVFILE*)_out.uvp)->p),data,length,((_UVFILE*)_out.uvp)->offset);
+				break;
 			default:;
-				IOSTATUS_Add(_ios,ioStatus);
-				return IOS_NOCONVERT;
+				return IOS_NO_OBJECT;
 		};
-		IOSTATUS_Add(_ios,ioStatus);
+		IOS_update(_ios, ios);
 	}
-	return(ioStatus.status);
+	return(IOS_update(_ios,ios.rcode));
 };
 //------------------------------------------------------------------------------------------//
-ioss DS_IO_NODE::FileAdd(IOSTATUS* _ios,const STDSTR& name,const uint8* data,const uint64& length){
+IOSE DS_IO_NODE::FileAdd(IOS* _ios,const STDSTR& name,const uint8* data,const uint64& length){
 	std::fstream	fileStream;
-		
-	fileStream.open(name.c_str(),std::ios::out|std::ios::app|std::ios::binary);
-	fileStream.write((char*)data,length);
-	fileStream.flush();
-	fileStream.close();
 	
+	if (length > 0){
+		fileStream.open(name.c_str(),std::ios::out|std::ios::app|std::ios::binary);
+		fileStream.write((char*)data,length);
+		fileStream.flush();
+		fileStream.close();
+	}
 	if (_ios != nullptr){
 		_ios->total_in += length;
 		_ios->avail_in = 0;
 		_ios->avail_out = -1;
 		_ios->total_out += length;
-		_ios->status = IOS_OK;
 	}
-	return IOS_OK;
-}
+	return(IOS_update(_ios,IOS_OK));
+};
 //------------------------------------------------------------------------------------------//
-ioss DS_IO_NODE::FileWrite(IOSTATUS* _ios,const STDSTR& name,const uint8* data,const uint64& length){
+IOSE DS_IO_NODE::FileWrite(IOS* _ios,const STDSTR& name,const uint8* data,const uint64& length){
 	std::fstream	fileStream;
 	
-	fileStream.open(name.c_str(),std::ios::out|std::ios::trunc|std::ios::binary);
-	fileStream.write((char*)data,length);
-	fileStream.flush();
-	fileStream.close();
-	
+	if (length > 0){
+		fileStream.open(name.c_str(),std::ios::out|std::ios::trunc|std::ios::binary);
+		fileStream.write((char*)data,length);
+		fileStream.flush();
+		fileStream.close();
+	}
 	if (_ios != nullptr){
 		_ios->total_in += length;
 		_ios->avail_in = 0;
 		_ios->avail_out = -1;
 		_ios->total_out += length;
-		_ios->status = IOS_OK;
 	}
-	return IOS_OK;
-}
+	return(IOS_update(_ios,IOS_OK));
+};
 //------------------------------------------------------------------------------------------//
-ioss DS_IO_NODE::BaseGetInLength(uint64* num,const UVIn& _in){
+IOSE DS_IO_NODE::FileUpdate(IOS* _ios,const STDSTR& name,const uint8* data,const uint64& length,const uint64& offset){
+	std::fstream	fileStream;
+	
+	if (length > 0){
+		fileStream.open(name.c_str(),std::ios::in|std::ios::out|std::ios::binary);
+		fileStream.seekp(offset,std::ios::beg);
+		fileStream.write((char*)data,length);
+		fileStream.flush();
+		fileStream.close();
+	}
+	if (_ios != nullptr){
+		_ios->total_in += length;
+		_ios->avail_in = 0;
+		_ios->avail_out = -1;
+		_ios->total_out += length;
+	}
+	return(IOS_update(_ios,IOS_OK));
+};
+//------------------------------------------------------------------------------------------//
+IOSE DS_IO_NODE::BaseGetUVInLen(uint64* num,const UVIn& _in){
 	*num = 0;
-	if (_in.uvp == nullptr)
-		return IOS_OK;
-	
-	switch (_in.uvid) {
-		case UVID_NONE:
-			break;
-		case UVID_CHARS:{
-			_UVCHARS* uvp = (_UVCHARS*)_in.uvp;
-			*num = uvp->num;
-			break;
-		}
-		case UVID_STR:{
-			STDSTR* str = (STDSTR*)_in.uvp;
-			*num = str->length();
-			break;
-		}
-		case UVID_ARRAY:{
-			uint32 length,offset,slength;
-			_UVARRAY* uvp = (_UVARRAY*)_in.uvp;
-			length = uvp->num;
-			offset = uvp->offset;
-			slength = ((ARRAY*)uvp->p)->CalcOutLength(length,offset);
-			*num = length + slength;
-			break;
-		}
-		case UVID_FILE:{
-			_UVFILE* uvp = (_UVFILE*)_in.uvp;
-			*num = 0;
-			if (CFS_CheckFile(*((STDSTR*)uvp->p)))
-				*num = CFS_CheckFileSize(*((STDSTR*)uvp->p));
-			break;
-		}
-		default:;
-			return IOS_NOCONVERT;
-	};
+	if (_in.uvp != nullptr){
+		switch (_in.uvid) {
+			case UVID_NONE:
+				break;
+			case UVID_CHARS:{
+				_UVCHARS* uvp = (_UVCHARS*)_in.uvp;
+				*num = (uvp->num > uvp->offset) ? (uvp->num - uvp->offset) : 0;
+				break;
+			}
+			case UVID_STR:{
+				STDSTR* str = (STDSTR*)_in.uvp;
+				*num = (str->length() > _in.uvOffset) ? (str->length() - _in.uvOffset) : 0;
+				break;
+			}
+			case UVID_ARRAY0:{
+				ARRAY* array = (ARRAY*)_in.uvp;
+				*num = (array->Used() > _in.uvOffset) ? (array->Used() - _in.uvOffset) : 0;
+				break;
+			}
+			case UVID_ARRAY1:{
+				_UVARRAY* uvp = (_UVARRAY*)_in.uvp;
+				*num = (uvp->num > uvp->offset) ? (uvp->num - uvp->offset) : 0;
+				break;
+			}
+			case UVID_FILE:{
+				_UVFILE* uvp = (_UVFILE*)_in.uvp;
+				if (CFS_CheckFile(*((STDSTR*)uvp->p)))
+					*num = CFS_CheckFileSize(*((STDSTR*)uvp->p));
+				if (*num > uvp->num)
+					*num = uvp->num;
+				*num = (*num > uvp->offset) ? (*num - uvp->offset) : 0;
+				break;
+			}
+			default:;
+				return IOS_NO_OBJECT;
+		};
+	}
+	return IOS_OK;
+};
+//------------------------------------------------------------------------------------------//
+IOSE DS_IO_NODE::BaseAddUVInOffset(const UVIn& _in,const int64& length){
+	if (_in.uvp != nullptr){
+		switch (_in.uvid) {
+			case UVID_NONE:
+				break;
+			case UVID_CHARS:{
+				_UVCHARS* uvp = (_UVCHARS*)_in.uvp;
+				uvp->offset += length;
+				break;
+			}
+			case UVID_STR:
+			case UVID_ARRAY0:{
+				UVIn* uvIn = (UVIn*)&_in;
+				uvIn->uvOffset += length;
+				break;
+			}
+			case UVID_ARRAY1:{
+				_UVARRAY* uvp = (_UVARRAY*)_in.uvp;
+				uvp->offset += length;
+				break;
+			}
+			case UVID_FILE:{
+				_UVFILE* uvp = (_UVFILE*)_in.uvp;
+				uvp->offset += length;
+				break;
+			}
+			default:;
+				return IOS_NO_OBJECT;
+		};
+	}
 	return IOS_OK;
 };
 //------------------------------------------------------------------------------------------//

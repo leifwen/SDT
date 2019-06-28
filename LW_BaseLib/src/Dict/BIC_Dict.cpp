@@ -7,6 +7,7 @@
 //
 
 #include "stdafx.h"
+//------------------------------------------------------------------------------------------//
 #include "BIC_Dict.h"
 //------------------------------------------------------------------------------------------//
 #ifdef BIC_Dict_h
@@ -77,7 +78,7 @@ CMDID BIC_DICT_DO::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 	PrintSuccess(env);
 	SYS_SleepMS(100);
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIC_DICT_READ::Help(CMD_ENV* env,uint32 flag)const{
@@ -138,7 +139,7 @@ CMDID BIC_DICT_READ::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 		PrintFail(env,"File does not exist");
 	}
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIC_DICT_SAVE::Help(CMD_ENV* env,uint32 flag)const{
@@ -174,7 +175,7 @@ CMDID BIC_DICT_SAVE::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 	}
 	SYS_SleepMS(100);
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIC_DICT_FIND::Help(CMD_ENV* env,uint32 flag)const{
@@ -198,7 +199,7 @@ CMDID BIC_DICT_FIND::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 	if (strPar.length() > 0){
 		if (strPar == "coca"){
 			PrintResult(env, COL_clCyan,"Find in COCA...");
-			TREE_RChain_Traversal_LINE_nolock(COCAWORD_NODE,coca,
+			TREE_NextChain_Traversal_LINE_nolock(COCAWORD_NODE,coca,
 				if (Str_LowerCase(_opNode->cgOWord) == par1){
 					PrintResult(env, COL_clCyan, "Got");
 					PrintResult(env, COL_clCyan, "Order number is:",Str_ToStr(_opNode->cgLineNumber));
@@ -208,7 +209,7 @@ CMDID BIC_DICT_FIND::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 		}
 		else if (strPar == "d"){
 			PrintResult(env, COL_clCyan,"Find in Dict...");
-			TREE_RChain_Traversal_LINE_nolock(DICTWORD_NODE,dict,
+			TREE_NextChain_Traversal_LINE_nolock(DICTWORD_NODE,dict,
 				if (Str_LowerCase(_opNode->cgOWord) == par1){
 					PrintResult(env, COL_clCyan, "Got");
 					PrintResult(env, COL_clCyan, "Order number is:",Str_ToStr(_opNode->cgOrderNumber));
@@ -224,7 +225,7 @@ CMDID BIC_DICT_FIND::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 	}
 	SYS_SleepMS(100);
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIC_DICT_UPDATE::Help(CMD_ENV* env,uint32 flag)const{
@@ -273,7 +274,7 @@ CMDID BIC_DICT_UPDATE::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 	}
 	SYS_SleepMS(100);
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIC_DICT_EMPTY::Help(CMD_ENV* env,uint32 flag)const{
@@ -285,7 +286,7 @@ CMDID BIC_DICT_EMPTY::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 	BIC_DICT::Empty();
 	PrintSuccess(env);
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 
 
@@ -304,22 +305,22 @@ BIC_DICT::BIC_DICT(void) : BIC_BASE_S(){
 	cgConsoleName = cgCommand;
 	cgHelpName = "Dict";
 
-	Add(cgSub_read) < cgSub_save < cgSub_find < cgSub_update < cgSub_do < cgSub_empty;
+	AppendDown(cgSub_read) < cgSub_save < cgSub_find < cgSub_update < cgSub_do < cgSub_empty;
 };
 //------------------------------------------------------------------------------------------//
 BIC_DICT::~BIC_DICT(void){
 	Empty();
-}
+};
 //------------------------------------------------------------------------------------------//
 void BIC_DICT::Empty(void){
 	DICTWORD_NODE	*dict = &GetDict();
 	COCAWORD_NODE	*coca = &GetCoca();
 	
-	{TREE_RChain_Traversal_LINE_nolock(DICTWORD_NODE,dict,_opNode->Empty(););}
-	{TREE_RChain_Traversal_LINE_nolock(COCAWORD_NODE,coca,_opNode->Empty(););}
+	{TREE_NextChain_Traversal_LINE_nolock(DICTWORD_NODE,dict,_opNode->Empty(););}
+	{TREE_NextChain_Traversal_LINE_nolock(COCAWORD_NODE,coca,_opNode->Empty(););}
 	
-	DestroySubTree(dict);
-	DestroySubTree(coca);
+	DestroyDownNextTree(dict);
+	DestroyDownNextTree(coca);
 	CleanTrash(&HTML_NODE::GetTrashOwer());
 };
 //------------------------------------------------------------------------------------------//

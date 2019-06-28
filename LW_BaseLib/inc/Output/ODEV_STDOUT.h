@@ -6,6 +6,7 @@
 //  Copyright © 2018 Leif Wen. All rights reserved.
 //
 
+//------------------------------------------------------------------------------------------//
 #include "Output.h"
 //------------------------------------------------------------------------------------------//
 #ifndef ODEV_COLORH
@@ -65,6 +66,9 @@
 //------------------------------------------------------------------------------------------//
 CreateOperatorSetUint32(Left)
 CreateOperatorSetUint32(Right)
+CreateOperatorSetUint32(Down)
+CreateOperatorSetUint32(Up)
+CreateOperatorSetUint32(CNL)
 CreateOperatorSetUint32(ICH)
 CreateOperatorSetUint32(DCH)
 CreateOperatorSetUint32(EL)
@@ -78,6 +82,7 @@ class ODEV_STDOUT : public OUTPUT_NODE{
 		virtual ~ODEV_STDOUT(void);
 	public:
 				virtual void		Print			(uint32 ctrl,COLORENUM col,const uint8* data,uint32 num);
+				virtual void 		DoCleanLastLine	(void);
 #ifdef CommonDefH_Unix
 	public:
 		inline			void		SetCurLeft		(int32 num);
@@ -89,6 +94,9 @@ class ODEV_STDOUT : public OUTPUT_NODE{
 	private:
 		inline			ODEV_STDOUT& operator <<	(const _Left&	data);
 		inline			ODEV_STDOUT& operator <<	(const _Right&	data);
+		inline			ODEV_STDOUT& operator <<	(const _Down&	data);
+		inline			ODEV_STDOUT& operator <<	(const _Up&		data);
+		inline			ODEV_STDOUT& operator <<	(const _CNL&	data);
 		inline			ODEV_STDOUT& operator <<	(const _ICH&	data);
 		inline			ODEV_STDOUT& operator <<	(const _DCH&	data);
 		inline			ODEV_STDOUT& operator <<	(const _EL&		data);

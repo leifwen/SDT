@@ -26,8 +26,6 @@ class BIF_CMD : public BIF_BASE{
 	public:
 #ifdef BIF_Transform_h
 		BIF_PRINT				cgSubC_Print;
-#endif
-#ifdef BIF_Transform_h
 		BIF_SEARCH				cgSubC_Search;
 #endif
 #ifdef BIF_Control_h

@@ -7,6 +7,7 @@
 //
 
 #include "stdafx.h"
+//------------------------------------------------------------------------------------------//
 #include "CMUX.h"
 #ifdef CMUX_h
 //------------------------------------------------------------------------------------------//
@@ -15,666 +16,144 @@
 //#define LOGPRINT_ENABLE
 //#define LOGTHREAD_ENABLE
 #include "SYS_Log.h"
-namespace CMUX {
 //------------------------------------------------------------------------------------------//
-PN_LENI::PN_LENI(void) : PNF_MASK() {
-	Add(pn_EA) < pn_Length;
-};
-//------------------------------------------------------------------------------------------//
-void PN_LENI::ResetPNLength(void){
-	cgPosRE.length = 1;
-	pn_EA.SyncPosRE(&cgPosRE);
-	if (pn_EA.GetValueCalcRE() == 0)
-		cgPosRE.length = 2;
-	FillMaskFieldRE();
-};
-//------------------------------------------------------------------------------------------//
-void PN_LENI::InitPN(const ARRAY* _out,const ARRAY* _in){
-	
-	PNF_MASK::InitPN(_out,_in,1,G_ENDIAN_LITTLE);
-	
-	pn_EA.InitPN	(_out,_in,1,G_ENDIAN_LITTLE);pn_EA.SetMaskBit(0x01);
-	pn_Length.InitPN(_out,_in,1,G_ENDIAN_LITTLE);pn_Length.SetMaskBit(0xfffffffe);
-	FillMaskFieldRE();
-}
-//------------------------------------------------------------------------------------------//
-void PN_LENI::WriteByte1(IOSTATUS* _ios,uint32 data){
-	_Begin(_ios);
-	SetByte1(_ios, data);
-	_Endl();
-	FillMaskFieldWR();
-};
-//------------------------------------------------------------------------------------------//
-void PN_LENI::WriteByte2(IOSTATUS* _ios,uint32 data){
-	_Begin(_ios);
-	SetByte2(_ios, data);
-	_Endl();
-	FillMaskFieldWR();
-};
-//------------------------------------------------------------------------------------------//
-
-	
-
-
-
-
-
-
-
-//------------------------------------------------------------------------------------------//
-UIH_SUBFRAME::UIH_SUBFRAME(void) : PNF_BLOCK() {
-	Add(pn_Ctrl < pn_Ctrl_EA < pn_Ctrl_CR < pn_Ctrl_Type) < pn_Len < pn_Content;
-};
-//------------------------------------------------------------------------------------------//
-void UIH_SUBFRAME::InitPN(const ARRAY* _out,const ARRAY* _in){
-	if (_out == nullptr)
-		_out = &cgArray;
-	if (_in == nullptr)
-		_in = &cgArray;
-
-	PNF_BLOCK::InitPN	(_out,_in);
-	pn_Ctrl.InitPN		(_out,_in,1,G_ENDIAN_LITTLE);
-	pn_Ctrl_EA.InitPN	(_out,_in,1,G_ENDIAN_LITTLE);pn_Ctrl_EA.SetMaskBit(0x01);
-	pn_Ctrl_CR.InitPN	(_out,_in,1,G_ENDIAN_LITTLE);pn_Ctrl_CR.SetMaskBit(0x02);
-	pn_Ctrl_Type.InitPN	(_out,_in,1,G_ENDIAN_LITTLE);pn_Ctrl_Type.SetMaskBit(0xFC);
-	pn_Ctrl.FillMaskFieldRE();
-	
-	pn_Len.InitPN		(_out,_in);
-	pn_Content.InitPN	(_out,_in,&pn_Len);
-	SetBlockPoint(this);
-};
-//------------------------------------------------------------------------------------------//
-
-
-
-
-
-
-
-
-
-
-//------------------------------------------------------------------------------------------//
-static const uint8 crctable[256] = { // reversed, 8-bit, poly=0x07
-	0x00, 0x91, 0xE3, 0x72, 0x07, 0x96, 0xE4, 0x75, 0x0E, 0x9F, 0xED, 0x7C, 0x09, 0x98, 0xEA, 0x7B,
-	0x1C, 0x8D, 0xFF, 0x6E, 0x1B, 0x8A, 0xF8, 0x69, 0x12, 0x83, 0xF1, 0x60, 0x15, 0x84, 0xF6, 0x67,
-	0x38, 0xA9, 0xDB, 0x4A, 0x3F, 0xAE, 0xDC, 0x4D, 0x36, 0xA7, 0xD5, 0x44, 0x31, 0xA0, 0xD2, 0x43,
-	0x24, 0xB5, 0xC7, 0x56, 0x23, 0xB2, 0xC0, 0x51, 0x2A, 0xBB, 0xC9, 0x58, 0x2D, 0xBC, 0xCE, 0x5F,
-	0x70, 0xE1, 0x93, 0x02, 0x77, 0xE6, 0x94, 0x05, 0x7E, 0xEF, 0x9D, 0x0C, 0x79, 0xE8, 0x9A, 0x0B,
-	0x6C, 0xFD, 0x8F, 0x1E, 0x6B, 0xFA, 0x88, 0x19, 0x62, 0xF3, 0x81, 0x10, 0x65, 0xF4, 0x86, 0x17,
-	0x48, 0xD9, 0xAB, 0x3A, 0x4F, 0xDE, 0xAC, 0x3D, 0x46, 0xD7, 0xA5, 0x34, 0x41, 0xD0, 0xA2, 0x33,
-	0x54, 0xC5, 0xB7, 0x26, 0x53, 0xC2, 0xB0, 0x21, 0x5A, 0xCB, 0xB9, 0x28, 0x5D, 0xCC, 0xBE, 0x2F,
-	0xE0, 0x71, 0x03, 0x92, 0xE7, 0x76, 0x04, 0x95, 0xEE, 0x7F, 0x0D, 0x9C, 0xE9, 0x78, 0x0A, 0x9B,
-	0xFC, 0x6D, 0x1F, 0x8E, 0xFB, 0x6A, 0x18, 0x89, 0xF2, 0x63, 0x11, 0x80, 0xF5, 0x64, 0x16, 0x87,
-	0xD8, 0x49, 0x3B, 0xAA, 0xDF, 0x4E, 0x3C, 0xAD, 0xD6, 0x47, 0x35, 0xA4, 0xD1, 0x40, 0x32, 0xA3,
-	0xC4, 0x55, 0x27, 0xB6, 0xC3, 0x52, 0x20, 0xB1, 0xCA, 0x5B, 0x29, 0xB8, 0xCD, 0x5C, 0x2E, 0xBF,
-	0x90, 0x01, 0x73, 0xE2, 0x97, 0x06, 0x74, 0xE5, 0x9E, 0x0F, 0x7D, 0xEC, 0x99, 0x08, 0x7A, 0xEB,
-	0x8C, 0x1D, 0x6F, 0xFE, 0x8B, 0x1A, 0x68, 0xF9, 0x82, 0x13, 0x61, 0xF0, 0x85, 0x14, 0x66, 0xF7,
-	0xA8, 0x39, 0x4B, 0xDA, 0xAF, 0x3E, 0x4C, 0xDD, 0xA6, 0x37, 0x45, 0xD4, 0xA1, 0x30, 0x42, 0xD3,
-	0xB4, 0x25, 0x57, 0xC6, 0xB3, 0x22, 0x50, 0xC1, 0xBA, 0x2B, 0x59, 0xC8, 0xBD, 0x2C, 0x5E, 0xCF
-};
-//------------------------------------------------------------------------------------------//
-UIH_FRAME::UIH_FRAME(void) : PNFB_SHELL() {
-	AddBlockSubPN(pn_Addr < pn_Addr_EA < pn_Addr_CR < pn_Addr_DLCI)
-	< (pn_Ctrl < pn_Ctrl_PF < pn_Ctrl_Type)
-	< pn_Len < pn_Info;
-};
-//------------------------------------------------------------------------------------------//
-uint32& UIH_FRAME::GetInfoSizeMax(void){
-	static	uint32 infoSizeMax = INFO_SIZE_MAX;
-	return(infoSizeMax);
-};
-//------------------------------------------------------------------------------------------//
-void UIH_FRAME::InitPN(const ARRAY* _out,const ARRAY* _in){
-	//("F9 01 F9 05 EF 27 0D 0A 30 37 2E 30 32 2E 35 30 34 0D 0A 0D 0A 4F 4B 0D 0A 80 F9");
-	if (_out == nullptr)
-		_out = &cgArray;
-	if (_in == nullptr)
-		_in = &cgArray;
-	
-	PNFB_SHELL::InitPN	(_out,_in,1,G_ENDIAN_LITTLE);
-	
-	pns_Head.InitPN		(_out,_in,FRAME_FLAG_STR);
-	pn_Addr.InitPN		(_out,_in,1,G_ENDIAN_LITTLE);
-	pn_Addr_EA.InitPN	(_out,_in,1,G_ENDIAN_LITTLE);pn_Addr_EA.SetMaskBit(0x01);
-	pn_Addr_CR.InitPN	(_out,_in,1,G_ENDIAN_LITTLE);pn_Addr_CR.SetMaskBit(0x02);
-	pn_Addr_DLCI.InitPN	(_out,_in,1,G_ENDIAN_LITTLE);pn_Addr_DLCI.SetMaskBit(0xFC);
-	pn_Addr.FillMaskFieldRE();
-	
-	pn_Ctrl.InitPN		(_out,_in,1,G_ENDIAN_LITTLE);
-	pn_Ctrl_PF.InitPN	(_out,_in,1,G_ENDIAN_LITTLE);pn_Ctrl_PF.SetMaskBit(0x10);
-	pn_Ctrl_Type.InitPN	(_out,_in,1,G_ENDIAN_LITTLE);pn_Ctrl_Type.SetMaskBit(0xEF);
-	pn_Ctrl.FillMaskFieldRE();
-	
-	pn_Len.InitPN		(_out,_in);
-	pn_Info.InitPN		(_out,_in,&pn_Len.pn_Length);
-	pns_Tail.InitPN		(_out,_in,FRAME_FLAG_STR);
-	SetBlockPoint(this);
-};
-//------------------------------------------------------------------------------------------//
-bool32 UIH_FRAME::ChecksumResult(void)const{
-	uint8	FCS = 0xFF;
-	uint32	slength,length,offset;
-	uint8*	data;
-	
-	length = (pn_Ctrl_Type.GetValueAMaskRE() == CTRL_UIH) ? pn_Info.GetOffsetRE() : pns_Checksum.GetOffsetRE();
-	offset = GetOffsetRE();
-	slength = cgPosRE.array->CalcOutLength(length,offset);
-	
-	if (length > 0){
-		data = cgPosRE.array->GetPointer(offset);
-		while(--length > 0){
-			++ data;
-			FCS = crctable[FCS ^ (*data)];
-		}
-		if (slength > 0){
-			data = cgPosRE.array->GetPointer(0);
-			while(slength-- > 0){
-				FCS = crctable[FCS ^ (*data)];
-				data ++;
-			}
-		}
-	}
-
-	FCS = crctable[FCS ^ pns_Checksum.GetValueRE()];
-	
-	return(FCS == 0xCF);
-}
-//------------------------------------------------------------------------------------------//
-void UIH_FRAME::SetChecksum(void){
-	uint8	FCS = 0xFF;
-	uint32	slength,length,offset;
-	uint8*	data;
-	
-	length = (pn_Ctrl_Type.GetValueAMaskWR() == CTRL_UIH) ? pn_Info.GetOffsetWR() : (pn_Info.GetOffsetWR() + pn_Info.GetLengthWR());
-	offset = GetOffsetWR();
-	slength = cgPosWR.array->CalcOutLengthInToPre(length,offset);
-
-	if (length > 0){
-		data = cgPosWR.array->GetPointer(offset);
-		while(--length > 0){
-			++ data;
-			FCS = crctable[FCS ^ (*data)];
-
-		}
-		if (slength > 0){
-			data = cgPosWR.array->GetPointer(0);
-			while(slength-- > 0){
-				FCS = crctable[FCS ^ (*data)];
-				data ++;
-			}
-		}
-	}
-	pns_Checksum.Write(cgStartup.ios,0xFF - FCS);
-}
-//------------------------------------------------------------------------------------------//
-UIH_FRAME& UIH_FRAME::AddUIHFrame(uint32* sendNum,STDSTR* retHexFrame,uint8 vPort,const uint8* data,uint32 num,uint8 crBit){
-	cgPosWR.array->Prepare_Set();
-	_Begin(nullptr);
-	
-	pn_Addr.Write(nullptr,(vPort << 2) | crBit | EA_BIT);	//1:Address field
-	pn_Ctrl.Write(nullptr,CTRL_UIH & (~PF_BIT));			//2:Ctrl field,Poll/Final BIT always 1
-	
-	if (num > GetInfoSizeMax())
-		num = GetInfoSizeMax();
-	if (num < FRAME_SIZE_TWOBYTES){
-		pn_Len.WriteByte1(nullptr,(num << 1) | EA_BIT);			//3:Length indicator
-	}
-	else{
-		pn_Len.WriteByte2(nullptr,(num << 1) );
-	}
-	
-	pn_Info.Write(nullptr,IUD(data, num));					//4:Info
-
-	_Endl();
-	
-	if (retHexFrame != nullptr){
-		uint32	slength,length,offset;
-		uint8*	data;
-		
-		length = GetLengthWR();
-		offset = GetOffsetWR();
-		slength = cgPosWR.array->CalcOutLengthInToPre(length,offset);
-		
-		if (length > 0){
-			data = cgPosWR.array->GetPointer(offset);
-			Str_CharToHEX(retHexFrame, data, length, G_SPACE_ON);
-			if (slength > 0){
-				data = cgPosWR.array->GetPointer(0);
-				Str_CharToHEX(retHexFrame, data, slength, G_SPACE_ON);
-			}
-		}
-	}
-	cgPosWR.array->Prepare_Clr();
-	if (sendNum != nullptr)
-		*sendNum = num;
-	return(*this);
-}
-//------------------------------------------------------------------------------------------//
-UIH_FRAME& UIH_FRAME::SetUIHFrame(uint32* sendNum,STDSTR* retHexFrame,uint8 vPort,const uint8* data,uint32 num,uint8 crBit){
-	uint32 snum,total;
-	snum = 0;
-	total = 0;
-	while((num > 0) && (cgPosWR.array->Unused() > GetInfoSizeMax() * 2)){
-		AddUIHFrame(&snum,retHexFrame,vPort,data,num,crBit);
-		data += snum;
-		total += snum;
-		num -= snum;
-	}
-	if (sendNum != nullptr)
-		*sendNum = total;
-	return(*this);
-}
-//------------------------------------------------------------------------------------------//
-UIH_FRAME& UIH_FRAME::SetUIHFrame(uint32* sendNum,STDSTR* retHexFrame,uint8 vPort,const ARRAY& _in,uint8 crBit){
-	uint32	slength,num,offset,snum,total;
-	
-	snum = 0;
-	total = 0;
-	num = _in.Used();
-	offset = 0;
-	slength = _in.CalcOutLength(num, offset);
-	
-	do{
-		if (num > 0){
-			SetUIHFrame(&snum,retHexFrame,vPort,_in.GetPointer(offset),num,crBit);
-			total += snum;
-			if (num > snum)
-				break;
-		}
-		if (slength > 0){
-			SetUIHFrame(&snum,retHexFrame,vPort,_in.GetPointer(0),slength,crBit);
-			total += snum;
-		}
-		break;
-	}while(0);
-	if (sendNum != nullptr)
-		*sendNum = total;
-	return(*this);
-}
-//------------------------------------------------------------------------------------------//
-UIH_FRAME& UIH_FRAME::SetCtrlFrame(STDSTR* retHexFrame,uint8 vPort,uint8 ctrlType,uint8 crBit){
-	cgPosWR.array->Prepare_Set();
-	_Begin(nullptr);
-	
-	pn_Addr.Write(nullptr,(vPort << 2) | crBit | EA_BIT);	//1:Address field
-	pn_Ctrl.Write(nullptr,ctrlType | PF_BIT);				//2:Ctrl field,Poll/Final BIT always 1
-	pn_Len.WriteByte1(nullptr,EA_BIT);						//3:Length indicator
-	pn_Info.WriteNone();									//4:Info
-	
-	_Endl();
-	
-	if (retHexFrame != nullptr){
-		uint32	slength,length,offset;
-		uint8*	data;
-		
-		length = GetLengthWR();
-		offset = GetOffsetWR();
-		slength = cgPosWR.array->CalcOutLengthInToPre(length,offset);
-		
-		if (length > 0){
-			data = cgPosWR.array->GetPointer(offset);
-			Str_CharToHEX(retHexFrame, data, length, G_SPACE_ON);
-			if (slength > 0){
-				data = cgPosWR.array->GetPointer(0);
-				Str_CharToHEX(retHexFrame, data, slength, G_SPACE_ON);
-			}
-		}
-	}
-	cgPosWR.array->Prepare_Clr();
-	return(*this);
-}
-//------------------------------------------------------------------------------------------//
-UIH_FRAME& UIH_FRAME::SetCLDFrame(STDSTR* retHexFrame){
-	uint8	data[2];
-	
-	data[0] = CMD_MUX_CLD | CR_BIT | EA_BIT;
-	data[1] = EA_BIT;
-	
-	return(SetUIHFrame(nullptr,retHexFrame,DLCI0,data,2,CR_BIT));
-}
-//------------------------------------------------------------------------------------------//
-UIH_FRAME& UIH_FRAME::SetFCONFrame(STDSTR* retHexFrame,uint8 crBit){
-	uint8	data[2];
-	
-	data[0] = CMD_FCON | crBit | EA_BIT;
-	data[1] = EA_BIT;
-	
-	return(SetUIHFrame(nullptr,retHexFrame,DLCI0,data,2,CR_BIT));
-}
-//------------------------------------------------------------------------------------------//
-UIH_FRAME& UIH_FRAME::SetFCOFFFrame(STDSTR* retHexFrame,uint8 crBit){
-	uint8	data[2];
-	
-	data[0] = CMD_FCOFF | crBit | EA_BIT;
-	data[1] = EA_BIT;
-	
-	return(SetUIHFrame(nullptr,retHexFrame,DLCI0,data,2,CR_BIT));
-}
-//------------------------------------------------------------------------------------------//
-UIH_FRAME& UIH_FRAME::SetStdPSCFrame(STDSTR* retHexFrame){
-	uint8	data[2];
-	
-	data[0] = CMD_PSC | CR_BIT | EA_BIT;
-	data[1] = EA_BIT;
-	
-	return(SetUIHFrame(nullptr,retHexFrame,DLCI0,data,2,CR_BIT));
-}
-//------------------------------------------------------------------------------------------//
-UIH_FRAME& UIH_FRAME::SetTPSCxFrame(STDSTR* retHexFrame,uint8 mode){
-	uint8	data[3];
-	
-	data[0] = CMD_PSC | CR_BIT | EA_BIT;
-	data[1] = (0x01 << 1) | EA_BIT;
-	data[2] = mode;
-	
-	return(SetUIHFrame(nullptr,retHexFrame,DLCI0,data,3,CR_BIT));
-}
-//------------------------------------------------------------------------------------------//
-UIH_FRAME& UIH_FRAME::SetMSCCmd(STDSTR* retHexFrame,uint8 vPort,uint8 modemStatus,uint8 UINcrbit,uint8 crBit){
-	uint8	data[4];
-	
-	data[0] = CMD_MSC | crBit | EA_BIT;  		// Cmd type
-	data[1] = (0x02 << 1) | EA_BIT;				// Cmd Len Ind
-	data[2] = (vPort << 2) | 0x02 | EA_BIT;   	// valore 1
-	data[3] = modemStatus | 0x01;
-	
-	return(SetUIHFrame(nullptr,retHexFrame,DLCI0,data,4,UINcrbit));
-}
-//------------------------------------------------------------------------------------------//
-UIH_FRAME& UIH_FRAME::SetBRKCmd(STDSTR* retHexFrame,uint8 vPort,uint8 modemStatus,uint8 UINcrbit,uint8 crBit){
-	uint8	data[5];
-	
-	data[0] = CMD_MSC | crBit | EA_BIT;  		// Cmd type
-	data[1] = (3 << 1) | EA_BIT;				// Cmd Len Ind
-	data[2] = (vPort << 2) | 0x02 | EA_BIT;		// valore 1
-	data[3] = modemStatus | 0x01;
-	data[4] = BREAK_OCTET;
-	
-	return(SetUIHFrame(nullptr,retHexFrame,DLCI0,data,5,UINcrbit));
-}
-//------------------------------------------------------------------------------------------//
-UIH_FRAME& UIH_FRAME::SetSABMFrameD0(STDSTR* retHexFrame){return(SetCtrlFrame(retHexFrame,DLCI0,CTRL_SABM,CR_BIT));};
-UIH_FRAME& UIH_FRAME::SetSABMFrameV1(STDSTR* retHexFrame){return(SetCtrlFrame(retHexFrame,DLCI1,CTRL_SABM,CR_BIT));};
-UIH_FRAME& UIH_FRAME::SetSABMFrameV2(STDSTR* retHexFrame){return(SetCtrlFrame(retHexFrame,DLCI2,CTRL_SABM,CR_BIT));};
-UIH_FRAME& UIH_FRAME::SetSABMFrameV3(STDSTR* retHexFrame){return(SetCtrlFrame(retHexFrame,DLCI3,CTRL_SABM,CR_BIT));};
-UIH_FRAME& UIH_FRAME::SetSABMFrameV4(STDSTR* retHexFrame){return(SetCtrlFrame(retHexFrame,DLCI4,CTRL_SABM,CR_BIT));};
-
-UIH_FRAME& UIH_FRAME::SetDISCFrameD0(STDSTR* retHexFrame){return(SetCtrlFrame(retHexFrame,DLCI0,CTRL_DISC,CR_BIT));};
-UIH_FRAME& UIH_FRAME::SetDISCFrameV1(STDSTR* retHexFrame){return(SetCtrlFrame(retHexFrame,DLCI1,CTRL_DISC,CR_BIT));};
-UIH_FRAME& UIH_FRAME::SetDISCFrameV2(STDSTR* retHexFrame){return(SetCtrlFrame(retHexFrame,DLCI2,CTRL_DISC,CR_BIT));};
-UIH_FRAME& UIH_FRAME::SetDISCFrameV3(STDSTR* retHexFrame){return(SetCtrlFrame(retHexFrame,DLCI3,CTRL_DISC,CR_BIT));};
-UIH_FRAME& UIH_FRAME::SetDISCFrameV4(STDSTR* retHexFrame){return(SetCtrlFrame(retHexFrame,DLCI4,CTRL_DISC,CR_BIT));};
-
-UIH_FRAME& UIH_FRAME::SetDefaultMSV1(STDSTR* retHexFrame){return(SetMSCCmd(retHexFrame,DLCI1,MS_DTR | MS_RTS,CR_BIT,CR_BIT));};
-UIH_FRAME& UIH_FRAME::SetDefaultMSV2(STDSTR* retHexFrame){return(SetMSCCmd(retHexFrame,DLCI2,MS_DTR | MS_RTS,CR_BIT,CR_BIT));};
-UIH_FRAME& UIH_FRAME::SetDefaultMSV3(STDSTR* retHexFrame){return(SetMSCCmd(retHexFrame,DLCI3,MS_DTR | MS_RTS,CR_BIT,CR_BIT));};
-UIH_FRAME& UIH_FRAME::SetDefaultMSV4(STDSTR* retHexFrame){return(SetMSCCmd(retHexFrame,DLCI4,MS_DTR | MS_RTS,CR_BIT,CR_BIT));};
-//------------------------------------------------------------------------------------------//
-const STDSTR& UIH_FRAME::CreateFCONFrame(STDSTR* retHexFrame,uint8 crBit){
-	*retHexFrame = "";
-	InUse_set();
-	SetFCONFrame(retHexFrame,crBit);
-	InUse_clr();
-	return(*retHexFrame);
-};
-//------------------------------------------------------------------------------------------//
-const STDSTR& UIH_FRAME::CreateFCOFFFrame(STDSTR* retHexFrame,uint8 crBit){
-	*retHexFrame = "";
-	InUse_set();
-	SetFCOFFFrame(retHexFrame,crBit);
-	InUse_clr();
-	return(*retHexFrame);
-};
-//------------------------------------------------------------------------------------------//
-const STDSTR& UIH_FRAME::CreateTPSCxFrame(STDSTR* retHexFrame,uint8 mode){
-	*retHexFrame = "";
-	InUse_set();
-	SetTPSCxFrame(retHexFrame,mode);
-	InUse_clr();
-	return(*retHexFrame);
-};
-//------------------------------------------------------------------------------------------//
-const STDSTR& UIH_FRAME::CreateMSCCmd(STDSTR* retHexFrame,uint8 vPort,uint8 modemStatus,uint8 UINcrbit,uint8 crBit){
-	*retHexFrame = "";
-	InUse_set();
-	SetMSCCmd(retHexFrame,vPort,modemStatus,UINcrbit,crBit);
-	InUse_clr();
-	return(*retHexFrame);
-};
-//------------------------------------------------------------------------------------------//
-const STDSTR& UIH_FRAME::CreateBRKCmd(STDSTR* retHexFrame,uint8 vPort,uint8 modemStatus,uint8 UINcrbit,uint8 crBit){
-	*retHexFrame = "";
-	InUse_set();
-	SetBRKCmd(retHexFrame,vPort,modemStatus,UINcrbit,crBit);
-	InUse_clr();
-	return(*retHexFrame);
-};
-//------------------------------------------------------------------------------------------//
-#define CMUXFUN(_name)\
-const STDSTR& UIH_FRAME::Create##_name(STDSTR* retHexFrame){\
-	*retHexFrame = "";\
-	InUse_set();\
-	Set##_name(retHexFrame);\
-	InUse_clr();\
-	return(*retHexFrame);\
-};
-//------------------------------------------------------------------------------------------//
-CMUXFUN(CLDFrame);
-CMUXFUN(StdPSCFrame);
-
-CMUXFUN(SABMFrameD0);
-CMUXFUN(SABMFrameV1);
-CMUXFUN(SABMFrameV2);
-CMUXFUN(SABMFrameV3);
-CMUXFUN(SABMFrameV4);
-
-CMUXFUN(DISCFrameD0);
-CMUXFUN(DISCFrameV1);
-CMUXFUN(DISCFrameV2);
-CMUXFUN(DISCFrameV3);
-CMUXFUN(DISCFrameV4);
-
-CMUXFUN(DefaultMSV1);
-CMUXFUN(DefaultMSV2);
-CMUXFUN(DefaultMSV3);
-CMUXFUN(DefaultMSV4);
-//------------------------------------------------------------------------------------------//
-};
-
-
-
-
-
-
-
-
-
-
-//------------------------------------------------------------------------------------------//
-VCOM::VCOM(uint32 size,const ODEV_SYSTEM* logSys) : ACOM(size,logSys){
+CORE_VCOM::CORE_VCOM(void) : CORE_ACOM(){
 	cgPortID = 0;
 	ClrSFlag(VCOM_blDSR | VCOM_blCTS | VCOM_blDCD | VCOM_blRING | VCOM_blDTR | VCOM_blRTS | VCOM_blHEX | VCOM_blEscape);
 	SetSFlag(VCOM_blEscape);
-
-	cmuxThread.ThreadInit(this, &VCOM::cmuxThreadFun,"cmux");
 	
-	cgThreadList < cmuxThread;
-	modemStatusThread.Disable();
-	DisableLog();
-	
-	TNFP::SetSelfName("VCOM");
-	SetSelfName(selfName);
-	SetFatherName("");
+	SetSelfName("CORE_VCOM");
+	SetUpName("");
 };
 //------------------------------------------------------------------------------------------//
-VCOM::~VCOM(void){
-	Close();
-	cmuxThread.ThreadStop();
-	cmuxThread.RemoveSelf();
+CORE_VCOM::~CORE_VCOM(void){
+	CloseDev();
 };
 //------------------------------------------------------------------------------------------//
-void VCOM::SetSelfName(const STDSTR& strName){
-	ACOM::SetSelfName(strName);
-	cmuxThread.SetFatherName(GetFullName(this));
+void CORE_VCOM::Init(const COMMU_TEAM* _team){
+	CORE_ACOM::Init(_team);
+	modemStatusThread.RemoveSelf();
 };
 //------------------------------------------------------------------------------------------//
-void VCOM::SetFatherName(const STDSTR& strName){
-	ACOM::SetFatherName(strName);
-	cmuxThread.SetFatherName(GetFullName(this));
-};
-//------------------------------------------------------------------------------------------//
-bool32 VCOM::DoOpen(const OPEN_PAR& par){
+bool32 CORE_VCOM::OpenDev(const OPEN_PAR& par){
 	ClrSFlag(VCOM_blDSR | VCOM_blCTS | VCOM_blDCD | VCOM_blRING | VCOM_blDTR | VCOM_blRTS | VCOM_blHEX | VCOM_blEscape);
 	SetSFlag(VCOM_blEscape);
-
+	
 #ifdef CommonDefH_VC
-	return(ACOM::DoOpen(par));
+	return(CORE_ACOM::OpenDev(par));
 #endif
 #ifdef CommonDefH_Unix
 	OPEN_PAR	oPar;
-
+	
 	SetOpenPar(&oPar, par);
 	oPar.type = OPEN_COMV;
 	oPar.name = CMUX_COM_NAME;
 	oPar.name += Str_ToStr(cgPortID);
-	return(ACOM::DoOpen(oPar));
+	return(CORE_ACOM::OpenDev(oPar));
 #endif
-}
+};
 //------------------------------------------------------------------------------------------//
-void VCOM::DoPrintOnOpenSuccess(void){
+void CORE_VCOM::PrintOpenSuccess(const STDSTR& strTitle){
 #ifdef CommonDefH_Unix
-	PrintMessageDot("Open CMUX virtual port",Str_ToStr(cgPortID),":",vPortName);
+	COMMU_LOGSYS::PrintMessageDot(unitTeam->logSys,"Open CMUX virtual port",Str_ToStr(cgPortID),":",vPortName);
 #else
-	PrintMessageDot("Open CMUX virtual port",Str_ToStr(cgPortID),":",GetOpenPar().name);
+	COMMU_LOGSYS::PrintMessageDot(unitTeam->logSys,"Open CMUX virtual port",Str_ToStr(cgPortID),":",GetOpenPar().name);
 #endif
-}
+};
 //------------------------------------------------------------------------------------------//
-void VCOM::DoPrintOnClose(void){
+void CORE_VCOM::PrintClose(const uint64& rxBytes,const uint64& txBytes,const uint64& fwBytes){
 #ifdef CommonDefH_Unix
-	PrintMessageDot("Close CMUX virtual port",Str_ToStr(cgPortID),":",vPortName);
+	COMMU_LOGSYS::PrintMessageDot(unitTeam->logSys,"Close CMUX virtual port",Str_ToStr(cgPortID),":",vPortName);
 #else
-	PrintMessageDot("Open CMUX virtual port",Str_ToStr(cgPortID),":",GetOpenPar().name);
+	COMMU_LOGSYS::PrintMessageDot(unitTeam->logSys,"Open CMUX virtual port",Str_ToStr(cgPortID),":",GetOpenPar().name);
 #endif
-}
+};
 //------------------------------------------------------------------------------------------//
-void VCOM::Update_DSR(bool32 bl){
+void CORE_VCOM::Update(COMMU_FRAME* vcom,bool32 bl,uint32 flag){
+	if (vcom == nullptr)
+		return;
 	if (bl > 0){
-		SetSFlag(VCOM_blDSR);
+		static_cast<CORE_VCOM*>(vcom->Core())->SetSFlag(flag);
 	}
 	else{
-		ClrSFlag(VCOM_blDSR);
+		static_cast<CORE_VCOM*>(vcom->Core())->ClrSFlag(flag);
 	}
-}
+};
 //------------------------------------------------------------------------------------------//
-void VCOM::Update_CTS(bool32 bl){
-	if (bl > 0){
-		SetSFlag(VCOM_blCTS);
-	}
-	else{
-		ClrSFlag(VCOM_blCTS);
-	}
-}
+void CORE_VCOM::Update_DSR		(COMMU_FRAME* vcom,bool32 bl){Update(vcom,bl,VCOM_blDSR);};
+void CORE_VCOM::Update_CTS		(COMMU_FRAME* vcom,bool32 bl){Update(vcom,bl,VCOM_blCTS);};
+void CORE_VCOM::Update_DCD		(COMMU_FRAME* vcom,bool32 bl){Update(vcom,bl,VCOM_blDCD);};
+void CORE_VCOM::Update_RING		(COMMU_FRAME* vcom,bool32 bl){Update(vcom,bl,VCOM_blRING);};
+void CORE_VCOM::Update_DTR		(COMMU_FRAME* vcom,bool32 bl){Update(vcom,bl,VCOM_blDTR);};
+void CORE_VCOM::Update_RTS		(COMMU_FRAME* vcom,bool32 bl){Update(vcom,bl,VCOM_blRTS);};
+void CORE_VCOM::Update_HEX		(COMMU_FRAME* vcom,bool32 bl){Update(vcom,bl,VCOM_blHEX);};
+void CORE_VCOM::Update_Escape	(COMMU_FRAME* vcom,bool32 bl){Update(vcom,bl,VCOM_blEscape);};
 //------------------------------------------------------------------------------------------//
-void VCOM::Update_DCD(bool32 bl){
-	if (bl > 0){
-		SetSFlag(VCOM_blDCD);
-	}
-	else{
-		ClrSFlag(VCOM_blDCD);
-	}
-}
+bool32	CORE_VCOM::Check_DSR	(COMMU_FRAME* vcom){return((vcom == nullptr)?G_FALSE:static_cast<CORE_VCOM*>(vcom->Core())->CheckSFlag(VCOM_blDSR));};
+bool32	CORE_VCOM::Check_CTS	(COMMU_FRAME* vcom){return((vcom == nullptr)?G_FALSE:static_cast<CORE_VCOM*>(vcom->Core())->CheckSFlag(VCOM_blCTS));};
+bool32	CORE_VCOM::Check_DCD	(COMMU_FRAME* vcom){return((vcom == nullptr)?G_FALSE:static_cast<CORE_VCOM*>(vcom->Core())->CheckSFlag(VCOM_blDCD));};
+bool32	CORE_VCOM::Check_RING	(COMMU_FRAME* vcom){return((vcom == nullptr)?G_FALSE:static_cast<CORE_VCOM*>(vcom->Core())->CheckSFlag(VCOM_blRING));};
+bool32	CORE_VCOM::Check_DTR	(COMMU_FRAME* vcom){return((vcom == nullptr)?G_FALSE:static_cast<CORE_VCOM*>(vcom->Core())->CheckSFlag(VCOM_blDTR));};
+bool32	CORE_VCOM::Check_RTS	(COMMU_FRAME* vcom){return((vcom == nullptr)?G_FALSE:static_cast<CORE_VCOM*>(vcom->Core())->CheckSFlag(VCOM_blRTS));};
+bool32	CORE_VCOM::Check_HEX	(COMMU_FRAME* vcom){return((vcom == nullptr)?G_FALSE:static_cast<CORE_VCOM*>(vcom->Core())->CheckSFlag(VCOM_blHEX));};
+bool32	CORE_VCOM::Check_Escape	(COMMU_FRAME* vcom){return((vcom == nullptr)?G_FALSE:static_cast<CORE_VCOM*>(vcom->Core())->CheckSFlag(VCOM_blEscape));};
 //------------------------------------------------------------------------------------------//
-void VCOM::Update_RING(bool32 bl){
-	if (bl > 0){
-		SetSFlag(VCOM_blRING);
+STDSTR& CORE_VCOM::DlciStatus(COMMU_FRAME* vcom,STDSTR* retStr){
+	if (vcom != nullptr){
+		*retStr = " DLCI " + Str_ToStr(static_cast<CORE_VCOM*>(vcom->Core())->cgPortID) + " :";
+		*retStr += " DTR=";	*retStr += (Check_DTR(vcom)  == G_FALSE)?"L,":"H,";
+		*retStr += " RTS=";	*retStr += (Check_RTS(vcom)  == G_FALSE)?"L,":"H,";
+		*retStr += " CTS=";	*retStr += (Check_CTS(vcom)  == G_FALSE)?"L,":"H,";
+		*retStr += " DSR=";	*retStr += (Check_DSR(vcom)  == G_FALSE)?"L,":"H,";
+		*retStr += " RING=";*retStr += (Check_RING(vcom) == G_FALSE)?"L,":"H,";
+		*retStr += " DCD=";	*retStr += (Check_DCD(vcom)  == G_FALSE)?"L,":"H,";
+		*retStr += (Check_HEX(vcom) == G_FALSE)?" ASCII mode,":" HEX mode,";
+		*retStr += (Check_Escape(vcom) == G_FALSE)?" disable escape":" enable escape";
 	}
-	else{
-		ClrSFlag(VCOM_blRING);
-	}
-}
+	return(*retStr);
+};
 //------------------------------------------------------------------------------------------//
-void VCOM::Update_DTR(bool32 bl){
-	if (bl > 0){
-		SetSFlag(VCOM_blDTR);
-	}
-	else{
-		ClrSFlag(VCOM_blDTR);
-	}
-}
+
+
+
+
+
+
+
+
+
+
 //------------------------------------------------------------------------------------------//
-void VCOM::Update_RTS(bool32 bl){
-	if (bl > 0){
-		SetSFlag(VCOM_blRTS);
-	}
-	else{
-		ClrSFlag(VCOM_blRTS);
-	}
-}
-//------------------------------------------------------------------------------------------//
-void VCOM::Update_HEX(bool32 bl){
-	if (bl > 0){
-		SetSFlag(VCOM_blHEX);
-	}
-	else{
-		ClrSFlag(VCOM_blHEX);
-	}
-}
-//------------------------------------------------------------------------------------------//
-void VCOM::Update_Escape(bool32 bl){
-	if (bl > 0){
-		SetSFlag(VCOM_blEscape);
-	}
-	else{
-		ClrSFlag(VCOM_blEscape);
-	}
-}
-//------------------------------------------------------------------------------------------//
-bool32	VCOM::Check_DSR		(void){return(CheckSFlag(VCOM_blDSR));};
-bool32	VCOM::Check_CTS		(void){return(CheckSFlag(VCOM_blCTS));};
-bool32	VCOM::Check_DCD		(void){return(CheckSFlag(VCOM_blDCD));};
-bool32	VCOM::Check_RING	(void){return(CheckSFlag(VCOM_blRING));};
-bool32	VCOM::Check_DTR		(void){return(CheckSFlag(VCOM_blDTR));};
-bool32	VCOM::Check_RTS		(void){return(CheckSFlag(VCOM_blRTS));};
-bool32	VCOM::Check_HEX		(void){return(CheckSFlag(VCOM_blHEX));};
-bool32	VCOM::Check_Escape	(void){return(CheckSFlag(VCOM_blEscape));};
-//------------------------------------------------------------------------------------------//
-bool32 VCOM::cmuxThreadFun(void* commu){
+bool32 FORWARD_VCOM::FwThreadFun(void* _team){
+	COMMU_TEAM*			team = static_cast<COMMU_TEAM*>(_team);
+	VCOM*				vcom = static_cast<VCOM*>(team->commu);
+	COMMU_MEM*			mem = team->mem;
+	FRAME_CMUXDriver*	drv = static_cast<FRAME_CMUXDriver*>(GetUp(vcom));
+
 	uint32		byteNum;
 	STDSTR		strRecData;
 	
-	ETLogThreadStart(cmuxThread);
-	SetGetDataByRead();
-	while(cmuxThread.IsTerminated() == G_FALSE){
-		byteNum = cgRxSBUF.Used();
+	ETLogThreadStart(fwThread);
+	
+	while(fwThread.IsTerminated() == G_FALSE){
+		byteNum = COMMU_MEM::GetArrayRx(mem)->Used();
 		if (byteNum == 3){
-			cgRxSBUF.cgArray.Read(_EMPTY(&strRecData),3,0);
-			if (strRecData == "+++")
-				static_cast<CMUXDriver*>(GetFDB())->Send3Pluse(this);
+			COMMU_MEM::GetArrayRx(mem)->Read(_EMPTY(&strRecData),3,0);
+				if (strRecData == "+++")
+					drv->Send3Pluse(vcom);
 		}
-		while(cgRxSBUF.Used() > 0){
-			byteNum = static_cast<CMUXDriver*>(GetFDB())->Send(this,cgRxSBUF.cgArray);
-			cgRxSBUF.Out(byteNum);
+		if (COMMU_MEM::GetArrayRx(mem)->Used() > 0){
+			byteNum = drv->Send(vcom,COMMU_MEM::GetArrayRx(mem));
+			COMMU_MEM::GetArrayRx(mem)->Out(byteNum);
 		}
-		SYS_SleepMS(10);
+		SYS_SleepMS(2);
 	}
-	ETLogThreadStart(cmuxThread);
+	ETLogThreadStop(fwThread);
 	return G_TRUE;
-}
+};
 //------------------------------------------------------------------------------------------//
-const STDSTR& VCOM::DlciStatus(STDSTR* retStr){
-	*retStr = " DLCI " + Str_ToStr(cgPortID) + " :";
-	*retStr += " DTR=";	*retStr += (Check_DTR()  == G_FALSE)?"L,":"H,";
-	*retStr += " RTS=";	*retStr += (Check_RTS()  == G_FALSE)?"L,":"H,";
-	*retStr += " CTS=";	*retStr += (Check_CTS()  == G_FALSE)?"L,":"H,";
-	*retStr += " DSR=";	*retStr += (Check_DSR()  == G_FALSE)?"L,":"H,";
-	*retStr += " RING=";*retStr += (Check_RING() == G_FALSE)?"L,":"H,";
-	*retStr += " DCD=";	*retStr += (Check_DCD()  == G_FALSE)?"L,":"H,";
-	*retStr += (Check_HEX() == G_FALSE)?" ASCII mode,":" HEX mode,";
-	*retStr += (Check_Escape() == G_FALSE)?" disable escape":" enable escape";
-	return(*retStr);
-}
-//------------------------------------------------------------------------------------------//
+
+
 
 
 
@@ -700,148 +179,237 @@ const STDSTR CMUX_DEFATCMDS ="\
 1000\n 300\n T\n OK\n AT+CMUX=0\r\
 ";
 using namespace CMUX;
+static inline DEVICE* _GetDevice(COMMU_TEAM* team){
+	return(static_cast<FRAME_CMUXDriver*>(team->commu)->GetDevice());
+}
+static inline CORE_VCOM* _GetCoreVCOM(VCOM* vcom){
+	return(static_cast<CORE_VCOM*>(vcom->Core()));
+}
+static inline CMUX::UIH_FRAME* _GetTxUIH(COMMU_TEAM* team){
+	return(&static_cast<FRAME_CMUXDriver*>(team->commu)->cgTxUIH);
+}
 //------------------------------------------------------------------------------------------//
-CMUXDriver::CMUXDriver(uint32 size,const DEVICE* dev) : COMMU_THREAD(size,nullptr){
-	Init(dev);
-
-	cgTxUIH.InitPN(&cgTxSBUF.cgArray, &cgTxSBUF.cgArray);
-	cgRxUIH.InitPN(&cgRxSBUF.cgArray, &cgRxSBUF.cgArray);
-	
+CORE_CMUXDriver::CORE_CMUXDriver(void) : COMMU_CORE(){
 	cgCMDsInit = "";
 	
-	ClrSFlag(CMUX_blInitInThread);
-
-	TNFP::SetSelfName("CMUXDriver");
-	SetSelfName(selfName);
-	SetFatherName("");
+	SetSelfName("CORE_CMUXDriver");
+	SetUpName("");
 };
 //------------------------------------------------------------------------------------------//
-CMUXDriver::~CMUXDriver(void){
-	Close();
-	CleanChild(this, this);
+CORE_CMUXDriver::~CORE_CMUXDriver(void){
+	CloseDev();
 };
 //------------------------------------------------------------------------------------------//
-void CMUXDriver::Init(const DEVICE* dev){
-	cgDevice = (DEVICE*)dev;
-	if (dev != nullptr)
-		InitLogSys(dev->GetLogSystem());
+void CORE_CMUXDriver::SetSelfName(const STDSTR& strName){
+	COMMU_CORE::SetSelfName(strName);
+	commandThread.SetUpName(GetFullName(this));
 };
 //------------------------------------------------------------------------------------------//
-void CMUXDriver::SetSelfName(const STDSTR& strName){
-	COMMU_THREAD::SetSelfName(strName);
-	commandThread.SetFatherName(GetFullName(this));
+void CORE_CMUXDriver::SetUpName(const STDSTR& strName){
+	COMMU_CORE::SetUpName(strName);
+	commandThread.SetUpName(GetFullName(this));
 };
 //------------------------------------------------------------------------------------------//
-void CMUXDriver::SetFatherName(const STDSTR& strName){
-	COMMU_THREAD::SetFatherName(strName);
-	commandThread.SetFatherName(GetFullName(this));
+void CORE_CMUXDriver::PrintOpenSuccess(const STDSTR& strTitle){
+	COMMU_LOGSYS::PrintMessageDot(unitTeam->logSys,"CMUX driver start success");
 };
 //------------------------------------------------------------------------------------------//
-TNFP* CMUXDriver::CreateNode(void){
-	
-	return(SetSubNodeFatherName(new VCOM(cgMaxSize,GetLogSystem())));
+void CORE_CMUXDriver::PrintOpenFail(const STDSTR& strTitle){
+	COMMU_LOGSYS::PrintMessageDot(unitTeam->logSys,"CMUX driver start fail");
 };
 //------------------------------------------------------------------------------------------//
-void CMUXDriver::DoPrintOnOpenSuccess(void){
-	
-	PrintMessageDot("CMUX driver start success");
+void CORE_CMUXDriver::PrintClose(const uint64& rxBytes,const uint64& txBytes,const uint64& fwBytes){
+	COMMU_LOGSYS::PrintMessageDot(unitTeam->logSys,"CMUX driver stop");
 };
 //------------------------------------------------------------------------------------------//
-void CMUXDriver::DoPrintOnOpenFail(void){
-	
-	PrintMessageDot("CMUX driver start fail");
-};
-//------------------------------------------------------------------------------------------//
-void CMUXDriver::DoPrintOnClose(void){
-	
-	PrintMessageDot("CMUX driver stop");
-};
-//------------------------------------------------------------------------------------------//
-VCOM* CMUXDriver::GetVCOM(int32 dlci){
-	VCOM	*vcom;
-	TREE_LChildRChain_Find(VCOM,this,vcom,(_opNode->cgPortID == dlci));
-	return (vcom);
-}
-//------------------------------------------------------------------------------------------//
-VCOM* CMUXDriver::OpenVCOM(int32 dlci,const STDSTR& name,uint32 baudrate){
-	VCOM	*vcom;
-	
-	if ((dlci > Max_CMUXCOM) || (dlci == 0))
-		return(nullptr);
-	
-	vcom = GetVCOM(dlci);
-	if (vcom == nullptr){
-		vcom = static_cast<VCOM*>(GetNewNode());
-		if (vcom != nullptr){
-			vcom->cgPortID = dlci;
-			AddNode(vcom);
-		}
-	}
-	if (vcom != nullptr){
-		if (vcom->Open(SetOpenPar(OPEN_COM,name,baudrate,0)) == G_FALSE)
-			vcom = nullptr;
-	}
-	return(vcom);
-}
-//------------------------------------------------------------------------------------------//
-void CMUXDriver::CloseVCOM(int32 dlci){
-	VCOM	*vcom;
-	if (dlci > Max_CMUXCOM)
-		return;
-	InUse_set();
-	vcom = GetVCOM(dlci);
-	
-	if (vcom != nullptr)
-		vcom->Close();
-	InUse_clr();
-}
-//------------------------------------------------------------------------------------------//
-bool32 CMUXDriver::OpenDev(const OPEN_PAR& par){
+bool32 CORE_CMUXDriver::OpenDev(const OPEN_PAR& par){
 #ifdef CommonDefH_Unix
-	OpenVCOM(1,"",115200);
-	OpenVCOM(2,"",115200);
-	OpenVCOM(3,"",115200);
-	OpenVCOM(4,"",115200);
+	static_cast<FRAME_CMUXDriver*>(unitTeam->commu)->OpenVCOM(1,"",115200);
+	static_cast<FRAME_CMUXDriver*>(unitTeam->commu)->OpenVCOM(2,"",115200);
+	static_cast<FRAME_CMUXDriver*>(unitTeam->commu)->OpenVCOM(3,"",115200);
+	static_cast<FRAME_CMUXDriver*>(unitTeam->commu)->OpenVCOM(4,"",115200);
 #endif
-	return G_TRUE;
-}
+	return(COMMU_CORE::OpenDev(par));
+};
 //------------------------------------------------------------------------------------------//
-bool32 CMUXDriver::DoOpen(const OPEN_PAR& par){
-	ELog(this << "CMUXDriver::DoOpen()");
-	if (COMMU_THREAD::DoOpen(par)){
-		if (CheckSFlag(CMUX_blInitInThread)){
-			CMUXStart();
-			return G_TRUE;
-		}
-		return(CMUXInit(cgCMDsInit));
-	}
-	return G_FALSE;
-}
-//------------------------------------------------------------------------------------------//
-bool32 CMUXDriver::Open(const STDSTR& cmdsInit,uint64 blInitInThread){
-	bool32	ret;
-	ret = 0;
-	if (InDoing_try()){
-		if (cgDevice->cgEDA.IsComOpened()){
-			cgCMDsInit = cmdsInit;
-			ClrSFlag(CMUX_blInitInThread);
-			SetSFlag(blInitInThread & CMUX_blInitInThread);
-			ret = COMMU_THREAD::Open(SetOpenPar(OPEN_None,"CMUX",999,0),G_LOCK_OFF);
-		}
-		InDoing_clr();
-	}
-	return(ret);
-}
-//------------------------------------------------------------------------------------------//
-void CMUXDriver::CloseDev(void){
-	if ((cgDevice != nullptr) && cgDevice->IsOpened() && IsOpened())
-		CMUXClose();
+void CORE_CMUXDriver::CloseDev(void){
+	if ((_GetDevice(unitTeam) != nullptr) && _GetDevice(unitTeam)->IsOpened() && IsConnected())
+		CMUXStop();
 	commandThread.ThreadStop();
-	if ((cgDevice != nullptr) && (cgDevice->ACom() != nullptr))
-		cgDevice->ACom()->EnableLog();
-}
+	if ((_GetDevice(unitTeam) != nullptr) && (_GetDevice(unitTeam)->ACom() != nullptr))
+		COMMU_RECORD::Enable(_GetDevice(unitTeam)->ACom()->unitTeam.record,G_TRUE);
+	COMMU_CORE::CloseDev();
+};
 //------------------------------------------------------------------------------------------//
-bool32 CMUXDriver::TxThreadFun(void* commu){
+void CORE_CMUXDriver::CMUXStartInThread(const STDSTR& cmdsInit){
+	commandThread.ThreadStop();
+	cgCMDsInit = cmdsInit;
+	commandThread.ThreadInit(this,&CORE_CMUXDriver::CmuxStartThreadFun,"CMUXStart");
+	commandThread.ThreadRun(unitTeam);
+};
+//------------------------------------------------------------------------------------------//
+void CORE_CMUXDriver::CMUXStopInThread(void){
+	commandThread.ThreadStop();
+	commandThread.ThreadInit(this,&CORE_CMUXDriver::CmuxStopThreadFun,"CMUXStop");
+	commandThread.ThreadRun(unitTeam);
+};
+//------------------------------------------------------------------------------------------//
+bool32 CORE_CMUXDriver::CmuxStartThreadFun(void* _team){
+	COMMU_TEAM*		team = static_cast<COMMU_TEAM*>(_team);
+	COMMU_FRAME*	commu = team->commu;
+	if (CMUXStart(cgCMDsInit) == G_FALSE)
+		commu->CloseSelf(0);
+	return G_TRUE;
+};
+//------------------------------------------------------------------------------------------//
+bool32 CORE_CMUXDriver::CmuxStopThreadFun(void* _team){
+	CMUXStop();
+	return G_TRUE;
+};
+//------------------------------------------------------------------------------------------//
+void CMDAnalysis(STDSTR& cmds,uint32& waitTime,uint32& dlyTime,STDSTR& check,STDSTR& atResponse,STDSTR& atCMD){
+	atCMD = Str_ReadSubItem(&cmds,"\r");
+	
+	check = Str_ReadSubItem(&atCMD,"\n");
+	Str_TrimSelf(check);
+	waitTime = atoi(check.c_str());
+	
+	check = Str_ReadSubItem(&atCMD,"\n");
+	Str_TrimSelf(check);
+	dlyTime = atoi(check.c_str());
+	
+	check = Str_ReadSubItem(&atCMD,"\n");
+	Str_TrimSelf(check);
+	Str_UpperCaseSelf(check);
+	
+	atResponse = Str_ReadSubItem(&atCMD,"\n");
+	Str_TrimSelf(atResponse);
+	
+	Str_TrimSelf(atCMD);
+};
+//------------------------------------------------------------------------------------------//
+bool32 CORE_CMUXDriver::CMUXStart(STDSTR cmdsInit){
+	CMUX::UIH_FRAME*	uih = _GetTxUIH(unitTeam);
+	FRAME_CMUXDriver*	drv = static_cast<FRAME_CMUXDriver*>(unitTeam->commu);
+	bool32	blOK,blInit;
+	SBUF	cBuffer;
+	STDSTR	atCMD,atResponse,check,hexCMD;;
+	uint32	waitTime,dlyTime;
+	
+	cBuffer.array.InitSize(128);
+	cBuffer.array.Empty();
+	_GetDevice(unitTeam)->RxDataShareTo(&cBuffer);
+	blOK = G_FALSE;
+	blInit = cmdsInit.length() > 0;
+	B_ClrFLAG64(_GetDevice(unitTeam)->GetLogSystem()->envcfg, ODEV_FLAG_EnHEXViewMode);
+	while(cmdsInit.length() > 0){
+		CMDAnalysis(cmdsInit,waitTime,dlyTime,check,atResponse,atCMD);
+		blOK = drv->SendATCMD(" ",atCMD,atResponse,&cBuffer.array,waitTime,dlyTime);
+		if ((blOK == G_FALSE) && (check == "T"))
+			break;
+	};
+	
+	do{
+		if (blInit != G_FALSE){
+			COMMU_LOGSYS::PrintWithDividingLine(unitTeam->logSys,"CMUXDriver::Finish the AT commands initialization");
+			if (blOK == G_FALSE)
+				break;
+		}
+		
+		blOK = G_FALSE;
+		COMMU_RECORD::Enable(_GetDevice(unitTeam)->ACom()->unitTeam.record,G_FALSE);
+		B_SetFLAG64(_GetDevice(unitTeam)->GetLogSystem()->envcfg, ODEV_FLAG_EnHEXViewMode);
+		do{
+			if (drv->SendCMUXCMD("SABM Frame. Enable DLCI 0.\n",			uih->CreateSABMFrameD0(&hexCMD), "!'nullptr", &cBuffer.array, 2000, 100) == 0) break;
+			if (drv->SendCMUXCMD("SABM Frame. Enable DLCI 1.\n",			uih->CreateSABMFrameV1(&hexCMD), "!'nullptr", &cBuffer.array, 2000, 100) == 0) break;
+			if (drv->SendCMUXCMD("MSCCmd. Set DTR=0 & RTS=0 on DLCI=1.\n", 	uih->CreateDefaultMSV1(&hexCMD), "!'nullptr", &cBuffer.array, 2000, 100) == 0) break;
+			if (drv->SendCMUXCMD("SABM Frame. Enable DLCI 2.\n",			uih->CreateSABMFrameV2(&hexCMD), "!'nullptr", &cBuffer.array, 2000, 100) == 0) break;
+			if (drv->SendCMUXCMD("MSCCmd. Set DTR=0 & RTS=0 on DLCI=2.\n", 	uih->CreateDefaultMSV2(&hexCMD), "!'nullptr", &cBuffer.array, 2000, 100) == 0) break;
+			if (drv->SendCMUXCMD("SABM Frame. Enable DLCI 3.\n",			uih->CreateSABMFrameV3(&hexCMD), "!'nullptr", &cBuffer.array, 2000, 100) == 0) break;
+			if (drv->SendCMUXCMD("MSCCmd. Set DTR=0 & RTS=0 on DLCI=3.\n",	uih->CreateDefaultMSV3(&hexCMD), "!'nullptr", &cBuffer.array, 2000, 100) == 0) break;
+			if (drv->SendCMUXCMD("SABM Frame. Enable DLCI 4.\n",			uih->CreateSABMFrameV4(&hexCMD), "!'nullptr", &cBuffer.array, 2000, 100) == 0) break;
+			if (drv->SendCMUXCMD("MSCCmd. Set DTR=0 & RTS=0 on DLCI=4.\n",	uih->CreateDefaultMSV4(&hexCMD), "!'nullptr", &cBuffer.array, 2000, 100) == 0) break;
+			blOK = G_TRUE;
+		} while (0);
+		
+		COMMU_LOGSYS::PrintWithDividingLine(unitTeam->logSys,"CMUXDriver::Finish the CMUX initialization");
+	}while(0);
+	cBuffer.RemoveSelf();
+	return(blOK);
+};
+//------------------------------------------------------------------------------------------//
+void CORE_CMUXDriver::CMUXStop(void){
+	CMUX::UIH_FRAME*	uih = _GetTxUIH(unitTeam);
+	FRAME_CMUXDriver*	drv = static_cast<FRAME_CMUXDriver*>(unitTeam->commu);
+	STDSTR	strCMD;
+	SBUF	cBuffer;
+	cBuffer.array.InitSize(128);
+	cBuffer.array.Empty();
+	_GetDevice(unitTeam)->RxDataShareTo(&cBuffer);
+	B_SetFLAG64(_GetDevice(unitTeam)->GetLogSystem()->envcfg, ODEV_FLAG_EnHEXViewMode);
+	do{
+		if (drv->SendCMUXCMD("DISC Frame. Close DLCI 4.\n", uih->CreateDISCFrameV4(&strCMD), "!'nullptr", &cBuffer.array, 2000, 100) == 0) break;
+		if (drv->SendCMUXCMD("DISC Frame. Close DLCI 3.\n", uih->CreateDISCFrameV3(&strCMD), "!'nullptr", &cBuffer.array, 2000, 100) == 0) break;
+		if (drv->SendCMUXCMD("DISC Frame. Close DLCI 2.\n", uih->CreateDISCFrameV2(&strCMD), "!'nullptr", &cBuffer.array, 2000, 100) == 0) break;
+		if (drv->SendCMUXCMD("DISC Frame. Close DLCI 1.\n", uih->CreateDISCFrameV1(&strCMD), "!'nullptr", &cBuffer.array, 2000, 100) == 0) break;
+		drv->SendCMUXCMD("DISC Frame. Close DLCI 0.\n", uih->CreateDISCFrameD0(&strCMD), "!'nullptr", &cBuffer.array, 2000, 100);
+	} while (0);
+	B_ClrFLAG64(_GetDevice(unitTeam)->GetLogSystem()->envcfg, ODEV_FLAG_EnHEXViewMode);
+	cBuffer.RemoveSelf();
+	COMMU_RECORD::Enable(_GetDevice(unitTeam)->ACom()->unitTeam.record,G_TRUE);
+};
+//------------------------------------------------------------------------------------------//
+
+
+
+
+
+
+
+
+
+
+//------------------------------------------------------------------------------------------//
+template<typename... Args> inline void PrintFrame(COMMU_TEAM* team,const STDSTR& strFrame,const Args&... args){
+#ifdef ODEV_System_h
+	OUTPUT_NODE	*node = COMMU_LOGSYS::GetVG3D(team->logSys);
+	if (node != nullptr){
+		*node << Begin() << DefGroup() << NL()
+		<< COL_DivLineTime
+		<< COL_NormalMessage;
+		
+		DoPrintStr(node,args...)
+		<< ":\n"
+		<< COL_DB_RxText << strFrame
+		<< "\n"
+		<< Endl();
+	}
+#endif
+};
+//------------------------------------------------------------------------------------------//
+template<typename... Args> inline void PrintFrame(COMMU_TEAM* team,const _ColData& strFrame,const Args&... args){
+#ifdef ODEV_System_h
+	OUTPUT_NODE	*node = COMMU_LOGSYS::GetVG3D(team->logSys);
+	if (node != nullptr){
+		*node << Begin() << DefGroup() << NL()
+		<< COL_DivLineTime
+		<< COL_NormalMessage;
+		
+		DoPrintStr(node,args...)
+		<< ":\n"
+		<< strFrame
+		<< "\n"
+		<< Endl();
+	}
+#endif
+};
+//------------------------------------------------------------------------------------------//
+bool32 BRIDGE_CMUXDriver::TxThreadFun(void* _team){
+	COMMU_TEAM*			team = static_cast<COMMU_TEAM*>(_team);
+	FRAME_CMUXDriver*	drv = static_cast<FRAME_CMUXDriver*>(unitTeam->commu);
+	COMMU_LOGSYS*		logSys = team->logSys;
+	CMUX::UIH_FRAME* 	uih = _GetTxUIH(team);
+	
 	STDSTR		strData,strFrame,strDataT;
 	VCOM		*vcom;
 	uint32		dlci;
@@ -849,96 +417,104 @@ bool32 CMUXDriver::TxThreadFun(void* commu){
 	
 	ETLogThreadStart(txThread);
 	while(txThread.IsTerminated() == G_FALSE){
-		while(cgTxSBUF.Used() > 0){
-			while(cgTxUIH.TryGetFrame() > 0){
-				cgTxUIH.Read(nullptr, _EMPTY(&strFrame));
+		if (uih->GetDefArrayWR()->Used() > 0){
+			if (uih->Analysis(0) > 0){
+				uih->Read(nullptr, _EMPTY(&strFrame));
 				
-				ctrlType = cgTxUIH.pn_Ctrl_Type.GetValueAMaskRE();
-				dlci	 = cgTxUIH.pn_Addr_DLCI.GetValueCalcRE();
+				ctrlType = uih->pn_Ctrl_Type.GetValueAMaskRE();
+				dlci	 = uih->pn_Addr_DLCI.GetValueCalcRE();
 				
 				if ((ctrlType == CTRL_UIH) && (dlci > 0)){
-					vcom = GetVCOM(dlci);
+					vcom = drv->GetVCOM(dlci);
 					if (vcom != nullptr){
-						if (vcom->Check_HEX()){
-							cgTxUIH.pn_Info.Read(nullptr,OUD_HEXs(_EMPTY(&strData)));
+						if (CORE_VCOM::Check_HEX(vcom)){
+							uih->pn_Info.Read(nullptr,OUD_HEXs(_EMPTY(&strData)));
 							Str_RTrimSelf(strData);
 						}
 						else{
-							cgTxUIH.pn_Info.Read(nullptr,_EMPTY(&strData));
-							if (vcom->Check_Escape())
-								strData = Str_UnEscapeToStr(_EMPTY(&strDataT),strData);
-							
+							uih->pn_Info.Read(nullptr,_EMPTY(&strData));
+							if (CORE_VCOM::Check_Escape(vcom))
+								strData = Str_EscapeToASCII(_EMPTY(&strDataT),strData);
 						}
 					}
-					PrintFrame(COLOR(COL_clDCyan,strData),"CMUXThread::Received data from DLCI",Str_ToStr(dlci));
-					PrintWithTime(COL_clDCyan,"CMUXThread::Send CMUX frame:\n",COLOR(COL_clDCyan,Str_ASCIIToHEXs(strFrame, G_ESCAPE_OFF)),"\n");
+					PrintFrame(team,COLOR(COL_clDCyan,strData),"CMUXThread::Received data from DLCI",Str_ToStr(dlci));
+					COMMU_LOGSYS::PrintWithTime(logSys,COL_clDCyan,"CMUXThread::Send CMUX frame:\n",COLOR(COL_clDCyan,Str_ASCIIToHEXs(strFrame, G_ESCAPE_OFF)),"\n");
 				}
-				cgDevice->SendCommand(strFrame, CMD_NONE, G_ESCAPE_OFF);
-				cgTxUIH.Out();
+				_GetDevice(team)->SendCommand(strFrame, CMD_NONE, G_ESCAPE_OFF);
+				uih->OutRE();
 			};
 		}
-		SYS_SleepMS(10);
+		SYS_SleepMS(2);
 	}
 	ETLogThreadStop(txThread);
 	return G_TRUE;
-}
+};
 //------------------------------------------------------------------------------------------//
-bool32 CMUXDriver::RxThreadFun(void* commu){
-	STDSTR	strFrame,strInfo;
+bool32 BRIDGE_CMUXDriver::RxThreadFun(void* _team){
+	COMMU_TEAM*		team = static_cast<COMMU_TEAM*>(_team);
+	STDSTR			strFrame,strInfo;
+	SBUF			rxSBUF;
+	CMUX::UIH_FRAME	rxUIH;
+	rxSBUF.array.InitSize(1024*4);
+	rxUIH.InitPN(&rxSBUF.array, &rxSBUF.array);
+#ifdef LOGTHREAD_ENABLE
+	STDSTR	strRec;
+#endif
 	SMC_EncryptI(0)
 	SMC_EncryptS(0)
-	cgDevice->RxDataShareTo(&cgRxSBUF);
+	_GetDevice(team)->RxDataShareTo(&rxSBUF);
 	SMC_EncryptE(0)
 	ETLogThreadStart(rxThread);
 	while(rxThread.IsTerminated() == G_FALSE){
-		SYS_SleepMS(10);
-		while(cgRxSBUF.Used() > 0){
-			if (cgRxUIH.TryGetFrame()){
-				cgRxUIH.Read(nullptr,OUD_HEXs(_EMPTY(&strFrame)));
-				DeliveryRxFrame(&cgRxUIH,strFrame,strInfo);
-				cgRxUIH.Out();
+		SYS_SleepMS(2);
+		if (rxUIH.GetDefArrayRE()->Used() > 0){
+			if (rxUIH.TryGetFrame() > 0){
+				rxUIH.Read(nullptr,OUD_HEXs(_EMPTY(&strFrame)));
+				DeliveryRxFrame(team,&rxUIH,strFrame,strInfo);
+				rxUIH.OutRE();
 			}
 		}
 	}
-	cgRxSBUF.RemoveSelf();
+	rxSBUF.RemoveSelf();
 	ETLogThreadStop(rxThread);
 	return G_TRUE;
-}
+};
 //------------------------------------------------------------------------------------------//
-void CMUXDriver::DeliveryRxFrame(UIH_FRAME* rxUIH,const STDSTR& strFrame,STDSTR& strInfo){
+void BRIDGE_CMUXDriver::DeliveryRxFrame(COMMU_TEAM* team,UIH_FRAME* rxUIH,const STDSTR& strFrame,STDSTR& strInfo){
+	FRAME_CMUXDriver*	drv = static_cast<FRAME_CMUXDriver*>(unitTeam->commu);
 	VCOM		*vcom;
 	uint8		ctrlType;
 	uint32		dlci;
 	
 	dlci = rxUIH->pn_Addr_DLCI.GetValueCalcRE();	// Check DLCI: Addr field:  |dlci|C/R|E/A|
 	
-	if (dlci > Max_CMUXCOM){
-		PrintFrame(strFrame,"CMUXThread::DLCI vaule is invaild");
+	if (dlci > FRAME_CMUXDriver::Max_CMUXCOM){
+		PrintFrame(team,strFrame,"CMUXThread::DLCI vaule is invaild");
 		return;
 	}
-
+	
 	ctrlType = rxUIH->pn_Ctrl_Type.GetValueAMaskRE();//Check CTRL: CTRL field:  |X|X|X|X|P/F|X|X|X|,Suppose P/F bit in control field always = 0
 	
 	switch(ctrlType){
 		case CTRL_SABM:
-			PrintFrame(strFrame,"CMUXThread::Received SABM frame, MS wants connect to me, no implemented Ctrl Type");
+			PrintFrame(team,strFrame,"CMUXThread::Received SABM frame, MS wants connect to me, no implemented Ctrl Type");
 			break;
 		case CTRL_UA:
-			PrintFrame(strFrame,"CMUXThread::Received UA response frame on DLCI",Str_ToStr(dlci));
+			PrintFrame(team,strFrame,"CMUXThread::Received UA response frame on DLCI",Str_ToStr(dlci));
 			break;
 		case CTRL_DM:
-			PrintFrame(strFrame,"CMUXThread::Received DM response frame on DLCI",Str_ToStr(dlci));
+			PrintFrame(team,strFrame,"CMUXThread::Received DM response frame on DLCI",Str_ToStr(dlci));
 			break;
 		case CTRL_DISC:
-			PrintFrame(strFrame,"CMUXThread::Received DISC frame, MS wants disconnect to me, no implemented Ctrl Type");
+			PrintFrame(team,strFrame,"CMUXThread::Received DISC frame, MS wants disconnect to me, no implemented Ctrl Type");
 			break;
 		case CTRL_UIH:
 			if (dlci == DLCI0){
-				CMuxCtrlCmdExec(rxUIH,strFrame,strInfo);
+				CMuxCtrlCmdExec(team,rxUIH,strFrame,strInfo);
 			}
 			else{
-				PrintFrame(strFrame,"CMUXThread::Received UIH frame on DLCI",Str_ToStr(dlci));
-				vcom = GetVCOM(dlci);
+				PrintFrame(team,strFrame,"CMUXThread::Received UIH frame on DLCI",Str_ToStr(dlci));
+				vcom = drv->GetVCOM(dlci);
 				if (vcom != nullptr){
 					rxUIH->pn_Info.Read(nullptr, _EMPTY(&strInfo));
 					vcom->Send(strInfo);
@@ -946,15 +522,15 @@ void CMUXDriver::DeliveryRxFrame(UIH_FRAME* rxUIH,const STDSTR& strFrame,STDSTR&
 			}
 			break;
 		case CTRL_UI:
-			PrintFrame(strFrame,"CMUXThread::Received UI frame received, no implemented Ctrl Type");
+			PrintFrame(team,strFrame,"CMUXThread::Received UI frame received, no implemented Ctrl Type");
 			break;
 		default:
-			PrintFrame(strFrame,"CMUXThread::CTRL Field |X|X|X|X|P/F|X|X|X| is invaild");
+			PrintFrame(team,strFrame,"CMUXThread::CTRL Field |X|X|X|X|P/F|X|X|X| is invaild");
 			break;
 	}
-}
+};
 //------------------------------------------------------------------------------------------//
-void CMUXDriver::CMuxCtrlCmdExec(UIH_FRAME* rxUIH,const STDSTR& strFrame,STDSTR& strInfo){
+void BRIDGE_CMUXDriver::CMuxCtrlCmdExec(COMMU_TEAM* team,UIH_FRAME* rxUIH,const STDSTR& strFrame,STDSTR& strInfo){
 	//There is no specified response to the UIH cpmmand/response
 	//MSC Command Application->Module => C/R bit (RED) 1 and C/R bit (BLUE) 1
 	//MSC Command Module->Application => C/R bit (RED) 0 and C/R bit (BLUE) 1
@@ -976,248 +552,248 @@ void CMUXDriver::CMuxCtrlCmdExec(UIH_FRAME* rxUIH,const STDSTR& strFrame,STDSTR&
 			frameCRbit = rxUIH->pn_Addr_CR.GetValueAMaskRE();						//addr & CMUX_CR_BIT;
 			if ((frameCRbit == 0) && (cMSCCRbit != 0)){								//MSC Command Module->Application => C/R bit (RED) 0 and C/R bit (BLUE) 1
 				
-				PrintFrame(strFrame,"CMUXThread::Received MSC update frame on DLCI",Str_ToStr(cMSCDlci));
-				PrintWithTime(COL_clDCyan,"CMUXThread::",UpdateModemStatus(&strMSC,cMSCDlci,cMS));
+				PrintFrame(team,strFrame,"CMUXThread::Received MSC update frame on DLCI",Str_ToStr(cMSCDlci));
+				COMMU_LOGSYS::PrintWithTime(unitTeam->logSys,COL_clDCyan,"CMUXThread::",UpdateModemStatus(&strMSC,cMSCDlci,cMS));
 				
-				cgTxUIH.CreateMSCCmd(&strMSC,cMSCDlci,cMS,CR_BIT,0);//MSC Response Application->Module => C/R bit (RED) 1 and C/R bit (BLUE) 0
-				PrintWithTime(COL_clDCyan,"CMUXThread::Send MSC confirm frame:\n",COLOR(COL_clDCyan,strMSC),"\n");
+				_GetTxUIH(team)->CreateMSCCmd(&strMSC,cMSCDlci,cMS,CR_BIT,0);//MSC Response Application->Module => C/R bit (RED) 1 and C/R bit (BLUE) 0
+				COMMU_LOGSYS::PrintWithTime(unitTeam->logSys,COL_clDCyan,"CMUXThread::Send MSC confirm frame:\n",COLOR(COL_clDCyan,strMSC),"\n");
 			}
 			else{
-				PrintFrame(strFrame,"CMUXThread::Received MSC response on DLCI",Str_ToStr(cMSCDlci));
+				PrintFrame(team,strFrame,"CMUXThread::Received MSC response on DLCI",Str_ToStr(cMSCDlci));
 			}
 			break;
 		}
 		case CMD_PSC:{		// Power Saving Control: Not Impl.
 			cMSCCRbit = charTemp & CR_BIT;
 			if (cMSCCRbit == 0){
-				PrintFrame(strFrame,"CMUXThread::Received PSC response frame");
+				PrintFrame(team,strFrame,"CMUXThread::Received PSC response frame");
 			}
 			else{
-				PrintFrame(strFrame,"CMUXThread::Received PSC frame, no supported in current version");
+				PrintFrame(team,strFrame,"CMUXThread::Received PSC frame, no supported in current version");
 			}
 			break;
 		}
 		case CMD_TEST:		// Test command
-			PrintFrame(strFrame,"CMUXThread::Received Test Command, no supported in current version");
+			PrintFrame(team,strFrame,"CMUXThread::Received Test Command, no supported in current version");
 			break;
 		case NSC_RES:		// Not Supported Command: Not Impl.
-			PrintFrame(strFrame,"CMUXThread::Received NSC CMD, no supported CMD");
+			PrintFrame(team,strFrame,"CMUXThread::Received NSC CMD, no supported CMD");
 			break;
 		case CMD_PN:		// Parameter Negotiation: Not Impl.
-			PrintFrame(strFrame,"CMUXThread::Received Parameter Negotiation CMD, no supported CMD");
+			PrintFrame(team,strFrame,"CMUXThread::Received Parameter Negotiation CMD, no supported CMD");
 			break;
 		case CMD_MUX_CLD:	// CMux Close Down: Not Impl.
-			PrintFrame(strFrame,"CMUXThread::Received CMux Close Down CMD, no supported CMD");
+			PrintFrame(team,strFrame,"CMUXThread::Received CMux Close Down CMD, no supported CMD");
 			break;
 		case CMD_FCON:		// Flow Control ON: Not Impl.
-			PrintFrame(strFrame,"CMUXThread::Received Flow Control ON CMD, no supported CMD");
+			PrintFrame(team,strFrame,"CMUXThread::Received Flow Control ON CMD, no supported CMD");
 			break;
 		case CMD_FCOFF:		// Flow Control OFF: Not Impl.
-			PrintFrame(strFrame,"CMUXThread::Received Flow Control OFF CMD, no supported CMD");
+			PrintFrame(team,strFrame,"CMUXThread::Received Flow Control OFF CMD, no supported CMD");
 			break;
 		case CMD_RPN:		// Remote Port Negotiation: Not Impl.
-			PrintFrame(strFrame,"CMUXThread::Received Remote Port Negotiation CMD, no supported CMD");
+			PrintFrame(team,strFrame,"CMUXThread::Received Remote Port Negotiation CMD, no supported CMD");
 			break;
 		case CMD_RLS:		// Remote Line Status: Not Impl.
-			PrintFrame(strFrame,"CMUXThread::Received Remote Line Status CMD, no supported CMD");
+			PrintFrame(team,strFrame,"CMUXThread::Received Remote Line Status CMD, no supported CMD");
 			break;
 		case CMD_SNC:		// Service Negotiation Command: Not Impl.
-			PrintFrame(strFrame,"CMUXThread::Received Service Negotiation CMD, no supported CMD");
+			PrintFrame(team,strFrame,"CMUXThread::Received Service Negotiation CMD, no supported CMD");
 			break;
-		default:
-			PrintFrame(strFrame,"CMUXThread::Received Other no supported CMD");
+		default:;
+			PrintFrame(team,strFrame,"CMUXThread::Received Other no supported CMD");
 	}
-}
+};
 //------------------------------------------------------------------------------------------//
-const STDSTR& CMUXDriver::UpdateModemStatus(STDSTR* strForPrint,uint32 cMSCDlci,uint32 cMS){
+const STDSTR& BRIDGE_CMUXDriver::UpdateModemStatus(STDSTR* strForPrint,uint32 cMSCDlci,uint32 cMS){
+	FRAME_CMUXDriver*	drv = static_cast<FRAME_CMUXDriver*>(unitTeam->commu);
 	VCOM* vcom;
 	
-	vcom = GetVCOM(cMSCDlci);
+	vcom = drv->GetVCOM(cMSCDlci);
 	
 	if (cMS & MS_CTS){
-		if (vcom != nullptr)
-			vcom->Update_CTS(0);
+		CORE_VCOM::Update_CTS(vcom,0);
 		*strForPrint = "CTS=0";
 	}
 	else{
-		if (vcom != nullptr)
-			vcom->Update_CTS(1);
+		CORE_VCOM::Update_CTS(vcom,1);
 		*strForPrint = "CTS=1";
 	}
 	if (cMS & MS_DSR){
-		if (vcom != nullptr)
-			vcom->Update_DSR(0);
+		CORE_VCOM::Update_DSR(vcom,0);
 		*strForPrint += ",DSR=0";
 	}
 	else{
-		if (vcom != nullptr)
-			vcom->Update_DSR(1);
+		CORE_VCOM::Update_DSR(vcom,1);
 		*strForPrint += ",DSR=1";
 	}
 	if (cMS & MS_RING){
-		if (vcom != nullptr)
-			vcom->Update_RING(0);
+		CORE_VCOM::Update_RING(vcom,0);
 		*strForPrint += ",RING=0";
 	}
 	else{
-		if (vcom != nullptr)
-			vcom->Update_RING(1);
+		CORE_VCOM::Update_RING(vcom,1);
 		*strForPrint += ",RING=1";
 	}
 	if (cMS & MS_DCD){
-		if (vcom != nullptr)
-			vcom->Update_DCD(0);
+		CORE_VCOM::Update_DCD(vcom,0);
 		*strForPrint += ",DCD=0";
 	}
 	else{
-		if (vcom != nullptr)
-			vcom->Update_DCD(1);
+		CORE_VCOM::Update_DCD(vcom,1);
 		*strForPrint += ",DCD=1";
 	}
-	
-	return(*strForPrint);
-}
-//------------------------------------------------------------------------------------------//
-void CMDAnalysis(STDSTR& cmds,uint32& waitTime,uint32& dlyTime,STDSTR& check,STDSTR& atResponse,STDSTR& atCMD){
-	atCMD = Str_ReadSubItem(&cmds,"\r");
-	
-	check = Str_ReadSubItem(&atCMD,"\n");
-	Str_TrimSelf(check);
-	waitTime = atoi(check.c_str());
-	
-	check = Str_ReadSubItem(&atCMD,"\n");
-	Str_TrimSelf(check);
-	dlyTime = atoi(check.c_str());
-	
-	check = Str_ReadSubItem(&atCMD,"\n");
-	Str_TrimSelf(check);
-	Str_UpperCaseSelf(check);
-	
-	atResponse = Str_ReadSubItem(&atCMD,"\n");
-	Str_TrimSelf(atResponse);
-	
-	Str_TrimSelf(atCMD);
-}
-//------------------------------------------------------------------------------------------//
-bool32 CMUXDriver::CMUXInit(STDSTR cmdsInit){
-	bool32	blOK,blInit;
-	SBUF	cBuffer;
-	STDSTR	atCMD,atResponse,check,hexCMD;;
-	uint32	waitTime,dlyTime;
-	
-	cBuffer.InitSize(128);
-	cBuffer.Empty();
-	cgDevice->RxDataShareTo(&cBuffer);
-	blOK = G_FALSE;
-	blInit = cmdsInit.length() > 0;
-	B_ClrFLAG64(cgDevice->GetLogSystem()->envcfg, ODEV_FLAG_EnHEXViewMode);
-	while(cmdsInit.length() > 0){
-		CMDAnalysis(cmdsInit,waitTime,dlyTime,check,atResponse,atCMD);
-		blOK = SendATCMD(" ",atCMD,atResponse,&cBuffer,waitTime,dlyTime);
-		if ((blOK == G_FALSE) && (check == "T"))
-			break;
-	};
-	
-	do{
-		if (blInit != G_FALSE){
-			PrintWithDividingLine("CMUXDriver::Finish the AT commands initialization");
-			if (blOK == G_FALSE)
-				break;
-		}
 
-		blOK = G_FALSE;
-		cgDevice->ACom()->DisableLog();
-		B_SetFLAG64(cgDevice->GetLogSystem()->envcfg, ODEV_FLAG_EnHEXViewMode);
-		do{
-			if (SendCMUXCMD("SABM Frame. Enable DLCI 0.\n",				cgTxUIH.CreateSABMFrameD0(&hexCMD), "!'nullptr", &cBuffer, 2000, 100) == 0) break;
-			if (SendCMUXCMD("SABM Frame. Enable DLCI 1.\n",				cgTxUIH.CreateSABMFrameV1(&hexCMD), "!'nullptr", &cBuffer, 2000, 100) == 0) break;
-			if (SendCMUXCMD("MSCCmd. Set DTR=0 & RTS=0 on DLCI=1.\n", 	cgTxUIH.CreateDefaultMSV1(&hexCMD), "!'nullptr", &cBuffer, 2000, 100) == 0) break;
-			if (SendCMUXCMD("SABM Frame. Enable DLCI 2.\n",				cgTxUIH.CreateSABMFrameV2(&hexCMD), "!'nullptr", &cBuffer, 2000, 100) == 0) break;
-			if (SendCMUXCMD("MSCCmd. Set DTR=0 & RTS=0 on DLCI=2.\n", 	cgTxUIH.CreateDefaultMSV2(&hexCMD), "!'nullptr", &cBuffer, 2000, 100) == 0) break;
-			if (SendCMUXCMD("SABM Frame. Enable DLCI 3.\n",				cgTxUIH.CreateSABMFrameV3(&hexCMD), "!'nullptr", &cBuffer, 2000, 100) == 0) break;
-			if (SendCMUXCMD("MSCCmd. Set DTR=0 & RTS=0 on DLCI=3.\n",	cgTxUIH.CreateDefaultMSV3(&hexCMD), "!'nullptr", &cBuffer, 2000, 100) == 0) break;
-			if (SendCMUXCMD("SABM Frame. Enable DLCI 4.\n",				cgTxUIH.CreateSABMFrameV4(&hexCMD), "!'nullptr", &cBuffer, 2000, 100) == 0) break;
-			if (SendCMUXCMD("MSCCmd. Set DTR=0 & RTS=0 on DLCI=4.\n",	cgTxUIH.CreateDefaultMSV4(&hexCMD), "!'nullptr", &cBuffer, 2000, 100) == 0) break;
-			blOK = G_TRUE;
-		} while (0);
-		
-		PrintWithDividingLine("CMUXDriver::Finish the CMUX initialization");
-	}while(0);
-	cBuffer.RemoveSelf();
-	return(blOK);
-}
+	return(*strForPrint);
+};
 //------------------------------------------------------------------------------------------//
-void CMUXDriver::CMUXClose(void){
+
+
+
+
+
+
+
+
+
+
+//------------------------------------------------------------------------------------------//
+void FRAME_CMUXDriver::Init(uint32 rxSize,uint32 txSize,const DEVICE* dev){
+	cgDevice = (DEVICE*)dev;
+	COMMU_FRAME::Init(rxSize,txSize,dev->GetLogSystem());
+	cgArray.InitSize(txSize);
+	cgTxUIH.InitPN(&cgArray, &cgArray);
+};
+//------------------------------------------------------------------------------------------//
+bool32 FRAME_CMUXDriver::DoOpen(const OPEN_PAR& par){
+	if (COMMU_FRAME::DoOpen(par)){
+		if (CheckSFlag(CMUX_blInitInThread)){
+			static_cast<CORE_CMUXDriver*>(unitTeam.core)->CMUXStartInThread(cgCMDsInit);
+			return G_TRUE;
+		}
+		return(static_cast<CORE_CMUXDriver*>(unitTeam.core)->CMUXStart(cgCMDsInit));
+	}
+	return G_FALSE;
+};
+//------------------------------------------------------------------------------------------//
+bool32 FRAME_CMUXDriver::Open(const STDSTR& cmdsInit,uint64 blInitInThread){
+	bool32	ret;
+	ret = 0;
+	if (cgOpenLock.Try()){
+		if (cgDevice->EDA()->IsComOpened()){
+			cgCMDsInit = cmdsInit;
+			ClrSFlag(CMUX_blInitInThread);
+			SetSFlag(blInitInThread & CMUX_blInitInThread);
+			ret = COMMU_FRAME::Open(SetOpenPar(OPEN_None,"CMUX",999,0));
+		}
+		cgOpenLock.Clr();
+	}
+	return(ret);
+};
+//------------------------------------------------------------------------------------------//
+DEVICE* FRAME_CMUXDriver::GetDevice(void){
+	return(cgDevice);
+};
+//------------------------------------------------------------------------------------------//
+bool32 FRAME_CMUXDriver::SendATCMD(const STDSTR& strTitle,const STDSTR& strCMD,const STDSTR& strCondition,ARRAY* array,uint32 waitMS,uint32 delyMS){
+	cgDevice->PrintSendCommand("CMUXDriver::Send",strTitle,strCMD);
+	cgDevice->SendCommand(strCMD,CMD_R,G_ESCAPE_ON);
+	return(cgDevice->CheckReceive(strCondition, array, waitMS, delyMS));
+};
+//------------------------------------------------------------------------------------------//
+bool32 FRAME_CMUXDriver::SendCMUXCMD(const STDSTR& strTitle,const STDSTR& strCMD,const STDSTR& strCondition,ARRAY* array,uint32 waitMS,uint32 delyMS){
+	cgDevice->PrintSendCommand("CMUXDriver::Send",strTitle,strCMD);
+	return(cgDevice->CheckReceive(strCondition, array, waitMS, delyMS));
+};
+//------------------------------------------------------------------------------------------//
+VCOM* FRAME_CMUXDriver::GetVCOM(int32 dlci){
+	VCOM	*vcom;
+	TREE_DownChain_Find(VCOM,this,vcom,(_GetCoreVCOM(_opNode)->cgPortID == dlci));
+	return (vcom);
+};
+//------------------------------------------------------------------------------------------//
+VCOM* FRAME_CMUXDriver::OpenVCOM(int32 dlci,const STDSTR& name,uint32 baudrate){
+	VCOM	*vcom;
+	
+	if ((dlci > Max_CMUXCOM) || (dlci == 0))
+		return(nullptr);
+	
+	vcom = GetVCOM(dlci);
+	if (vcom == nullptr){
+		vcom = static_cast<VCOM*>(GetNewNode());
+		if (vcom != nullptr){
+			_GetCoreVCOM(vcom)->cgPortID = dlci;
+			AppendDownNode(vcom);
+		}
+	}
+	if (vcom != nullptr){
+		if (vcom->Open(SetOpenPar(OPEN_COM,name,baudrate,0)) == G_FALSE)
+			vcom = nullptr;
+	}
+	return(vcom);
+};
+//------------------------------------------------------------------------------------------//
+void FRAME_CMUXDriver::CloseVCOM(int32 dlci){
+	VCOM	*vcom;
+	if (dlci > Max_CMUXCOM)
+		return;
+	vcom = GetVCOM(dlci);
+	if (vcom != nullptr)
+		vcom->Close();
+};
+//------------------------------------------------------------------------------------------//
+void FRAME_CMUXDriver::SendCLD(void){
 	STDSTR	strCMD;
 	SBUF	cBuffer;
-	cBuffer.InitSize(128);
-	cBuffer.Empty();
+	cBuffer.array.InitSize(128);
+	cBuffer.array.Empty();
 	cgDevice->RxDataShareTo(&cBuffer);
 	B_SetFLAG64(cgDevice->GetLogSystem()->envcfg, ODEV_FLAG_EnHEXViewMode);
-	do{
-		if (SendCMUXCMD("DISC Frame. Close DLCI 4.\n", cgTxUIH.CreateDISCFrameV4(&strCMD), "!'nullptr", &cBuffer, 2000, 100) == 0) break;
-		if (SendCMUXCMD("DISC Frame. Close DLCI 3.\n", cgTxUIH.CreateDISCFrameV3(&strCMD), "!'nullptr", &cBuffer, 2000, 100) == 0) break;
-		if (SendCMUXCMD("DISC Frame. Close DLCI 2.\n", cgTxUIH.CreateDISCFrameV2(&strCMD), "!'nullptr", &cBuffer, 2000, 100) == 0) break;
-		if (SendCMUXCMD("DISC Frame. Close DLCI 1.\n", cgTxUIH.CreateDISCFrameV1(&strCMD), "!'nullptr", &cBuffer, 2000, 100) == 0) break;
-		SendCMUXCMD("DISC Frame. Close DLCI 0.\n", cgTxUIH.CreateDISCFrameD0(&strCMD), "!'nullptr", &cBuffer, 2000, 100);
-	} while (0);
+	SendCMUXCMD("CLD frame. Exit CMUX mode:\n",cgTxUIH.CreateCLDFrame(&strCMD),"!'nullptr",&cBuffer.array,2000,100);
 	B_ClrFLAG64(cgDevice->GetLogSystem()->envcfg, ODEV_FLAG_EnHEXViewMode);
 	cBuffer.RemoveSelf();
-	cgDevice->ACom()->EnableLog();
-}
+	COMMU_RECORD::Enable(cgDevice->ACom()->unitTeam.record,G_TRUE);
+};
 //------------------------------------------------------------------------------------------//
-void CMUXDriver::SendCLD(void){
+void FRAME_CMUXDriver::SendStdPSC(uint8 cmode){
 	STDSTR	strCMD;
 	SBUF	cBuffer;
-	cBuffer.InitSize(128);
-	cBuffer.Empty();
-	cgDevice->RxDataShareTo(&cBuffer);
-	B_SetFLAG64(cgDevice->GetLogSystem()->envcfg, ODEV_FLAG_EnHEXViewMode);
-	SendCMUXCMD("CLD frame. Exit CMUX mode:\n",cgTxUIH.CreateCLDFrame(&strCMD),"!'nullptr",&cBuffer,2000,100);
-	B_ClrFLAG64(cgDevice->GetLogSystem()->envcfg, ODEV_FLAG_EnHEXViewMode);
-	cBuffer.RemoveSelf();
-	cgDevice->ACom()->EnableLog();
-}
-//------------------------------------------------------------------------------------------//
-void CMUXDriver::SendStdPSC(uint8 cmode){
-	STDSTR	strCMD;
-	SBUF	cBuffer;
-	cBuffer.InitSize(128);
-	cBuffer.Empty();
+	cBuffer.array.InitSize(128);
+	cBuffer.array.Empty();
 	cgDevice->RxDataShareTo(&cBuffer);
 	B_SetFLAG64(cgDevice->GetLogSystem()->envcfg, ODEV_FLAG_EnHEXViewMode);
 	if (cmode == 0xff){
-		SendCMUXCMD("standard PCS frame:\n",cgTxUIH.CreateStdPSCFrame(&strCMD),"!'nullptr",&cBuffer,2000,100);
+		SendCMUXCMD("standard PCS frame:\n",cgTxUIH.CreateStdPSCFrame(&strCMD),"!'nullptr",&cBuffer.array,2000,100);
 	}
 	else{
-		SendCMUXCMD("Telit PCS frame, mode " + Str_ToStr(cmode) + ":\n",cgTxUIH.CreateTPSCxFrame(&strCMD,cmode),"!'nullptr",&cBuffer,2000,100);
+		SendCMUXCMD("Telit PCS frame, mode " + Str_ToStr(cmode) + ":\n",cgTxUIH.CreateTPSCxFrame(&strCMD,cmode),"!'nullptr",&cBuffer.array,2000,100);
 	}
 	cBuffer.RemoveSelf();
-}
+};
 //------------------------------------------------------------------------------------------//
-void CMUXDriver::SendFCC(bool32 blIsOn){
+void FRAME_CMUXDriver::SendFCC(bool32 blIsOn){
 	STDSTR	strCMD;
 	SBUF	cBuffer;
-	cBuffer.InitSize(128);
-	cBuffer.Empty();
+	cBuffer.array.InitSize(128);
+	cBuffer.array.Empty();
 	cgDevice->RxDataShareTo(&cBuffer);
 	B_SetFLAG64(cgDevice->GetLogSystem()->envcfg, ODEV_FLAG_EnHEXViewMode);
 	if (blIsOn){
-		SendCMUXCMD("FCon frame:\n",cgTxUIH.CreateFCONFrame(&strCMD,CR_BIT),"!'nullptr",&cBuffer,2000,100);
+		SendCMUXCMD("FCon frame:\n",cgTxUIH.CreateFCONFrame(&strCMD,CR_BIT),"!'nullptr",&cBuffer.array,2000,100);
 	}
 	else{
-		SendCMUXCMD("FCoff frame:\n",cgTxUIH.CreateFCOFFFrame(&strCMD,CR_BIT),"!'nullptr",&cBuffer,2000,100);
+		SendCMUXCMD("FCoff frame:\n",cgTxUIH.CreateFCOFFFrame(&strCMD,CR_BIT),"!'nullptr",&cBuffer.array,2000,100);
 	}
 	cBuffer.RemoveSelf();
-}
+};
 //------------------------------------------------------------------------------------------//
-void CMUXDriver::SendMSC(int32 dlci,bool32 blDTR,bool32 blRTS){
+void FRAME_CMUXDriver::SendMSC(int32 dlci,bool32 blDTR,bool32 blRTS){
 	VCOM	*vcom;
 	STDSTR	strCMD,strTitle;
 	uint8	modemStatus;
 	SBUF	cBuffer;
-	cBuffer.InitSize(128);
-	cBuffer.Empty();
+	cBuffer.array.InitSize(128);
+	cBuffer.array.Empty();
 	cgDevice->RxDataShareTo(&cBuffer);
 	B_SetFLAG64(cgDevice->GetLogSystem()->envcfg, ODEV_FLAG_EnHEXViewMode);
 	modemStatus = 0;
@@ -1227,104 +803,59 @@ void CMUXDriver::SendMSC(int32 dlci,bool32 blDTR,bool32 blRTS){
 	if (blDTR == 0){
 		modemStatus |= MS_DTR;
 		strTitle += '0';
-		if (vcom != nullptr)
-			vcom->Update_DTR(0);
+		CORE_VCOM::Update_DTR(vcom,0);
 	}
 	else{
 		strTitle += '1';
-		if (vcom != nullptr)
-			vcom->Update_DTR(1);
+		CORE_VCOM::Update_DTR(vcom,1);
 	}
 	strTitle += " & RTS=";
 	if (blRTS == 0)	{
 		modemStatus |= MS_RTS;
 		strTitle += '0';
-		if (vcom != nullptr)
-			vcom->Update_RTS(0);
+		CORE_VCOM::Update_RTS(vcom,0);
 	}
 	else{
 		strTitle += '1';
-		if (vcom != nullptr)
-			vcom->Update_RTS(1);
+		CORE_VCOM::Update_RTS(vcom,1);
 	}
 	strTitle += " on DLCI=";
 	strTitle += Str_ToStr(dlci);
 	strTitle += "::\n";
 	
-	SendCMUXCMD(strTitle,cgTxUIH.CreateMSCCmd(&strCMD,dlci,modemStatus,CR_BIT,CR_BIT),"!'nullptr",&cBuffer,2000,300);
+	SendCMUXCMD(strTitle,cgTxUIH.CreateMSCCmd(&strCMD,dlci,modemStatus,CR_BIT,CR_BIT),"!'nullptr",&cBuffer.array,2000,300);
 	cBuffer.RemoveSelf();
-}
+};
+
 //------------------------------------------------------------------------------------------//
-bool32 CMUXDriver::SendATCMD(const STDSTR& strTitle,const STDSTR& strCMD,const STDSTR& strCondition,SBUF* cSBUF,uint32 waitMS,uint32 delyMS){
-	cgDevice->PrintSendCommand("CMUXDriver::Send",strTitle,strCMD);
-	cgDevice->SendCommand(strCMD,CMD_R,G_ESCAPE_ON);
-	return(cgDevice->CheckReceive(strCondition, cSBUF, waitMS, delyMS));
-}
-//------------------------------------------------------------------------------------------//
-bool32 CMUXDriver::SendCMUXCMD(const STDSTR& strTitle,const STDSTR& strCMD,const STDSTR& strCondition,SBUF* cSBUF,uint32 waitMS,uint32 delyMS){
-	cgDevice->PrintSendCommand("CMUXDriver::Send",strTitle,strCMD);
-	return(cgDevice->CheckReceive(strCondition, cSBUF, waitMS, delyMS));
-}
-//------------------------------------------------------------------------------------------//
-uint32 CMUXDriver::Send(VCOM* vcom,const ARRAY& _in){
+uint32 FRAME_CMUXDriver::Send(VCOM* vcom,const UVIn& _in){
 	uint32	num;
 	num = 0;
-	cgTxUIH.InUse_set();
-	cgTxUIH.SetUIHFrame(&num,nullptr,vcom->cgPortID,_in,CR_BIT);
-	cgTxUIH.InUse_clr();
+	cgTxUIH.cgLock.Set();
+	cgTxUIH.SetUIHFrame(&num,nullptr,_GetCoreVCOM(vcom)->cgPortID,_in,CR_BIT);
+	cgTxUIH.cgLock.Clr();
 	return(num);
-}
+};
 //------------------------------------------------------------------------------------------//
-void CMUXDriver::Send3Pluse(VCOM* vcom){
+void FRAME_CMUXDriver::Send3Pluse(VCOM* vcom){
 	STDSTR	strHexFrame;
 	uint8	modemStatus = 0;
 	
-	PrintWithDividingLine("CMUXDriver::Received +++ from DLCI",Str_ToStr(vcom->cgPortID),", switch to DTR control");
+	COMMU_LOGSYS::PrintWithDividingLine(unitTeam.logSys,"CMUXDriver::Received +++ from DLCI",Str_ToStr(_GetCoreVCOM(vcom)->cgPortID),", switch to DTR control");
 	
-	if (vcom->Check_RTS()== 0)
+	if (CORE_VCOM::Check_RTS(vcom) == G_FALSE)
 		modemStatus |= MS_RTS;
 	
-	cgTxUIH.CreateMSCCmd(&strHexFrame,vcom->cgPortID,modemStatus,CR_BIT,CR_BIT);
-	PrintWithTime(COL_clDCyan,"CMUXDriver::Send MSC confirm frame:\n",strHexFrame,"\n");
+	cgTxUIH.CreateMSCCmd(&strHexFrame,_GetCoreVCOM(vcom)->cgPortID,modemStatus,CR_BIT,CR_BIT);
+	COMMU_LOGSYS::PrintWithTime(unitTeam.logSys,COL_clDCyan,"CMUXDriver::Send MSC confirm frame:\n",strHexFrame,"\n");
 	
 	SYS_SleepMS(200);
 	
 	modemStatus |= MS_DTR;
 	
-	cgTxUIH.CreateMSCCmd(&strHexFrame,vcom->cgPortID,modemStatus,CR_BIT,CR_BIT);
-	PrintWithTime(COL_clDCyan,"CMUXDriver::Send MSC confirm frame:\n",strHexFrame,"\n");
+	cgTxUIH.CreateMSCCmd(&strHexFrame,_GetCoreVCOM(vcom)->cgPortID,modemStatus,CR_BIT,CR_BIT);
+	COMMU_LOGSYS::PrintWithTime(unitTeam.logSys,COL_clDCyan,"CMUXDriver::Send MSC confirm frame:\n",strHexFrame,"\n");
 	SYS_SleepMS(200);
-}
-//------------------------------------------------------------------------------------------//
-DEVICE* CMUXDriver::GetDevice(void){
-	return(cgDevice);
-}
-//------------------------------------------------------------------------------------------//
-bool32 CMUXDriver::CmuxStartThreadFun(void* p){
-	if (CMUXInit(cgCMDsInit) == G_FALSE)
-		DoSelfClose();
-	return G_TRUE;
 };
-//------------------------------------------------------------------------------------------//
-bool32 CMUXDriver::CmuxStopThreadFun(void* p){
-	CMUXClose();
-	return G_TRUE;
-};
-//------------------------------------------------------------------------------------------//
-void CMUXDriver::CMUXStart(void){
-	commandThread.InUse_set();
-	commandThread.ThreadStop();
-	commandThread.ThreadInit(this,&CMUXDriver::CmuxStartThreadFun,"CMUXStart");
-	commandThread.ThreadRun();
-	commandThread.InUse_clr();
-}
-//------------------------------------------------------------------------------------------//
-void CMUXDriver::CMUXStop(void){
-	commandThread.InUse_set();
-	commandThread.ThreadStop();
-	commandThread.ThreadInit(this,&CMUXDriver::CmuxStopThreadFun,"CMUXStop");
-	commandThread.ThreadRun();
-	commandThread.InUse_clr();
-}
 //------------------------------------------------------------------------------------------//
 #endif /* CMUX_h */

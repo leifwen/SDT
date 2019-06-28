@@ -24,7 +24,7 @@ class BIC_##_name : public _base{\
 				 BIC_##_name(void) : _base (){cgCommandID = BIC_ID_##_name;cgCommand = _CMD;};\
 		virtual ~BIC_##_name(void){;};\
 	public:\
-		virtual	bool32	InPressKeyModeExit		(CMD_ENV* env)const;\
+		virtual	bool32	IsExitPressKeyMode		(CMD_ENV* env)const;\
 		virtual	CMDID	Command					(CMD_ENV* env,const STDSTR& msg,void* p)const;\
 		virtual	CMDID	Help					(CMD_ENV* env,uint32 flag)const;\
 };

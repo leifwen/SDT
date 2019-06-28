@@ -6,9 +6,11 @@
 //  Copyright © 2018 Leif Wen. All rights reserved.
 //
 
+//------------------------------------------------------------------------------------------//
 #include "DS_Tree.h"
 #include "SYS_Time.h"
 //------------------------------------------------------------------------------------------//
+#if defined DS_Tree_h && defined SYS_Time_h
 #ifndef GList_h
 #define GList_h
 #ifdef GList_h
@@ -37,7 +39,7 @@ enum{
 	CL_setCR		= BD_FLAG32(17),
 };
 //------------------------------------------------------------------------------------------//
-class COMMAND_NODE : public TREE_NODE{
+class COMMAND_NODE : public TNF{
 	public:
 				 COMMAND_NODE(void);
 		virtual ~COMMAND_NODE(void){;};
@@ -59,6 +61,7 @@ class COMMAND_NODE : public TREE_NODE{
 		int32		timeoutTimes;	//no response times.
 		bool32		blFirstSynchronous;
 		DTIME		timeST0;		//
+		DS_RWLock	rwLock;
 	private:
 				STDSTR&		ExportV0_4			(uint32 ver,STDSTR* strOut);
 				STDSTR&		ExportV0_5			(uint32 ver,STDSTR* strOut);
@@ -71,14 +74,14 @@ class COMMAND_NODE : public TREE_NODE{
 				STDSTR&		Export				(uint32 ver,STDSTR* strOut);
 				void		Import				(uint32 ver,STDSTR* strIn);
 	public:
-		static	void		CopyCOMMAND_NODE	(COMMAND_NODE* node1,const COMMAND_NODE* node2);//copy 2 to 1
+		static	void		CopyCommandNode		(COMMAND_NODE* node1,const COMMAND_NODE* node2);//copy 2 to 1
 	public:
 		static	STDSTR&		GetTitle			(STDSTR* retStr,uint32 flag);
 				STDSTR&		Compose				(STDSTR* retStr,uint32 flag);
 				STDSTR&		ComposeDetail		(STDSTR* retStr);
 };
 //------------------------------------------------------------------------------------------//
-class COMMAND_GROUP : public TREE_NODE{
+class COMMAND_GROUP : public TNFP{
 	public:
 				 COMMAND_GROUP(void);
 		virtual ~COMMAND_GROUP(void);
@@ -87,11 +90,12 @@ class COMMAND_GROUP : public TREE_NODE{
 		virtual	TNFP*			GetTrash		(void);
 		virtual	TNF*			CreateNode		(void);
 	public:						//need reocord
-		STDSTR	name;
-		int32	intervalTime;
+		STDSTR		name;
+		int32		intervalTime;
 	public:
-		bool32	blEnableAutoRun;//enable
-		int32	autoRunTimes;	//cycle
+		bool32		blEnableAutoRun;//enable
+		int32		autoRunTimes;	//cycle
+		DS_RWLock	rwLock;
 	private:
 				STDSTR&		ExportV0_4			(uint32 ver,STDSTR* strOut);
 				void		ImportV0_4			(uint32 ver,STDSTR* strIn);
@@ -101,13 +105,13 @@ class COMMAND_GROUP : public TREE_NODE{
 				void		Import				(uint32 ver,STDSTR* strIn);
 	public:
 		void				ClearResult(void);
-		static void			CopyCOMMAND_GROUP	(COMMAND_GROUP* group1,const COMMAND_GROUP* group2,bool32 blClear = G_TRUE);//copy 2 to 1
+		static void			CopyCommandGroup_nolook	(COMMAND_GROUP* group1,const COMMAND_GROUP* group2,bool32 blClear = G_TRUE);//copy 2 to 1
 	public:
 		static	STDSTR&		GetTitle			(STDSTR* retStr,uint32 flag);
 				STDSTR&		Compose				(STDSTR* retStr,uint32 flag);
 };
 //------------------------------------------------------------------------------------------//
-class GC_LIST : public TREE_NODE{
+class GC_LIST : public TNFP{
 	public:
 				 GC_LIST(void);
 		virtual ~GC_LIST(void);
@@ -127,9 +131,10 @@ class GC_LIST : public TREE_NODE{
 				void		Empty					(void);
 	public:
 				void		ClearTestResult			(void);
-		static	void		CopyCOMMAND_GROUP_ENABLE(GC_LIST* tGroupList1,const GC_LIST* tGroupList2);//copy 2 to 1
+		static	void		CopyGCList_nolook		(GC_LIST* tGroupList1,const GC_LIST* tGroupList2);//copy 2 to 1
 };
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 #endif /* GList_h */
 #endif /* GList_h */
+#endif

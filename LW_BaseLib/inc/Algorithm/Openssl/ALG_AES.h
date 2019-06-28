@@ -6,6 +6,7 @@
 //  Copyright © 2018 Leif Wen. All rights reserved.
 //
 
+//------------------------------------------------------------------------------------------//
 #include "BasicDefine.h"
 //------------------------------------------------------------------------------------------//
 #if (defined USE_OPENSSL) || (defined CommonDefH_MAC)
@@ -34,12 +35,6 @@
 	#endif
 #endif
 //------------------------------------------------------------------------------------------//
-enum {
-	AES_OK		= IOS_OK,
-	AES_NOMEM	= IOS_NOMEM,
-	AES_FINISH	= IOS_FINISH,
-};
-//------------------------------------------------------------------------------------------//
 struct ALG_AES_CTX : public DSTF_DIR_CTX{
 	STDSTR			key;
 #ifdef USE_MAC_Crypto
@@ -52,10 +47,10 @@ struct ALG_AES_CTX : public DSTF_DIR_CTX{
 };
 //------------------------------------------------------------------------------------------//
 void	ALG_AES_Init	(ALG_AES_CTX* ctx,uint32 cfg,const STDSTR& sKey);
-bool32	ALG_AES_Update	(ALG_AES_CTX* ctx,uint8* _out,const uint64& outSize,const uint8* data,const uint64& length);
-bool32	ALG_AES_Final	(ALG_AES_CTX* ctx,uint8* _out,const uint64& outSize);
-bool32	ALG_AES_Release	(ALG_AES_CTX* ctx);
-bool32	ALG_AES_ReInit	(ALG_AES_CTX* ctx);
+IOSE	ALG_AES_Update	(ALG_AES_CTX* ctx,uint8* _out,const uint64& outSize,const uint8* data,const uint64& length);
+IOSE	ALG_AES_Final	(ALG_AES_CTX* ctx,uint8* _out,const uint64& outSize);
+IOSE	ALG_AES_Release	(ALG_AES_CTX* ctx);
+IOSE	ALG_AES_ReInit	(ALG_AES_CTX* ctx);
 //------------------------------------------------------------------------------------------//
 class ALG_AES : public DSTF_DIR<ALG_AES_CTX>{
 	protected:

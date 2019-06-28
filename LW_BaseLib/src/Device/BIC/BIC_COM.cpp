@@ -7,6 +7,7 @@
 //
 
 #include "stdafx.h"
+//------------------------------------------------------------------------------------------//
 #include "BIC_COM.h"
 #ifdef BIC_COM_h
 #include "Commu_ComEnum.h"
@@ -23,7 +24,7 @@ CMDID BIC_COM::Help(CMD_ENV* env,uint32 flag)const{
 CMDID BIC_COM::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 	BIC_CONNECT::SetConnectPar(env,BIC_ENV_DEV::GetEDA(env),msg,OPEN_COM);
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIC_COM_BR::Help(CMD_ENV* env,uint32 flag)const{
@@ -46,7 +47,7 @@ CMDID BIC_COM_BR::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 		PrintFail(env,"no COM device");
 	}
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIC_COM_DTR::Help(CMD_ENV* env,uint32 flag)const{
@@ -66,7 +67,7 @@ CMDID BIC_COM_DTR::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 	
 	if (attr->IsComOpened()){
 		if (msg.length() == 0){
-			PrintResult(env,"COM DTR is",((attr->ACom()->GetDTRStatus()) ? "low" : "high"));
+			PrintResult(env,"COM DTR is",((attr->AComCore()->GetDTRStatus()) ? "low" : "high"));
 		}
 		else{
 			SplitPar1(strPar1, strPar3, msg);
@@ -78,10 +79,10 @@ CMDID BIC_COM_DTR::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 					bltime = G_TRUE;
 				}
 				if (strPar1 == "-H"){
-					attr->ACom()->SetDTR(1);
+					attr->AComCore()->SetDTR(1);
 				}
 				else if (strPar1 == "-L"){
-					attr->ACom()->SetDTR(0);
+					attr->AComCore()->SetDTR(0);
 				}
 				else{
 					break;
@@ -104,7 +105,7 @@ CMDID BIC_COM_DTR::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 		PrintFail(env,"no COM connected");
 	}
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIC_COM_RTS::Help(CMD_ENV* env,uint32 flag)const{
@@ -124,7 +125,7 @@ CMDID BIC_COM_RTS::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 	
 	if (attr->IsComOpened()){
 		if (msg.length() == 0){
-			PrintResult(env,"COM RTS is",((attr->ACom()->GetRTSStatus()) ? "low" : "high"));
+			PrintResult(env,"COM RTS is",((attr->AComCore()->GetRTSStatus()) ? "low" : "high"));
 		}
 		else{
 			SplitPar1(strPar1, strPar3, msg);
@@ -136,10 +137,10 @@ CMDID BIC_COM_RTS::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 					bltime = G_TRUE;
 				}
 				if (strPar1 == "-H"){
-					attr->ACom()->SetRTS(1);
+					attr->AComCore()->SetRTS(1);
 				}
 				else if (strPar1 == "-L"){
-					attr->ACom()->SetRTS(0);
+					attr->AComCore()->SetRTS(0);
 				}
 				else{
 					break;
@@ -162,7 +163,7 @@ CMDID BIC_COM_RTS::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 		PrintFail(env,"no COM connected");
 	}
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIC_COM_CTSFLOW::Help(CMD_ENV* env,uint32 flag)const{
@@ -177,11 +178,11 @@ CMDID BIC_COM_CTSFLOW::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 	ExpandDeviceAttr* attr = BIC_ENV_DEV::GetEDA(env);
 	if (attr->IsComOpened()){
 		if (msg == "on"){
-			attr->ACom()->SetCTSFlow(G_TRUE);
+			attr->AComCore()->SetCTSFlow(G_TRUE);
 			PrintResult(env,"Enable hard CTS flow");
 		}
 		else if (msg == "off"){
-			attr->ACom()->SetCTSFlow(G_FALSE);
+			attr->AComCore()->SetCTSFlow(G_FALSE);
 			PrintResult(env,"Disable hard CTS flow");
 		}
 		else{
@@ -192,7 +193,7 @@ CMDID BIC_COM_CTSFLOW::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 		PrintFail(env,"no COM connected");
 	}
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIC_COM_DSRFLOW::Help(CMD_ENV* env,uint32 flag)const{
@@ -207,11 +208,11 @@ CMDID BIC_COM_DSRFLOW::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 	ExpandDeviceAttr* attr = BIC_ENV_DEV::GetEDA(env);
 	if (attr->IsComOpened()){
 		if (msg == "on"){
-			attr->ACom()->SetCTSFlow(G_TRUE);
+			attr->AComCore()->SetCTSFlow(G_TRUE);
 			PrintResult(env,"Enable hard DSR flow");
 		}
 		else if (msg == "off"){
-			attr->ACom()->SetCTSFlow(G_FALSE);
+			attr->AComCore()->SetCTSFlow(G_FALSE);
 			PrintResult(env,"Disable hard DSR flow");
 		}
 		else{
@@ -222,7 +223,7 @@ CMDID BIC_COM_DSRFLOW::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 		PrintFail(env,"no COM connected");
 	}
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIC_COM_MS::Help(CMD_ENV* env,uint32 flag)const{
@@ -245,7 +246,7 @@ CMDID BIC_COM_MS::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 			PrintResult(env,"Disable modem status report");
 		}
 		else if (msg.length() == 0){
-			PrintResult(env,attr->ACom()->GetFullModemStatus());
+			PrintResult(env,attr->AComCore()->GetFullModemStatus());
 		}
 		else{
 			Help(env,0);
@@ -255,7 +256,7 @@ CMDID BIC_COM_MS::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 		PrintFail(env,"no COM connected");
 	}
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 #if defined Commu_ComEnum_h && defined CommonDefH_VC
 //------------------------------------------------------------------------------------------//
@@ -269,14 +270,14 @@ CMDID BIC_COM_LSCOM::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 		BIC_ENV_DEV::GetValidComList(env)->Refresh();
 		
 		*GetSTDOUT(env) << Begin() << NL() << COL_DivStar_Default << COL_Result;
-		TREE_LChildRChain_Traversal_LINE(IPCOMNAME,BIC_ENV_DEV::GetValidComList(env),
+		TREE_DownChain_Traversal_LINE(IPCOMNAME,BIC_ENV_DEV::GetValidComList(env),
 			if ((_opNode->typeID == PublicDevice_DEVID_APICOM) && (_opNode->blAvailable))
 				*GetSTDOUT(env) << _opNode->strShowName << "\n";
 		);
 		*GetSTDOUT(env) << COL_DivStar_Default << Endl();
 	}
  return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 #endif
 //------------------------------------------------------------------------------------------//
@@ -296,7 +297,7 @@ CMDID BIC_COM_OPENV::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 	}
 #endif
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 
 

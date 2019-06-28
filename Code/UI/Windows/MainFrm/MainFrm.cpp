@@ -66,7 +66,7 @@ BEGIN_MESSAGE_MAP(CMainFrame, CMDIFrameWndEx)
 	ON_COMMAND(ID_RI_BUTTON_NEWRECORD,		&CMainFrame::OnButtonClickNewRecord)
 #ifdef SWVERSION_TOOLS
 	ON_COMMAND(ID_RI_BUTTON_SEND,			&CMainFrame::OnButtonClickSend)
-	ON_COMMAND(ID_RI_BUTTON_CACL,			&CMainFrame::OnButtonClickCacl)
+	ON_COMMAND(ID_RI_BUTTON_CALC,			&CMainFrame::OnButtonClickCalc)
 #endif
 	ON_UPDATE_COMMAND_UI(ID_RI_COMBO_COM,	&CMainFrame::OnUpdateCOMBO_COM)
 	ON_UPDATE_COMMAND_UI(ID_RI_COMBO_BR,	&CMainFrame::OnUpdateCOMBO_BR)
@@ -159,7 +159,6 @@ CMainFrame::CMainFrame(void){
 	m_blStop = 1;
 	m_blConnect = 1;
 	m_MCFrm = NULL;
-	m_AuxCFrm = NULL;
 	m_CMUXCFrm = NULL;
 	m_CMUXView = NULL;
 	m_localIP = "255.255.255.255";
@@ -233,66 +232,95 @@ void CMainFrame::OnTimer(UINT nIDEvent){
 }
 //------------------------------------------------------------------------------------------//
 CChildFrame* CMainFrame::MainCFrmCreate(void){
+	CChildFrame* pCFrm;
 	if (m_MCFrm == nullptr){
 		CCreateContext	context;
 
 		context.m_pNewViewClass = RUNTIME_CLASS(CMyRichView);
 
-		m_MCFrm = new CChildFrame();
-		m_MCFrm->LoadFrame(IDI_MCFRM,WS_CHILD | WS_OVERLAPPEDWINDOW,this,&context);
-		m_MCFrm->SetWindowText(_T("Main View"));
-		m_MCFrm->ShowWindow(SW_SHOW);
-		m_MCFrm->InitialUpdateFrame(NULL,true);
+		pCFrm = new CChildFrame();
+		pCFrm->LoadFrame(IDI_MCFRM, WS_CHILD | WS_OVERLAPPEDWINDOW, this, &context);
+		pCFrm->SetWindowText(_T("Main View"));
+		pCFrm->ShowWindow(SW_SHOW);
+		pCFrm->InitialUpdateFrame(NULL, true);
 
-		m_MCFrm->InitSTDOUT("MAIN");
-		m_MCFrm->InitConsole(&theApp.GSDTApp.m_Console);
+		pCFrm->InitSTDOUT("MAIN");
+		pCFrm->InitConsole(&theApp.GSDTApp.m_Console);
 		
-		theApp.GSDTApp.InitSTDOUT(&m_MCFrm->m_stdout);
+		theApp.GSDTApp.InitSTDOUT(&pCFrm->m_stdout);
 		theApp.GSDTApp.Run("");
+		m_MCFrm = pCFrm;
 	}
 	return (m_MCFrm);
 }
 //------------------------------------------------------------------------------------------//
+CChildFrame* CMainFrame::FindCChildFrame(CString windowText){
+	const CObList&	TabGroups = GetMDITabGroups();
+	CChildFrame*	pCFrm;
+	CMFCTabCtrl*	pTabCtrl;
+	CString			wText;
+
+	pCFrm = nullptr;
+	do{
+		if (TabGroups.GetCount() == 0)
+			break;
+
+		pTabCtrl = (CMFCTabCtrl *)TabGroups.GetHead();
+
+		for (int i = 0; i < pTabCtrl->GetTabsNum(); i++){
+			pCFrm = dynamic_cast <CChildFrame*>(pTabCtrl->GetTabWnd(i));
+
+			pCFrm->GetWindowText(wText);
+			if (wText == windowText)
+				break;
+			pCFrm = nullptr;
+		}
+	} while (0);
+	return(pCFrm);
+}
+//------------------------------------------------------------------------------------------//
 CChildFrame* CMainFrame::AuxCFrmCreate(void){
-	if (m_AuxCFrm == nullptr){
+	CChildFrame*	pCFrm;
+	pCFrm = FindCChildFrame(_T("Aux View"));
+
+	if (pCFrm == nullptr){
 		CCreateContext	context;
 
 		context.m_pNewViewClass = RUNTIME_CLASS(CMyRichView);
 
-		m_AuxCFrm = new CChildFrame();
-		m_AuxCFrm->LoadFrame(IDI_MCFRM, WS_CHILD | WS_OVERLAPPEDWINDOW, this, &context);
-		m_AuxCFrm->SetWindowText(_T("Aux View"));
-		m_AuxCFrm->ShowWindow(SW_SHOW);
-		m_AuxCFrm->InitialUpdateFrame(NULL, true);
+		pCFrm = new CChildFrame();
+		pCFrm->LoadFrame(IDI_MCFRM, WS_CHILD | WS_OVERLAPPEDWINDOW, this, &context);
+		pCFrm->SetWindowText(_T("Aux View"));
+		pCFrm->ShowWindow(SW_SHOW);
+		pCFrm->InitialUpdateFrame(NULL, true);
 
-		m_AuxCFrm->InitVG3D("AUX",&theApp.GSDTApp.m_Cache);
+		pCFrm->InitVG3D("AUX", &theApp.GSDTApp.m_Cache);
 
-		m_AuxCFrm->m_bCanClose = TRUE;
+		pCFrm->m_bCanClose = TRUE;
 	}
 	else{
-		m_AuxCFrm->MDIActivate();
+		pCFrm->MDIActivate();
 	}
-	return(m_AuxCFrm);
+	return(pCFrm);
 }
 //------------------------------------------------------------------------------------------//
 CChildFrame* CMainFrame::CMUXCFrmCreate(void){
-	if (m_CMUXCFrm == NULL){
+	CChildFrame* pCFrm;
+	if (m_CMUXCFrm == nullptr){
 		CCreateContext	context;
 
 		context.m_pNewViewClass = RUNTIME_CLASS(CCMUXView);
 
-		m_CMUXCFrm = new CChildFrame();
-		m_CMUXCFrm->LoadFrame(IDI_MCFRM, WS_CHILD | WS_OVERLAPPEDWINDOW, this, &context);
-		m_CMUXCFrm->SetWindowText(_T("CMUX COM setting"));
-		m_CMUXCFrm->ShowWindow(SW_SHOW);
-		m_CMUXCFrm->InitialUpdateFrame(NULL, true);
+		pCFrm = new CChildFrame();
+		pCFrm->LoadFrame(IDI_MCFRM, WS_CHILD | WS_OVERLAPPEDWINDOW, this, &context);
+		pCFrm->SetWindowText(_T("CMUX COM setting"));
+		pCFrm->ShowWindow(SW_SHOW);
+		pCFrm->InitialUpdateFrame(NULL, true);
 
-		m_CMUXCFrm->m_selfName = "CMUX";
+		pCFrm->m_selfName = "CMUX";
 
-		m_CMUXView = (CCMUXView*)m_CMUXCFrm->GetActiveView();
-	}
-	else{
-		//m_CMUXFrm->MDIActivate();
+		m_CMUXView = (CCMUXView*)pCFrm->GetActiveView();
+		m_CMUXCFrm = pCFrm;
 	}
 	return(m_CMUXCFrm);
 }

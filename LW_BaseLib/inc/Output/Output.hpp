@@ -6,6 +6,7 @@
 //  Copyright © 2018 Leif Wen. All rights reserved.
 //
 
+//------------------------------------------------------------------------------------------//
 #ifndef Output_hpp
 #define Output_hpp
 //------------------------------------------------------------------------------------------//
@@ -40,28 +41,37 @@ inline bool32		OUTPUT_NODE::IsDestoryByCache	(void)const			{return(CheckSFlag(ON
 inline void 		OUTPUT_NODE::SetCOlType			(COLType colType)	{cgColType = colType;};
 //------------------------------------------------------------------------------------------//
 inline void OUTPUT_NODE::UnregisterChild(OUTPUT_NODE* son){
-	SetAddress(nullptr,0,0,0);
-	Remove(son);
+	if (son != nullptr)
+		son->SetAddress(nullptr,0,0,0);
+	DetachUpPriorNext(son,son);
 };
 //------------------------------------------------------------------------------------------//
 inline void OUTPUT_NODE::Print(uint32 ctrl,COLORENUM col,const uint8* data,uint32 num)	{;};
+//------------------------------------------------------------------------------------------//
+inline void OUTPUT_NODE::DoCleanLastLine(void){;};
+//------------------------------------------------------------------------------------------//
+inline void OUTPUT_NODE::CleanLastLine(OUTPUT_NODE* node){
+	if (node != nullptr){
+		node->DoCleanLastLine();
+	}
+};
 //------------------------------------------------------------------------------------------//
 static inline OUTPUT_NODE& DoPrintStr(OUTPUT_NODE* node){return(*node);};
 //------------------------------------------------------------------------------------------//
 static inline OUTPUT_NODE& DoPrintStr(OUTPUT_NODE* node,const _ColData& first){
 	return(*node << first);
-}
+};
 //------------------------------------------------------------------------------------------//
 template<typename T>static inline OUTPUT_NODE& DoPrintStr(OUTPUT_NODE* node,const T& first){
-	if (node->GetInLength(first) > 0)
+	if (node->GetUVInLength(first) > 0)
 		*node << " ";
 	return(*node << first);
-}
+};
 //------------------------------------------------------------------------------------------//
 template<typename T,typename... Args>static inline OUTPUT_NODE& DoPrintStr(OUTPUT_NODE* node,const T& first, const Args&... args){
 	DoPrintStr(node,first);
 	return(DoPrintStr(node,args...));
-}
+};
 //------------------------------------------------------------------------------------------//
 template<typename T,typename... Args> void OUTPUT_NODE::PrintStr(OUTPUT_NODE* node,const T& first,const Args&... args){
 	if (node != nullptr){
@@ -71,7 +81,7 @@ template<typename T,typename... Args> void OUTPUT_NODE::PrintStr(OUTPUT_NODE* no
 		DoPrintStr(node,args...)
 		<< Endl();
 	}
-}
+};
 //------------------------------------------------------------------------------------------//
 template<typename T,typename... Args> void OUTPUT_NODE::PrintStrNL(OUTPUT_NODE* node,const T& first,const Args&... args){
 	if (node != nullptr){
@@ -81,7 +91,7 @@ template<typename T,typename... Args> void OUTPUT_NODE::PrintStrNL(OUTPUT_NODE* 
 		DoPrintStr(node,args...)
 		<< Endl();
 	}
-}
+};
 //------------------------------------------------------------------------------------------//
 template<typename T,typename... Args> void OUTPUT_NODE::PrintALine(OUTPUT_NODE* node,const T& first,const Args&... args){
 	if (node != nullptr){
@@ -91,7 +101,7 @@ template<typename T,typename... Args> void OUTPUT_NODE::PrintALine(OUTPUT_NODE* 
 		DoPrintStr(node,args...)
 		<< NL() << Endl();
 	}
-}
+};
 //------------------------------------------------------------------------------------------//
 template<typename T,typename... Args> void OUTPUT_NODE::PrintALineDot(OUTPUT_NODE* node,const T& first,const Args&... args){
 	if (node != nullptr){
@@ -102,7 +112,7 @@ template<typename T,typename... Args> void OUTPUT_NODE::PrintALineDot(OUTPUT_NOD
 		<< COL_NormalMessage << ".\n"
 		<< Endl();
 	}
-}
+};
 //------------------------------------------------------------------------------------------//
 template<typename... Args> void OUTPUT_NODE::PrintALineDot(OUTPUT_NODE* node,const _ColData& first,const Args&... args){
 	if (node != nullptr){
@@ -113,7 +123,7 @@ template<typename... Args> void OUTPUT_NODE::PrintALineDot(OUTPUT_NODE* node,con
 		<< ".\n"
 		<< Endl();
 	}
-}
+};
 //------------------------------------------------------------------------------------------//
 template<typename... Args> void OUTPUT_NODE::PrintALineDot(OUTPUT_NODE* node,const COLORENUM& col,const Args&... args){
 	if (node != nullptr){
@@ -124,7 +134,18 @@ template<typename... Args> void OUTPUT_NODE::PrintALineDot(OUTPUT_NODE* node,con
 		<< ".\n"
 		<< Endl();
 	}
-}
+};
+//------------------------------------------------------------------------------------------//
+template<typename... Args> void OUTPUT_NODE::PrintWithTime_noNL(OUTPUT_NODE* node,const Args&... args){
+	if (node != nullptr){
+		*node << Begin()
+		<< COL_Time_DCyan
+		<< COL_NormalMessage;
+		
+		DoPrintStr(node,args...)
+		<< Endl();
+	}
+};
 //------------------------------------------------------------------------------------------//
 template<typename... Args> void OUTPUT_NODE::PrintWithTime(OUTPUT_NODE* node,const Args&... args){
 	if (node != nullptr){
@@ -135,7 +156,7 @@ template<typename... Args> void OUTPUT_NODE::PrintWithTime(OUTPUT_NODE* node,con
 		DoPrintStr(node,args...)
 		<< Endl();
 	}
-}
+};
 //------------------------------------------------------------------------------------------//
 template<typename... Args> void OUTPUT_NODE::PrintWithDividingLine(OUTPUT_NODE* node,const Args&... args){
 	if (node != nullptr){
@@ -146,7 +167,7 @@ template<typename... Args> void OUTPUT_NODE::PrintWithDividingLine(OUTPUT_NODE* 
 		DoPrintStr(node,args...)
 		<< NL() << Endl();
 	}
-}
+};
 //------------------------------------------------------------------------------------------//
 template<typename... Args> void OUTPUT_NODE::PrintWithDividingLineDot(OUTPUT_NODE* node,const Args&... args){
 	if (node != nullptr){
@@ -158,7 +179,7 @@ template<typename... Args> void OUTPUT_NODE::PrintWithDividingLineDot(OUTPUT_NOD
 		<< COL_NormalMessage << ".\n"
 		<< Endl();
 	}
-}
+};
 //------------------------------------------------------------------------------------------//
 template<typename... Args> void OUTPUT_NODE::PrintWithDividingLineDot(OUTPUT_NODE* node,const _ColData& first,const Args&... args){
 	if (node != nullptr){
@@ -170,7 +191,7 @@ template<typename... Args> void OUTPUT_NODE::PrintWithDividingLineDot(OUTPUT_NOD
 		<< ".\n"
 		<< Endl();
 	}
-}
+};
 //------------------------------------------------------------------------------------------//
 template<typename... Args> void OUTPUT_NODE::PrintWithDividingLineDot(OUTPUT_NODE* node,const COLORENUM& col,const Args&... args){
 	if (node != nullptr){
@@ -182,7 +203,7 @@ template<typename... Args> void OUTPUT_NODE::PrintWithDividingLineDot(OUTPUT_NOD
 		<< ".\n"
 		<< Endl();
 	}
-}
+};
 //------------------------------------------------------------------------------------------//
 template<typename... Args> void OUTPUT_NODE::PrintMessageDot(OUTPUT_NODE* node,const Args&... args){
 	if (node != nullptr){
@@ -195,7 +216,7 @@ template<typename... Args> void OUTPUT_NODE::PrintMessageDot(OUTPUT_NODE* node,c
 		<< COL_DivLine_Maroon
 		<< Endl();
 	}
-}
+};
 //------------------------------------------------------------------------------------------//
 template<typename... Args> void OUTPUT_NODE::PrintMessageDot(OUTPUT_NODE* node,const _ColData& first,const Args&... args){
 	if (node != nullptr){
@@ -208,7 +229,7 @@ template<typename... Args> void OUTPUT_NODE::PrintMessageDot(OUTPUT_NODE* node,c
 		<< COL_DivLine_Maroon
 		<< Endl();
 	}
-}
+};
 //------------------------------------------------------------------------------------------//
 template<typename... Args> void OUTPUT_NODE::PrintMessageDot(OUTPUT_NODE* node,const COLORENUM& col,const Args&... args){
 	if (node != nullptr){
@@ -221,7 +242,7 @@ template<typename... Args> void OUTPUT_NODE::PrintMessageDot(OUTPUT_NODE* node,c
 		<< COL_DivLine_Maroon
 		<< Endl();
 	}
-}
+};
 //------------------------------------------------------------------------------------------//
 template<typename T,typename... Args> void OUTPUT_NODE::PrintWarningMessageDot(OUTPUT_NODE* node,const T& first,const Args&... args){
 	if (node != nullptr){
@@ -236,15 +257,15 @@ template<typename T,typename... Args> void OUTPUT_NODE::PrintWarningMessageDot(O
 		<< COL_DivLine_Maroon
 		<< Endl();
 	}
-}
+};
 //------------------------------------------------------------------------------------------//
 template<typename... Args> void OUTPUT_NODE::PrintWarningMessageDot(OUTPUT_NODE* node,const _ColData& first,const Args&... args){
 	PrintWarningMessageDot(node,first.uvin,args...);
-}
+};
 //------------------------------------------------------------------------------------------//
 template<typename... Args> void OUTPUT_NODE::PrintWarningMessageDot(OUTPUT_NODE* node,const COLORENUM& col,const Args&... args){
 	PrintWarningMessageDot(node,args...);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 #endif /* Output_h */

@@ -7,31 +7,25 @@
 //
 
 #include "stdafx.h"
+//------------------------------------------------------------------------------------------//
 #include "MSG_RST.h"
 #ifdef MSG_RST_h
 //------------------------------------------------------------------------------------------//
-MSG_RST::MSG_RST(uint32 size,void* p) : MSG_NODE(size,p)
+MSG_RSTerminal::MSG_RSTerminal(void) : MSG_NODE(){
 #ifdef MSG_RMS_h
-,cgMsgRMS(size,p)
+	AppendDown(cgMsgRMS);
 #endif
 #ifdef MSG_Terminal_h
-,cgMsgTerminal(size,p)
+	AppendDown(cgMsgTerminal);
 #endif
 #if defined MSG_Register_h
-,cgMsgRegister(size,p)
+	AppendDown(cgMsgRegister);
 #endif
-{
-#ifdef MSG_RMS_h
-	Add(cgMsgRMS);
-#endif
-#ifdef MSG_Terminal_h
-	Add(cgMsgTerminal);
-#endif
-#if defined MSG_Register_h
-	Add(cgMsgRegister);
+#if defined MSG_Files_h
+	AppendDown(cgMsgFiles);
 #endif
 	selfName = "MSG_RST";
-	SetFatherName("");
+	SetUpName("");
 };
 //------------------------------------------------------------------------------------------//
 #endif /* MSG_RST_h */

@@ -6,8 +6,8 @@
 //  Copyright © 2018 Leif Wen. All rights reserved.
 //
 
+//------------------------------------------------------------------------------------------//
 #include "BasicDefine.h"
-#include "DS_ARRAY.h"
 //------------------------------------------------------------------------------------------//
 #ifndef CommonDefH_EnableLicense
 	#ifndef SMC_NOH

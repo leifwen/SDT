@@ -7,11 +7,12 @@
 //
 
 #include "stdafx.h"
+//------------------------------------------------------------------------------------------//
 #include "DS_ARRAY.h"
 #include "DS_STRING.h"
+#ifdef DS_ARRAY_h
 //------------------------------------------------------------------------------------------//
-ARRAY::ARRAY(int32 bufferSize)	: DS_ARRAY_FRAME<uint8>(bufferSize)	{;};
-ARRAY::ARRAY(void) 				: DS_ARRAY_FRAME<uint8>()			{;};
+ARRAY::ARRAY(void) : DS_ARRAY_FRAME<uint8>(){alreadyReadNum = 0;};
 //------------------------------------------------------------------------------------------//
 uint32 ARRAY::Copy(uint8 *&to_addr,uint32 &to_length,const uint8 *&in_addr,uint32 &in_length)const{
 	uint32	copyNum;
@@ -33,7 +34,7 @@ void ARRAY::FillZero(void){
 		*p++ = 0;
 	offsetIn = 0;
 	offsetOut = 0;
-}
+};
 //------------------------------------------------------------------------------------------//
 uint32 ARRAY::PutInEscape(const uint8* data,uint32 num){
 	uint32	length,offset,slength,copyNum,count;
@@ -96,7 +97,7 @@ uint32 ARRAY::PutInEscape(const uint8* data,uint32 num){
 	if (num > 0)
 		status = DSAF_blNoMem;
 	return(copyNum);
-}
+};
 //------------------------------------------------------------------------------------------//
 uint32 ARRAY::ReadInEscape(uint8* dataOut,uint32 num,uint32 offset)const{
 	uint32	length,slength,copyNum;
@@ -189,7 +190,7 @@ uint32 ARRAY::ReadInEscape(uint8* dataOut,uint32 num,uint32 offset)const{
 		copyNum += Copy(dataOut,num,addr,count);
 	}
 	return(copyNum);
-}
+};
 //------------------------------------------------------------------------------------------//
 uint32 ARRAY::PutInHEX(const uint8* data,uint32 num){
 	uint32	length,offset,slength,copyNum;
@@ -234,13 +235,13 @@ uint32 ARRAY::PutInHEX(const uint8* data,uint32 num){
 	if (num > 0)
 		status = DSAF_blNoMem;
 	return(copyNum);
-}
+};
 //------------------------------------------------------------------------------------------//
 uint32 ARRAY::Put(const STDSTR &strIn,G_ESCAPE blEscape){
 	if (blEscape == G_ESCAPE_OFF)
 		return(Put((uint8*)strIn.c_str(),(uint32)strIn.length()));
 	return(PutInEscape((uint8*)strIn.c_str(),(uint32)strIn.length()));
-}
+};
 //------------------------------------------------------------------------------------------//
 const STDSTR& ARRAY::Read(STDSTR* _out,uint32 num,uint32 offset)const{
 	uint32	slength;
@@ -260,7 +261,7 @@ const STDSTR& ARRAY::Read(STDSTR* _out,uint32 num,uint32 offset)const{
 		}
 	}
 	return(*_out);
-}
+};
 //------------------------------------------------------------------------------------------//
 const STDSTR& ARRAY::Get(STDSTR* _out,uint32 num){
 	uint32	offset;
@@ -274,9 +275,9 @@ const STDSTR& ARRAY::Get(STDSTR* _out,uint32 num){
 	Read(_out,num,0);
 	offsetOut += num;
 	return(*_out);
-}
+};
 //------------------------------------------------------------------------------------------//
-const STDSTR& ARRAY::ReadUnEscape(STDSTR* _out,uint32 num,uint32 offset)const{
+const STDSTR& ARRAY::ReadInASCII(STDSTR* _out,uint32 num,uint32 offset)const{
 	uint32	slength;
 	uint8	*addr;
 	
@@ -289,7 +290,7 @@ const STDSTR& ARRAY::ReadUnEscape(STDSTR* _out,uint32 num,uint32 offset)const{
 		do{
 			addr = cgDataBuffer + offset;
 			while(num-- > 0){
-				Str_UnEscapeToStr(_out,*addr);
+				Str_EscapeToASCII(_out,*addr);
 				++ addr;
 			}
 			if (slength == 0)
@@ -300,9 +301,9 @@ const STDSTR& ARRAY::ReadUnEscape(STDSTR* _out,uint32 num,uint32 offset)const{
 		}while(1);
 	}
 	return(*_out);
-}
+};
 //------------------------------------------------------------------------------------------//
-const STDSTR& ARRAY::GetUnEscape(STDSTR* _out,uint32 num){
+const STDSTR& ARRAY::GetInASCII(STDSTR* _out,uint32 num){
 	uint32	offset;
 	
 	if ((cgDataBuffer == nullptr) || (num == 0))
@@ -311,10 +312,10 @@ const STDSTR& ARRAY::GetUnEscape(STDSTR* _out,uint32 num){
 	offset = 0;
 	num += CalcOutLength(num,offset);
 	
-	ReadUnEscape(_out,num,0);
+	ReadInASCII(_out,num,0);
 	offsetOut += num;
 	return(*_out);
-}
+};
 //------------------------------------------------------------------------------------------//
 const STDSTR& ARRAY::ReadInHEX(STDSTR* _out,uint32 num,uint32 offset)const{
 	uint32	slength;
@@ -340,7 +341,7 @@ const STDSTR& ARRAY::ReadInHEX(STDSTR* _out,uint32 num,uint32 offset)const{
 		}while(1);
 	}
 	return(*_out);
-}
+};
 //------------------------------------------------------------------------------------------//
 const STDSTR& ARRAY::GetInHEX(STDSTR* _out,uint32 num){
 	uint32	offset;
@@ -354,7 +355,7 @@ const STDSTR& ARRAY::GetInHEX(STDSTR* _out,uint32 num){
 	ReadInHEX(_out,num,0);
 	offsetOut += num;
 	return(*_out);
-}
+};
 //------------------------------------------------------------------------------------------//
 const STDSTR& ARRAY::ReadInHEX_S(STDSTR* _out,uint32 num,uint32 offset)const{
 	uint32	slength;
@@ -381,7 +382,7 @@ const STDSTR& ARRAY::ReadInHEX_S(STDSTR* _out,uint32 num,uint32 offset)const{
 		}while(1);
 	}
 	return(*_out);
-}
+};
 //------------------------------------------------------------------------------------------//
 const STDSTR& ARRAY::GetInHEX_S(STDSTR* _out,uint32 num){
 	uint32	offset;
@@ -395,7 +396,7 @@ const STDSTR& ARRAY::GetInHEX_S(STDSTR* _out,uint32 num){
 	ReadInHEX_S(_out,num,0);
 	offsetOut += num;
 	return(*_out);
-}
+};
 //------------------------------------------------------------------------------------------//
 const STDSTR& ARRAY::ReadInLine(STDSTR* _out,uint8 endChar,uint32 offset)const{
 	uint32	length,slength,count;
@@ -423,7 +424,7 @@ const STDSTR& ARRAY::ReadInLine(STDSTR* _out,uint8 endChar,uint32 offset)const{
 		addr = cgDataBuffer;
 	}
 	return(*_out);
-}
+};
 //------------------------------------------------------------------------------------------//
 const STDSTR& ARRAY::GetInLine(STDSTR* _out,uint8 endChar){
 	uint32	length,slength,offset,count,copyNum;
@@ -455,5 +456,6 @@ const STDSTR& ARRAY::GetInLine(STDSTR* _out,uint8 endChar){
 	}
 	offsetOut += copyNum;
 	return(*_out);
-}
+};
 //------------------------------------------------------------------------------------------//
+#endif

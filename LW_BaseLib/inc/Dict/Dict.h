@@ -6,13 +6,14 @@
 //  Copyright © 2018 Leif Wen. All rights reserved.
 //
 
+//------------------------------------------------------------------------------------------//
 #include "HTML.h"
-#ifdef HTML_h
+#include "SYS_Thread.h"
+#if defined HTML_h && defined SYS_Thread_h
 //------------------------------------------------------------------------------------------//
 #ifndef Dict_h
 #define Dict_h
 #ifdef Dict_h
-#include "SYS_Thread.h"
 //------------------------------------------------------------------------------------------//
 enum	G_DICT_RM	{G_DICT_RM_COMPRESS_NO = 0	,G_DICT_RM_COMPRESS_YES};
 //------------------------------------------------------------------------------------------//

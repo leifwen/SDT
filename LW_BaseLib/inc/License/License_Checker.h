@@ -21,13 +21,14 @@ bool32	CHK_GetSMC			(STDSTR* smc,uint32 codeNo);
 #endif /* License_Checker_h */
 #endif /* License_Checker_h */
 //------------------------------------------------------------------------------------------//
-#else
+#endif /* ADS_Crypto_h */
+//------------------------------------------------------------------------------------------//
+#ifndef License_Checker_h
 #ifndef License_CheckerT_h
 #define License_CheckerT_h
-inline void	CHK_CheckerInit			(void){;};
-inline void	CHK_CheckerInitClear	(void){ ; };
-inline bool32	CHK_CheckTime		(void){ return 0; };
-inline bool32	CHK_GetSMC			(STDSTR* smc, uint32 codeNo){ return 0; };
+inline void		CHK_CheckerInit			(void){;};
+inline void		CHK_CheckerInitClear	(void){;};
+inline bool32	CHK_CheckTime			(void){return G_FALSE;};
+inline bool32	CHK_GetSMC				(STDSTR* smc, uint32 codeNo){return G_FALSE;};
 #endif
-//------------------------------------------------------------------------------------------//
-#endif /* ADS_Crypto_h */
+#endif

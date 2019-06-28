@@ -7,6 +7,7 @@
 //
 
 #include "stdafx.h"
+//------------------------------------------------------------------------------------------//
 #include "BIF_Transform.h"
 //------------------------------------------------------------------------------------------//
 #ifdef BIF_Transform_h
@@ -24,7 +25,7 @@ CMDID BIF_COMBINE_BASE::Execute(CMD_ENV* env,const uint32& mID,const STDSTR& msg
 	if ((CheckSFlag(CMD_blTrySubCMD)) && (msg.length() > 0))
 		return(TraversalChildExecute(env,mID,msg,bif_retstr));
 	return(CMD_ID_NO);
-}
+};
 //------------------------------------------------------------------------------------------//
 
 
@@ -60,7 +61,7 @@ CMDID BIF_SQ::ResolveID(STDSTR** retMsg,const STDSTR& rawIn)const{
 	}
 	**retMsg = "";
 	return(BIF_ID_NO);
-}
+};
 //------------------------------------------------------------------------------------------//
 CMDID BIF_SQ::Command(CMD_ENV* env,const STDSTR& msg,void* bif_retstr)const{
 	BIF_RETSTR *ret = static_cast<BIF_RETSTR*>(bif_retstr);
@@ -68,7 +69,7 @@ CMDID BIF_SQ::Command(CMD_ENV* env,const STDSTR& msg,void* bif_retstr)const{
 	ret->forPrint += ret->result;
 	ret->forSend += ret->result;
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIF_HEX::Help(CMD_ENV* env,uint32 flag)const{
@@ -85,7 +86,7 @@ CMDID BIF_HEX::Command(CMD_ENV* env,const STDSTR& msg,void* bif_retstr)const{
 	ret->forPrint += ("[HEX:" + Str_RTrim(Str_ASCIIToHEXs(ret->result, G_ESCAPE_OFF)) +"]");
 	ret->forSend += ret->result;
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIF_VIEWINHEX::Help(CMD_ENV* env,uint32 flag)const{
@@ -104,7 +105,7 @@ CMDID BIF_VIEWINHEX::Command(CMD_ENV* env,const STDSTR& msg,void* bif_retstr)con
 		ret->forPrint += ("[HEX:" + Str_RTrim(Str_ASCIIToHEXs(ret->result, G_ESCAPE_OFF)) +"]");
 		ret->forSend += ret->result;
 	}	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 #ifndef DEFAULT_TIMEFORMATE
 	#define	DEFAULT_TIMEFORMATE	"[hh:mm:ss.zzz]"
@@ -137,7 +138,7 @@ CMDID BIF_TIME::Command(CMD_ENV* env,const STDSTR& msg,void* bif_retstr)const{
 	ret->forPrint += ret->result;
 	Str_CharToStr(&ret->forSend, (uint8*)ret->result.c_str(), ret->result.length(), G_ASCII, G_SPACE_OFF, G_ESCAPE_ON);
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIF_STRING::Help(CMD_ENV* env,uint32 flag)const{
@@ -208,7 +209,7 @@ CMDID BIF_STRING::Command(CMD_ENV* env,const STDSTR& msg,void* bif_retstr)const{
 	}
 	ret->forSend += ret->result;
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 CMDID BIF_FILE::Help(CMD_ENV* env,uint32 flag)const{
 	PrintB(env,".CMD = File(<FileName>) -->Read file.");
@@ -225,8 +226,10 @@ CMDID BIF_FILE::Command(CMD_ENV* env,const STDSTR& msg,void* bif_retstr)const{
 	ret->result = msg;
 	ret->result = Str_SplitSubItem(&ret->result, ' ');
 	if (msg.length() > 0){
+#ifdef DS_Transform_h
 		if (CFS_CheckFile(ret->result) > 0)
 			DS_IO_NODE::GetDSIOList().Transform(nullptr, &ret->forSend, IUD_FILE(ret->result));
+#endif
 		ret->forPrint += "[File Size:";
 		ret->forPrint += Str_ToStr(CFS_CheckFileSize(ret->result));
 		ret->forPrint += ",Name:";
@@ -235,7 +238,7 @@ CMDID BIF_FILE::Command(CMD_ENV* env,const STDSTR& msg,void* bif_retstr)const{
 	}
 	ret->result = "";
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIF_DEFINE::Help(CMD_ENV* env,uint32 flag)const{
@@ -254,7 +257,7 @@ CMDID BIF_DEFINE::Command(CMD_ENV* env,const STDSTR& msg,void* bif_retstr)const{
 	}
 	ret->result = "";
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIF_REPLACE::Help(CMD_ENV* env,uint32 flag)const{
@@ -290,7 +293,7 @@ CMDID BIF_REPLACE::Command(CMD_ENV* env,const STDSTR& msg,void* bif_retstr)const
 		ret->forSend += msg;
 	}
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIF_SEARCH::Help(CMD_ENV* env,uint32 flag)const{
@@ -330,7 +333,7 @@ CMDID BIF_SEARCH::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 #ifdef Output_h
 		if (CheckEnvFlag(env,BIF_ENV::ENV_blPrintBIFInfo) && CheckEnvFlag(env,BIF_ENV::ENV_blPrintBIFExplain) && (GetSTDOUT(env) != nullptr)){
 			int32 i = 0;
-			strSearchRet = BIF_ENV::RetDefine(env);
+			strSearchRet = BIF_ENV::RetSearch(env);
 			*GetSTDOUT(env) << Begin() << NL()
 			<< COL_DivLineTime << COL_NormalMessage << "Execute: Search::" << msg << "\n"
 			<< COL_clRed;
@@ -342,7 +345,7 @@ CMDID BIF_SEARCH::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 #endif
 	}
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIF_RET::Help(CMD_ENV* env,uint32 flag)const{
@@ -376,7 +379,7 @@ CMDID BIF_RET::Command(CMD_ENV* env,const STDSTR& msg,void* bif_retstr)const{
 		ret->forSend += ret->result;
 	}
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 #define BIF_CALC_T(mode,text) \
@@ -390,7 +393,7 @@ CMDID BIF_CALC_##mode::Command(CMD_ENV* env,const STDSTR& msg,void* bif_retstr)c
 			ret->result = ALG_Digest_##mode(IUD_FILE(ret->result));\
 		}\
 		else{\
-			BIF_Transform(nullptr, _EMPTY(&ret->result), nullptr,msg,CMD_NONE,G_ESCAPE_ON);\
+			BIF_Transform(nullptr, _EMPTY(&ret->result),nullptr,msg,CMD_NONE,G_ESCAPE_ON);\
 			ret->result = ALG_Digest_##mode(ret->result);\
 		}\
 		ret->forPrint += "[";\
@@ -401,9 +404,9 @@ CMDID BIF_CALC_##mode::Command(CMD_ENV* env,const STDSTR& msg,void* bif_retstr)c
 		ret->forSend += ret->result;\
 	}\
 	return(cgCommandID);\
-}
+};
 //------------------------------------------------------------------------------------------//
-#ifdef ALG_Digest_h
+#ifdef ALG_DS_DIGEST
 BIF_CALC_T(MD5,		"MD5");
 BIF_CALC_T(SHA1,	"SHA1");
 BIF_CALC_T(SHA224,	"SHA224");
@@ -486,8 +489,8 @@ CMDID BIF_CALC_BASE64::Help(CMD_ENV* env,uint32 flag)const{
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIF_CALC_BASE64::Command(CMD_ENV* env,const STDSTR& msg,void* bif_retstr)const{
-	BIF_RETSTR *ret = static_cast<BIF_RETSTR*>(bif_retstr);
-	ALG_BASE64 b64;
+	BIF_RETSTR	*ret = static_cast<BIF_RETSTR*>(bif_retstr);
+	ALG_BASE64	b64;
 	STDSTR		par1,par2;
 	
 	b64.InitSize(512);
@@ -513,11 +516,12 @@ CMDID BIF_CALC_BASE64::Command(CMD_ENV* env,const STDSTR& msg,void* bif_retstr)c
 				return(BIF_ID_COMBINE_CALC_BASE64_FILE);
 			}
 			else{
-				BIF_Transform(nullptr, _EMPTY(&par1), nullptr,par2,CMD_NONE,G_ESCAPE_ON);
 				if (par1 == "e"){
+					BIF_Transform(nullptr, _EMPTY(&par1), nullptr,par2,CMD_NONE,G_ESCAPE_ON);
 					b64.InitCFG(ALG_BASE64::CFG_Encode | ALG_BASE64::CFG_NL).AllIn(nullptr, &ret->result, par1);
 				}
 				else{
+					BIF_Transform(nullptr, _EMPTY(&par1), nullptr,par2,CMD_NONE,G_ESCAPE_ON);
 					b64.InitCFG(ALG_BASE64::CFG_Decode | ALG_BASE64::CFG_NL).AllIn(nullptr, &ret->result, par1);
 				}
 				ret->forPrint += ret->result;
@@ -526,7 +530,7 @@ CMDID BIF_CALC_BASE64::Command(CMD_ENV* env,const STDSTR& msg,void* bif_retstr)c
 		}
 	}
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 #endif
 //------------------------------------------------------------------------------------------//
@@ -546,8 +550,8 @@ BIF_COMBINE::BIF_COMBINE(void) : BIF_BASE() {
 	cgCommandID = BIF_ID_COMBINE;
 	cgCommand = "combine,=/build,=/send,=";
 	
-	Add(cgSubC_SQ) < cgSubC_HEX < cgSubC_VIEWINHEX < cgSubC_TIME < cgSubC_STRING < cgSubC_FILE < cgSubC_DEFINE < cgSubC_REPLACE
-#ifdef ALG_Digest_h
+	AppendDown(cgSubC_SQ) < cgSubC_HEX < cgSubC_VIEWINHEX < cgSubC_TIME < cgSubC_STRING < cgSubC_FILE < cgSubC_DEFINE < cgSubC_REPLACE
+#ifdef ALG_DS_DIGEST
 	< cgSubC_CALC_MD5 < cgSubC_CALC_SHA1 < cgSubC_CALC_SHA224 < cgSubC_CALC_SHA256 < cgSubC_CALC_SHA384 < cgSubC_CALC_SHA512
 #endif
 #ifdef ALG_BASE64_h
@@ -602,7 +606,7 @@ CMDID BIF_COMBINE::Command(CMD_ENV* env,const STDSTR& msg,void* bif_retstr)const
 		}
 	}
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 static void BIF::FormatString(STDSTR* retStr,const STDSTR& strIn){
 	//formate to HEX without space
@@ -635,7 +639,7 @@ static void BIF::FormatString(STDSTR* retStr,const STDSTR& strIn){
 		}
 	}
 	Str_ASCIIToHEX(retStr, Str_Trim(strData), G_ESCAPE_OFF);
-}
+};
 //------------------------------------------------------------------------------------------//
 static void BIF::SplitLetter(STDSTR* retStr,STDSTR* strIn){
 	// remove " in front and back.
@@ -645,7 +649,7 @@ static void BIF::SplitLetter(STDSTR* retStr,STDSTR* strIn){
 		if (((*retStr)[0] == '"') && ((*retStr)[retStr->length() - 1] == '"'))
 			*retStr = retStr->substr(1,retStr->length() - 2);
 	}
-}
+};
 //------------------------------------------------------------------------------------------//
 
 
@@ -675,9 +679,9 @@ CMDID BIF_PRINT::Command(CMD_ENV* env,const STDSTR& msg,void* bif_retstr)const{
 	STDSTR 	retForPrint;
 	
 	BIF_Transform(env,nullptr,_EMPTY(&retForPrint),msg,CMD_NONE,G_ESCAPE_ON);
-	PrintExecute(env,retForPrint);
+	PrintWithDividingLine(env,"Print:",retForPrint);
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 
 
@@ -734,7 +738,7 @@ CMDID BIF_Transform(CMD_ENV* env,STDSTR* retForSend,STDSTR* retForPrint,const ST
 	if (retForPrint != nullptr)
 		*retForPrint += ret.forPrint;
 	return(eIDCode);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 #endif /* BIF_Transform_h */

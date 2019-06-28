@@ -7,6 +7,7 @@
 //
 
 #include "stdafx.h"
+//------------------------------------------------------------------------------------------//
 #include "Commu_ComEnum.h"
 #ifdef Commu_ComEnum_h
 //------------------------------------------------------------------------------------------//
@@ -139,7 +140,7 @@ void PORTLIST::DeviceEnumCommPortFriendlyName(void){
 	}
 	SetupDiDestroyDeviceInfoList(hDevInfo);
 #endif
-}
+};
 //------------------------------------------------------------------------------------------//
 int32 PORTLIST::DeviceEnumCommPort(void){
 #ifdef CommonDefH_VC
@@ -186,7 +187,7 @@ int32 PORTLIST::DeviceEnumCommPort(void){
 	}
 #endif
 	return(0);
-}
+};
 //------------------------------------------------------------------------------------------//
 int32 PORTLIST::Sortout(void){
 	int32			i,j;
@@ -203,7 +204,7 @@ int32 PORTLIST::Sortout(void){
 		}
 	}
 	return(i);
-}
+};
 //------------------------------------------------------------------------------------------//
 
 
@@ -216,9 +217,8 @@ int32 PORTLIST::Sortout(void){
 
 
 //------------------------------------------------------------------------------------------//
-IPCOMNAME::IPCOMNAME(void) : TREE_NODE(){
+IPCOMNAME::IPCOMNAME(void) : TNF(){
 	Init();
-	SetSelfName("IPCOMNAME");
 };
 //------------------------------------------------------------------------------------------//
 void IPCOMNAME::Init(void){
@@ -229,11 +229,11 @@ void IPCOMNAME::Init(void){
 	strUserDefineName = "";
 	strShowName = "";
 	blAvailable = 1;
-}
+};
 //------------------------------------------------------------------------------------------//
-void IPCOMNAME::CreateShowName(G_LOCK blLock){
+void IPCOMNAME::CreateShowName(void){
 	STDSTR		strTemp;
-	InUse_set(blLock);
+	rwLock.W_set();
 	strShowName = "";
 	if (typeID == PublicDevice_DEVID_APICOM){
 		strShowName = strUserDefineName;
@@ -296,8 +296,8 @@ void IPCOMNAME::CreateShowName(G_LOCK blLock){
 			strShowName += Str_ToStr(portBaudrate);
 		}
 	}
-	InUse_clr(blLock);
-}
+	rwLock.W_clr();
+};
 //------------------------------------------------------------------------------------------//
 STDSTR&	IPCOMNAME::Export(uint32 ver,STDSTR* strOut){
 	switch (ver) {
@@ -312,7 +312,7 @@ STDSTR&	IPCOMNAME::Export(uint32 ver,STDSTR* strOut){
 			break;
 	}
 	return(*strOut);
-}
+};
 //------------------------------------------------------------------------------------------//
 void IPCOMNAME::Import(uint32 ver,STDSTR* strIn){
 	switch (ver) {
@@ -327,7 +327,7 @@ void IPCOMNAME::Import(uint32 ver,STDSTR* strIn){
 			break;
 	}
 	return;
-}
+};
 //------------------------------------------------------------------------------------------//
 STDSTR& IPCOMNAME::ExportV0_4(uint32 ver,STDSTR* strOut){
 	//V0.4.11/25/2013
@@ -340,7 +340,7 @@ STDSTR& IPCOMNAME::ExportV0_4(uint32 ver,STDSTR* strOut){
 	//		strUserDefineName =
 	//	[ipcom_end]
 	
-	InUse_set();
+	rwLock.R_set();
 	{
 		*strOut +=  "  [ipcom]\n";
 		*strOut += ("    typeID = " + Str_ToStr(typeID) + "\n");
@@ -351,9 +351,9 @@ STDSTR& IPCOMNAME::ExportV0_4(uint32 ver,STDSTR* strOut){
 			*strOut += ("    strUserDefineName = " + strUserDefineName + "\n");
 		*strOut +=  "  [ipcom_end]\n";
 	}
-	InUse_clr();
+	rwLock.R_clr();
 	return(*strOut);
-}
+};
 //------------------------------------------------------------------------------------------//
 void IPCOMNAME::ImportV0_4(uint32 ver,STDSTR* strIn){
 	//V0.4.11/25/2013
@@ -366,7 +366,7 @@ void IPCOMNAME::ImportV0_4(uint32 ver,STDSTR* strIn){
 	//		strUserDefineName =
 	//	[ipcom_end]
 	STDSTR		strLine,strItem;
-	InUse_set();
+	rwLock.W_set();
 	{
 		Init();
 		while(strIn->length() > 0){
@@ -391,14 +391,14 @@ void IPCOMNAME::ImportV0_4(uint32 ver,STDSTR* strIn){
 				strUserDefineName = strLine;
 			}
 		}
-		CreateShowName(G_LOCK_OFF);
+		CreateShowName();
 	}
-	InUse_clr();
-}
+	rwLock.W_clr();
+};
 //------------------------------------------------------------------------------------------//
 void IPCOMNAME::Copy(IPCOMNAME* node1,const IPCOMNAME* node2,G_LOCK blLock){
-	node1->InUse_set(blLock);
-	((IPCOMNAME*)node2)->InUse_set(blLock);
+	node1->rwLock.W_set();
+	((IPCOMNAME*)node2)->rwLock.R_set();
 	node1->typeID = node2->typeID;
 	node1->strIPComName = node2->strIPComName;
 	node1->portBaudrate = node2->portBaudrate;
@@ -406,9 +406,9 @@ void IPCOMNAME::Copy(IPCOMNAME* node1,const IPCOMNAME* node2,G_LOCK blLock){
 	node1->strUserDefineName = node2->strUserDefineName;
 	node1->strShowName = node2->strShowName;
 	node1->blAvailable = node2->blAvailable;
-	((IPCOMNAME*)node2)->InUse_clr(blLock);
-	node1->InUse_clr(blLock);
-}
+	((IPCOMNAME*)node2)->rwLock.R_clr();
+	node1->rwLock.W_clr();
+};
 //------------------------------------------------------------------------------------------//
 
 
@@ -421,7 +421,7 @@ void IPCOMNAME::Copy(IPCOMNAME* node1,const IPCOMNAME* node2,G_LOCK blLock){
 
 
 //------------------------------------------------------------------------------------------//
-IPCOMLIST::IPCOMLIST(void) : TREE_NODE(){
+IPCOMLIST::IPCOMLIST(void) : TNFP(){
 	selectedNode = nullptr;
 	SetSelfName("IPCOMLIST");
 };
@@ -431,11 +431,11 @@ IPCOMLIST::~IPCOMLIST(void){
 };
 //------------------------------------------------------------------------------------------//
 TNF* IPCOMLIST::CreateNode(void){
-	return(SetSubNodeFatherName(new IPCOMNAME));
+	return(new IPCOMNAME);
 };
 //------------------------------------------------------------------------------------------//
 void IPCOMLIST::Empty(void){
-	CleanChild(this,this);
+	CleanDownTree(this,this);
 };
 //------------------------------------------------------------------------------------------//
 void IPCOMLIST::Save(const STDSTR& fileName){
@@ -485,7 +485,7 @@ STDSTR&	IPCOMLIST::Export(uint32 ver,STDSTR* strOut){
 			break;
 	}
 	return(*strOut);
-}
+};
 //------------------------------------------------------------------------------------------//
 void IPCOMLIST::Import(uint32 ver,STDSTR* strIn){
 	switch (ver) {
@@ -500,7 +500,7 @@ void IPCOMLIST::Import(uint32 ver,STDSTR* strIn){
 			break;
 	}
 	return;
-}
+};
 //------------------------------------------------------------------------------------------//
 STDSTR& IPCOMLIST::ExportV0_4(uint32 ver,STDSTR* strOut){
 	//V0.4,11/25/2013
@@ -513,11 +513,11 @@ STDSTR& IPCOMLIST::ExportV0_4(uint32 ver,STDSTR* strOut){
 	//	[ipcomlist_end]
 	
 	*strOut += "[ipcomlist]\n";
-	TREE_LChildRChain_Traversal_LINE(IPCOMNAME,this, _opNode->Export(ver,strOut));
+	TREE_DownChain_Traversal_LINE(IPCOMNAME,this, _opNode->Export(ver,strOut));
 	*strOut += "[ipcomlist_end]\n";
 	
 	return(*strOut);
-}
+};
 //------------------------------------------------------------------------------------------//
 void IPCOMLIST::ImportV0_4(uint32 ver,STDSTR* strIn){
 	//V0.4,11/25/2013
@@ -540,7 +540,7 @@ void IPCOMLIST::ImportV0_4(uint32 ver,STDSTR* strIn){
 			AddWithCheck(&node);
 		}
 	}
-}
+};
 //------------------------------------------------------------------------------------------//
 bool32 NewNodeCheck(IPCOMNAME* nodeInList,IPCOMNAME* checkNode){
 	bool32 blChecked;
@@ -557,33 +557,33 @@ bool32 NewNodeCheck(IPCOMNAME* nodeInList,IPCOMNAME* checkNode){
 		}
 	}
 	return(blChecked);
-}
+};
 //------------------------------------------------------------------------------------------//
 IPCOMNAME* IPCOMLIST::AddWithCheck(IPCOMNAME* newIPComName,G_LOCK blLock){
 	IPCOMNAME	*retNode;
 	
-	TREE_LChildRChain_Find(IPCOMNAME,this,retNode,(NewNodeCheck(_opNode,newIPComName)));
+	TREE_DownChain_Find(IPCOMNAME,this,retNode,(NewNodeCheck(_opNode,newIPComName)));
 	
 	if (retNode == nullptr){
 		retNode = (IPCOMNAME*)GetNewNode();
 		if (retNode != nullptr){
 			IPCOMNAME::Copy(retNode,newIPComName,blLock);
-			AddNode(retNode);
+			AppendDownNode(retNode);
 		}
 	}
 	return(retNode);
-}
+};
 //------------------------------------------------------------------------------------------//
 void IPCOMLIST::Refresh(void){
 	PORTLIST	tPortlist;
 	int32		i,num;
 	IPCOMNAME 	node;
 	
-	TREE_LChildRChain_Traversal_LINE(IPCOMNAME,this,
-		_opNode->InUse_set();
+	TREE_DownChain_Traversal_LINE(IPCOMNAME,this,
+		_opNode->rwLock.W_set();
 		if (_opNode->typeID == PublicDevice_DEVID_APICOM)
 			_opNode->blAvailable = 0;
-			_opNode->InUse_clr();
+			_opNode->rwLock.W_clr();
 	);
 	
 	num = tPortlist.DeviceEnumCommPort();
@@ -598,28 +598,28 @@ void IPCOMLIST::Refresh(void){
 		node.CreateShowName();
 		AddWithCheck(&node);
 	}
-}
+};
 //------------------------------------------------------------------------------------------//
 void IPCOMLIST::Export(IPCOMLIST* cExportList){
 	cExportList->Empty();
 	
-	TREE_LChildRChain_Traversal_LINE(IPCOMNAME,this,
-		_opNode->InUse_set();
+	TREE_DownChain_Traversal_LINE(IPCOMNAME,this,
+		_opNode->rwLock.R_set();
 		if (_opNode->blAvailable != 0)
 			cExportList->AddWithCheck(_opNode,G_LOCK_OFF);
-			_opNode->InUse_clr();
+		_opNode->rwLock.R_clr();
 	);
-}
+};
 //------------------------------------------------------------------------------------------//
 void IPCOMLIST::ExportCOM(IPCOMLIST* cExportList){
 	cExportList->Empty();
 	
-	TREE_LChildRChain_Traversal_LINE(IPCOMNAME,this,
-		_opNode->InUse_set();
+	TREE_DownChain_Traversal_LINE(IPCOMNAME,this,
+		_opNode->rwLock.R_set();
 		if ((_opNode->blAvailable != 0) && (_opNode->typeID == PublicDevice_DEVID_APICOM))
 			cExportList->AddWithCheck(_opNode,G_LOCK_OFF);
-			_opNode->InUse_clr();
+		_opNode->rwLock.R_clr();
 	);
-}
+};
 //------------------------------------------------------------------------------------------//
 #endif /* Commu_ComEnum_h */

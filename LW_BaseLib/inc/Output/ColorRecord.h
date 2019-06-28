@@ -6,10 +6,12 @@
 //  Copyright © 2018 Leif Wen. All rights reserved.
 //
 
+//------------------------------------------------------------------------------------------//
 #include "ADS_Protocol.h"
 //------------------------------------------------------------------------------------------//
 #ifndef _ColDataH
 #define _ColDataH
+#ifdef _ColDataH
 //------------------------------------------------------------------------------------------//
 #ifdef CommonDefH_Unix
 enum COLORENUM{
@@ -86,6 +88,7 @@ enum COLORENUM{
 	
 	COL_clPurple,
 	
+	COL_FE = 0xfe,
 	COL_FF = 0xff,
 };
 #endif
@@ -103,19 +106,20 @@ enum COLORENUM{
 #define	COL_Time_DCyan			ColData(COL_Time			,SYS_MakeTimeNow())
 #define	COL_DivLineTime			ColData(COL_DivLine_Maroon	,COL_Time_DCyan)
 //------------------------------------------------------------------------------------------//
+#endif
+//------------------------------------------------------------------------------------------//
+#ifdef ADS_Protocol_h
+#ifndef ColorRecord_h
+#define ColorRecord_h
+//------------------------------------------------------------------------------------------//
+#ifdef ColorRecord_h
+//------------------------------------------------------------------------------------------//
 struct _ColData{
 	COLORENUM	col;
 	UVIn		uvin;
 };
 template <typename UV>	static inline _ColData COLOR	(COLORENUM col,const UV&	_in);
 						static inline _ColData COLOR	(COLORENUM col,const UVIn&	_in);
-#endif
-//------------------------------------------------------------------------------------------//
-#ifdef ADS_Protocol_h
-#ifndef ColorRecord_h
-#define ColorRecord_h
-#ifdef ColorRecord_h
-//------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 class	COLRECORD;
 typedef COLRECORD	CRD;
@@ -151,18 +155,17 @@ class COLRECORD : public PNFB_SHELL{
 	public:
 		static	inline	uint32	CheckNL		(uint32 ctrl);
 		static	inline	uint32	CheckGroup	(uint32 ctrl,uint32 group);
-
 	protected:
-		inline	virtual	ioss	DoTransform	(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length);
-		inline	virtual	ioss	_Begin		(IOSTATUS* _ios);
-		inline	virtual	ioss	_Endl		(void);
+		inline	virtual	IOSE	DoTransform	(IOS* _ios,const UVOut& _out,const uint8* data,const uint64& length);
+		inline	virtual	IOSE	_Begin		(IOS* _ios);
+		inline	virtual	IOSE	_Endl		(IOS* _ios);
 	private:
-		inline			CRD&	SetS		(IOSTATUS* _ios,uint32 ctrl,COLORENUM col);
-		inline			ioss	SetE		(void);
+		inline			CRD&	SetS		(IOS* _ios,uint32 ctrl,COLORENUM col);
+		inline			IOSE	SetE		(void);
 	public:
 		inline			uint32	ReadCtrl	(void)const;
 		inline			uint32	ReadCOL		(void)const;
-		inline			ioss	Write		(IOSTATUS* _ios,uint32 ctrl,COLORENUM col,const UVIn& _in);
+		inline			IOSE	Write		(IOS* _ios,uint32 ctrl,COLORENUM col,const UVIn& _in);
 };
 //------------------------------------------------------------------------------------------//
 class	COLRECORD_CACHE;
@@ -177,6 +180,7 @@ class COLRECORD_CACHE : public CRD{
 		uint32			cgInEnforce;
 		uint32			cgInNL;
 		uint32			cgInClrGroup;
+		DS_SpinLock		cgPrintLock;
 	private:
 		inline			uint32	MakeCtrl			(uint32 ctrl,uint32 enforce);
 	public:
@@ -184,11 +188,11 @@ class COLRECORD_CACHE : public CRD{
 		inline			void	EnableGroup			(uint32 group);
 		inline			bool32	CheckDisableGroup	(uint32 group);
 	public:
-		inline			void	Write	(IOSTATUS* _ios,COLORENUM col,const UVIn& _in,G_LOCK blLock = G_LOCK_ON,uint32 enforce = 0,uint32 addr = CRD_DEFGROUP);
-		inline			void	WriteNL	(IOSTATUS* _ios,COLORENUM col,const UVIn& _in,G_LOCK blLock = G_LOCK_ON,uint32 enforce = 0,uint32 addr = CRD_DEFGROUP);
+		inline			void	Write			(IOS* _ios,COLORENUM col,const UVIn& _in,G_LOCK blLock = G_LOCK_ON,uint32 enforce = 0,uint32 addr = CRD_DEFGROUP);
+		inline			void	WriteNL			(IOS* _ios,COLORENUM col,const UVIn& _in,G_LOCK blLock = G_LOCK_ON,uint32 enforce = 0,uint32 addr = CRD_DEFGROUP);
 	public:
-		inline	virtual	ioss	_Begin			(IOSTATUS* _ios);
-		inline	virtual	ioss	_Endl			(void);
+		inline	virtual	IOSE	_Begin			(IOS* _ios);
+		inline	virtual	IOSE	_Endl			(IOS* _ios);
 	public:
 						void	NL				(void);
 						void	SetCol			(COLORENUM col);
@@ -199,21 +203,21 @@ class COLRECORD_CACHE : public CRD{
 //------------------------------------------------------------------------------------------//
 CreateOperatorSetUint32(Col);
 CreateOperatorSetUint32(Addr);
-CreateOperatorFun1(NL);
 CreateOperatorFun2(NL);
+CreateOperatorFun(NL);
 
 CreateOperatorSetUint32(Group);
 CreateOperatorClrUint32(Group);
 
-CreateOperatorFun1(G1);
-CreateOperatorFun1(G2);
-CreateOperatorFun1(G3);
 CreateOperatorFun2(G1);
 CreateOperatorFun2(G2);
 CreateOperatorFun2(G3);
+CreateOperatorFun(G1);
+CreateOperatorFun(G2);
+CreateOperatorFun(G3);
 
-CreateOperatorFun1(DefGroup);
 CreateOperatorFun2(DefGroup);
+CreateOperatorFun(DefGroup);
 //------------------------------------------------------------------------------------------//
 #define TEMPLATE_FUN(_data,_fun)\
 							inline			CRDN&	_fun		(void);\
@@ -252,19 +256,19 @@ class COLRECORD_NODE : public DSTF{
 		inline			void	PrintEnable			(void);
 		inline			int32	CheckPrintDisable	(void);
 	protected:
-		inline	virtual	ioss	DoTransform			(IOSTATUS* _ios,const UVOut& _out,const uint8* data,const uint64& length);
-		inline	virtual	ioss	DoFinal				(IOSTATUS* _ios,const UVOut& _out);
+		inline	virtual	IOSE	DoTransform			(IOS* _ios,const UVOut& _out,const uint8* data,const uint64& length);
+		inline	virtual	IOSE	DoFinal				(IOS* _ios,const UVOut& _out);
 	public:
-		inline	virtual	ioss	_Begin				(IOSTATUS* _ios);
-		inline	virtual	ioss	_Endl				(void);
+		inline	virtual	IOSE	_Begin				(IOS* _ios);
+		inline	virtual	IOSE	_Endl				(IOS* _ios);
 	public:
-		inline			void	Write				(IOSTATUS* _ios,COLORENUM col,const UVIn& _in,G_LOCK blLock = G_LOCK_ON,uint32 extraGroup = 0)const;
-		inline			void	WriteNL				(IOSTATUS* _ios,COLORENUM col,const UVIn& _in,G_LOCK blLock = G_LOCK_ON,uint32 extraGroup = 0)const;;
+		inline			void	Write				(IOS* _ios,COLORENUM col,const UVIn& _in,G_LOCK blLock = G_LOCK_ON,uint32 extraGroup = 0)const;
+		inline			void	WriteNL				(IOS* _ios,COLORENUM col,const UVIn& _in,G_LOCK blLock = G_LOCK_ON,uint32 extraGroup = 0)const;
 	public:
-		inline			uint64	GetInLength			(const UVIn&	 _in);
-		inline			uint64	GetInLength			(const _ColData& _in);
-		inline			uint64	GetInLength			(const char*	 _in);
-		inline			uint64	GetInLength			(const COLORENUM col);
+		inline			uint64	GetUVInLength		(const UVIn&	 _in);
+		inline			uint64	GetUVInLength		(const _ColData& _in);
+		inline			uint64	GetUVInLength		(const char*	 _in);
+		inline			uint64	GetUVInLength		(const COLORENUM col);
 	public:
 		TEMPLATE_DATA	(_ColData,		SetColData);
 		TEMPLATE_DATA	(COLORENUM,		SetColData);
@@ -281,3 +285,10 @@ class COLRECORD_NODE : public DSTF{
 #endif /* ColorRecord_h */
 #include "ColorRecord.hpp"
 #endif
+//------------------------------------------------------------------------------------------//
+#ifndef ColorRecord_h
+#define COLOR(x,y) ""
+#endif
+//------------------------------------------------------------------------------------------//
+#endif
+

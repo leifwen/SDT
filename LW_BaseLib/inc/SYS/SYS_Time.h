@@ -6,8 +6,10 @@
 //  Copyright © 2018 Leif Wen. All rights reserved.
 //
 
+//------------------------------------------------------------------------------------------//
 #ifndef SYS_Time_h
 #define SYS_Time_h
+#ifdef SYS_Time_h
 //------------------------------------------------------------------------------------------//
 #include "BasicDefine.h"
 #include <time.h>
@@ -104,7 +106,6 @@ inline	bool32 SYS_SleepMS(int32 timeMS);
 //------------------------------------------------------------------------------------------//
 struct SYS_TIME_S{
 	double 	timeMS;
-	int32	dfTim;
 	DTIME	DTime1;
 	DTIME	DTime2;
 #ifdef CommonDefH_VC
@@ -120,7 +121,7 @@ inline const double&	SYS_StopWatch_Stop	(SYS_TIME_S* timeS);
 //------------------------------------------------------------------------------------------//
 inline		 void		SYS_Delay_SetTS		(SYS_TIME_S* timeS,double timeMS);
 inline		 void		SYS_Delay_AddTS		(SYS_TIME_S* timeS,double timeMS);
-inline		 bool32		SYS_Delay_CheckTS	(SYS_TIME_S* timeS);
+inline		 bool32		SYS_Delay_IsTimeout	(SYS_TIME_S* timeS);
 //------------------------------------------------------------------------------------------//
 uint64	SYS_TimeToNTP		(const double& sec);
 double	SYS_NTPToTime		(const uint64& ntp);
@@ -130,4 +131,5 @@ uint64	SYS_ASCIIStrToNTP	(STDSTR strIn);
 STDSTR	SYS_NTPToHEXStr		(uint64 ntp);
 //------------------------------------------------------------------------------------------//
 #include "SYS_Time.hpp"
+#endif /* SYS_Time_h */
 #endif /* SYS_Time_h */

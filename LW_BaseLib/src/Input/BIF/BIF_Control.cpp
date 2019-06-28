@@ -7,6 +7,7 @@
 //
 
 #include "stdafx.h"
+//------------------------------------------------------------------------------------------//
 #include "BIF_Control.h"
 #ifdef BIF_Control_h
 #include "BIF_Expression.h"
@@ -33,11 +34,11 @@ CMDID BIF_DELAY::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 	
 	DelayMS(env,timeout);
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIF_WAIT::Help(CMD_ENV* env,uint32 flag)const{
-	PrintB(env,".CMD = Wait=<timeout>,<Expression> -->Wait until receive data contains expression,.");
+	PrintB(env,".CMD = Wait=<timeout>,<Expression> -->Wait until receive data contains expression.");
 	PrintB(env,"  Command = <'Wait=<timeout>,<Expression>>[//COMMENT]");
 	PrintP(env,"  Notes:1.Expression is the same as Condition Expression.");
 	PrintP(env,"   eg:");
@@ -64,10 +65,14 @@ CMDID BIF_WAIT::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 		
 		PrintExecute(env,"Wait, until {", strPar2, "} is true.\n Timeout is", GetMSSTR(timeout));
 		SYS_Delay_SetTS(&timeS,timeout);
-		while(!(ChkblExit(env) || SYS_Delay_CheckTS(&timeS) || BIF_Expression(env,strPar2)));
+		while(!(IsExit(env) || SYS_Delay_IsTimeout(&timeS) || BIF_Expression(env,strPar2))){
+			BIF_ENV::GetArrayIn(env)->Get(&BIF_ENV::STDIN(env), -1);
+			SYS_SleepMS(1);
+		};
 	}
+	BIF_ENV::RetCMD(env) = 2;
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIF_SYNCHRONOUS::Help(CMD_ENV* env,uint32 flag)const{
@@ -136,7 +141,7 @@ CMDID BIF_SYNCHRONOUS::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 	}
 #endif
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIF_LABLE::Help(CMD_ENV* env,uint32 flag)const{
@@ -152,12 +157,12 @@ CMDID BIF_LABLE::Command(CMD_ENV* env,const STDSTR& msg,void* retStr)const{
 	if (retStr != nullptr)
 		*ret = Str_Trim(msg);
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 namespace BIF {
 	static BIF_LABLE	gLable;
-}
+};
 //------------------------------------------------------------------------------------------//
 CMDID BIF_GOTO::Help(CMD_ENV* env,uint32 flag)const{
 	PrintB(env,".CMD = Goto=<Lable>[,<Expression>] -->if receive data contains expression, then jump to Lable.");
@@ -204,7 +209,7 @@ CMDID BIF_GOTO::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 	}
 #endif
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIF_STOP::Help(CMD_ENV* env,uint32 flag)const{
@@ -225,7 +230,7 @@ CMDID BIF_STOP::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 		}
 	}
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIF_BREAK::Help(CMD_ENV* env,uint32 flag)const{
@@ -246,7 +251,7 @@ CMDID BIF_BREAK::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 		}
 	}
 	return(cgCommandID);
-}
+};
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 #endif /* BIF_Control_h */

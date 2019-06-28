@@ -7,6 +7,7 @@
 //
 
 #include "stdafx.h"
+//------------------------------------------------------------------------------------------//
 #include "BIC_Commu.h"
 #ifdef BIC_Commu_h
 //------------------------------------------------------------------------------------------//
@@ -84,9 +85,8 @@ TerminalServer* BIC_ENV_COMMU::GetTS(CMD_ENV* env){
 int32 BIC_COMMU::OnlineMode(CMD_ENV* env,COMMU_FRAME* cmmu,CMD_TAIL tail)const{
 	uint8	chKey;
 	STDSTR	sendData,recData,strTail;
-	uint32	ret;
-	
-	ret = 0;
+	uint32	ret = 0;
+#ifdef Commu_Base_h
 	strTail = "";
 	switch (tail) {
 		case CMD_R:	strTail = '\r';break;
@@ -103,7 +103,7 @@ int32 BIC_COMMU::OnlineMode(CMD_ENV* env,COMMU_FRAME* cmmu,CMD_TAIL tail)const{
 	PrintEnable(env);
 	sendData = "";
 	
-	while((ChkblExit(env) == G_FALSE) && (cmmu->IsOpened()) && (OnlineModeExit(env) == G_FALSE)){
+	while((IsExit(env) == G_FALSE) && (cmmu->IsOpened()) && (OnlineModeExit(env) == G_FALSE)){
 		if (cmmu->Read(_EMPTY(&recData),-1) > 0)
 			PrintStr(env, COLOR(COL_DB_RxText,recData));
 		
@@ -134,8 +134,9 @@ int32 BIC_COMMU::OnlineMode(CMD_ENV* env,COMMU_FRAME* cmmu,CMD_TAIL tail)const{
 	PrintStr(env,"\n");
 	ClrInOnlineMode(env);
 	SwitchToMain(env);
+#endif
 	return(ret);
-}
+};
 //------------------------------------------------------------------------------------------//
 bool32 BIC_COMMU::OnlineModeExit(CMD_ENV* env)const{
 	return G_FALSE;

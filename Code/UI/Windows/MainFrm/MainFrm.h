@@ -42,7 +42,6 @@ class CMainFrame : public CMDIFrameWndEx{
 		#endif
 	public:
 		CChildFrame*				m_MCFrm;
-		CChildFrame*				m_AuxCFrm;
 		CChildFrame*				m_CMUXCFrm;
 		CCMUXView*					m_CMUXView;
 		CString						m_MyTitle;
@@ -50,6 +49,7 @@ class CMainFrame : public CMDIFrameWndEx{
 		CChildFrame*	MainCFrmCreate	(void);
 		CChildFrame*	AuxCFrmCreate	(void);
 		CChildFrame*	CMUXCFrmCreate	(void);
+		CChildFrame*	FindCChildFrame (CString windowText);
 	protected:  // control bar embedded members
 		ITaskbarList3*				m_Pitl3;
 		BOOL						m_Pitl3Created;
@@ -62,7 +62,7 @@ class CMainFrame : public CMDIFrameWndEx{
 		CGCPropertiesViewDP			m_wndGCProperties;
 		CSocketListViewDP			m_wndSocket;
 		CSendViewDP					m_wndSend;
-		CCaclViewDP					m_wndCacl;
+		CCalcViewDP					m_wndCalc;
 		CDlgDevList					m_DlgDevList;
 		IPCOMLIST					m_ValidIPComList;
 		IPCOMLIST					m_ValidAuxComList;
@@ -135,7 +135,7 @@ class CMainFrame : public CMDIFrameWndEx{
 		afx_msg void	OnButtonClickRecodrDir	(void);
 		afx_msg void	OnButtonClickNewRecord	(void);
 		afx_msg void	OnButtonClickSend		(void);
-		afx_msg void	OnButtonClickCacl		(void);
+		afx_msg void	OnButtonClickCalc		(void);
 
 		afx_msg void	OnUpdateEcho			(CCmdUI* pCmdUI);
 		afx_msg void	OnUpdateDSR_FLOW		(CCmdUI* pCmdUI);

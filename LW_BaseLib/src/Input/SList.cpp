@@ -7,20 +7,20 @@
 //
 
 #include "stdafx.h"
+//------------------------------------------------------------------------------------------//
 #include "SList.h"
 #ifdef SList_h
 #include "DS_STRING.h"
 #include "SYS_File.h"
 //------------------------------------------------------------------------------------------//
-SC_NODE::SC_NODE(void) : TREE_NODE(){
+SC_NODE::SC_NODE(void) : TNF(){
 	Init();
-	SetSelfName("SC_NODE");
 };
 //------------------------------------------------------------------------------------------//
 void SC_NODE::Init(void){
 	blEnableSendCR = 1;
 	StrCommand = "";
-}
+};
 //------------------------------------------------------------------------------------------//
 STDSTR&	SC_NODE::Export(uint32 ver,STDSTR* strOut){
 	switch (ver) {
@@ -35,7 +35,7 @@ STDSTR&	SC_NODE::Export(uint32 ver,STDSTR* strOut){
 			break;
 	}
 	return(*strOut);
-}
+};
 //------------------------------------------------------------------------------------------//
 void SC_NODE::Import(uint32 ver,STDSTR* strIn){
 	switch (ver) {
@@ -50,7 +50,7 @@ void SC_NODE::Import(uint32 ver,STDSTR* strIn){
 			break;
 	}
 	return;
-}
+};
 //------------------------------------------------------------------------------------------//
 STDSTR& SC_NODE::ExportV0_4(uint32 ver,STDSTR* strOut){
 	//V0.4
@@ -60,15 +60,15 @@ STDSTR& SC_NODE::ExportV0_4(uint32 ver,STDSTR* strOut){
 	//			strCommand =
 	//		[scNode_end]
 	
-	InUse_set();
+	rwLock.R_set();
 	*strOut  += "  [scNode]\n";
 	if (blEnableSendCR == 0)
 		*strOut += ("    blEnableSendCR = 0\n");
 	*strOut += ("    strCommand = " + StrCommand + "\n");
 	*strOut +=  "  [scNode_end]\n";
-	InUse_clr();
+	rwLock.R_clr();
 	return(*strOut);
-}
+};
 //------------------------------------------------------------------------------------------//
 void SC_NODE::ImportV0_4(uint32 ver,STDSTR* strIn){
 	//V0.4
@@ -79,7 +79,7 @@ void SC_NODE::ImportV0_4(uint32 ver,STDSTR* strIn){
 	//		[scNode_end]
 	STDSTR		strLine,strItem;
 	
-	InUse_set();
+	rwLock.W_set();
 	Init();
 	while(strIn->length() > 0){
 		strLine = Str_Trim(Str_ReadSubItem(strIn,"\n"));
@@ -95,32 +95,32 @@ void SC_NODE::ImportV0_4(uint32 ver,STDSTR* strIn){
 			StrCommand = strLine;
 		}
 	}
-	InUse_clr();
-}
+	rwLock.W_clr();
+};
 //------------------------------------------------------------------------------------------//
 void SC_NODE::Copy(SC_NODE* node1,const SC_NODE * node2){
-	node1->InUse_set();
-	((SC_NODE*)node2)->InUse_set();
+	node1->rwLock.W_set();
+	((SC_NODE*)node2)->rwLock.R_set();
 	node1->blEnableSendCR = node2->blEnableSendCR;
 	node1->StrCommand = node2->StrCommand;
-	((SC_NODE*)node2)->InUse_clr();
-	node1->InUse_clr();
-}
+	((SC_NODE*)node2)->rwLock.R_clr();
+	node1->rwLock.W_clr();
+};
 //------------------------------------------------------------------------------------------//
 STDSTR&	SC_NODE::GetTitle(STDSTR* retStr){
 	*retStr = " sID      command";
 	return(*retStr);
-}
+};
 //------------------------------------------------------------------------------------------//
 STDSTR&	SC_NODE::Compose(STDSTR* retStr){
-	InUse_set();
-	*retStr = Str_ToStr(GetdRNodeID(this));
+	rwLock.R_set();
+	*retStr = Str_ToStr(GetDRNodeID(this));
 	Str_AddSpaceInFront(retStr,4);
 	*retStr += (blEnableSendCR == 0)?".      ":".  CR  ";
 	*retStr += StrCommand;
-	InUse_clr();
+	rwLock.R_clr();
 	return(*retStr);
-}
+};
 //------------------------------------------------------------------------------------------//
 
 
@@ -131,7 +131,7 @@ STDSTR&	SC_NODE::Compose(STDSTR* retStr){
 
 
 //------------------------------------------------------------------------------------------//
-SC_LIST::SC_LIST(void) : TREE_NODE(){
+SC_LIST::SC_LIST(void) : TNFP(){
 	SetSelfName("SC_LIST");
 };
 //------------------------------------------------------------------------------------------//
@@ -140,7 +140,7 @@ SC_LIST::~SC_LIST(void){
 };
 //------------------------------------------------------------------------------------------//
 TNF* SC_LIST::CreateNode(void){
-	return(SetSubNodeFatherName(new SC_NODE));
+	return(new SC_NODE);
 };
 //------------------------------------------------------------------------------------------//
 void SC_LIST::MoveToTrash(TNF* tFirstNode,TNF* tEndNode){
@@ -148,7 +148,7 @@ void SC_LIST::MoveToTrash(TNF* tFirstNode,TNF* tEndNode){
 };
 //------------------------------------------------------------------------------------------//
 void SC_LIST::Empty(void){
-	CleanChild(this,this);
+	 CleanDownTree(this,this);
 };
 //------------------------------------------------------------------------------------------//
 void SC_LIST::Save(const STDSTR& fileName){
@@ -198,7 +198,7 @@ STDSTR&	SC_LIST::Export(uint32 ver,STDSTR* strOut){
 			break;
 	}
 	return(*strOut);
-}
+};
 //------------------------------------------------------------------------------------------//
 void SC_LIST::Import(uint32 ver,STDSTR* strIn){
 	switch (ver) {
@@ -213,7 +213,7 @@ void SC_LIST::Import(uint32 ver,STDSTR* strIn){
 			break;
 	}
 	return;
-}
+};
 //------------------------------------------------------------------------------------------//
 STDSTR& SC_LIST::ExportV0_4(uint32 ver,STDSTR* strOut){
 	//V0.4
@@ -226,10 +226,10 @@ STDSTR& SC_LIST::ExportV0_4(uint32 ver,STDSTR* strOut){
 	//	[singleCommand_end]
 	
 	*strOut += "[singleCommand]\n";
-	TREE_LChildRChain_Traversal_LINE(SC_NODE,this, _opNode->Export(ver,strOut));
+	TREE_DownChain_Traversal_LINE(SC_NODE,this, _opNode->Export(ver,strOut));
 	*strOut += "[singleCommand_end]\n";
 	return(*strOut);
-}
+};
 //------------------------------------------------------------------------------------------//
 void SC_LIST::ImportV0_4(uint32 ver,STDSTR* strIn){
 	//V0.4
@@ -252,10 +252,10 @@ void SC_LIST::ImportV0_4(uint32 ver,STDSTR* strIn){
 			node = (SC_NODE*)GetNewNode();
 			if (node != nullptr){
 				node->Import(ver,strIn);
-				AddNode(node);
+				AppendDownNode(node);
 			}
 		}
 	}
-}
+};
 //------------------------------------------------------------------------------------------//
 #endif /* SList_h */

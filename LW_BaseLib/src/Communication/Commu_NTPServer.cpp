@@ -7,19 +7,16 @@
 //
 
 #include "stdafx.h"
+//------------------------------------------------------------------------------------------//
 #include "Commu_NTPServer.h"
 #ifdef Commu_NTPServer_h
 //------------------------------------------------------------------------------------------//
-NTPServer::NTPServer(void) : ASOCKETSERVER(1024,nullptr){
+CORE_NTPServer::CORE_NTPServer(void) : CORE_SOCKETSERVER(){
 	TNFP::SetSelfName("NTPServer");
-	SetFatherName("");
+	SetUpName("");
 };
 //------------------------------------------------------------------------------------------//
-bool32 NTPServer::Run(int32 port){
-	return(Open(SetOpenPar(OPEN_UDPS,"",port,NTPServer::CFG_blDisableEcho)));
-};
-//------------------------------------------------------------------------------------------//
-bool32 NTPServer::ListionUDP(void* commu){
+bool32 CORE_NTPServer::ListionUDP(void* _team){
 	sockaddr_in		ListionAddr;
 #ifdef CommonDefH_Unix
 	socklen_t	addrlen;
@@ -63,6 +60,10 @@ bool32 NTPServer::ListionUDP(void* commu){
 		}
 	}
 	return G_TRUE;
-}
+};
+//------------------------------------------------------------------------------------------//
+bool32 NTPServer::Run(int32 port){
+	return(Open(SetOpenPar(OPEN_UDPS,"",port,NTPServer::CFG_blDisableEcho)));
+};
 //------------------------------------------------------------------------------------------//
 #endif /* Commu_NTPServer_h */

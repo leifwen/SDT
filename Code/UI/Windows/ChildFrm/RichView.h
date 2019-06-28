@@ -35,6 +35,7 @@ class CMyRichView : public CRichEditView{
 		void	RewriteCharFromEnd	(int32 offset, const COLORREF& col,const STDSTR& strIn);
 		void	InsterCharFromEnd	(int32 offset, const COLORREF& col,const STDSTR& strIn);
 		void	AppendChar			(const COLORREF& col,const STDSTR& strIn, G_LOCK blLock = G_LOCK_ON);
+		void	CleanLastLine		(void);
 		void	ToHome				(void);
 		void	Clean				(G_LOCK blLock = G_LOCK_ON);
 
