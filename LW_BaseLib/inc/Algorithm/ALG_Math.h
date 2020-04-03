@@ -13,7 +13,8 @@
 //------------------------------------------------------------------------------------------//
 #include "BasicDefine.h"
 //------------------------------------------------------------------------------------------//
-uint32 ALG_FAO32Calc(STDSTR* result,const STDSTR& expressions);
+uint32 ALG_FAOCalc_UINT32(STDSTR* result,const STDSTR& expressions);
+double ALG_FAOCalc_DOUBLE(STDSTR* result,const STDSTR& expressions);
 //------------------------------------------------------------------------------------------//
 #endif /* ALG_Math_h */
 #endif /* ALG_Math_h */

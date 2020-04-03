@@ -320,8 +320,8 @@ CMDID BIC_GC_SET::Help(CMD_ENV* env,uint32 flag)const{
 		return(cgCommandID);
 	PrintHelpSubItem(env,"[+]"		,"Set group selected");
 	PrintHelpSubItem(env,"[-]"		,"Set group disselected");
-	PrintHelpSubItem(env,"[-cN]"	,"Set cycle, N is value");
-	PrintHelpSubItem(env,"[-tN]"	,"Set interval, N is value");
+	PrintHelpSubItem(env,"[-c <n>]"	,"Set cycle, n is value");
+	PrintHelpSubItem(env,"[-t <ms>]","Set interval, ms is value, unit is ms");
 	PrintHelpSubItem(env,"<gID>"	,"Group gID, s/uns");
 	return(cgCommandID);
 };
@@ -766,15 +766,15 @@ CMDID BIC_GC_GROUP_SET::Help(CMD_ENV* env,uint32 flag)const{
 	PrintHelpItem(env, cgCommand, "Set command");
 	if (B_ChkFLAG32(flag, CMD_blPrintSimple))
 		return(cgCommandID);
-	PrintHelpSubItem(env,"[+]"	,"Set command selected");
-	PrintHelpSubItem(env,"[-]"	,"Set command disselected");
-	PrintHelpSubItem(env,"[-cN]","Set cycle, N is value");
-	PrintHelpSubItem(env,"[-tN]","Set timeout, N is value");
-	PrintHelpSubItem(env,"[+r]","Enable send \"\\r\" in the end");
-	PrintHelpSubItem(env,"[-r]","Disable send \"\\r\" in the end");
-	PrintHelpSubItem(env,"[+n]","Enable send \"\\n\" in the end");
-	PrintHelpSubItem(env,"[-n]","Disable send \"\\n\" in the end");
-	PrintHelpSubItem(env,"<cID>","Command cID, s/uns");
+	PrintHelpSubItem(env,"[+]"		,"Set command selected");
+	PrintHelpSubItem(env,"[-]"		,"Set command disselected");
+	PrintHelpSubItem(env,"[-c <n>]"	,"Set cycle, m is value");
+	PrintHelpSubItem(env,"[-t <s>]"	,"Set timeout, s is value, unit is s");
+	PrintHelpSubItem(env,"[+r]"		,"Enable send \"\\r\" in the end");
+	PrintHelpSubItem(env,"[-r]"		,"Disable send \"\\r\" in the end");
+	PrintHelpSubItem(env,"[+n]"		,"Enable send \"\\n\" in the end");
+	PrintHelpSubItem(env,"[-n]"		,"Disable send \"\\n\" in the end");
+	PrintHelpSubItem(env,"<cID>"	,"Command cID, s/uns");
 	return(cgCommandID);
 };
 //------------------------------------------------------------------------------------------//

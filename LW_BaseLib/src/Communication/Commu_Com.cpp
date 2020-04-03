@@ -425,49 +425,42 @@ bool32 CORE_ACOM::ReadFromDevice(uint32* retNum,uint8* buffer,uint32 length){
 //------------------------------------------------------------------------------------------//
 bool32 CORE_ACOM::SendToDevice(uint32* retNum,const uint8* buffer,uint32 length){
 #ifdef CommonDefH_Unix
-	int64		retCode = 0;
-	uint32		alreadySend;
+	int64		bytesWr = 0;
+	uint32		alreadySend = 0;
 	
-	alreadySend = 0;
-	while((alreadySend < length) && (IsConnected())){
-		while (IsConnected() && ((GetCTSFlowStatus() && (GetCTSStatus() == "H")) || (GetDSRFlowStatus() && (GetDSRStatus() == "H"))))
-			SYS_SleepMS(2);
-
-		retCode = write(osHandle, &buffer[alreadySend], length - alreadySend);
-		if (retCode < 0)
+	do{
+		if ((GetCTSFlowStatus() && (GetCTSStatus() == "H")) || (GetDSRFlowStatus() && (GetDSRStatus() == "H")))//flow
 			break;
-		alreadySend += retCode;
-	}
+		bytesWr = write(osHandle, buffer, length);
+		if (bytesWr > 0)
+			alreadySend = (uint32)bytesWr;
+	}while(0);
 	*retNum = alreadySend;
-	return(!((alreadySend < length) || retCode));
+	return(alreadySend == length);
 #endif
 #ifdef CommonDefH_VC
 	COMSTAT		ComStat;
 	DWORD		dwErrorFlags,dwBytesWr,dwBytesL,dwBytesBuf,err;
-	DCB			ComDCB;
+	uint32		alreadySend = 0;
 
-	ComDCB.DCBlength = sizeof(DCB);
-	err = GetCommState(osHandle,&ComDCB);
-	if (err > 0){
-		while ((err > 0) && IsConnected() && ((ComDCB.fOutxCtsFlow && (GetCTSStatus() == "H")) || (ComDCB.fOutxDsrFlow && (GetDSRStatus() == "H")))){
-			SYS_SleepMS(2);
-			err = GetCommState(osHandle,&ComDCB);
-		};
-
-		memset(&ComStat, 0, sizeof(COMSTAT));
-		err = ClearCommError(osHandle,&dwErrorFlags,&ComStat);
+	memset(&ComStat, 0, sizeof(COMSTAT));
+	err = ClearCommError(osHandle,&dwErrorFlags,&ComStat);
+	
+	do{
+		if ((GetCTSFlowStatus() && (GetCTSStatus() == "H")) || (GetDSRFlowStatus() && (GetDSRStatus() == "H")))//flow
+			break;
 		if (err > 0){
 			dwBytesBuf = ((DWORD)COMMU_BRIDGE::TxMaxSize(unitTeam->bridge) < OSTXBUF_MAX_SIZE) ? (DWORD)COMMU_BRIDGE::TxMaxSize(unitTeam->bridge) : OSTXBUF_MAX_SIZE - ComStat.cbOutQue;
 			dwBytesL = (dwBytesBuf < length) ? dwBytesBuf : length;
 			dwBytesWr = 0;
 			if (dwBytesL > 0){
 				if (WriteFile(osHandle,buffer,dwBytesL,&dwBytesWr,nullptr) > 0)
-					*retNum = (uint32)dwBytesWr;
+					alreadySend = (uint32)dwBytesWr;
 			}
-			return (!((*retNum < length) || (dwBytesL == dwBytesBuf)));
 		}
-	}
-	return G_FALSE;
+	}while (0);
+	*retNum = alreadySend;
+	return(alreadySend == length);
 #endif
 };
 //------------------------------------------------------------------------------------------//

@@ -435,7 +435,7 @@ void CSendPaneView::OnDropFiles(HDROP hDropInfo){
 		wstrFileName = cFileName;
 		strFileName = Str_UnicodeToANSI(wstrFileName);
 		if (CFS_CheckFile(strFileName) != 0){
-			theApp.GSDTApp.m_FileSend.Execute(&theApp.GSDTApp.m_DeviceM,strFileName.c_str());
+			theApp.GSDTApp.m_FileSend.Execute(&theApp.GSDTApp.m_DeviceM, strFileName.c_str(), theApp.GSDTApp.m_Cache.GetG1_STDOUT(),TFileSend::FS_BPS_DEF, TFileSend::PACKAGE_MAX_SIZE);
 		}
 	}
 	DragFinish (hDropInfo);

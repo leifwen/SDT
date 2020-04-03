@@ -54,8 +54,8 @@ CMDID BIC_COM_DTR::Help(CMD_ENV* env,uint32 flag)const{
 	PrintHelpItem(env,cgCommand,"Set COM DTR");
 	if (B_ChkFLAG32(flag, CMD_blPrintSimple))
 		return(cgCommandID);
-	PrintHelpSubItem(env,"[-H[t]]","Set to High, t is time, unit is S");
-	PrintHelpSubItem(env,"[-L[t]]","Set to Low , t is time, unit is S");
+	PrintHelpSubItem(env,"[-H [t]]","Set to High, t is time, unit is S");
+	PrintHelpSubItem(env,"[-L [t]]","Set to Low , t is time, unit is S");
 	return(cgCommandID);
 };
 //------------------------------------------------------------------------------------------//
@@ -112,8 +112,8 @@ CMDID BIC_COM_RTS::Help(CMD_ENV* env,uint32 flag)const{
 	PrintHelpItem(env,cgCommand,"Set COM RTS");
 	if (B_ChkFLAG32(flag, CMD_blPrintSimple))
 		return(cgCommandID);
-	PrintHelpSubItem(env,"[-H[t]]","Set to High, t is time, unit is S");
-	PrintHelpSubItem(env,"[-L[t]]","Set to Low , t is time, unit is S");
+	PrintHelpSubItem(env,"[-H [t]]","Set to High, t is time, unit is S");
+	PrintHelpSubItem(env,"[-L [t]]","Set to Low , t is time, unit is S");
 	return(cgCommandID);
 };
 //------------------------------------------------------------------------------------------//

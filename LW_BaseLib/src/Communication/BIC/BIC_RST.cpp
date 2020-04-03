@@ -68,9 +68,9 @@ CMDID BIC_RST_LINK::Help(CMD_ENV* env,uint32 flag)const{
 	PrintHelpItem(env, cgCommand, "Link to RST server control port");
 	if (B_ChkFLAG32(flag, CMD_blPrintSimple))
 		return(cgCommandID);
-	PrintHelpSubItem(env, "[off"				, "Disconnect RST server");
-	PrintHelpSubItem(env, " |<RMS IP>"			, "RST server IP, default is leifwen.com");
-	PrintHelpSubItem(env, "  [control PORT]]"	, "RST server control port, default is 16384");
+	PrintHelpSubItem(env, "[off"		, "Disconnect RST server");
+	PrintHelpSubItem(env, " |<IP>"		, "RST server IP, default is leifwen.com");
+	PrintHelpSubItem(env, "  [PORT]]"	, "RST server control port, default is 16384");
 	return(cgCommandID);
 };
 //------------------------------------------------------------------------------------------//
@@ -119,7 +119,7 @@ static bool32 _Print(CMD_ENV* env,const uint64& fileSize,const uint64& wrSize){
 	Str_AddSpaceInFront(&str, 3);
 
 	CMD_BASE::CleanLastLine(env);
-	CMD_BASE::PrintWithTime_noNL(env,"Send" ,str , "%");
+	CMD_BASE::PrintWithTime_noNL(env, "Sending", COL_clBlue, str, COL_NormalMessage, "%");
 	return(BIC_BASE::ReadChar(env,G_FALSE) == 27);
 };
 //------------------------------------------------------------------------------------------//
@@ -216,11 +216,11 @@ CMDID BIC_RST_MAPPING::Help(CMD_ENV* env,uint32 flag)const{
 	PrintHelpItem(env, cgCommand, "Configure mapping server");
 	if (B_ChkFLAG32(flag, CMD_blPrintSimple))
 		return(cgCommandID);
-	PrintHelpSubItem(env, "[off]"			, "Close mapping server");
-	PrintHelpSubItem(env, "[RST PORT]"		, "RST server listen PORT");
-	PrintHelpSubItem(env, "[-tcp|-udp]"		, "Mapping mode TCP/UDP, default is -tcp");
-	PrintHelpSubItem(env, "[mapping PORT]"	, "Mapping server PORT, default is RST PORT");
-	PrintHelpSubItem(env, "[mapping IP]"	, "Mapping server IP, default is 127.0.0.1");
+	PrintHelpSubItem(env, "[[off]"			, "Close mapping server");
+	PrintHelpSubItem(env, " |[rPORT]"		, "RST server listen PORT");
+	PrintHelpSubItem(env, "  [tcp|udp]"		, "Mapping mode TCP/UDP, default is tcp");
+	PrintHelpSubItem(env, "  [mPORT]"		, "Mapping server PORT, default is RST PORT");
+	PrintHelpSubItem(env, "  [mIP]]"		, "Mapping server IP, default is 127.0.0.1");
 	return(cgCommandID);
 };
 //------------------------------------------------------------------------------------------//
@@ -274,12 +274,12 @@ CMDID BIC_RST_MAPPING::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 	
 	remotePort = atoi(strType.c_str());
 	mappingPort = remotePort;
-	strType = "-tcp";
+	strType = "tcp";
 	if (strMappingIP.length() > 0){
 		SplitPar1(&strType,&strMappingIP," ");
-		if ((strType != "-tcp") && (strType != "-udp")){
+		if ((strType != "tcp") && (strType != "udp")){
 			mappingPort = atoi(strType.c_str());
-			strType = "-tcp";
+			strType = "tcp";
 		}
 		else{
 			mappingPort = atoi(Str_Trim(Str_ReadSubItem(&strMappingIP, " ")).c_str());
@@ -291,7 +291,7 @@ CMDID BIC_RST_MAPPING::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 	
 	if (BIC_ENV_COMMU::GetRSTClient(env)->IsOpened()){
 		if (msgRMS->Send_REQ_SetupMServer(env,remotePort,
-										  SetOpenPar((strType == "-tcp") ? OPEN_TCPS : OPEN_UDPS,strMappingIP, mappingPort,0))){
+										  SetOpenPar((strType == "tcp") ? OPEN_TCPS : OPEN_UDPS,strMappingIP, mappingPort,0))){
 			PrintSuccess(env, "Mapping server is started at Port",Str_ToStr(remotePort));
 		}
 		else{
@@ -310,12 +310,11 @@ CMDID BIC_RST_LOGIN::Help(CMD_ENV* env,uint32 flag)const{
 	if (B_ChkFLAG32(flag, CMD_blPrintSimple))
 		return(cgCommandID);
 	PrintHelpSubItem(env,"[none|r|n|rn]","Send with tail none,\\r,\\n,\\r\\n");
-	PrintHelpItem(env,"","Goto online mode after connected");
-	PrintHelpItem(env,"","Double press ESC + ESC to exit online mode");
-	PrintHelpItem(env,"","Double press ESC + A~Z to send 01~1A");
-	PrintHelpItem(env,"","Double press ESC + [ to send 1B");
-	PrintHelpItem(env,"","Double press ESC + \\ to send 1C");
-	PrintHelpItem(env,"","Double press ESC + ] to send 1D");
+	PrintHelpItem(env," ","Double press ESC + ESC to exit online mode");
+	PrintHelpItem(env," ","Double press ESC + A~Z to send 01~1A");
+	PrintHelpItem(env," ","Double press ESC + [ to send 1B");
+	PrintHelpItem(env," ","Double press ESC + \\ to send 1C");
+	PrintHelpItem(env," ","Double press ESC + ] to send 1D");
 	return(cgCommandID);
 };
 //------------------------------------------------------------------------------------------//

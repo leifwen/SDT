@@ -987,7 +987,7 @@
 		2909AC5F200F8BB8007F7525 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 1010;
+				LastUpgradeCheck = 1140;
 				ORGANIZATIONNAME = "Leif Wen";
 				TargetAttributes = {
 					2909AC66200F8BB8007F7525 = {
@@ -1220,6 +1220,7 @@
 		2909AC6F200F8BB9007F7525 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_IDENTITY = "-";
 				HEADER_SEARCH_PATHS = ../../ExtraLib/Libressl/2.7.2/include;
 				LIBRARY_SEARCH_PATHS = ../../ExtraLib/Libressl/2.7.2/lib/MacOS;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1229,6 +1230,7 @@
 		2909AC70200F8BB9007F7525 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_IDENTITY = "-";
 				HEADER_SEARCH_PATHS = ../../ExtraLib/Libressl/2.7.2/include;
 				LIBRARY_SEARCH_PATHS = ../../ExtraLib/Libressl/2.7.2/lib/MacOS;
 				PRODUCT_NAME = "$(TARGET_NAME)";

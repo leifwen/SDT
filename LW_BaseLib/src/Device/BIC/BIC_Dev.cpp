@@ -153,7 +153,7 @@ CMDID BIC_CONNECT::Help(CMD_ENV* env,uint32 flag)const{
 	if (B_ChkFLAG32(flag, CMD_blPrintSimple))
 		return(cgCommandID);
 	PrintHelpSubItem(env,"[none|r|n|rn]","Send with tail none,\\r,\\n,\\r\\n");
-	PrintHelpSubItem(env," ","Goto online mode after connected");
+	PrintHelpSubItem(env," ","Default is \\r");
 	PrintHelpSubItem(env," ","Double press ESC + ESC to exit online mode");
 	PrintHelpSubItem(env," ","Double press ESC + A~Z to send 01~1A");
 	PrintHelpSubItem(env," ","Double press ESC + [ to send 1B");
@@ -407,6 +407,9 @@ void BIC_CONNECT::PrintTitle(CMD_ENV* env,ExpandDeviceAttr* eda,bool32 blPrintTa
 //------------------------------------------------------------------------------------------//
 CMDID BIC_ONLINE::Help(CMD_ENV* env,uint32 flag)const{
 	BIC_CONNECT::Help(env,flag);
+	if (B_ChkFLAG32(flag, CMD_blPrintSimple))
+		return(cgCommandID);
+	PrintHelpSubItem(env," ","Goto online mode after connected");
 	return(cgCommandID);
 };
 //------------------------------------------------------------------------------------------//
@@ -510,9 +513,9 @@ CMDID BIC_REC::Help(CMD_ENV* env,uint32 flag)const{
 	PrintHelpItem(env,cgCommand,"Set receive data report parameter");
 	if (B_ChkFLAG32(flag, CMD_blPrintSimple))
 		return(cgCommandID);
-	PrintHelpSubItem(env,"[-t<on|off>]"		,"Enable/disable receive tip");
+	PrintHelpSubItem(env,"[-t <on|off>]"	,"Enable/disable receive tip");
 	PrintHelpSubItem(env,"[-H|-A]"			,"Receive mode: Hex/ASCII");
-	PrintHelpSubItem(env,"[-OSP<on|off>]"	,"Enable/disable OSP message delimiter");
+	PrintHelpSubItem(env,"[-OSP <on|off>]"	,"Enable/disable OSP message delimiter");
 	return(cgCommandID);
 };
 //------------------------------------------------------------------------------------------//

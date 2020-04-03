@@ -161,9 +161,9 @@ CMDID BIC_CMUX_DTR::Help(CMD_ENV* env,uint32 flag)const{
 	PrintHelpItem(env,cgCommand,"Set DTR");
 	if (B_ChkFLAG32(flag, CMD_blPrintSimple))
 		return(cgCommandID);
-	PrintHelpSubItem(env,"<num>"	,"CUX virtual COM num(1-4)");
-	PrintHelpSubItem(env,"<[-H[t]]"	,"Set to High, t is time, unit is S");
-	PrintHelpSubItem(env," [-L[t]]>","Set to Low, t is time, unit is S");
+	PrintHelpSubItem(env,"<num>"		,"CUX virtual COM num(1-4)");
+	PrintHelpSubItem(env,"<[-H [t]]"	,"Set to High, t is time, unit is S");
+	PrintHelpSubItem(env," [-L [t]]>"	,"Set to Low, t is time, unit is S");
 	return(cgCommandID);
 };
 //------------------------------------------------------------------------------------------//
@@ -230,9 +230,9 @@ CMDID BIC_CMUX_RTS::Help(CMD_ENV* env,uint32 flag)const{
 	PrintHelpItem(env,cgCommand,"Set RTS");
 	if (B_ChkFLAG32(flag, CMD_blPrintSimple))
 		return(cgCommandID);
-	PrintHelpSubItem(env,"<num>"	,"CUX virtual COM num(1-4)");
-	PrintHelpSubItem(env,"<[-H[t]]"	,"Set to High, t is time, unit is S");
-	PrintHelpSubItem(env," [-L[t]]>","Set to Low, t is time, unit is S");
+	PrintHelpSubItem(env,"<num>"		,"CUX virtual COM num(1-4)");
+	PrintHelpSubItem(env,"<[-H [t]]"	,"Set to High, t is time, unit is S");
+	PrintHelpSubItem(env," [-L [t]]>"	,"Set to Low, t is time, unit is S");
 	return(cgCommandID);
 };
 //------------------------------------------------------------------------------------------//
@@ -300,8 +300,8 @@ CMDID BIC_CMUX_DLCI::Help(CMD_ENV* env,uint32 flag)const{
 	if (B_ChkFLAG32(flag, CMD_blPrintSimple))
 		return(cgCommandID);
 	PrintHelpSubItem(env,"[num"				,"CUX virtual COM num(1-4)");
-	PrintHelpSubItem(env," <-H|-A>"			,"Receive mode: Hex/ASCII");
-	PrintHelpSubItem(env," |-E<on|off>>]"	,"Enable/disable escape");
+	PrintHelpSubItem(env," <-H|-A"			,"Receive mode: Hex/ASCII");
+	PrintHelpSubItem(env,"  |-E <on|off>>]"	,"Enable/disable escape");
 	return(cgCommandID);
 };
 //------------------------------------------------------------------------------------------//

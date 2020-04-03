@@ -30,23 +30,24 @@ class BIC_##_name : public _base{\
 };
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
-#if defined BIC_GCM_h && defined Script_h
-BIC_CLASSTYPE_PRESSKEY	(GC_GROUP_SEND,GC_GROUP_BASE,	"send");
-#endif
+BIC_CLASSTYPE			(STOP,				"stop");
+BIC_CLASSTYPE_PRESSKEY	(SEND,	BIC_BASE,	"send");
+//------------------------------------------------------------------------------------------//
 #ifdef SList_h
 BIC_CLASSTYPE			(SC_SEND,			"send");
 #endif
-BIC_CLASSTYPE			(SEND,				"send");
-BIC_CLASSTYPE			(STOP,				"stop");
-//------------------------------------------------------------------------------------------//
-#ifdef SendFile_h
-BIC_CLASSTYPE_PRESSKEY	(SENDFILE,BIC_BASE,	"sendfile");
+#if defined BIC_GCM_h && defined Script_h
+BIC_CLASSTYPE_PRESSKEY	(GC_GROUP_SEND,GC_GROUP_BASE,	"send");
 #endif
 //------------------------------------------------------------------------------------------//
+#ifdef SendFile_h
+BIC_CLASSTYPE_PRESSKEY	(SENDFILE,	BIC_BASE,	"sendf");
+#endif
+BIC_CLASSTYPE			(RECFILE,				"recf");
+//------------------------------------------------------------------------------------------//
 #ifdef Script_h
-BIC_CLASSTYPE_PRESSKEY	(SENDA,	BIC_BASE,	"senda");
-BIC_CLASSTYPE_PRESSKEY	(RUN,	BIC_BASE,	"run");
-BIC_CLASSTYPE			(SCRIPT,			"script");
+BIC_CLASSTYPE_PRESSKEY	(RUN,		BIC_BASE,	"run");
+BIC_CLASSTYPE			(SCRIPT,				"script");
 #endif
 //------------------------------------------------------------------------------------------//
 class BIC_CONN : public BIC_BASE_S{
@@ -82,8 +83,8 @@ class BIC_CONN : public BIC_BASE_S{
 #ifdef SendFile_h
 		BIC_SENDFILE	cgC_SENDFILE;
 #endif
+		BIC_RECFILE		cgC_RECFILE;
 #ifdef SWVERSION_SCRIPT
-		BIC_SENDA		cgC_SENDA;
 		BIC_RUN			cgC_RUN;
 		BIC_SCRIPT		cgC_SCRIPT;
 #endif

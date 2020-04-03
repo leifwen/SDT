@@ -42,9 +42,9 @@ CMDID BIF_SQ::Help(CMD_ENV* env,uint32 flag)const{
 	PrintB(env,".CMD = '[PAR] -->Send '[PAR].");
 	PrintB(env,"  Command = <''[PAR]>[//COMMENT]");
 	PrintP(env,"   eg:");
-	PrintP(env,"     Command = ''       //2Bytes,send '");
-	PrintP(env,"     Command = ''TEST   //4Bytes,send 'TEST");
-	PrintP(env,"     Command = '' TEST  //5Bytes,send ' TEST");
+	PrintP(env,"     Command = ''       //1Bytes,send '");
+	PrintP(env,"     Command = ''TEST   //5Bytes,send 'TEST");
+	PrintP(env,"     Command = '' TEST  //6Bytes,send ' TEST");
 	return(cgCommandID);
 };
 //------------------------------------------------------------------------------------------//
@@ -155,7 +155,7 @@ CMDID BIF_STRING::Command(CMD_ENV* env,const STDSTR& msg,void* bif_retstr)const{
 	int32		num,line;
 	char		charT;
 	
-	num = ALG_FAO32Calc(nullptr,msg);
+	num = ALG_FAOCalc_UINT32(nullptr,msg);
 	ret->forPrint += "\n";
 	ret->result = "";
 	line = 0;

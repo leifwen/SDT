@@ -18,7 +18,7 @@ namespace FAO32 {
 };
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
-uint32 ALG_FAO32Calc(STDSTR* result,const STDSTR& expressions){
+uint32 ALG_FAOCalc_UINT32(STDSTR* result,const STDSTR& expressions){
 	STDSTR	dataT,strPDQueue,strRet,dataO;
 	uint32	o1,o2;
 	
@@ -68,6 +68,56 @@ uint32 ALG_FAO32Calc(STDSTR* result,const STDSTR& expressions){
 	return(atoi(Str_Trim(strRet).c_str()));
 };
 //------------------------------------------------------------------------------------------//
+double ALG_FAOCalc_DOUBLE(STDSTR* result,const STDSTR& expressions){
+	STDSTR	dataT,strPDQueue,strRet,dataO;
+	double	o1,o2;
+	
+	FAO32::GetPoland(&strPDQueue,expressions);
+	strRet = "";
+	while(strPDQueue.length() > 0){
+		dataT = Str_ReadSubItem(&strPDQueue, ",");
+		if (dataT == "*"){
+			dataO = Str_ReadSubItem(&strRet,",");
+			o2 = atof(Str_Trim(dataO).c_str());
+			dataO = Str_ReadSubItem(&strRet,",");
+			o1 = atof(Str_Trim(dataO).c_str());
+			o1 *= o2;
+			strRet = Str_ToStr(o1) + "," + strRet;
+		}
+		else if (dataT == "/"){
+			dataO = Str_ReadSubItem(&strRet,",");
+			o2 = atof(Str_Trim(dataO).c_str());
+			dataO = Str_ReadSubItem(&strRet,",");
+			o1 = atof(Str_Trim(dataO).c_str());
+			o1 /= o2;
+			strRet = Str_ToStr(o1) + "," + strRet;
+		}
+		else if (dataT == "+"){
+			dataO = Str_ReadSubItem(&strRet,",");
+			o2 = atof(Str_Trim(dataO).c_str());
+			dataO = Str_ReadSubItem(&strRet,",");
+			o1 = atof(Str_Trim(dataO).c_str());
+			o1 += o2;
+			strRet = Str_ToStr(o1) + "," + strRet;
+		}
+		else if (dataT == "-"){
+			dataO = Str_ReadSubItem(&strRet,",");
+			o2 = atof(Str_Trim(dataO).c_str());
+			dataO = Str_ReadSubItem(&strRet,",");
+			o1 = atof(Str_Trim(dataO).c_str());
+			o1 -= o2;
+			strRet = Str_ToStr(o1) + "," + strRet;
+		}
+		else{
+			strRet = dataT + "," + strRet;
+		}
+	}
+	strRet = Str_ReadSubItem(&strRet,",");
+	if (result != nullptr)
+		*result = strRet;
+	return(atof(Str_Trim(strRet).c_str()));
+};
+//------------------------------------------------------------------------------------------//
 static void FAO32::FormatString(STDSTR* strOut,const STDSTR& expressions){
 	//control char :+ - * / ()
 	
@@ -92,7 +142,7 @@ static void FAO32::FormatString(STDSTR* strOut,const STDSTR& expressions){
 			*strOut += ',';
 			strData = "";
 		}
-		else if ((charData >= '0') && (charData <= '9')){
+		else if (((charData >= '0') && (charData <= '9')) || (charData == '.')){
 			strData += charData;
 		}
 	}

@@ -10,6 +10,7 @@
 //------------------------------------------------------------------------------------------//
 #include "BIC_Device.h"
 #include "SYS_File.h"
+#include "ALG_Math.h"
 #ifdef BIC_Device_h
 //------------------------------------------------------------------------------------------//
 #ifdef SList_h
@@ -106,24 +107,101 @@ CMDID BIC_SEND::Help(CMD_ENV* env,uint32 flag)const{
 	PrintHelpItem(env,cgCommand,"Send data if connected");
 	if (B_ChkFLAG32(flag, CMD_blPrintSimple))
 		return(cgCommandID);
-	PrintHelpSubItem(env,"<data>","Data");
+#ifdef Script_h
+	PrintHelpSubItem(env,"[-c <n>]"		,"Cycle times,default is endless");
+	PrintHelpSubItem(env,"[-t <s>]"		,"Time interval,uint is s, default is 1s");
+#endif
+	PrintHelpSubItem(env,"[-e]"			,"Escape disable");
+	PrintHelpSubItem(env,"[-d]"			,"Data");
+	PrintHelpSubItem(env,"<data>"		,"Data");
 	return(cgCommandID);
 };
 //------------------------------------------------------------------------------------------//
 CMDID BIC_SEND::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 	ExpandDeviceAttr* attr = BIC_ENV_DEV::GetEDA(env);
 	
-	if (msg.length() == 0)
-		return(cgCommandID);
-	if (attr->IsOpened()){
+	STDSTR			strData,strPar1, strPar2;
+	G_ESCAPE		escMode = G_ESCAPE_ON;
+	bool32			blUseScript = G_FALSE;
+#ifdef Script_h
+	COMMAND_NODE	commandNode;
+#endif
+	
+	do{
+		if (msg.length() == 0)
+			break;
+		if (!attr->IsOpened()){
+			PrintFail(env,"no connect");
+			break;
+		}
+		
+		strData = msg;
+#ifdef Script_h
+		commandNode.Init();
+		commandNode.StrTimeout = '1';
+		commandNode.StrCycle = '0';
+		commandNode.StrResend = "'timeout";
+		commandNode.cmdTail = CMD_NONE;
+#endif
+		SplitPar1(strPar1,strPar2,msg);
+
+		do{
+			if (strPar1 == "-e"){
+				escMode = G_ESCAPE_OFF;
+			}
+			else if (strPar1 == "-d"){
+				strData = strPar2;
+				break;
+			}
+#ifdef Script_h
+			else if (strPar1 == "-c"){
+				SplitPar1(&strPar1,&strPar2);
+				commandNode.StrCycle = strPar1;
+				blUseScript = G_TRUE;
+			}
+			else if (strPar1 == "-t"){
+				SplitPar1(&strPar1,&strPar2);
+				commandNode.StrTimeout = strPar1;
+				blUseScript = G_TRUE;
+			}
+#endif
+			else{
+				break;
+			}
+			strData = strPar2;
+			SplitPar1(&strPar1,&strPar2);
+		}while(strPar1.length() > 0);
+		
 		PrintEnable(env);
-		attr->device->SendCommandWithPrint(msg,CMD_NONE,G_ESCAPE_ON);
-		SYS_SleepMS(100);
-	}
-	else{
-		PrintFail(env,"no connect");
-	}
+		if (escMode == G_ESCAPE_OFF)
+			strData = Str_Replace(strData, "\\", "\\\\");
+		if (blUseScript == G_FALSE){
+			attr->device->SendCommandWithPrint(strData,CMD_NONE,G_ESCAPE_ON);
+			SYS_SleepMS(100);
+		}
+#ifdef Script_h
+		else{
+			commandNode.StrCommand = strData;
+			if (BIC_ENV_DEV::GetScript(env)->Execute(attr->device,&commandNode) == G_FALSE){
+				PrintFail(env,"script is running");
+				break;
+			}
+			if (IntoPressKeyMode(env) > 0){
+				BIC_ENV_DEV::GetScript(env)->Stop();
+				PrintSuccess(env,"Pressed ESC key, stopped script");
+			}
+#endif
+		}
+	}while(0);
 	return(cgCommandID);
+};
+//------------------------------------------------------------------------------------------//
+bool32 BIC_SEND::IsExitPressKeyMode(CMD_ENV* env)const{
+#ifdef Script_h
+	return(BIC_ENV_DEV::GetScript(env)->IsStop());
+#else
+	return G_TRUE;
+#endif
 };
 //------------------------------------------------------------------------------------------//
 #ifdef SendFile_h
@@ -132,28 +210,58 @@ CMDID BIC_SENDFILE::Help(CMD_ENV* env,uint32 flag)const{
 	PrintHelpItem(env,cgCommand,"Send file if connected");
 	if (B_ChkFLAG32(flag, CMD_blPrintSimple))
 		return(cgCommandID);
-	PrintHelpSubItem(env,"<filename>","File Name");
+	PrintHelpSubItem(env,"[-b|-k <n>]"	,"Bps/KBps, default is 100KBps");
+	PrintHelpSubItem(env,"[-p <n>]"		,"PackageSize, max and default is 2048");
+	PrintHelpSubItem(env,"<filename>"	,"File Name");
 	return(cgCommandID);
 };
 //------------------------------------------------------------------------------------------//
 CMDID BIC_SENDFILE::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 	ExpandDeviceAttr* attr = BIC_ENV_DEV::GetEDA(env);
 	
-	STDSTR	strPar;
-	strPar = msg;
-	strPar = Str_SplitSubItem(&strPar, ' ');
+	STDSTR	strPar1,strPar2,fn;
+	uint32	bps = TFileSend::FS_BPS_DEF;
+	uint32	packagsSize = TFileSend::PACKAGE_MAX_SIZE;
 	
-	PrintEnable(env);
-	if (CFS_CheckFile(msg) == G_FALSE){
-		PrintFail(env,"file does not exist");
-	}
-	else{
-		if (BIC_ENV_DEV::GetFileSend(env)->Execute(attr->device,strPar) == G_FALSE){
-			PrintFail(env,"file is sending");
-			return(cgCommandID);
+	do{
+		if (msg.length() == 0)
+			break;
+
+		fn = msg;
+		SplitPar1(strPar1,strPar2,msg);
+		do{
+			if (strPar1 == "-p"){
+				SplitPar1(&strPar1,&strPar2);
+				packagsSize = ALG_FAOCalc_UINT32(nullptr,strPar1);
+			}
+			else if (strPar1 == "-b"){
+				SplitPar1(&strPar1,&strPar2);
+				bps = ALG_FAOCalc_DOUBLE(nullptr,strPar1);
+			}
+			else if (strPar1 == "-k"){
+				SplitPar1(&strPar1,&strPar2);
+				bps = ALG_FAOCalc_DOUBLE(nullptr,strPar1) * 1000;
+			}
+			else{
+				break;
+			}
+			fn = strPar2;
+			SplitPar1(&strPar1,&strPar2);
+		}while(strPar1.length() > 0);
+		fn = Str_SplitSubItem(&fn, ' ');
+		
+		PrintEnable(env);
+		if (CFS_CheckFile(fn) == G_FALSE){
+			PrintFail(env,"file does not exist");
 		}
-		IntoPressKeyMode(env);
-	}
+		else{
+			if (BIC_ENV_DEV::GetFileSend(env)->Execute(attr->device,fn,CMD_ENV::GetSTDOUT(env),bps,packagsSize) == G_FALSE){
+				PrintFail(env,"file is sending");
+				return(cgCommandID);
+			}
+			IntoPressKeyMode(env);
+		}
+	}while(0);
 	return(cgCommandID);
 };
 //------------------------------------------------------------------------------------------//
@@ -162,6 +270,120 @@ bool32 BIC_SENDFILE::IsExitPressKeyMode(CMD_ENV* env)const{
 };
 //------------------------------------------------------------------------------------------//
 #endif
+//------------------------------------------------------------------------------------------//
+CMDID BIC_RECFILE::Help(CMD_ENV* env,uint32 flag)const{
+	PrintHelpItem(env,cgCommand,"Receive file if connected");
+	if (B_ChkFLAG32(flag, CMD_blPrintSimple))
+		return(cgCommandID);
+	PrintHelpSubItem(env,"[-w]"			,"Overwrite");
+	PrintHelpSubItem(env,"[-b]"			,"Receive file size");
+	PrintHelpSubItem(env,"<filename>"	,"File Name");
+	return(cgCommandID);
+};
+//------------------------------------------------------------------------------------------//
+CMDID BIC_RECFILE::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
+	ExpandDeviceAttr* attr = BIC_ENV_DEV::GetEDA(env);
+	
+	STDSTR	strPar1,strPar2,fn,dir_self,fn_dir;
+	std::fstream 	fileStream;
+	bool32	blOverwrite = G_FALSE;
+	SBUF	rxSBUF;
+	uint32	num;
+	uint64	rxBytes = 0,recBytes = 0;
+	uint8	chKey;
+	
+	rxSBUF.array.InitSize(1024 * 2);
+	
+	do{
+		if (msg.length() == 0)
+			break;
+
+		fn = msg;
+		SplitPar1(strPar1,strPar2,msg);
+		do{
+			if (strPar1 == "-w"){
+				blOverwrite = G_TRUE;
+			}
+			else if (strPar1 == "-b"){
+				SplitPar1(&strPar1,&strPar2);
+				recBytes = ALG_FAOCalc_DOUBLE(nullptr,strPar1);
+			}
+			else{
+				break;
+			}
+			fn = strPar2;
+			SplitPar1(&strPar1,&strPar2);
+		}while(strPar1.length() > 0);
+		fn = Str_SplitSubItem(&fn, ' ');
+
+		dir_self = CFS_FormatFileName(CFS_GetSelfDIR());
+		fn_dir = MSG_DN_FDIR;
+		fn = CFS_FormatFileName(fn_dir + "/" + fn);
+		fn_dir = CFS_GetDIR(fn);
+		fn = CFS_FormatFileName(dir_self + "/" + fn);
+	
+		do{
+			if (CFS_CreateDIRLoop(dir_self, fn_dir) == G_FALSE){
+				PrintEnable(env);
+				PrintFail(env,"file name is directory");
+				break;
+			}
+			
+			if (CFS_CheckFile(fn)){
+				if (CFS_CheckDIR(fn)){
+					PrintEnable(env);
+					PrintFail(env,"file name is directory");
+					break;
+				}
+				if (blOverwrite == G_FALSE){
+					PrintEnable(env);
+					PrintFail(env,"file exist");
+					break;
+				}
+			}
+		
+			PrintALine(env,COLOR(COL_clCyan,IUD("In receive file mode:")));
+			SetInOnlineMode(env);
+			PrintDisable(env);
+			PrintWithTime_noNL(env, "Receiving", COL_clBlue, "0", COL_NormalMessage, "Bytes.");
+			
+			rxSBUF.array.Reset();
+			attr->device->RxDataShareTo(&rxSBUF);
+			fileStream.open(fn.c_str(),std::ios::out|std::ios::trunc|std::ios::binary);
+			do{
+				SYS_SleepMS(1);
+				chKey = ReadChar(env,G_FALSE);
+				if (chKey == 27)
+					break;
+				
+				num = rxSBUF.array.Used();
+				if ((recBytes > 0) && (rxBytes + num > recBytes))
+					num = uint32(recBytes - rxBytes);
+
+				if (num > 0){
+					strPar1 = "";
+					rxSBUF.array.Read(&strPar1, num);
+					fileStream << strPar1;
+					rxSBUF.array.Out(num);
+					rxBytes += num;
+					CleanLastLine(env);
+					PrintWithTime_noNL(env, "Receiving", COL_clBlue, Str_ToStr(rxBytes), COL_NormalMessage, "Bytes.");
+				}
+				if ((recBytes > 0) && (rxBytes >= recBytes))
+					break;
+			}while((IsExit(env) == G_FALSE) && attr->IsOpened());
+			fileStream.flush();
+			fileStream.close();
+			rxSBUF.RemoveSelf();
+			PrintSuccess(env);
+			SYS_SleepMS(10);
+			PrintEnable(env);
+			PrintStr(env,"\n");
+			ClrInOnlineMode(env);
+		}while(0);
+	}while(0);
+	return(cgCommandID);
+};
 //------------------------------------------------------------------------------------------//
 CMDID BIC_STOP::Help(CMD_ENV* env,uint32 flag)const{
 	PrintHelpItem(env,cgCommand,"Stop script execution");
@@ -184,56 +406,6 @@ CMDID BIC_STOP::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 };
 //------------------------------------------------------------------------------------------//
 #ifdef Script_h
-//------------------------------------------------------------------------------------------//
-CMDID BIC_SENDA::Help(CMD_ENV* env,uint32 flag)const{
-	PrintHelpItem(env,cgCommand,"Send data automatically if connected");
-	if (B_ChkFLAG32(flag, CMD_blPrintSimple))
-		return(cgCommandID);
-	PrintHelpSubItem(env,"<s>","Time interval");
-	PrintHelpSubItem(env,"<data>","Data");
-	return(cgCommandID);
-};
-//------------------------------------------------------------------------------------------//
-CMDID BIC_SENDA::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
-	ExpandDeviceAttr* attr = BIC_ENV_DEV::GetEDA(env);
-	
-	STDSTR			strPar1,strPar2;
-	COMMAND_NODE	commandNode;
-	
-	if (msg.length() == 0)
-		return(Help(env,0));
-	
-	if (attr->IsOpened()){
-		commandNode.Init();
-		
-		SplitPar1(strPar1, strPar2, msg);
-		
-		commandNode.StrCommand = strPar2;
-		commandNode.StrTimeout = strPar1;
-		commandNode.StrResend = "'timeout";
-		commandNode.StrCycle = '0';
-		commandNode.cmdTail = CMD_NONE;
-		
-		PrintEnable(env);
-		if (BIC_ENV_DEV::GetScript(env)->Execute(attr->device,&commandNode) == G_FALSE){
-			PrintFail(env,"script is running");
-			return(cgCommandID);
-		}
-		if (IntoPressKeyMode(env) > 0){
-			BIC_ENV_DEV::GetScript(env)->Stop();
-			PrintSuccess(env,"Pressed ESC key, stopped script");
-		}
-	}
-	else{
-		PrintFail(env,"no connect");
-	}
-	return(cgCommandID);
-};
-//------------------------------------------------------------------------------------------//
-bool32 BIC_SENDA::IsExitPressKeyMode(CMD_ENV* env)const{
-	return(BIC_ENV_DEV::GetScript(env)->IsStop());
-};
-//------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIC_RUN::Help(CMD_ENV* env,uint32 flag)const{
 	PrintHelpItem(env,cgCommand,"Execute group command script");
@@ -293,9 +465,9 @@ CMDID BIC_SCRIPT::Help(CMD_ENV* env,uint32 flag)const{
 	if (B_ChkFLAG32(flag, CMD_blPrintSimple))
 		return(cgCommandID);
 	PrintHelpItem(env, "     [-l"				, "List Script Build-in Command");
-	PrintHelpItem(env, "     |[-A<on|off>]"		, "Check standard AT response");
-	PrintHelpItem(env, "      [-E<on|off>]"		, "Display script BIC execution");
-	PrintHelpItem(env, "      [-CE<on|off>]]"	, "Display script BIC explain report");
+	PrintHelpItem(env, "     |[-A <on|off>]"	, "Check standard AT response");
+	PrintHelpItem(env, "      [-E <on|off>]"	, "Display script BIC execution");
+	PrintHelpItem(env, "      [-CE <on|off>]]"	, "Display script BIC explain report");
 	return(cgCommandID);
 };
 //------------------------------------------------------------------------------------------//
@@ -381,7 +553,7 @@ BIC_CONN::BIC_CONN(void) : BIC_BASE_S() {
 #ifdef SWVERSION_AUXDEVICE
 	< cgC_AUX
 #endif
-	< cgC_CONNECT < cgC_DISCONNECT < cgC_ONLINE < cgC_CR < cgC_ECHO < cgC_REC < cgC_DEV
+	< cgC_CONNECT < cgC_ONLINE < cgC_DISCONNECT < cgC_CR < cgC_ECHO < cgC_REC < cgC_DEV
 #ifdef SWVERSION_COM
 	< cgC_ACOM
 #endif
@@ -392,8 +564,8 @@ BIC_CONN::BIC_CONN(void) : BIC_BASE_S() {
 #ifdef SendFile_h
 	< cgC_SENDFILE
 #endif
+	< cgC_RECFILE
 #ifdef SWVERSION_SCRIPT
-	< cgC_SENDA
 	< cgC_RUN
 #endif
 #if defined SendFile_h || defined SWVERSION_SCRIPT
