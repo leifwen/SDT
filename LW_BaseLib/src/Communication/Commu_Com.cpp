@@ -105,7 +105,7 @@ bool32 CORE_ACOM::OpenDev(const OPEN_PAR& par){
 	ComDCB.fAbortOnError = true;
 	ComDCB.ByteSize = 8;
 	ComDCB.Parity = NOPARITY;
-	ComDCB.StopBits = ONESTOPBIT;
+	ComDCB.StopBits = TWOSTOPBITS;
 	SetCommState(osHandle,&ComDCB);
 	
 	return(COMMU_CORE::OpenDev(par));
@@ -141,6 +141,10 @@ bool32 SetBR(CORE_ACOM::HANDLE hand,int32 baudrate,uint32 type){
 			cfsetispeed(&serCfg, B9600);
 			cfsetospeed(&serCfg, B9600);
 			break;
+		case 14400:
+			cfsetispeed(&serCfg, B14400);
+			cfsetospeed(&serCfg, B14400);
+			break;
 		case 19200:
 			cfsetispeed(&serCfg, B19200);
 			cfsetospeed(&serCfg, B19200);
@@ -153,16 +157,66 @@ bool32 SetBR(CORE_ACOM::HANDLE hand,int32 baudrate,uint32 type){
 			cfsetispeed(&serCfg, B57600);
 			cfsetospeed(&serCfg, B57600);
 			break;
-		case 460800:
-#ifdef CommonDefH_Linux
-			cfsetispeed(&serCfg, B460800);
-			cfsetospeed(&serCfg, B460800);
-#endif
-			break;
 		case 115200:
-		default:
 			cfsetispeed(&serCfg, B115200);
 			cfsetospeed(&serCfg, B115200);
+			break;
+		case 230400:
+			cfsetispeed(&serCfg, B230400);
+			cfsetospeed(&serCfg, B230400);
+			break;
+#ifdef CommonDefH_Linux
+		case 460800:
+			cfsetispeed(&serCfg, B460800);
+			cfsetospeed(&serCfg, B460800);
+			break;
+		case 576000:
+			cfsetispeed(&serCfg, B576000);
+			cfsetospeed(&serCfg, B576000);
+			break;
+		case 921600:
+			cfsetispeed(&serCfg, B921600);
+			cfsetospeed(&serCfg, B921600);
+			break;
+		case 1000000:
+			cfsetispeed(&serCfg, B1000000);
+			cfsetospeed(&serCfg, B1000000);
+			break;
+		case 921600:
+			cfsetispeed(&serCfg, B921600);
+			cfsetospeed(&serCfg, B921600);
+			break;
+		case 1152000:
+			cfsetispeed(&serCfg, B1152000);
+			cfsetospeed(&serCfg, B1152000);
+			break;
+		case 1500000:
+			cfsetispeed(&serCfg, B1500000);
+			cfsetospeed(&serCfg, B1500000);
+			break;
+		case 2000000:
+			cfsetispeed(&serCfg, B2000000);
+			cfsetospeed(&serCfg, B2000000);
+			break;
+		case 2500000:
+			cfsetispeed(&serCfg, B2500000);
+			cfsetospeed(&serCfg, B2500000);
+			break;
+		case 3000000:
+			cfsetispeed(&serCfg, B3000000);
+			cfsetospeed(&serCfg, B3000000);
+			break;
+		case 3500000:
+			cfsetispeed(&serCfg, B3500000);
+			cfsetospeed(&serCfg, B3500000);
+			break;
+		case 4000000:
+			cfsetispeed(&serCfg, B4000000);
+			cfsetospeed(&serCfg, B4000000);
+			break;
+#endif
+		default:
+			return G_FALSE;
 	}
 	if (tcsetattr(hand, TCSANOW, &serCfg) != 0){
 #ifdef CommonDefH_MAC
@@ -216,7 +270,7 @@ bool32 SetAttr(CORE_ACOM::HANDLE hand,uint32 type){
 	serCfg.c_cflag |= CS8;
 	serCfg.c_cflag &= ~PARENB;
 	serCfg.c_iflag &= ~INPCK;        //enable parity checking
-	serCfg.c_cflag &= ~CSTOPB;
+	serCfg.c_cflag |= CSTOPB;
 	
 	serCfg.c_cflag |= (CLOCAL | CREAD);
 	serCfg.c_iflag &= ~(IXON | IXOFF | IXANY);
@@ -260,7 +314,7 @@ bool32 OpenCOM(CORE_ACOM::HANDLE* osHandle,const OPEN_PAR& par){
 		*osHandle = open(par.name.c_str(), bitPar);
 	}
 	
-	if ((*osHandle < 0) || (SetAttr(*osHandle,par.type) == 0) || (SetBR(*osHandle,par.port,par.type) == 0))
+	if ((*osHandle < 0) || (SetAttr(*osHandle,par.type) == G_FALSE) || (SetBR(*osHandle,par.port,par.type) == G_FALSE))
 		return G_FALSE;
 	return G_TRUE;
 };

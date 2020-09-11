@@ -40,7 +40,7 @@ CMDID BIC_COM_BR::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 		if (msg.length() == 0)
 			return(Help(env,0));
 	
-	if (attr->IsCom()){
+	if ((attr->openType == OPEN_COM) || (attr->openType == OPEN_COMV)){
 		BIC_CONNECT::SetConnectPar2(env,attr,msg);
 	}
 	else{
