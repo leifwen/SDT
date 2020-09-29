@@ -229,14 +229,14 @@ BOOL CMainFrame::PreTranslateMessage(MSG* pMsg){
 		COMBox = (CMFCRibbonComboBox*)m_wndRibbonBar.FindByID(ID_RI_COMBO_COM);
 		if (pMsg->hwnd == m_wndRibbonBar.GetSafeHwnd()){
 			if (COMBox->GetHighlighted() == COMBox)
-				if (theApp.GSDTApp.m_DeviceM.IsOpened() == 0)
+				if (theApp.GSDTApp.m_CDevBusM.IsOpened() == 0)
 					CreateComboBox_COMList();
 		}
 		#ifdef	SWVERSION_AUXDEVICE
 		COMBox = (CMFCRibbonComboBox*)m_wndRibbonBar.FindByID(ID_RI_COMBO_AUXCOM);
 		if (pMsg->hwnd == m_wndRibbonBar.GetSafeHwnd()){
 			if (COMBox->GetHighlighted() == COMBox)
-				if (theApp.GSDTApp.m_DeviceA.IsOpened() == 0)
+				if (theApp.GSDTApp.m_CDevBusA.IsOpened() == 0)
 					CreateComboBox_AuxCOMList();
 		}
 		#endif

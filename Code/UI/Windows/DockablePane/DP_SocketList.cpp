@@ -81,7 +81,7 @@ void CSocketListCtrl::LoadData(ASOCKETSERVER* server){
 			InsertItem(i, Str_ANSIToUnicode(_opNode->Core()->GetOpenPar().name).c_str());
 			SetItemText(i, 1, Str_ANSIToUnicode(Str_ToStr(_opNode->Core()->GetOpenPar().port)).c_str());
 			SetItemData(i, TNF::GetDRNodeID(_opNode));
-			SetCheck(i, COMMU_NODE::IsSelected(_opNode));
+			SetCheck(i, DRV_NODE::IsSelected(_opNode));
 			++i;
 		}
 	);
@@ -119,14 +119,14 @@ void CSocketListCtrl::OnLButtonDown(UINT nFlags, CPoint point){
 			if (m_Server == NULL)
 				return;
 			socketSelected = (ASOCKET*)TNF::FindInDownChainByDRNodeID(m_Server, GetItemData(lvinfo.iItem));
-			if (COMMU_NODE::IsSelected(socketSelected) == G_FALSE)
+			if (DRV_NODE::IsSelected(socketSelected) == G_FALSE)
 				m_Server->SetChildSelected(socketSelected);
 		}
 		else{
 			SetCheck(lvinfo.iItem,FALSE);
 			if (m_Server != NULL){
 				socketSelected = (ASOCKET*)TNF::FindInDownChainByDRNodeID(m_Server, GetItemData(lvinfo.iItem));
-				if (COMMU_NODE::IsSelected(socketSelected))
+				if (DRV_NODE::IsSelected(socketSelected))
 					m_Server->ClrChildSelected(socketSelected);
 			}
 		}
@@ -143,11 +143,11 @@ void CSocketListCtrl::OnLButtonDblClk(UINT nFlags, CPoint point){
 		return;
 	aSocket = (ASOCKET*)TNF::FindInDownChainByDRNodeID(m_Server, GetItemData(m_SelectItem));
 	if (aSocket != nullptr){
-		if (COMMU_LOGSYS::GetG3DefSTDOUT(aSocket->unitTeam.logSys) == nullptr){
+		if (COMMU_ODEVBUS::GetG3DefSTDOUT(aSocket->unitTeam.odevBus) == nullptr){
 			CreateScoketView(aSocket);
 		}
 		else{
-			((CChildFrame*)(COMMU_LOGSYS::GetG3DefSTDOUT(aSocket->unitTeam.logSys)->cgRichEdit->GetParentFrame()))->MDIActivate();
+			((CChildFrame*)(COMMU_ODEVBUS::GetG3DefSTDOUT(aSocket->unitTeam.odevBus)->cgRichEdit->GetParentFrame()))->MDIActivate();
 		}
 	}
 }
@@ -171,7 +171,7 @@ void CSocketListCtrl::CreateScoketView(ASOCKET *aSocket){
 	childpFrm->InitSTDOUT("Socket");
 	childpFrm->m_bCanClose = TRUE;
 	
-	COMMU_LOGSYS::AddG3D_STDOUT(aSocket->unitTeam.logSys,&childpFrm->m_stdout);
+	COMMU_ODEVBUS::AddG3D_STDOUT(aSocket->unitTeam.odevBus, &childpFrm->m_stdout);
 }
 //------------------------------------------------------------------------------------------//
 

@@ -12,14 +12,14 @@
 #ifdef AppLayer_h
 //------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
-KERNEL::KERNEL(uint32 sizeCache,uint32 sizeBuffer) : COMMU_FRAME()
-#ifdef ODEV_System_h
+KERNEL::KERNEL(uint32 sizeCache,uint32 sizeBuffer) : COMMU_DRV()
+#ifdef ODEV_BUS_h
 			,m_Cache(sizeCache)
 #endif
-#ifdef Device_h
-			,m_DeviceM(sizeBuffer,sizeBuffer,&m_Cache)
-			,m_DeviceA(sizeBuffer,sizeBuffer,&m_Cache)
-			,m_DeviceS(sizeBuffer,sizeBuffer,&m_Cache)
+#ifdef Bus_h
+			,m_CDevBusM(sizeBuffer,sizeBuffer,&m_Cache)
+			,m_CDevBusA(sizeBuffer,sizeBuffer,&m_Cache)
+			,m_CDevBusS(sizeBuffer,sizeBuffer,&m_Cache)
 #endif
 #ifdef Commu_AEXE_h
 			,m_AExePool(sizeBuffer < 1024 * 8 ? sizeBuffer : 1024 * 8,sizeBuffer < 1024 * 8 ? sizeBuffer : 1024 * 8)
@@ -35,9 +35,9 @@ KERNEL::KERNEL(uint32 sizeCache,uint32 sizeBuffer) : COMMU_FRAME()
 };
 //------------------------------------------------------------------------------------------//
 KERNEL::~KERNEL(void){
-#ifdef Device_h
-	m_DeviceM.RemoveSelf();
-	m_DeviceA.RemoveSelf();
+#ifdef Bus_h
+	m_CDevBusM.RemoveSelf();
+	m_CDevBusA.RemoveSelf();
 #endif
 #ifdef USE_OPENSSL
 	CRYPTO_cleanup_all_ex_data();
@@ -56,30 +56,30 @@ void KERNEL::Init(const STDSTR& fileName){
 	ParRecordLoad(fileName);
 #endif
 #ifdef BIC_Device_h
-	m_DeviceM.SetSelfName("DeviceM");
-	B_SetFLAG64(m_DeviceM.GetLogSystem()->envcfg, 0 | ODEV_FLAG_EnView | ODEV_FLAG_EnOSPMsgLine | ODEV_FLAG_EnMSReport);
-	B_ClrFLAG64(m_DeviceM.GetLogSystem()->envcfg, 0 | ODEV_FLAG_EnHEXViewMode | ODEV_FLAG_EnRecMsg | ODEV_FLAG_EnEscape);
+	m_CDevBusM.SetSelfName("DeviceM");
+	B_SetFLAG64(m_CDevBusM.GetODevBus()->envcfg, 0 | ODEV_FLAG_EnView | ODEV_FLAG_EnOSPMsgLine | ODEV_FLAG_EnMSReport);
+	B_ClrFLAG64(m_CDevBusM.GetODevBus()->envcfg, 0 | ODEV_FLAG_EnHEXViewMode | ODEV_FLAG_EnRecMsg | ODEV_FLAG_EnEscape);
 	
-	m_DeviceA.SetSelfName("DeviceA");
-	B_SetFLAG64(m_DeviceA.GetLogSystem()->envcfg, 0 | ODEV_FLAG_EnView | ODEV_FLAG_EnRecMsg | ODEV_FLAG_EnEscape);
-	B_ClrFLAG64(m_DeviceA.GetLogSystem()->envcfg, 0 | ODEV_FLAG_EnHEXViewMode | ODEV_FLAG_EnOSPMsgLine | ODEV_FLAG_EnMSReport);
-	m_DeviceA.EDA()->aCOM.name = "/dev/ttySDT";
+	m_CDevBusA.SetSelfName("DeviceA");
+	B_SetFLAG64(m_CDevBusA.GetODevBus()->envcfg, 0 | ODEV_FLAG_EnView | ODEV_FLAG_EnRecMsg | ODEV_FLAG_EnEscape);
+	B_ClrFLAG64(m_CDevBusA.GetODevBus()->envcfg, 0 | ODEV_FLAG_EnHEXViewMode | ODEV_FLAG_EnOSPMsgLine | ODEV_FLAG_EnMSReport);
+	m_CDevBusA.EDA()->aCOM.name = "/dev/ttySDT";
 	
-	COMMU_NODE::LinkCouple(&m_DeviceM,&m_DeviceA);
+	DRV_NODE::LinkCouple(&m_CDevBusM,&m_CDevBusA);
 	
-	AppendDown(m_DeviceM) < m_DeviceA;
+	AppendDown(m_CDevBusM) < m_CDevBusA;
 	
-	m_DeviceS.SetSelfName("DeviceS");
-	B_SetFLAG64(m_DeviceS.GetLogSystem()->envcfg, 0 | ODEV_FLAG_EnView | ODEV_FLAG_EnOSPMsgLine | ODEV_FLAG_EnMSReport);
-	B_ClrFLAG64(m_DeviceS.GetLogSystem()->envcfg, 0 | ODEV_FLAG_EnHEXViewMode | ODEV_FLAG_EnRecMsg | ODEV_FLAG_EnEscape);
+	m_CDevBusS.SetSelfName("DeviceS");
+	B_SetFLAG64(m_CDevBusS.GetODevBus()->envcfg, 0 | ODEV_FLAG_EnView | ODEV_FLAG_EnOSPMsgLine | ODEV_FLAG_EnMSReport);
+	B_ClrFLAG64(m_CDevBusS.GetODevBus()->envcfg, 0 | ODEV_FLAG_EnHEXViewMode | ODEV_FLAG_EnRecMsg | ODEV_FLAG_EnEscape);
 
 #endif
 #if defined	SWVERSION_CMUX && defined BIC_Device_h
-	m_CMUXDriver.Init(1024 * 8,1024 * 8,&m_DeviceM);
+	m_CMUXDriver.Init(1024 * 8,1024 * 8,&m_CDevBusM);
 	m_CMUXDriver.SetSelfName("CMUXDriver");
 #endif
 #ifndef CommonDefH_VC
-	#ifdef ODEV_System_h
+	#ifdef ODEV_BUS_h
 	m_Cache.CreateG1_STDOUT(OUTPUT_NODE::COLType_COL);
 	#ifdef Console_h
 		m_Console.Init(m_Cache.GetG1_STDOUT());
@@ -105,11 +105,11 @@ void KERNEL::Init(const STDSTR& fileName){
 		#endif
 	#endif
 #endif
-#if defined CMD_h && defined ODEV_System_h
+#if defined CMD_h && defined ODEV_BUS_h
 	CMD_ENV::SetSTDOUT			(&m_env,m_Cache.GetG1_STDOUT());
 #endif
 #ifdef BIC_Define_h
-	#ifdef ODEV_System_h
+	#ifdef ODEV_BUS_h
 	BIC_ENV::SetCache			(&m_env,&m_Cache);
 	#endif
 	#if defined SWVERSION_SCRIPT && defined SList_h
@@ -135,11 +135,11 @@ void KERNEL::Init(const STDSTR& fileName){
 	#endif
 #endif
 #ifdef BIC_Dev_h
-	#ifdef Device_h
-	BIC_ENV_DEV::SetEDA			(&m_env,m_DeviceM.EDA());
-	BIC_ENV_DEV::SetEDA_M		(&m_env,m_DeviceM.EDA());
-	BIC_ENV_DEV::SetEDA_A		(&m_env,m_DeviceA.EDA());
-	BIC_ENV_DEV::SetEDA_S		(&m_env,m_DeviceS.EDA());
+	#ifdef Bus_h
+	BIC_ENV_DEV::SetEDA			(&m_env,m_CDevBusM.EDA());
+	BIC_ENV_DEV::SetEDA_M		(&m_env,m_CDevBusM.EDA());
+	BIC_ENV_DEV::SetEDA_A		(&m_env,m_CDevBusA.EDA());
+	BIC_ENV_DEV::SetEDA_S		(&m_env,m_CDevBusS.EDA());
 	#endif
 
 	#ifdef Commu_ComEnum_h
@@ -168,7 +168,7 @@ void KERNEL::Init(const STDSTR& fileName){
 #ifdef CommonDefH_VC
 //------------------------------------------------------------------------------------------//
 void KERNEL::InitSTDOUT(ODEV_STDOUT* oDevSTDOUT){
-#ifdef ODEV_System_h
+#ifdef ODEV_BUS_h
 		m_Cache.AddG1_STDOUT(oDevSTDOUT);
 	#ifdef Console_h
 		m_Console.Init(oDevSTDOUT);
@@ -183,7 +183,7 @@ void KERNEL::InitSTDOUT(ODEV_STDOUT* oDevSTDOUT){
 //------------------------------------------------------------------------------------------//
 void KERNEL::Run(const STDSTR& cmd){
 #ifndef CommonDefH_VC
-	#ifdef ODEV_System_h
+	#ifdef ODEV_BUS_h
 		m_Cache.Start();	//call in MFC timer thread
 	#endif
 #endif
@@ -196,7 +196,11 @@ void KERNEL::Run(const STDSTR& cmd){
 #endif
 };
 //------------------------------------------------------------------------------------------//
-bool32 KERNEL::ExecBIC(const STDSTR& cmd){
+bool32 KERNEL::BICDispose(const STDSTR& cmd,bool32* exeResult){
+	return(m_BIC.Dispose(&m_env,cmd,exeResult));
+};
+//------------------------------------------------------------------------------------------//
+bool32 KERNEL::ToConsole(const STDSTR& cmd){
 #ifdef CommonDefH_VC
 	CHK_CheckTime();
 #endif
@@ -232,14 +236,14 @@ void KERNEL::Exit(const STDSTR& fileName){
 	m_CMUXDriver.Close();
 #endif
 #ifdef BIC_Dev_h
-	m_DeviceA.RemoveSelf();
-	m_DeviceM.RemoveSelf();
-	m_DeviceA.Close();
-	m_DeviceM.Close();
-	COMMU_NODE::UnlinkCouple(&m_DeviceM);
-	m_DeviceS.Close();
+	m_CDevBusA.RemoveSelf();
+	m_CDevBusM.RemoveSelf();
+	m_CDevBusA.Close();
+	m_CDevBusM.Close();
+	DRV_NODE::UnlinkCouple(&m_CDevBusM);
+	m_CDevBusS.Close();
 #endif
-#ifdef ODEV_System_h
+#ifdef ODEV_BUS_h
 	m_Cache.Stop();
 #endif
 #if defined Console_h
@@ -277,16 +281,16 @@ void KERNEL::Exit(const STDSTR& fileName){
 #endif
 };
 //------------------------------------------------------------------------------------------//
-void KERNEL::CloseChild(COMMU_FRAME* commu){
-	commu->Close();
+void KERNEL::CloseChild(COMMU_DRV* cdrv){
+	cdrv->Close();
 #ifdef SWVERSION_SCRIPT
-	if (m_Script.IsServiceTo((DEVICE*)commu)){
+	if (m_Script.IsServiceTo((CDEVBUS*)cdrv)){
 		if (m_Script.IsStopSelf())
 			m_Script.Stop();
 	}
 #endif
 #ifdef SendFile_h
-	if (m_FileSend.IsServiceTo((DEVICE*)commu))
+	if (m_FileSend.IsServiceTo((CDEVBUS*)cdrv))
 		m_FileSend.Stop();
 #endif
 };

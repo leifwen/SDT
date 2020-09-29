@@ -133,7 +133,7 @@ class CONSOLE : public BASE_FLAG{
 		CMD_ENV*			cgBICENV;
 		SYS_Thread<CONSOLE>	bicThread;
 	protected:
-		virtual		bool32		BICThreadFun			(void* p);
+		virtual		bool32		BICThreadFunc			(void* p);
 	private:
 					void		KeyLeft					(void);
 					void		KeyRight				(void);

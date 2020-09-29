@@ -342,7 +342,7 @@ CONSOLE::CONSOLE(uint32 size) : BASE_FLAG(){
 	cgCMDArray.InitSize(size);
 	
 	SwitchToMain();
-	bicThread.ThreadInit(this, &CONSOLE::BICThreadFun, "CONSOLE_BIC");
+	bicThread.ThreadInit(this, &CONSOLE::BICThreadFunc, "CONSOLE_BIC");
 	SetblDisplayAuto();
 };
 //------------------------------------------------------------------------------------------//
@@ -987,7 +987,7 @@ bool32 CONSOLE::ReceiveKey(void){
 }
 #endif
 //------------------------------------------------------------------------------------------//
-bool32 CONSOLE::BICThreadFun(void* p){
+bool32 CONSOLE::BICThreadFunc(void* p){
 #ifdef BIC_Define_h
 	BIC_BASE_S* bic = static_cast<BIC_BASE_S*>(p);
 

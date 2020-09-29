@@ -187,9 +187,9 @@ template <typename T_FUN_CLASS> CMD_NODE_T<T_FUN_CLASS>::CMD_NODE_T(void) : CMD_
 	cgFun = nullptr;
 };
 //------------------------------------------------------------------------------------------//
-template <typename T_FUN_CLASS> void CMD_NODE_T<T_FUN_CLASS>::InitFun(T_FUN_CLASS *funClass,T_FUN fun){
+template <typename T_FUN_CLASS> void CMD_NODE_T<T_FUN_CLASS>::InitFun(T_FUN_CLASS *funClass,T_FUN func){
 	cgFunClass = funClass;
-	cgFun = fun;
+	cgFun = func;
 };
 //------------------------------------------------------------------------------------------//
 template <typename T_FUN_CLASS>

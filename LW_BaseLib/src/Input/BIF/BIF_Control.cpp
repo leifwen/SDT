@@ -12,6 +12,41 @@
 #ifdef BIF_Control_h
 #include "BIF_Expression.h"
 //------------------------------------------------------------------------------------------//
+#ifdef CommonDefH_VC2013
+extern bool32 ExecuteBIC(const STDSTR& cmd,bool32* exeResult);
+#else
+__attribute__((weak)) bool32 ExecuteBIC(const STDSTR& cmd,bool32* exeResult){
+	return G_FALSE;
+};
+#endif
+//------------------------------------------------------------------------------------------//
+CMDID BIF_BIC::Help(CMD_ENV* env,uint32 flag)const{
+	PrintB(env,".CMD = BIC:<PAR> -->.Execute BIC.");
+	PrintB(env,"  Command = <'BIC:<PAR>>[//COMMENT]");
+	PrintP(env,"   eg:");
+	PrintP(env,"     Command = 'BIC:tcp 127.0.0.1 9527");
+	PrintP(env,"     Command = 'BIC:connect");
+	return(cgCommandID);
+};
+//------------------------------------------------------------------------------------------//
+CMDID BIF_BIC::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
+	bool32 exeResult = G_TRUE;
+	if (env != nullptr){
+		BIF_ENV::RetFun(env) = 'T';
+
+		PrintExecute(env,"BIC:",msg);
+		
+		if (msg.length() > 0){
+			if (ExecuteBIC(msg,&exeResult) != G_FALSE){
+				if (exeResult == G_FALSE)
+					BIF_ENV::RetFun(env) = 'F';
+			}
+		}
+	}
+	
+	return(cgCommandID);
+};
+//------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 CMDID BIF_DELAY::Help(CMD_ENV* env,uint32 flag)const{
 	PrintB(env,".CMD = Delay=<PAR> -->Delay PAR time, then goto send next \"Command\". Default unit is second.");

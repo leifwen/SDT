@@ -1,0 +1,428 @@
+//
+//  Script.cpp
+//  SDT
+//
+//  Created by Leif Wen on 22/02/2018.
+//  Copyright © 2018 Leif Wen. All rights reserved.
+//
+
+#include "stdafx.h"
+//------------------------------------------------------------------------------------------//
+#include "Script.h"
+#ifdef Script_h
+#include "BIF_Expression.h"
+//------------------------------------------------------------------------------------------//
+void	SCRIPT::SetblIsTerminated	(void){CDEVBUS_APP::SetblIsTerminated();BIF_BASE::SetblExit(&cgENV);};
+void	SCRIPT::ClrblIsTerminated	(void){CDEVBUS_APP::ClrblIsTerminated();BIF_BASE::ClrblExit(&cgENV);};
+void	SCRIPT::PrintB				(CMD_ENV* env,const STDSTR& str){BIF_BASE::PrintB(env,str);};
+void	SCRIPT::PrintP				(CMD_ENV* env,const STDSTR& str){BIF_BASE::PrintP(env,str);};
+void	SCRIPT::PrintM				(CMD_ENV* env,const STDSTR& strM,const STDSTR& strB){BIF_BASE::PrintM(env,strM,strB);};
+
+void	SCRIPT::SetblPrintSBICinfo	(void){BIF_BASE::SetEnvFlag(&cgENV, BIF_ENV::ENV_blPrintBIFInfo);};
+void	SCRIPT::ClrblPrintSBICinfo	(void){BIF_BASE::ClrEnvFlag(&cgENV, BIF_ENV::ENV_blPrintBIFInfo);};
+bool32	SCRIPT::CheckPrintSBICinfo	(void){return(BIF_BASE::CheckEnvFlag(&cgENV, BIF_ENV::ENV_blPrintBIFInfo));};
+
+void	SCRIPT::SetblCommandExplain	(void){BIF_BASE::SetEnvFlag(&cgENV, BIF_ENV::ENV_blPrintBIFExplain);};
+void	SCRIPT::ClrblCommandExplain	(void){BIF_BASE::ClrEnvFlag(&cgENV, BIF_ENV::ENV_blPrintBIFExplain);};
+bool32	SCRIPT::CheckCommandExplain	(void){return(BIF_BASE::CheckEnvFlag(&cgENV, BIF_ENV::ENV_blPrintBIFExplain));};
+
+void	SCRIPT::SetblATResponse		(void){SetSFlag(SRC_blATResponse);};
+void	SCRIPT::ClrblATResponse		(void){ClrSFlag(SRC_blATResponse);};
+bool32	SCRIPT::CheckATResponse		(void){return(CheckSFlag(SRC_blATResponse));};
+
+void	SCRIPT::SetblStopSelf		(void){SetSFlag(SRC_blStopSelf);};
+void	SCRIPT::ClrblStopSelf		(void){ClrSFlag(SRC_blStopSelf);};
+bool32	SCRIPT::IsStopSelf			(void){return(CheckSFlag(SRC_blStopSelf));};
+//------------------------------------------------------------------------------------------//
+SCRIPT::SCRIPT(uint32 size) : CDEVBUS_APP(size)
+#ifdef Commu_AEXE_h
+	,cgAExePool(size,size)
+#endif
+{
+	SetblATResponse();
+	SetblPrintSBICinfo();
+	
+	cgATCondition = TELIT_AT_RESPONSE;
+	eGroupListThread.ThreadInit	(this, &SCRIPT::EGroupListThreadFunc	,"grouplist");
+	eGroupThread.ThreadInit		(this, &SCRIPT::EGroupThreadFunc		,"group");
+	eCommandThread.ThreadInit	(this, &SCRIPT::ECommandThreadFunc		,"command");
+	
+	BIF_ENV_DEV::InitQuantity(&cgENV);
+	BIF_ENV_DEV::Init(&cgENV);
+#ifdef Commu_AEXE_h
+	BIF_ENV_DEV::SetAExePool(&cgENV, &cgAExePool);
+#endif
+	BIF_ENV_DEV::SetScript(&cgENV, this);
+};
+//------------------------------------------------------------------------------------------//
+SCRIPT::~SCRIPT(void){
+	Stop();
+	BIF_ENV_DEV::DeInit(&cgENV);
+};
+//------------------------------------------------------------------------------------------//
+void SCRIPT::Init(const CDEVBUS* cDevBus){
+	CDEVBUS_APP::Init(cDevBus);
+	if (cDevBus != nullptr){
+		CMD_ENV::SetSTDOUT(&cgENV, ((CDEVBUS*)cDevBus)->GetSelSTDOUT());
+		BIF_ENV_DEV::SetEDA(&cgENV,(ExpandDevBusAttr*)cDevBus->EDA());
+	}
+	else{
+		CMD_ENV::SetSTDOUT(&cgENV, nullptr);
+		BIF_ENV_DEV::SetEDA(&cgENV,nullptr);
+	}
+	SetblStopSelf();
+};
+//------------------------------------------------------------------------------------------//
+void SCRIPT::Stop(void){
+	SetblStopSelf();
+	CMD_BASE::SetblExit(&cgENV);
+#ifdef Commu_AEXE_h
+	cgAExePool.Close();
+#endif
+	CDEVBUS_APP::Stop();
+};
+//------------------------------------------------------------------------------------------//
+bool32 SCRIPT::Execute(const CDEVBUS* cDevBus,const GC_LIST* tGroupList){
+	if ((tGroupList == nullptr) || IsExecuting(cDevBus) == G_FALSE)
+		return G_FALSE;
+	GC_LIST::CopyGCList_nolook(&cgMGroupList,tGroupList);
+	return(CDEVBUS_APP::Execute(cDevBus,&eGroupListThread));
+};
+//------------------------------------------------------------------------------------------//
+bool32 SCRIPT::Execute(const CDEVBUS* cDevBus,const COMMAND_GROUP* tGroup){
+	if ((tGroup == nullptr) || IsExecuting(cDevBus) == G_FALSE)
+		return G_FALSE;
+	COMMAND_GROUP::CopyCommandGroup_nolook(&cgMGroup,tGroup);
+	return(CDEVBUS_APP::Execute(cDevBus,&eGroupThread));
+};
+//------------------------------------------------------------------------------------------//
+bool32 SCRIPT::Execute(const CDEVBUS* cDevBus,const COMMAND_NODE* tCommand){
+	if ((tCommand == nullptr) || IsExecuting(cDevBus) == G_FALSE)
+		return G_FALSE;
+	COMMAND_NODE::CopyCommandNode(&cgMCommand,tCommand);
+	return(CDEVBUS_APP::Execute(cDevBus,&eCommandThread));
+};
+//------------------------------------------------------------------------------------------//
+bool32 SCRIPT::EGroupListThreadFunc(void* p){
+	int32	runTotalTimes;
+	DTIME	executeTime,startTime;
+	
+	startTime.Now();
+	runTotalTimes = 0;
+	cgMGroupList.ClearTestResult();
+	
+	do{
+		++ runTotalTimes;
+		ExecuteGroupList(&cgMGroupList,runTotalTimes);
+	}while(IsTerminated() == G_FALSE);
+	
+	executeTime.Now();
+	executeTime -= startTime;
+	ShowResult(&cgMGroupList,SYS_FormatTimeABS(DEFAULT_TIMEFORMATE,executeTime));
+	cgMGroupList.ClearTestResult();
+	cgMGroupList.Empty();
+	return G_TRUE;
+};
+//------------------------------------------------------------------------------------------//
+bool32 SCRIPT::EGroupThreadFunc(void* p){
+	int32	runTotalTimes;
+	DTIME	executeTime,startTime;
+	
+	startTime.Now();
+	runTotalTimes = 0;
+	cgMGroup.ClearResult();
+	
+	ExecuteGroup(&cgMGroup,runTotalTimes,1);
+	
+	executeTime.Now();
+	executeTime -= startTime;
+	ShowResult(&cgMGroup,SYS_FormatTimeABS(DEFAULT_TIMEFORMATE,executeTime));
+	cgMGroup.ClearResult();
+	cgMGroup.CleanDownTree(&cgMGroup, &cgMGroup);
+	return G_TRUE;
+};
+//------------------------------------------------------------------------------------------//
+bool32 SCRIPT::ECommandThreadFunc(void* p){
+	DTIME	executeTime,startTime;
+
+	startTime.Now();
+	
+	ExecuteCommand(&cgMCommand,100);
+	
+	executeTime.Now();
+	executeTime -= startTime;
+	
+	*CMD_ENV::GetSTDOUT(&cgENV) << Begin() << NL()
+	<< COL_DivLine_Maroon
+	<< COL_NormalMessage << "Execute Time: " << SYS_FormatTimeABS(DEFAULT_TIMEFORMATE,executeTime)
+	<< "\n\nEnd\n" << Endl();
+	return G_TRUE;
+};
+//------------------------------------------------------------------------------------------//
+bool32 SCRIPT::ExecuteGroupList(GC_LIST* tGroupList,const int32 &runTotalTimes){
+	TREE_DownChain_Traversal_LINE_nolock(COMMAND_GROUP,tGroupList,
+		if (IsTerminated())
+			break;
+		if (_opNode->blEnableAutoRun)
+			ExecuteGroup(_opNode,runTotalTimes,G_FALSE);
+	);
+	return G_TRUE;
+};
+//------------------------------------------------------------------------------------------//
+bool32 SCRIPT::ExecuteGroup(COMMAND_GROUP* tGroup,const int32& runTotalTimes,bool32 blType){
+	int32			blRun,frameTimeout,exitType,cycleTimes,runTimes;
+	SYS_TIME_S		timeS;
+
+	blRun = 0;
+	exitType = 0;
+	runTimes = tGroup->autoRunTimes;
+	if ((blType) && (runTimes == 0)){
+		runTimes = 1;
+	}
+	else if (runTimes == 0){
+		blRun = 1;
+	}
+	
+	cycleTimes = 0;
+	do{
+		++ cycleTimes;
+		if ((runTimes != 1) || ((runTimes == 1) && (blType == 0))){
+			if (CheckPrintSBICinfo() != G_FALSE){
+				*CMD_ENV::GetSTDOUT(&cgENV) << Begin() << NL()
+				<< COL_DivLine_Maroon
+				<< COL_NormalMessage << "Loop: " << Str_ToStr(runTotalTimes) << "::" << tGroup->name << "::Cycle: " << Str_ToStr(cycleTimes)
+				<< "\n\nStart\n"
+				<< Endl();
+			}
+		}
+		BIF_ENV::RetDefine(&cgENV) = "";
+		TREE_DownChain_Traversal_LINE_nolock(COMMAND_NODE,tGroup,
+			if (IsTerminated())
+				break;
+				frameTimeout = tGroup->intervalTime;
+			if (frameTimeout < 1)
+				frameTimeout = 200;
+			SYS_Delay_SetTS(&timeS,frameTimeout);
+			exitType = ExecuteCommand(_opNode,frameTimeout);
+			if (_opNode != BIF_ENV::GetCommandNode(&cgENV))
+				_nextNode = BIF_ENV::GetCommandNode(&cgENV);//used for goto cmd
+			if (exitType == 6){//stop
+				CMD_BASE::DelayMS(&cgENV,50);
+				break;
+			}
+			if (exitType == 3){//break
+				CMD_BASE::DelayMS(&cgENV,50);
+					break;
+			}
+			if (exitType == 2)//continue
+				SYS_Delay_SetTS(&timeS,frameTimeout);
+				if (exitType > 1)
+					while((SYS_Delay_IsTimeout(&timeS) == G_FALSE) && (IsTerminated() == G_FALSE));
+		);
+		if ((runTimes != 1) || ((runTimes == 1) && (blType == G_FALSE))){
+			if (CheckPrintSBICinfo() != G_FALSE){
+				*CMD_ENV::GetSTDOUT(&cgENV) << Begin() << NL()
+				<< COL_DivLine_Maroon
+				<< COL_NormalMessage << "Loop: " << Str_ToStr(runTotalTimes) << "::" << tGroup->name << "::Cycle: " << Str_ToStr(cycleTimes)
+				<< "\n\nEnd\n"
+				<< Endl();
+			}
+		}
+		if (exitType == 6)//stop
+			return G_TRUE;
+	}while((blRun || (cycleTimes < runTimes)) && (IsTerminated() == G_FALSE));
+	return G_TRUE;
+};
+//------------------------------------------------------------------------------------------//
+bool32 SCRIPT::ExecuteCommand(COMMAND_NODE* tCommand,int32 frameTimeout){
+	CDEVBUS		*cdevbus = BIF_ENV_DEV::GetEDA(&cgENV)->cdevbus;
+	STDSTR		&recData = BIF_ENV::STDIN(&cgENV);
+	STDSTR		commandStrRet,strOCommand;
+	int32		eRetCode;
+	bool32		blEnResend;	//check whether meet execute resend contidion
+	int32		maxCycle,i,timeout;
+	BIF_RETSTR	retStr;
+	
+	//return(0)--->no execute due to blEnableSend == 0.
+	//return(1)--->execute BIC,no need to wait.
+	//return(2)--->meet continue condition.
+	//return(3)--->meet break condition.
+	//return(4)--->meet resend condition.
+	//return(5)--->cycle-- to 0
+	//return(6)--->meet stop condition.
+	
+	BIF_ENV::SetCommandNode(&cgENV, tCommand);
+	BIF_ENV::SetArrayIn(&cgENV,&cgSBUF.array);
+	BIF_ENV::RetCMD(&cgENV) = G_TRUE;
+	
+	if (tCommand->blEnableSend){
+		maxCycle = 1;//set cycle times.
+		if (tCommand->StrCycle.length() > 0)
+			maxCycle = atoi(tCommand->StrCycle.c_str());
+		i = 0;
+		strOCommand = CMD_BASE::DelComment(tCommand->StrCommand);
+		retStr.result = "";
+		retStr.forPrint = "";
+		retStr.forSend = "";
+		if (BIF_ID_COMBINE_REPLACE == cgSubC_Replace.Dispose(&cgENV, strOCommand, &retStr))
+			strOCommand = retStr.forSend;
+		while(((i++ < maxCycle) || (maxCycle == 0)) && (IsTerminated() == G_FALSE)){
+			retStr.result = "";
+			retStr.forPrint = "";
+			retStr.forSend = "";
+			eRetCode = cgBIFCMD.Dispose(&cgENV,strOCommand,&retStr);
+			if (eRetCode != BIF_ID_NO)
+				return(BIF_ENV::RetCMD(&cgENV));
+
+			BIF_Transform(&cgENV,_EMPTY(&retStr.forSend),_EMPTY(&retStr.forPrint),strOCommand,tCommand->cmdTail,G_ESCAPE_ON);
+			if (retStr.forSend.length() == 0)
+				return 1;
+				
+			cgSBUF.array.Empty();
+			cdevbus->PrintSendCommand((uint32)retStr.forSend.length(),retStr.forPrint);
+			cdevbus->Send(retStr.forSend,0);
+			
+			++ tCommand->runTimes;
+			timeout = 0;
+			SYS_Delay_SetTS(&BIF_ENV::RetDTime(&cgENV),atof(tCommand->StrTimeout.c_str()) * 1000);
+			
+			recData = "";
+			blEnResend = G_FALSE;
+			while(timeout == 0 && IsTerminated() == G_FALSE){
+				cgSBUF.array.Get(&recData, -1);
+				if ((tCommand->StrCatch.length() > 0) && (BIF_Expression(&cgENV,tCommand->StrCatch)))
+					++ tCommand->catchTimes;
+				if ((tCommand->StrContinue.length() > 0) && (BIF_Expression(&cgENV,tCommand->StrContinue)))
+					return 2;
+				if ((tCommand->StrResend.length() > 0) && (BIF_Expression(&cgENV,tCommand->StrResend))){
+					blEnResend = G_TRUE;
+					timeout = SYS_Delay_IsTimeout(&BIF_ENV::RetDTime(&cgENV));
+					break;
+				}
+				if ((tCommand->StrStop.length() > 0) && (BIF_Expression(&cgENV,tCommand->StrStop)))
+					return 3;
+				if ((tCommand->StrContinue.length() == 0)
+					&& (tCommand->StrResend.length() == 0)
+					&& (tCommand->StrStop.length() == 0)
+					&& (CheckATResponse())
+					&& (BIF_Expression(&cgENV,cgATCondition))){
+					return 2;
+				}
+				timeout = SYS_Delay_IsTimeout(&BIF_ENV::RetDTime(&cgENV));
+			}
+			cgSBUF.array.Get(&recData, -1);
+			if (timeout != 0){
+				if (recData.length() == 0)
+					++ tCommand->timeoutTimes;//no response
+				if ((tCommand->StrContinue.length() > 0) && (BIF_Expression(&cgENV,tCommand->StrContinue)))
+					return 2;
+				if ((tCommand->StrResend.length() > 0) && (BIF_Expression(&cgENV,tCommand->StrResend))){
+					blEnResend = G_TRUE;
+				}
+				else if ((tCommand->StrStop.length() > 0) && (BIF_Expression(&cgENV,tCommand->StrStop))){
+					return 3;
+				}
+				if ((recData.length() > 0) && (tCommand->StrResend.length() > 0) && (blEnResend == G_FALSE))
+					return 4;//receive some data, but no match resend condition,do next command
+			}
+			if ((blEnResend) && (timeout == 0))
+				CMD_BASE::DelayMS(&cgENV,frameTimeout);
+		}
+		return 5;
+	}
+	return 0;
+};
+//------------------------------------------------------------------------------------------//
+void SCRIPT::PrintGroupResult(OUTPUT_NODE* cOut,COMMAND_GROUP* tGroup,const STDSTR& strGroupName){
+	STDSTR		strCommand;
+	int32		i;
+	bool32		blGT;
+	i = 0;
+	blGT = G_FALSE;
+	TREE_DownChain_Traversal_LINE_nolock(COMMAND_NODE,tGroup,
+		++ i;
+		if (_opNode->catchTimes > 0){
+			strCommand = CMD_BASE::DelComment(_opNode->StrCommand);
+			if (strCommand.length() > 24){
+				strCommand = strCommand.substr(0,20) + " ...";
+			}
+			else{
+				strCommand.insert(strCommand.length(),24 - strCommand.length(),' ');
+			}
+			*cOut << NL() << COL_clBlue;
+			if (blGT == G_FALSE){
+				*cOut << strGroupName;
+				blGT = G_TRUE;
+			}
+			*cOut << "  N" << Str_ToStr(i) << "::" << strCommand
+			<< COL_clBlue << ",catch(" << _opNode->StrCatch << "):" << Str_ToStr(_opNode->catchTimes) << "/" <<Str_ToStr(_opNode->runTimes);
+	
+			if (_opNode->timeoutTimes > 0){
+				*cOut << COL_clRed << ",no response:" << Str_ToStr(_opNode->timeoutTimes) << "/" << Str_ToStr(_opNode->runTimes);
+			}
+		}
+		else if (_opNode->timeoutTimes > 0){
+			strCommand = CMD_BASE::DelComment(_opNode->StrCommand);
+			if (strCommand.length() > 24){
+				strCommand = strCommand.substr(0,20) + " ...";
+			}
+			else{
+				strCommand.insert(strCommand.length(),24 - strCommand.length(),' ');
+			}
+			*cOut << NL() << COL_clBlue;
+			if (blGT == G_FALSE){
+				*cOut << strGroupName;
+				blGT = G_TRUE;
+			}
+			*cOut << "  N" << Str_ToStr(i) << "::" << strCommand
+			<< COL_clRed << ",no response:" << Str_ToStr(_opNode->timeoutTimes) << "/" << Str_ToStr(_opNode->runTimes);
+		}
+	);
+};
+//------------------------------------------------------------------------------------------//
+void SCRIPT::ShowResult(COMMAND_GROUP* tGroup,const STDSTR& tExecuteTime){
+	STDSTR	strGroupName;
+
+	*CMD_ENV::GetSTDOUT(&cgENV) << Begin() << NL()
+	<< COL_DivLine_Maroon
+	<< COL_NormalMessage << "Execute Time: " << tExecuteTime;
+	
+	if (tGroup->autoRunTimes > 1){
+		strGroupName = "G::" + tGroup->name + ":\n";
+		PrintGroupResult(CMD_ENV::GetSTDOUT(&cgENV),tGroup,strGroupName);
+	}
+	*CMD_ENV::GetSTDOUT(&cgENV) << COL_NormalMessage << "\n\nEnd\n" << Endl();
+};
+//------------------------------------------------------------------------------------------//
+void SCRIPT::ShowResult(GC_LIST* tGroupList,const STDSTR& tExecuteTime){
+	STDSTR	strGroupName;
+	int32	i;
+
+	*CMD_ENV::GetSTDOUT(&cgENV) << Begin() << NL()
+	<< COL_DivLine_Maroon
+	<< COL_NormalMessage << "Execute Time: " << tExecuteTime;
+	i = 0;
+	TREE_DownChain_Traversal_LINE_nolock(COMMAND_GROUP,tGroupList,
+		++ i;
+		if (_opNode->blEnableAutoRun){
+			strGroupName = "G" + Str_ToStr(i) + "::" + _opNode->name + ":\n";
+			PrintGroupResult(CMD_ENV::GetSTDOUT(&cgENV),_opNode,strGroupName);
+		}
+	);
+	*CMD_ENV::GetSTDOUT(&cgENV) << COL_NormalMessage << "\n\nEnd\n" << Endl();
+};
+//------------------------------------------------------------------------------------------//
+void SCRIPT::Help(OUTPUT_NODE* oDevNode){
+	CMD_ENV		env;
+
+	if (oDevNode == nullptr)
+		return;
+	
+	env.InitQuantity(CMD_ENV::CMD_VID_NEXT);
+
+	CMD_ENV::SetSTDOUT(&env, oDevNode);
+
+	cgBIFCMD.Help(&env,0);
+};
+//------------------------------------------------------------------------------------------//
+#endif /* Script_h */

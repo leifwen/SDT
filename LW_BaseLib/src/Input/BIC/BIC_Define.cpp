@@ -143,8 +143,8 @@ CMDID BIC_DISPLAY::Help(CMD_ENV* env,uint32 flag)const{
 	if (B_ChkFLAG32(flag, CMD_blPrintSimple))
 		return(cgCommandID);
 	PrintHelpSubItem(env,"[on"		,"Always enable");
-	PrintHelpSubItem(env,"|off"		,"Always disable");
-	PrintHelpSubItem(env,"|auto]"	,"Set in auto mode");
+	PrintHelpSubItem(env," |off"	,"Always disable");
+	PrintHelpSubItem(env," |auto]"	,"Set in auto mode");
 	return(cgCommandID);
 };
 //------------------------------------------------------------------------------------------//
@@ -184,7 +184,7 @@ CMDID BIC_NEWRECORD::Help(CMD_ENV* env,uint32 flag)const{
 CMDID BIC_NEWRECORD::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 	if (msg.length() > 0)
 		return(Help(env,0));
-#ifdef ODEV_System_h
+#ifdef ODEV_BUS_h
 	PrintEnable(env);
 	BIC_ENV::GetCache(env)->CreateG2_FILE(ODEV_FILE::CreateNewLOGFileName());
 	PrintResult(env,"Set new record file:\n",BIC_ENV::GetCache(env)->GetG2_File()->GetFileName());

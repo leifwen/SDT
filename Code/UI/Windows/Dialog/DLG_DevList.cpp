@@ -52,13 +52,13 @@ void CDevListCtrl::OnEditSave(int hItem,int hSubItem){
 	switch(hSubItem){
 		case 0:
 			if (cstrText == "TCP")
-				newNode->typeID = PublicDevice_DEVID_TCPClient;
+				newNode->typeID = COMENUM_DEVID_TCPClient;
 			if (cstrText == "UDP")
-				newNode->typeID = PublicDevice_DEVID_UDPClient;
+				newNode->typeID = COMENUM_DEVID_UDPClient;
 			if (cstrText == "TCP SERVER")
-				newNode->typeID = PublicDevice_DEVID_TCPServer;
+				newNode->typeID = COMENUM_DEVID_TCPServer;
 			if (cstrText == "UDP SERVER")
-				newNode->typeID = PublicDevice_DEVID_UDPServer;
+				newNode->typeID = COMENUM_DEVID_UDPServer;
 			break;
 		case 1:
 			newNode->strIPComName = Str_UnicodeToANSI(strwText);
@@ -143,15 +143,15 @@ void CDevListCtrl::LoadData(IPCOMLIST *tIPCOMLIST){
 	TREE_DownChain_Traversal_LINE(IPCOMNAME, m_IPCOMLIST,
 		_opNode->rwLock.R_set();
 		if (_opNode->blAvailable != 0){
-			if (_opNode->typeID == PublicDevice_DEVID_APICOM)
+			if (_opNode->typeID == COMENUM_DEVID_APICOM)
 				InsertItem(i,_T("COM"));
-			if (_opNode->typeID == PublicDevice_DEVID_TCPClient)
+			if (_opNode->typeID == COMENUM_DEVID_TCPClient)
 				InsertItem(i,_T("TCP"));
-			if (_opNode->typeID == PublicDevice_DEVID_UDPClient)
+			if (_opNode->typeID == COMENUM_DEVID_UDPClient)
 				InsertItem(i,_T("UDP"));
-			if (_opNode->typeID == PublicDevice_DEVID_TCPServer)
+			if (_opNode->typeID == COMENUM_DEVID_TCPServer)
 				InsertItem(i,_T("TCP SERVER"));
-			if (_opNode->typeID == PublicDevice_DEVID_UDPServer)
+			if (_opNode->typeID == COMENUM_DEVID_UDPServer)
 				InsertItem(i,_T("UDP SERVER"));
 		}
 		else{
@@ -177,7 +177,7 @@ int CDevListCtrl::CreateNode(int node){
 
 	newNode = new IPCOMNAME;
 	if (newNode != NULL){
-		newNode->typeID = PublicDevice_DEVID_TCPClient;
+		newNode->typeID = COMENUM_DEVID_TCPClient;
 		newNode->strIPComName = "127.0.0.1";
 		newNode->portBaudrate = 115200;
 		newNode->TCPTypeOrFriendlyName = "Socket Client";
@@ -241,15 +241,15 @@ int CDevListCtrl::UpNode(int moveItem){
 	DeleteItem(moveItem);
 	moveNode->rwLock.R_set();
 	if (moveNode->blAvailable != 0){
-		if (moveNode->typeID == PublicDevice_DEVID_APICOM)
+		if (moveNode->typeID == COMENUM_DEVID_APICOM)
 			InsertItem(PriorItem,_T("COM"));
-		if (moveNode->typeID == PublicDevice_DEVID_TCPClient)
+		if (moveNode->typeID == COMENUM_DEVID_TCPClient)
 			InsertItem(PriorItem,_T("TCP"));
-		if (moveNode->typeID == PublicDevice_DEVID_UDPClient)
+		if (moveNode->typeID == COMENUM_DEVID_UDPClient)
 			InsertItem(PriorItem,_T("UDP"));
-		if (moveNode->typeID == PublicDevice_DEVID_TCPServer)
+		if (moveNode->typeID == COMENUM_DEVID_TCPServer)
 			InsertItem(PriorItem,_T("TCP SERVER"));
-		if (moveNode->typeID == PublicDevice_DEVID_UDPServer)
+		if (moveNode->typeID == COMENUM_DEVID_UDPServer)
 			InsertItem(PriorItem,_T("UDP SERVER"));
 	}
 	else{

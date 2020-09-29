@@ -19,7 +19,9 @@ enum{
 	BIF_ID_NO			= CMD_NODE::CMD_ID_NO,
 	BIF_ID_HELP			= CMD_NODE::CMD_ID_HELP,
 	
-	BIF_ID_COMBINE		= CMD_NODE::CMD_ID_NEXT,
+	BIF_ID_BIC			= CMD_NODE::CMD_ID_NEXT,
+	
+	BIF_ID_COMBINE,
 	BIF_ID_COMBINE_SQ,
 	BIF_ID_COMBINE_HEX,
 	BIF_ID_COMBINE_VIEWINHEX,
@@ -132,6 +134,7 @@ class BIF_BASE : public CMD_NODE{
 };
 //------------------------------------------------------------------------------------------//
 #define BIF_CLASSTYPE(_NAME,_CMD)	CMD_CLASSTYPE(BIF_##_NAME,BIF_BASE,BIF_ID_##_NAME,_CMD);
+//------------------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------------------//
 #include "BIF_Define.hpp"
 #endif /* BIF_Define_h */

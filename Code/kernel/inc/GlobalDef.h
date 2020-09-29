@@ -18,34 +18,40 @@
 #define		SWVERSION_TCPServer
 #define		SWVERSION_UDPServer
 #define		SWVERSION_AUXDEVICE
+#define		SWVERSION_BT
+#define		SWVERSION_BLE
 #define		SWVERSION_CMUX
 #define		SWVERSION_SCRIPT
 #define		SWVERSION_NTP
 #define		SWVERSION_DICT
 
 #define		SWVERSION_SHORTNAME		"SDT"
-#define		SWVERSION_VER			"V0.7.1"
+#define		SWVERSION_VER			"V0.7.2"
 #define		SWVERSION_WR			"Written by Leif Wen"
 
 #ifdef CommonDefH_MAC
-#define		SWVERSION_APPID			"LeifWen.SDT.MAC.V0.7.1"
+#define		SWVERSION_APPID			"LeifWen.SDT.MAC.V0.7.2"
 #define		SWVERSION_NAME			"Script Debugging Tools(MAC Version)"
-#define		SWVERSION				"Script Debugging Tools(MAC Version) V0.7.1, Written by Leif Wen"
+#define		SWVERSION				"Script Debugging Tools(MAC Version) V0.7.2, Written by Leif Wen"
 #define		CMUX_COM_NAME			"/dev/ttySDTMUX"
 #endif
 #ifdef CommonDefH_Linux
-#define		SWVERSION_APPID			"LeifWen.SDT.Linux.V0.7.1"
+#define		SWVERSION_APPID			"LeifWen.SDT.Linux.V0.7.2"
 #define		SWVERSION_NAME			"Script Debugging Tools(Linux Version)"
-#define		SWVERSION				"Script Debugging Tools(Linux Version) V0.7.1, Written by Leif Wen"
+#define		SWVERSION				"Script Debugging Tools(Linux Version) V0.7.2, Written by Leif Wen"
 #define		CMUX_COM_NAME			"/dev/ttySDTMUX"
 #undef		SWVERSION_DICT
+#undef		SWVERSION_BLE
+#undef		SWVERSION_BT
 #endif
 #ifdef CommonDefH_VC2013
-#define		SWVERSION_APPID			"LeifWen.SDT.MFC.V0.7.1"
+#define		SWVERSION_APPID			"LeifWen.SDT.MFC.V0.7.2"
 #define		SWVERSION_NAME			"Script Debugging Tools(VC2013 MFC Version)"
-#define		SWVERSION				"SDT(VC2013 MFC Version) V0.7.1, Written by Leif Wen"
+#define		SWVERSION				"SDT(VC2013 MFC Version) V0.7.2, Written by Leif Wen"
 #define		SWVERSION_TOOLS
 #undef		SWVERSION_DICT
+#undef		SWVERSION_BLE
+#undef		SWVERSION_BT
 #endif
 #define	DEV_LINE_STAR			"****************************************\n"
 #define	DIVIDING_LINE			"----------------------------------------------------------------------\n"

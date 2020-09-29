@@ -446,7 +446,7 @@ void CSCTree::OnLButtonDblClk(UINT nFlags, CPoint point){
 				SC_NODE::Copy(&copyNode, lNode);
 			m_SCList->Traversal_clr();
 			if (lNode != NULL)
-				theApp.GSDTApp.m_DeviceM.SendCommandWithPrint(copyNode.StrCommand, (CMD_TAIL)copyNode.blEnableSendCR,G_ESCAPE_ON);
+				theApp.GSDTApp.m_CDevBusM.SendCommandWithPrint(copyNode.StrCommand, (CMD_TAIL)copyNode.blEnableSendCR, G_ESCAPE_ON);
 		}
 	}
 	CMyCTreeCtrl::OnLButtonDblClk(nFlags,point);

@@ -20,7 +20,6 @@
 //#define TEST6
 //#define TEST7
 //#define TEST8
-void TestFun	(void);
 /***************************************************************************************/
 /***************************************************************************************/
 uint32 GetTestData(STDSTR* retStr){
@@ -115,15 +114,15 @@ void TestFun7(void){
 void TestFun6(void){
 #ifdef TEST6
 	ODEV_CACHE	cache(1024*1024);
-	ODEV_SYSTEM	sys;
+	ODEV_BUS	sys;
 	sys.cache = &cache;
 	uint32 	i;
 	cache.Start();
 	CONSOLE		console(1024);
 	console.Init(cache.GetG1_STDOUT());
 	
-	typedef COMMU<TMEM|TBIRDGE,COMMU_FRAME,CORE_SOCKET,MEM_SSL>					SSL_SOCKET;
-	typedef	COMMU_POOL<COMMU<TLOGSYS,COMMU_FRAME,CORE_SOCKETSERVER>,SSL_SOCKET>	SSL_SERVER;
+	typedef COMMU_DRV_T<TMEM|TBIRDGE,COMMU_DRV,CORE_SOCKET,MEM_SSL>						SSL_SOCKET;
+	typedef	CDRV_POOL_T<COMMU_DRV_T<TODEVBUS,COMMU_DRV,CORE_SOCKETSERVER>,SSL_SOCKET>	SSL_SERVER;
 	
 	SSL_SOCKET	sslSocket(1024*128,1024*128,&sys);
 	SSL_SOCKET	sslSocket2(1024*128,1024*128,&sys);
@@ -957,7 +956,7 @@ void TestFun0(void){
 #endif
 }
 /***************************************************************************************/
-void TestFun(void){
+void _TestFun(void){
 #ifdef TEST
 	TestFun0();
 	TestFun1();
@@ -970,4 +969,6 @@ void TestFun(void){
 	TestFun8();
 #endif
 }
+/***************************************************************************************/
+extern "C" void TestFun	(void){_TestFun();};
 /***************************************************************************************/

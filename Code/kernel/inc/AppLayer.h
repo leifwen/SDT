@@ -13,12 +13,12 @@
 #define AppLayer_h
 #ifdef AppLayer_h
 //------------------------------------------------------------------------------------------//
-class KERNEL : public COMMU_FRAME{
+class KERNEL : public COMMU_DRV{
 	public:
 				 KERNEL(uint32 sizeCache,uint32 sizeBuffer);
 		virtual ~KERNEL(void);
 	public:
-#ifdef ODEV_System_h
+#ifdef ODEV_BUS_h
 		ODEV_CACHE		m_Cache;
 #endif
 #ifdef Commu_ComEnum_h
@@ -30,10 +30,10 @@ class KERNEL : public COMMU_FRAME{
 #if defined SWVERSION_SCRIPT && defined GList_h
 		GC_LIST			m_GCList;
 #endif
-#ifdef Device_h
-		DEVICE			m_DeviceM;		//Main
-		DEVICE			m_DeviceA;		//Aux
-		DEVICE			m_DeviceS;		//Second
+#ifdef Bus_h
+		CDEVBUS			m_CDevBusM;		//Main
+		CDEVBUS			m_CDevBusA;		//Aux
+		CDEVBUS			m_CDevBusS;		//Second
 #endif
 #ifdef Commu_AEXE_h
 		AEXEPOOL		m_AExePool;
@@ -73,11 +73,12 @@ class KERNEL : public COMMU_FRAME{
 				void	ParRecordLoad	(const STDSTR& fileName);
 				void	ParRecordSave	(const STDSTR& fileName);
 	public:
-		virtual	void	CloseChild		(COMMU_FRAME* commu);
+		virtual	void	CloseChild		(COMMU_DRV* cdrv);
 				void	Init			(const STDSTR& fileName);
 				void	Run				(const STDSTR& cmd);
 				void	Exit			(const STDSTR& fileName);
-				bool32	ExecBIC			(const STDSTR& cmd);
+				bool32	BICDispose		(const STDSTR& cmd,bool32* exeResult);
+				bool32	ToConsole		(const STDSTR& cmd);
 	public:
 #ifdef CommonDefH_VC
 				void	InitSTDOUT		(ODEV_STDOUT* oDevSTDOUT);

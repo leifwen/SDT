@@ -22,7 +22,7 @@ void CMainFrame::OnButtonClickScoketlist(void){
 }
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnUpdateScoketlist(CCmdUI *pCmdUI){
-	pCmdUI->Enable(theApp.GSDTApp.m_DeviceM.EDA()->IsServerOpened() != 0);
+	pCmdUI->Enable(theApp.GSDTApp.m_CDevBusM.EDA()->IsServerOpened() != 0);
 }
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnCOMBO_COM(void){
@@ -45,47 +45,47 @@ void CMainFrame::OnCOMBO_BR(void){
 }
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnUpdateCOMBO_COM(CCmdUI *pCmdUI){
-	pCmdUI->Enable(theApp.GSDTApp.m_DeviceM.IsOpened() == 0);
+	pCmdUI->Enable(theApp.GSDTApp.m_CDevBusM.IsOpened() == 0);
 }
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnUpdateCOMBO_BR(CCmdUI *pCmdUI){
-	pCmdUI->Enable(theApp.GSDTApp.m_DeviceM.IsOpened() == 0);
+	pCmdUI->Enable(theApp.GSDTApp.m_CDevBusM.IsOpened() == 0);
 }
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnDSR_FLOW(void){
-	if (theApp.GSDTApp.m_DeviceM.EDA()->IsComOpened())
-		theApp.GSDTApp.m_DeviceM.EDA()->AComCore()->SetDSRFlow(!theApp.GSDTApp.m_DeviceM.EDA()->AComCore()->GetDSRFlowStatus());
+	if (theApp.GSDTApp.m_CDevBusM.EDA()->IsComOpened())
+		theApp.GSDTApp.m_CDevBusM.EDA()->AComCore()->SetDSRFlow(!theApp.GSDTApp.m_CDevBusM.EDA()->AComCore()->GetDSRFlowStatus());
 }
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnCTS_FLOW(void){
-	if (theApp.GSDTApp.m_DeviceM.EDA()->IsComOpened())
-		theApp.GSDTApp.m_DeviceM.EDA()->AComCore()->SetCTSFlow(!theApp.GSDTApp.m_DeviceM.EDA()->AComCore()->GetCTSFlowStatus());
+	if (theApp.GSDTApp.m_CDevBusM.EDA()->IsComOpened())
+		theApp.GSDTApp.m_CDevBusM.EDA()->AComCore()->SetCTSFlow(!theApp.GSDTApp.m_CDevBusM.EDA()->AComCore()->GetCTSFlowStatus());
 }
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnDTRHigh(void){
-	if (theApp.GSDTApp.m_DeviceM.EDA()->IsComOpened())
-		theApp.GSDTApp.m_DeviceM.EDA()->AComCore()->SetDTR(1);
+	if (theApp.GSDTApp.m_CDevBusM.EDA()->IsComOpened())
+		theApp.GSDTApp.m_CDevBusM.EDA()->AComCore()->SetDTR(1);
 }
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnDTRLow(void){
-	if (theApp.GSDTApp.m_DeviceM.EDA()->IsComOpened())
-		theApp.GSDTApp.m_DeviceM.EDA()->AComCore()->SetDTR(0);
+	if (theApp.GSDTApp.m_CDevBusM.EDA()->IsComOpened())
+		theApp.GSDTApp.m_CDevBusM.EDA()->AComCore()->SetDTR(0);
 }
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnRTSHigh(void){
-	if (theApp.GSDTApp.m_DeviceM.EDA()->IsComOpened())
-		theApp.GSDTApp.m_DeviceM.EDA()->AComCore()->SetRTS(1);
+	if (theApp.GSDTApp.m_CDevBusM.EDA()->IsComOpened())
+		theApp.GSDTApp.m_CDevBusM.EDA()->AComCore()->SetRTS(1);
 }
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnRTSLow(void){
-	if (theApp.GSDTApp.m_DeviceM.EDA()->IsComOpened())
-		theApp.GSDTApp.m_DeviceM.EDA()->AComCore()->SetRTS(0);
+	if (theApp.GSDTApp.m_CDevBusM.EDA()->IsComOpened())
+		theApp.GSDTApp.m_CDevBusM.EDA()->AComCore()->SetRTS(0);
 }
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnUpdateDSR_FLOW(CCmdUI *pCmdUI){
-	if (theApp.GSDTApp.m_DeviceM.EDA()->IsComOpened()){
+	if (theApp.GSDTApp.m_CDevBusM.EDA()->IsComOpened()){
 		pCmdUI->Enable();
-		pCmdUI->SetCheck(theApp.GSDTApp.m_DeviceM.EDA()->AComCore()->GetDSRFlowStatus() != 0);
+		pCmdUI->SetCheck(theApp.GSDTApp.m_CDevBusM.EDA()->AComCore()->GetDSRFlowStatus() != 0);
 	}
 	else{
 		pCmdUI->SetCheck(FALSE);
@@ -94,9 +94,9 @@ void CMainFrame::OnUpdateDSR_FLOW(CCmdUI *pCmdUI){
 }
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnUpdateCTS_FLOW(CCmdUI *pCmdUI){
-	if (theApp.GSDTApp.m_DeviceM.EDA()->IsComOpened()){
+	if (theApp.GSDTApp.m_CDevBusM.EDA()->IsComOpened()){
 		pCmdUI->Enable();
-		pCmdUI->SetCheck(theApp.GSDTApp.m_DeviceM.EDA()->AComCore()->GetCTSFlowStatus() != 0);
+		pCmdUI->SetCheck(theApp.GSDTApp.m_CDevBusM.EDA()->AComCore()->GetCTSFlowStatus() != 0);
 	}
 	else{
 		pCmdUI->SetCheck(FALSE);
@@ -105,9 +105,9 @@ void CMainFrame::OnUpdateCTS_FLOW(CCmdUI *pCmdUI){
 }
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnUpdateDTRHigh(CCmdUI *pCmdUI){
-	if (theApp.GSDTApp.m_DeviceM.EDA()->IsComOpened()){
+	if (theApp.GSDTApp.m_CDevBusM.EDA()->IsComOpened()){
 		pCmdUI->Enable();
-		pCmdUI->SetCheck(theApp.GSDTApp.m_DeviceM.EDA()->AComCore()->GetDTRStatus() != 0);
+		pCmdUI->SetCheck(theApp.GSDTApp.m_CDevBusM.EDA()->AComCore()->GetDTRStatus() != 0);
 	}
 	else{
 		pCmdUI->SetCheck(FALSE);
@@ -116,9 +116,9 @@ void CMainFrame::OnUpdateDTRHigh(CCmdUI *pCmdUI){
 }
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnUpdateDTRLow(CCmdUI *pCmdUI){
-	if (theApp.GSDTApp.m_DeviceM.EDA()->IsComOpened()){
+	if (theApp.GSDTApp.m_CDevBusM.EDA()->IsComOpened()){
 		pCmdUI->Enable();
-		pCmdUI->SetCheck(theApp.GSDTApp.m_DeviceM.EDA()->AComCore()->GetDTRStatus() == 0);
+		pCmdUI->SetCheck(theApp.GSDTApp.m_CDevBusM.EDA()->AComCore()->GetDTRStatus() == 0);
 	}
 	else{
 		pCmdUI->SetCheck();
@@ -127,9 +127,9 @@ void CMainFrame::OnUpdateDTRLow(CCmdUI *pCmdUI){
 }
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnUpdateRTSHigh(CCmdUI *pCmdUI){
-	if (theApp.GSDTApp.m_DeviceM.EDA()->IsComOpened()){
+	if (theApp.GSDTApp.m_CDevBusM.EDA()->IsComOpened()){
 		pCmdUI->Enable();
-		pCmdUI->SetCheck(theApp.GSDTApp.m_DeviceM.EDA()->AComCore()->GetRTSStatus() != 0);
+		pCmdUI->SetCheck(theApp.GSDTApp.m_CDevBusM.EDA()->AComCore()->GetRTSStatus() != 0);
 	}
 	else{
 		pCmdUI->SetCheck(FALSE);
@@ -138,9 +138,9 @@ void CMainFrame::OnUpdateRTSHigh(CCmdUI *pCmdUI){
 }
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnUpdateRTSLow(CCmdUI *pCmdUI){
-	if (theApp.GSDTApp.m_DeviceM.EDA()->IsComOpened()){
+	if (theApp.GSDTApp.m_CDevBusM.EDA()->IsComOpened()){
 		pCmdUI->Enable();
-		pCmdUI->SetCheck(theApp.GSDTApp.m_DeviceM.EDA()->AComCore()->GetRTSStatus() == 0);
+		pCmdUI->SetCheck(theApp.GSDTApp.m_CDevBusM.EDA()->AComCore()->GetRTSStatus() == 0);
 	}
 	else{
 		pCmdUI->SetCheck();
@@ -149,59 +149,59 @@ void CMainFrame::OnUpdateRTSLow(CCmdUI *pCmdUI){
 }
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnASCII(void){
-	B_ClrFLAG64(*theApp.GSDTApp.m_DeviceM.EDA()->envcfg,ODEV_FLAG_EnHEXViewMode);
+	B_ClrFLAG64(*theApp.GSDTApp.m_CDevBusM.EDA()->envcfg, ODEV_FLAG_EnHEXViewMode);
 }
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnHEX(void){
-	B_SetFLAG64(*theApp.GSDTApp.m_DeviceM.EDA()->envcfg,ODEV_FLAG_EnHEXViewMode);
+	B_SetFLAG64(*theApp.GSDTApp.m_CDevBusM.EDA()->envcfg, ODEV_FLAG_EnHEXViewMode);
 }
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnUpdateASCII(CCmdUI *pCmdUI){
-	pCmdUI->SetCheck(B_ChkFLAG64(*theApp.GSDTApp.m_DeviceM.EDA()->envcfg, ODEV_FLAG_EnHEXViewMode) == 0);
+	pCmdUI->SetCheck(B_ChkFLAG64(*theApp.GSDTApp.m_CDevBusM.EDA()->envcfg, ODEV_FLAG_EnHEXViewMode) == 0);
 }
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnUpdateHEX(CCmdUI *pCmdUI){
-	pCmdUI->SetCheck(B_ChkFLAG64(*theApp.GSDTApp.m_DeviceM.EDA()->envcfg, ODEV_FLAG_EnHEXViewMode) != 0);
+	pCmdUI->SetCheck(B_ChkFLAG64(*theApp.GSDTApp.m_CDevBusM.EDA()->envcfg, ODEV_FLAG_EnHEXViewMode) != 0);
 }
 
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnButtonClickEcho(void){
-	if (theApp.GSDTApp.m_DeviceM.IsEnableEcho() == 0){
-		theApp.GSDTApp.m_DeviceM.EnableEcho();
+	if (theApp.GSDTApp.m_CDevBusM.IsEnableEcho() == 0){
+		theApp.GSDTApp.m_CDevBusM.EnableEcho();
 	}
 	else{
-		theApp.GSDTApp.m_DeviceM.DisableEcho();
+		theApp.GSDTApp.m_CDevBusM.DisableEcho();
 	}
 }
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnUpdateEcho(CCmdUI *pCmdUI){
-	pCmdUI->SetCheck(theApp.GSDTApp.m_DeviceM.IsEnableEcho() != 0);
+	pCmdUI->SetCheck(theApp.GSDTApp.m_CDevBusM.IsEnableEcho() != 0);
 }
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnMSR(void){
-	if (B_ChkFLAG64(*theApp.GSDTApp.m_DeviceM.EDA()->envcfg, ODEV_FLAG_EnMSReport) == 0){
-		B_SetFLAG64(*theApp.GSDTApp.m_DeviceM.EDA()->envcfg, ODEV_FLAG_EnMSReport);
+	if (B_ChkFLAG64(*theApp.GSDTApp.m_CDevBusM.EDA()->envcfg, ODEV_FLAG_EnMSReport) == 0){
+		B_SetFLAG64(*theApp.GSDTApp.m_CDevBusM.EDA()->envcfg, ODEV_FLAG_EnMSReport);
 	}
 	else{
-		B_ClrFLAG64(*theApp.GSDTApp.m_DeviceM.EDA()->envcfg, ODEV_FLAG_EnMSReport);
+		B_ClrFLAG64(*theApp.GSDTApp.m_CDevBusM.EDA()->envcfg, ODEV_FLAG_EnMSReport);
 	}
 }
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnOSPMSG(void){
-	if (B_ChkFLAG64(*theApp.GSDTApp.m_DeviceM.EDA()->envcfg, ODEV_FLAG_EnOSPMsgLine) == 0){
-		B_SetFLAG64(*theApp.GSDTApp.m_DeviceM.EDA()->envcfg, ODEV_FLAG_EnOSPMsgLine);
+	if (B_ChkFLAG64(*theApp.GSDTApp.m_CDevBusM.EDA()->envcfg, ODEV_FLAG_EnOSPMsgLine) == 0){
+		B_SetFLAG64(*theApp.GSDTApp.m_CDevBusM.EDA()->envcfg, ODEV_FLAG_EnOSPMsgLine);
 	}
 	else{
-		B_ClrFLAG64(*theApp.GSDTApp.m_DeviceM.EDA()->envcfg, ODEV_FLAG_EnOSPMsgLine);
+		B_ClrFLAG64(*theApp.GSDTApp.m_CDevBusM.EDA()->envcfg, ODEV_FLAG_EnOSPMsgLine);
 	}
 }
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnRECMSG(void){
-	if (B_ChkFLAG64(*theApp.GSDTApp.m_DeviceM.EDA()->envcfg, ODEV_FLAG_EnRecMsg) == 0){
-		B_SetFLAG64(*theApp.GSDTApp.m_DeviceM.EDA()->envcfg, ODEV_FLAG_EnRecMsg);
+	if (B_ChkFLAG64(*theApp.GSDTApp.m_CDevBusM.EDA()->envcfg, ODEV_FLAG_EnRecMsg) == 0){
+		B_SetFLAG64(*theApp.GSDTApp.m_CDevBusM.EDA()->envcfg, ODEV_FLAG_EnRecMsg);
 	}
 	else{
-		B_ClrFLAG64(*theApp.GSDTApp.m_DeviceM.EDA()->envcfg, ODEV_FLAG_EnRecMsg);
+		B_ClrFLAG64(*theApp.GSDTApp.m_CDevBusM.EDA()->envcfg, ODEV_FLAG_EnRecMsg);
 	}
 }
 //------------------------------------------------------------------------------------------//
@@ -219,15 +219,15 @@ void CMainFrame::OnUpdateDisplay(CCmdUI *pCmdUI){
 }
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnUpdateMSR(CCmdUI *pCmdUI){
-	pCmdUI->SetCheck(B_ChkFLAG64(*theApp.GSDTApp.m_DeviceM.EDA()->envcfg, ODEV_FLAG_EnMSReport) != 0);
+	pCmdUI->SetCheck(B_ChkFLAG64(*theApp.GSDTApp.m_CDevBusM.EDA()->envcfg, ODEV_FLAG_EnMSReport) != 0);
 }
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnUpdateOSPMSG(CCmdUI *pCmdUI){
-	pCmdUI->SetCheck(B_ChkFLAG64(*theApp.GSDTApp.m_DeviceM.EDA()->envcfg, ODEV_FLAG_EnOSPMsgLine) != 0);
+	pCmdUI->SetCheck(B_ChkFLAG64(*theApp.GSDTApp.m_CDevBusM.EDA()->envcfg, ODEV_FLAG_EnOSPMsgLine) != 0);
 }
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnUpdateRECMSG(CCmdUI *pCmdUI){
-	pCmdUI->SetCheck(B_ChkFLAG64(*theApp.GSDTApp.m_DeviceM.EDA()->envcfg, ODEV_FLAG_EnRecMsg) != 0);
+	pCmdUI->SetCheck(B_ChkFLAG64(*theApp.GSDTApp.m_CDevBusM.EDA()->envcfg, ODEV_FLAG_EnRecMsg) != 0);
 }
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnButtonClickScriptAT(void){
@@ -326,8 +326,8 @@ void CMainFrame::OnButtonClickScriptGC(void){
 }
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnButtonClickClean(void){
-	theApp.GSDTApp.m_DeviceM.Empty();
-	theApp.GSDTApp.m_DeviceA.Empty();
+	theApp.GSDTApp.m_CDevBusM.Empty();
+	theApp.GSDTApp.m_CDevBusA.Empty();
 	m_MCFrm->m_stdout.Clean();
 }
 //------------------------------------------------------------------------------------------//
@@ -336,19 +336,19 @@ void CMainFrame::OnButtonClickDevList(void){
 }
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnButtonClickConnect(void){
-	if (theApp.GSDTApp.m_DeviceM.IsOpened() == FALSE){
+	if (theApp.GSDTApp.m_CDevBusM.IsOpened() == FALSE){
 		if (DoConnect() == 0){
-			theApp.GSDTApp.m_DeviceM.CloseSelf(0);
+			theApp.GSDTApp.m_CDevBusM.CloseSelf(0);
 			m_wndSocket.ShowPane(FALSE,FALSE,TRUE);
 		}
 		else{
-			theApp.GSDTApp.ExecBIC("m");
-			theApp.GSDTApp.ExecBIC("c");
+			theApp.GSDTApp.ToConsole("m");
+			theApp.GSDTApp.ToConsole("c");
 		}
 		return;
 	}
 	else{
-		theApp.GSDTApp.m_DeviceM.CloseSelf(0);
+		theApp.GSDTApp.m_CDevBusM.CloseSelf(0);
 		m_wndSocket.ShowPane(FALSE,FALSE,TRUE);
 	}
 }
@@ -357,7 +357,7 @@ void CMainFrame::OnUpdateScrpit(CCmdUI *pCmdUI){
 	if (theApp.GSDTApp.m_Script.IsStop() != m_blStop){
 		m_blStop = theApp.GSDTApp.m_Script.IsStop();
 		if (m_blStop != 0){
-			m_blConnect = !theApp.GSDTApp.m_DeviceM.IsOpened();
+			m_blConnect = !theApp.GSDTApp.m_CDevBusM.IsOpened();
 		}
 		else if (m_Pitl3Created){
 			m_Pitl3->SetProgressState(GetSafeHwnd(),TBPF_INDETERMINATE);
@@ -368,7 +368,7 @@ void CMainFrame::OnUpdateScrpit(CCmdUI *pCmdUI){
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnUpdateConnect(CCmdUI *pCmdUI){
 	CString		cTitle;
-	CSocketListViewDP::GetSocketList().LoadData(theApp.GSDTApp.m_DeviceM.AServer());
+	CSocketListViewDP::GetSocketList().LoadData(theApp.GSDTApp.m_CDevBusM.EDA()->AServer());
 	if (TNF::IsUpdate(&theApp.GSDTApp.m_GCList) != 0){
 		CGCViewDP::GetGCTree().LoadData(&theApp.GSDTApp.m_GCList);
 		TNF::ClrblUpdate(&theApp.GSDTApp.m_GCList);
@@ -377,12 +377,12 @@ void CMainFrame::OnUpdateConnect(CCmdUI *pCmdUI){
 		m_wndSC.m_wndSCTree.LoadData(&theApp.GSDTApp.m_SCList);
 		TNF::ClrblUpdate(&theApp.GSDTApp.m_SCList);
 	}
-	pCmdUI->SetCheck(theApp.GSDTApp.m_DeviceM.IsOpened() != 0);
+	pCmdUI->SetCheck(theApp.GSDTApp.m_CDevBusM.IsOpened() != 0);
 
-	if (theApp.GSDTApp.m_DeviceM.IsOpened() != m_blConnect){
-		m_blConnect = theApp.GSDTApp.m_DeviceM.IsOpened();
+	if (theApp.GSDTApp.m_CDevBusM.IsOpened() != m_blConnect){
+		m_blConnect = theApp.GSDTApp.m_CDevBusM.IsOpened();
 		if (m_blConnect != 0){
-			m_MyTitle = Str_ANSIToUnicode(theApp.GSDTApp.m_DeviceM.MakeFrmTitle()).c_str();
+			m_MyTitle = Str_ANSIToUnicode(theApp.GSDTApp.m_CDevBusM.MakeFrmTitle()).c_str();
 			if (m_MCFrm != NULL)
 				m_MCFrm->SetWindowText(m_MyTitle);
 			if (m_Pitl3Created){
@@ -408,8 +408,8 @@ void CMainFrame::OnUpdateConnect(CCmdUI *pCmdUI){
 LRESULT CMainFrame::OnBICClean(WPARAM wParam, LPARAM lParam){
 	switch (wParam){
 		case 0:;
-			theApp.GSDTApp.m_DeviceM.Empty();
-			theApp.GSDTApp.m_DeviceA.Empty();
+			theApp.GSDTApp.m_CDevBusM.Empty();
+			theApp.GSDTApp.m_CDevBusA.Empty();
 			m_MCFrm->m_stdout.Clean();
 	}
 	return 0;
@@ -477,7 +477,7 @@ int32 CMainFrame::DoConnect(void){
 	type = CheckIPComInput(Str_UnicodeToANSI(sstrPortName.GetBuffer(0)),&result);
 	baudrate = atoi(Str_UnicodeToANSI(sstrBR.GetBuffer(0)).c_str());
 
-	return(theApp.GSDTApp.m_DeviceM.Open(SetOpenPar(type, result, baudrate, theApp.GSDTApp.m_DeviceM.IsEnableEcho())) != 0);
+	return(theApp.GSDTApp.m_CDevBusM.Open(DRV_COM,SetOpenPar(type, result, baudrate, theApp.GSDTApp.m_CDevBusM.IsEnableEcho())) != 0);
 }
 //------------------------------------------------------------------------------------------//
 void CMainFrame::DoScriptStop(void){
@@ -526,19 +526,19 @@ void CMainFrame::SetSelectComboBox_COM(void){
 
 	listItem = m_ValidIPComList.selectedNode;
 	
-	if (listItem->typeID == PublicDevice_DEVID_APICOM)
+	if (listItem->typeID == COMENUM_DEVID_APICOM)
 		sstrPortName = listItem->strIPComName.c_str();
-	if (listItem->typeID == PublicDevice_DEVID_TCPClient){
+	if (listItem->typeID == COMENUM_DEVID_TCPClient){
 		sstrPortName = "TCP:";
 		sstrPortName += listItem->strIPComName.c_str();
 	}
-	if (listItem->typeID == PublicDevice_DEVID_UDPClient){
+	if (listItem->typeID == COMENUM_DEVID_UDPClient){
 		sstrPortName = "UDP:";
 		sstrPortName += listItem->strIPComName.c_str();
 	}
-	if (listItem->typeID == PublicDevice_DEVID_TCPServer)
+	if (listItem->typeID == COMENUM_DEVID_TCPServer)
 		sstrPortName = "TCP SERVER";
-	if (listItem->typeID == PublicDevice_DEVID_UDPServer)
+	if (listItem->typeID == COMENUM_DEVID_UDPServer)
 		sstrPortName = "UDP SERVER";
 	sstrShowName = listItem->strShowName.c_str();
 	COMBox->SetEditText(sstrPortName);
@@ -559,19 +559,19 @@ void CMainFrame::CreateComboBox_COMList(void){
 	theApp.GSDTApp.m_IPComList.Export(&m_ValidIPComList);
 
 	TREE_DownChain_Traversal_LINE(IPCOMNAME, (&m_ValidIPComList),
-		if (_opNode->typeID == PublicDevice_DEVID_APICOM)
+		if (_opNode->typeID == COMENUM_DEVID_APICOM)
 			sstrPortName = _opNode->strIPComName.c_str();
-		if (_opNode->typeID == PublicDevice_DEVID_TCPClient){
+		if (_opNode->typeID == COMENUM_DEVID_TCPClient){
 			sstrPortName = "TCP:";
 			sstrPortName += _opNode->strIPComName.c_str();
 		}
-		if (_opNode->typeID == PublicDevice_DEVID_UDPClient){
+		if (_opNode->typeID == COMENUM_DEVID_UDPClient){
 			sstrPortName = "UDP:";
 			sstrPortName += _opNode->strIPComName.c_str();
 		}
-		if (_opNode->typeID == PublicDevice_DEVID_TCPServer)
+		if (_opNode->typeID == COMENUM_DEVID_TCPServer)
 			sstrPortName = "TCP SERVER";
-		if (_opNode->typeID == PublicDevice_DEVID_UDPServer)
+		if (_opNode->typeID == COMENUM_DEVID_UDPServer)
 			sstrPortName = "UDP SERVER";
 		sstrShowName = _opNode->strShowName.c_str();
 		COMBox->AddItem(sstrShowName, TNF::GetDRNodeID(_opNode));

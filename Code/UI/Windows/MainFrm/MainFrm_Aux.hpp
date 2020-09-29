@@ -19,38 +19,38 @@ void CMainFrame::OnRiComboAuxbr(void){
 }
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnUpdateRiComboAuxcom(CCmdUI *pCmdUI){
-	pCmdUI->Enable(theApp.GSDTApp.m_DeviceA.IsOpened() == 0);
+	pCmdUI->Enable(theApp.GSDTApp.m_CDevBusA.IsOpened() == 0);
 }
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnUpdateRiComboAuxbr(CCmdUI *pCmdUI){
-	pCmdUI->Enable(theApp.GSDTApp.m_DeviceA.IsOpened() == 0);
+	pCmdUI->Enable(theApp.GSDTApp.m_CDevBusA.IsOpened() == 0);
 }
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnRiCheckAuxescape(void){
-	if (B_ChkFLAG64(*theApp.GSDTApp.m_DeviceA.EDA()->envcfg, ODEV_FLAG_EnEscape) == 0){
-		B_SetFLAG64(*theApp.GSDTApp.m_DeviceA.EDA()->envcfg, ODEV_FLAG_EnEscape);
-		B_ClrFLAG64(*theApp.GSDTApp.m_DeviceA.EDA()->envcfg, ODEV_FLAG_EnHEXViewMode);
+	if (B_ChkFLAG64(*theApp.GSDTApp.m_CDevBusA.EDA()->envcfg, ODEV_FLAG_EnEscape) == 0){
+		B_SetFLAG64(*theApp.GSDTApp.m_CDevBusA.EDA()->envcfg, ODEV_FLAG_EnEscape);
+		B_ClrFLAG64(*theApp.GSDTApp.m_CDevBusA.EDA()->envcfg, ODEV_FLAG_EnHEXViewMode);
 	}
 	else{
-		B_ClrFLAG64(*theApp.GSDTApp.m_DeviceA.EDA()->envcfg, ODEV_FLAG_EnEscape);
+		B_ClrFLAG64(*theApp.GSDTApp.m_CDevBusA.EDA()->envcfg, ODEV_FLAG_EnEscape);
 	}
 }
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnRiCheckAuxhex(void){
-	B_ClrFLAG64(*theApp.GSDTApp.m_DeviceA.EDA()->envcfg, ODEV_FLAG_EnEscape);
-	B_SetFLAG64(*theApp.GSDTApp.m_DeviceA.EDA()->envcfg, ODEV_FLAG_EnHEXViewMode);
+	B_ClrFLAG64(*theApp.GSDTApp.m_CDevBusA.EDA()->envcfg, ODEV_FLAG_EnEscape);
+	B_SetFLAG64(*theApp.GSDTApp.m_CDevBusA.EDA()->envcfg, ODEV_FLAG_EnHEXViewMode);
 }
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnRiCheckAuxascii(void){
-	B_ClrFLAG64(*theApp.GSDTApp.m_DeviceA.EDA()->envcfg, ODEV_FLAG_EnHEXViewMode);
+	B_ClrFLAG64(*theApp.GSDTApp.m_CDevBusA.EDA()->envcfg, ODEV_FLAG_EnHEXViewMode);
 }
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnRiButtonAuxopen(void){
-	if (theApp.GSDTApp.m_DeviceA.IsOpened() == 0){
+	if (theApp.GSDTApp.m_CDevBusA.IsOpened() == 0){
 		if (DoAuxopen())
 			return;
 	}
-	theApp.GSDTApp.m_DeviceA.Close();
+	theApp.GSDTApp.m_CDevBusA.Close();
 }
 //------------------------------------------------------------------------------------------//
 BOOL CMainFrame::DoAuxopen(void){
@@ -69,61 +69,61 @@ BOOL CMainFrame::DoAuxopen(void){
 	baudrate = atoi(Str_UnicodeToANSI(sstrBR.GetBuffer(0)).c_str());
 
 #ifdef	SWVERSION_AUXDEVICE
-	return(theApp.GSDTApp.m_DeviceA.Open(SetOpenPar(type,result, baudrate, theApp.GSDTApp.m_DeviceA.IsEnableEcho())) != 0);
+	return(theApp.GSDTApp.m_CDevBusA.Open(DRV_COM,SetOpenPar(type, result, baudrate, theApp.GSDTApp.m_CDevBusA.IsEnableEcho())) != 0);
 #endif
 	return(FALSE);
 }
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnRiCheckAuxdsr(void){
-	if ((theApp.GSDTApp.m_DeviceA.EDA()->IsComOpened() != 0))
-		theApp.GSDTApp.m_DeviceA.EDA()->AComCore()->SetDSRFlow(!theApp.GSDTApp.m_DeviceA.EDA()->AComCore()->GetDSRFlowStatus());
+	if ((theApp.GSDTApp.m_CDevBusA.EDA()->IsComOpened() != 0))
+		theApp.GSDTApp.m_CDevBusA.EDA()->AComCore()->SetDSRFlow(!theApp.GSDTApp.m_CDevBusA.EDA()->AComCore()->GetDSRFlowStatus());
 }
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnRiCheckAuxdtrh(void){
-	if ((theApp.GSDTApp.m_DeviceA.EDA()->IsComOpened() != 0))
-		theApp.GSDTApp.m_DeviceA.EDA()->AComCore()->SetDTR(1);
+	if ((theApp.GSDTApp.m_CDevBusA.EDA()->IsComOpened() != 0))
+		theApp.GSDTApp.m_CDevBusA.EDA()->AComCore()->SetDTR(1);
 }
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnRiCheckAuxdtrl(void){
-	if ((theApp.GSDTApp.m_DeviceA.EDA()->IsComOpened() != 0))
-		theApp.GSDTApp.m_DeviceA.EDA()->AComCore()->SetDTR(0);
+	if ((theApp.GSDTApp.m_CDevBusA.EDA()->IsComOpened() != 0))
+		theApp.GSDTApp.m_CDevBusA.EDA()->AComCore()->SetDTR(0);
 }
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnRiCheckAuxcts(void){
-	if ((theApp.GSDTApp.m_DeviceA.EDA()->IsComOpened() != 0))
-		theApp.GSDTApp.m_DeviceA.EDA()->AComCore()->SetCTSFlow(!theApp.GSDTApp.m_DeviceA.EDA()->AComCore()->GetCTSFlowStatus());
+	if ((theApp.GSDTApp.m_CDevBusA.EDA()->IsComOpened() != 0))
+		theApp.GSDTApp.m_CDevBusA.EDA()->AComCore()->SetCTSFlow(!theApp.GSDTApp.m_CDevBusA.EDA()->AComCore()->GetCTSFlowStatus());
 }
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnRiCheckAuxrtsh(void){
-	if ((theApp.GSDTApp.m_DeviceA.EDA()->IsComOpened() != 0))
-		theApp.GSDTApp.m_DeviceA.EDA()->AComCore()->SetRTS(1);
+	if ((theApp.GSDTApp.m_CDevBusA.EDA()->IsComOpened() != 0))
+		theApp.GSDTApp.m_CDevBusA.EDA()->AComCore()->SetRTS(1);
 }
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnRiCheckAuxrtsl(void){
-	if ((theApp.GSDTApp.m_DeviceA.EDA()->IsComOpened() != 0))
-		theApp.GSDTApp.m_DeviceA.EDA()->AComCore()->SetRTS(0);
+	if ((theApp.GSDTApp.m_CDevBusA.EDA()->IsComOpened() != 0))
+		theApp.GSDTApp.m_CDevBusA.EDA()->AComCore()->SetRTS(0);
 }
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnUpdateRiCheckAuxescape(CCmdUI *pCmdUI){
-	pCmdUI->SetCheck(B_ChkFLAG64(*theApp.GSDTApp.m_DeviceA.EDA()->envcfg, ODEV_FLAG_EnEscape) != 0);
+	pCmdUI->SetCheck(B_ChkFLAG64(*theApp.GSDTApp.m_CDevBusA.EDA()->envcfg, ODEV_FLAG_EnEscape) != 0);
 }
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnUpdateRiCheckAuxhex(CCmdUI *pCmdUI){
-	pCmdUI->SetCheck(B_ChkFLAG64(*theApp.GSDTApp.m_DeviceA.EDA()->envcfg, ODEV_FLAG_EnHEXViewMode) != 0);
+	pCmdUI->SetCheck(B_ChkFLAG64(*theApp.GSDTApp.m_CDevBusA.EDA()->envcfg, ODEV_FLAG_EnHEXViewMode) != 0);
 }
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnUpdateRiCheckAuxascii(CCmdUI *pCmdUI){
-	pCmdUI->SetCheck(B_ChkFLAG64(*theApp.GSDTApp.m_DeviceA.EDA()->envcfg, ODEV_FLAG_EnHEXViewMode) == 0);
+	pCmdUI->SetCheck(B_ChkFLAG64(*theApp.GSDTApp.m_CDevBusA.EDA()->envcfg, ODEV_FLAG_EnHEXViewMode) == 0);
 }
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnUpdateRiButtonAuxopen(CCmdUI *pCmdUI){
-	pCmdUI->SetCheck(theApp.GSDTApp.m_DeviceA.IsOpened() != 0);
+	pCmdUI->SetCheck(theApp.GSDTApp.m_CDevBusA.IsOpened() != 0);
 }
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnUpdateRiCheckAuxdsr(CCmdUI *pCmdUI){
-	if (theApp.GSDTApp.m_DeviceA.EDA()->IsComOpened()){
+	if (theApp.GSDTApp.m_CDevBusA.EDA()->IsComOpened()){
 		pCmdUI->Enable();
-		pCmdUI->SetCheck(theApp.GSDTApp.m_DeviceA.EDA()->AComCore()->GetDSRFlowStatus() != 0);
+		pCmdUI->SetCheck(theApp.GSDTApp.m_CDevBusA.EDA()->AComCore()->GetDSRFlowStatus() != 0);
 	}
 	else{
 		pCmdUI->SetCheck(FALSE);
@@ -132,9 +132,9 @@ void CMainFrame::OnUpdateRiCheckAuxdsr(CCmdUI *pCmdUI){
 }
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnUpdateRiCheckAuxdtrh(CCmdUI *pCmdUI){
-	if (theApp.GSDTApp.m_DeviceA.EDA()->IsComOpened()){
+	if (theApp.GSDTApp.m_CDevBusA.EDA()->IsComOpened()){
 		pCmdUI->Enable();
-		pCmdUI->SetCheck(theApp.GSDTApp.m_DeviceA.EDA()->AComCore()->GetDTRStatus() != 0); 
+		pCmdUI->SetCheck(theApp.GSDTApp.m_CDevBusA.EDA()->AComCore()->GetDTRStatus() != 0);
 	}
 	else{
 		pCmdUI->SetCheck(FALSE);
@@ -143,9 +143,9 @@ void CMainFrame::OnUpdateRiCheckAuxdtrh(CCmdUI *pCmdUI){
 }
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnUpdateRiCheckAuxdtrl(CCmdUI *pCmdUI){
-	if (theApp.GSDTApp.m_DeviceA.EDA()->IsComOpened()){
+	if (theApp.GSDTApp.m_CDevBusA.EDA()->IsComOpened()){
 		pCmdUI->Enable();
-		pCmdUI->SetCheck(theApp.GSDTApp.m_DeviceA.EDA()->AComCore()->GetDTRStatus() == 0);
+		pCmdUI->SetCheck(theApp.GSDTApp.m_CDevBusA.EDA()->AComCore()->GetDTRStatus() == 0);
 	}
 	else{
 		pCmdUI->SetCheck(TRUE);
@@ -154,9 +154,9 @@ void CMainFrame::OnUpdateRiCheckAuxdtrl(CCmdUI *pCmdUI){
 }
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnUpdateRiCheckAuxcts(CCmdUI *pCmdUI){
-	if (theApp.GSDTApp.m_DeviceA.EDA()->IsComOpened()){
+	if (theApp.GSDTApp.m_CDevBusA.EDA()->IsComOpened()){
 		pCmdUI->Enable();
-		pCmdUI->SetCheck(theApp.GSDTApp.m_DeviceA.EDA()->AComCore()->GetCTSFlowStatus() != 0);
+		pCmdUI->SetCheck(theApp.GSDTApp.m_CDevBusA.EDA()->AComCore()->GetCTSFlowStatus() != 0);
 	}
 	else{
 		pCmdUI->SetCheck(FALSE);
@@ -165,9 +165,9 @@ void CMainFrame::OnUpdateRiCheckAuxcts(CCmdUI *pCmdUI){
 }
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnUpdateRiCheckAuxrtsh(CCmdUI *pCmdUI){
-	if (theApp.GSDTApp.m_DeviceA.EDA()->IsComOpened()){
+	if (theApp.GSDTApp.m_CDevBusA.EDA()->IsComOpened()){
 		pCmdUI->Enable();
-		pCmdUI->SetCheck(theApp.GSDTApp.m_DeviceA.EDA()->AComCore()->GetRTSStatus() != 0);
+		pCmdUI->SetCheck(theApp.GSDTApp.m_CDevBusA.EDA()->AComCore()->GetRTSStatus() != 0);
 	}
 	else{
 		pCmdUI->SetCheck(FALSE);
@@ -176,9 +176,9 @@ void CMainFrame::OnUpdateRiCheckAuxrtsh(CCmdUI *pCmdUI){
 }
 //------------------------------------------------------------------------------------------//
 void CMainFrame::OnUpdateRiCheckAuxrtsl(CCmdUI *pCmdUI){
-	if (theApp.GSDTApp.m_DeviceA.EDA()->IsComOpened()){
+	if (theApp.GSDTApp.m_CDevBusA.EDA()->IsComOpened()){
 		pCmdUI->Enable();
-		pCmdUI->SetCheck(theApp.GSDTApp.m_DeviceA.EDA()->AComCore()->GetRTSStatus() == 0);
+		pCmdUI->SetCheck(theApp.GSDTApp.m_CDevBusA.EDA()->AComCore()->GetRTSStatus() == 0);
 	}
 	else{
 		pCmdUI->SetCheck(TRUE);
@@ -227,19 +227,19 @@ void CMainFrame::SetSelectComboBox_AuxCOM(void){
 
 	listItem = m_ValidAuxComList.selectedNode;
 	
-	if (listItem->typeID == PublicDevice_DEVID_APICOM)
+	if (listItem->typeID == COMENUM_DEVID_APICOM)
 		sstrPortName = listItem->strIPComName.c_str();
-	if (listItem->typeID == PublicDevice_DEVID_TCPClient){
+	if (listItem->typeID == COMENUM_DEVID_TCPClient){
 		sstrPortName = "TCP:";
 		sstrPortName += listItem->strIPComName.c_str();
 	}
-	if (listItem->typeID == PublicDevice_DEVID_UDPClient){
+	if (listItem->typeID == COMENUM_DEVID_UDPClient){
 		sstrPortName = "UDP:";
 		sstrPortName += listItem->strIPComName.c_str();
 	}
-	if (listItem->typeID == PublicDevice_DEVID_TCPServer)
+	if (listItem->typeID == COMENUM_DEVID_TCPServer)
 		sstrPortName = "TCP SERVER";
-	if (listItem->typeID == PublicDevice_DEVID_UDPServer)
+	if (listItem->typeID == COMENUM_DEVID_UDPServer)
 		sstrPortName = "UDP SERVER";
 	sstrShowName = listItem->strShowName.c_str();
 	COMBox->SetEditText(sstrPortName);
@@ -260,19 +260,19 @@ void CMainFrame::CreateComboBox_AuxCOMList(void){
 	theApp.GSDTApp.m_IPComList.ExportCOM(&m_ValidAuxComList);
 
 	TREE_DownChain_Traversal_LINE(IPCOMNAME, (&m_ValidAuxComList),
-		if (_opNode->typeID == PublicDevice_DEVID_APICOM)
+		if (_opNode->typeID == COMENUM_DEVID_APICOM)
 			sstrPortName = _opNode->strIPComName.c_str();
-		if (_opNode->typeID == PublicDevice_DEVID_TCPClient){
+		if (_opNode->typeID == COMENUM_DEVID_TCPClient){
 			sstrPortName = "TCP:";
 			sstrPortName += _opNode->strIPComName.c_str();
 		}
-		if (_opNode->typeID == PublicDevice_DEVID_UDPClient){
+		if (_opNode->typeID == COMENUM_DEVID_UDPClient){
 			sstrPortName = "UDP:";
 			sstrPortName += _opNode->strIPComName.c_str();
 		}
-		if (_opNode->typeID == PublicDevice_DEVID_TCPServer)
+		if (_opNode->typeID == COMENUM_DEVID_TCPServer)
 			sstrPortName = "TCP SERVER";
-		if (_opNode->typeID == PublicDevice_DEVID_UDPServer)
+		if (_opNode->typeID == COMENUM_DEVID_UDPServer)
 			sstrPortName = "UDP SERVER";
 		sstrShowName = _opNode->strShowName.c_str();
 		COMBox->AddItem(sstrShowName, TNF::GetDRNodeID(_opNode));

@@ -203,33 +203,33 @@ class COLRECORD_CACHE : public CRD{
 //------------------------------------------------------------------------------------------//
 CreateOperatorSetUint32(Col);
 CreateOperatorSetUint32(Addr);
-CreateOperatorFun2(NL);
-CreateOperatorFun(NL);
+CreateOperatorFunc2(NL);
+CreateOperatorFunc(NL);
 
 CreateOperatorSetUint32(Group);
 CreateOperatorClrUint32(Group);
 
-CreateOperatorFun2(G1);
-CreateOperatorFun2(G2);
-CreateOperatorFun2(G3);
-CreateOperatorFun(G1);
-CreateOperatorFun(G2);
-CreateOperatorFun(G3);
+CreateOperatorFunc2(G1);
+CreateOperatorFunc2(G2);
+CreateOperatorFunc2(G3);
+CreateOperatorFunc(G1);
+CreateOperatorFunc(G2);
+CreateOperatorFunc(G3);
 
-CreateOperatorFun2(DefGroup);
-CreateOperatorFun(DefGroup);
+CreateOperatorFunc2(DefGroup);
+CreateOperatorFunc(DefGroup);
 //------------------------------------------------------------------------------------------//
-#define TEMPLATE_FUN(_data,_fun)\
-							inline			CRDN&	_fun		(void);\
-template <typename T_DSTF>	inline	friend	T_DSTF& operator << (T_DSTF& _crdn,const _data& fun){\
-	_crdn._fun();\
+#define TEMPLATE_FUN(_data,_func)\
+							inline			CRDN&	_func		(void);\
+template <typename T_DSTF>	inline	friend	T_DSTF& operator << (T_DSTF& _crdn,const _data& func){\
+	_crdn._func();\
 	return(_crdn);\
 };
 //------------------------------------------------------------------------------------------//
-#define TEMPLATE_DATA(_data,_fun)\
-							inline			CRDN&	_fun		(const _data& data);\
+#define TEMPLATE_DATA(_data,_func)\
+							inline			CRDN&	_func		(const _data& data);\
 template <typename T_DSTF>	inline	friend	T_DSTF& operator << (T_DSTF& _crdn,const _data& data){\
-	_crdn._fun(data);\
+	_crdn._func(data);\
 	return(_crdn);\
 };
 //------------------------------------------------------------------------------------------//

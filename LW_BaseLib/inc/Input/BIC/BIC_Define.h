@@ -159,6 +159,23 @@ enum{
 	BIC_ID_APPROVE,
 	BIC_ID_LSERVER,
 	BIC_ID_REGISTRATION,
+	
+	BIC_ID_BLE,
+	BIC_ID_BLE_SCAN,
+	BIC_ID_BLE_LIST,
+	BIC_ID_BLE_CONNECT,
+	BIC_ID_BLE_DISCONNECT,
+	BIC_ID_BLE_BIND,
+	BIC_ID_BLE_UNBIND,
+	BIC_ID_BLE_ATTACH,
+	BIC_ID_BLE_WRITE,
+	BIC_ID_BLE_READ,
+	BIC_ID_BLE_INDICATE,
+	
+	BIC_ID_BT,
+	BIC_ID_BT_SCAN,
+	BIC_ID_BT_LIST,
+	BIC_ID_BT_SPP,
 };
 //------------------------------------------------------------------------------------------//
 #define COL_Result	COL_clYellow
@@ -273,6 +290,9 @@ class BIC_BASE_S : public BIC_BASE{
 				virtual		void		PrintConsoleName	(CMD_ENV* env)const;
 };
 //------------------------------------------------------------------------------------------//
+#define SETBICRESTULT(_result)	\
+if (p != nullptr) \
+	*(static_cast<bool32*>(p)) = _result;
 //------------------------------------------------------------------------------------------//
 #include "BIC_Define.hpp"
 #endif /* BIC_Define_h */

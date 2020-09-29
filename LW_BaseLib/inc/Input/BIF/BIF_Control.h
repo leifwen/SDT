@@ -14,6 +14,7 @@
 #define BIF_Control_h
 #ifdef BIF_Control_h
 //------------------------------------------------------------------------------------------//
+BIF_CLASSTYPE(BIC,			"BIC,:");
 BIF_CLASSTYPE(DELAY,		"delay,=");
 BIF_CLASSTYPE(WAIT,			"wait,=");
 BIF_CLASSTYPE(SYNCHRONOUS,	"synchronous,=/sync,=");

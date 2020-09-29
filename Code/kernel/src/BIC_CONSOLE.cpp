@@ -17,17 +17,17 @@
 AppConsole::AppConsole(uint32 size) : CONSOLE(size){
 };
 //------------------------------------------------------------------------------------------//
-bool32 AppConsole::BICThreadFun(void* p){
+bool32 AppConsole::BICThreadFunc(void* p){
 #ifdef CommonDefH_VC
 	bool32 err = G_TRUE;
 	
 	CHK_CheckerInit();
 	err = CHK_CheckTime();
 	
-	CONSOLE::BICThreadFun(p);
+	CONSOLE::BICThreadFunc(p);
 	return(err);
 #else
-	return(CONSOLE::BICThreadFun(p));
+	return(CONSOLE::BICThreadFunc(p));
 #endif
 };
 //------------------------------------------------------------------------------------------//
@@ -67,7 +67,7 @@ AppBIC::AppBIC(void) : BIC_BASE_S(){
 	< cgSub_exebash
 	< cgSub_exesh
 #endif
-#ifdef ODEV_System_h
+#ifdef ODEV_BUS_h
 	< cgSub_newrecord
 #endif
 	< cgSub_DISPLAY

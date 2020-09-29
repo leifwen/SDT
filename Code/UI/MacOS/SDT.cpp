@@ -6,35 +6,40 @@
 //  Copyright © 2018 Leif Wen. All rights reserved.
 //
 
-/***************************************************************************************/
+//------------------------------------------------------------------------------------------//
 #include "Global.h"
 #include <fcntl.h>
 #include <termios.h>
 #include <signal.h>
-/***************************************************************************************/
+//------------------------------------------------------------------------------------------//
 class SDT{
 	enum	{SDT_RUN,SDT_HELP,};
 	public:
 				 SDT(void);
 		virtual ~SDT(void);
-	private:
+	public:
 #ifdef AppLayer_h
-		KERNEL	*kernel;
+		KERNEL			*kernel;
 #endif
-		uint32	cgSizeCache;
-		uint32	cgSizeBuffer;
-		STDSTR	cgCMD;
-		void	UIInit0(void);
-		void	UIInit1(void);
-		void	UIInit_Help(void);
-		uint32	Decode(int argc,char *argv[]);
+		uint32			cgSizeCache;
+		uint32			cgSizeBuffer;
+		STDSTR			cgCMD;
+		SYS_Thread<SDT>	cgThread;
+		int 			argc;
+		char 			**argv;
+		void	UIInit0		(void);
+		void	UIInit1		(void);
+		void	UIInit_Help	(void);
+		uint32	Decode		(int argc,char *argv[]);
+		bool32	ThreadFunc	(void* p);
 	public:
-		void	Run(int argc,char *argv[]);
-		void	Exit(void);
-	public:
-	public:
+		void	Run			(int argc,char *argv[]);
+		void	RunInThread	(int argc,char *argv[]);
+		bool32	IsExit		(void){return(cgThread.IsTerminated());};
+		void	Exit		(void);
+		bool32	BICDispose	(const STDSTR& cmd,bool32* exeResult);
 };
-/***************************************************************************************/
+//------------------------------------------------------------------------------------------//
 SDT::SDT(void){
 #ifdef AppLayer_h
 	kernel = nullptr;
@@ -46,7 +51,19 @@ SDT::~SDT(void){
 		delete kernel;
 #endif
 }
-/***************************************************************************************/
+//------------------------------------------------------------------------------------------//
+bool32 SDT::ThreadFunc(void* p){
+	Run(argc,argv);
+	return G_TRUE;
+};
+//------------------------------------------------------------------------------------------//
+void SDT::RunInThread(int _argc,char *_argv[]){
+	cgThread.ThreadInit(this, &SDT::ThreadFunc,"SDT");
+	argc = _argc;
+	argv = _argv;
+	cgThread.ThreadRun();
+}
+//------------------------------------------------------------------------------------------//
 void SDT::Run(int argc,char *argv[]){
 	cgSizeCache = 1024 * 1024;
 #ifdef CommonDefH_MAC
@@ -77,7 +94,7 @@ void SDT::Run(int argc,char *argv[]){
 			break;
 	}
 }
-/***************************************************************************************/
+//------------------------------------------------------------------------------------------//
 void SDT::UIInit0(void){//print welcome information
 	std::cout << std::endl;
 	std::cout << COL_STR_clBlue << DEV_LINE_STAR << COL_STR_clDefault << std::endl;
@@ -90,13 +107,13 @@ void SDT::UIInit0(void){//print welcome information
 	std::cout << " " << SWVERSION_WR << "." << std::endl << std::endl;
 	std::cout << COL_STR_clBlue << DEV_LINE_STAR << COL_STR_clDefault << std::endl;
 }
-/***************************************************************************************/
+//------------------------------------------------------------------------------------------//
 void SDT::UIInit1(void){//print welcome information
-//	SYS_SleepMS(100);
+	/*	SYS_SleepMS(100);*/
 	std::cout << std::endl << COL_STR_clDefault << "Quit safely." << std::endl;
-//	SYS_SleepMS(100);
+	/*	SYS_SleepMS(100);*/
 }
-/***************************************************************************************/
+//------------------------------------------------------------------------------------------//
 void SDT::UIInit_Help(void){//print welcome information
 	std::cout << std::endl;
 	std::cout << COL_STR_clBlue << DEV_LINE_STAR << COL_STR_clDefault << std::endl;
@@ -107,13 +124,13 @@ void SDT::UIInit_Help(void){//print welcome information
 	std::cout << std::endl;
 	std::cout << COL_STR_clBlue << DEV_LINE_STAR << COL_STR_clDefault << std::endl;
 }
-/***************************************************************************************/
+//------------------------------------------------------------------------------------------//
 void SDT::Exit(void){
 #ifdef AppLayer_h
-	kernel->ExecBIC("\x1b\nexit");
+	kernel->ToConsole("\x1b\nexit");
 #endif
 }
-/***************************************************************************************/
+//------------------------------------------------------------------------------------------//
 uint32 SDT::Decode(int argc,char *argv[]){
 	enum{D_CMD,D_CACHESIZE,D_BUFFERSIZE,D_NONE};
 	
@@ -158,52 +175,65 @@ uint32 SDT::Decode(int argc,char *argv[]){
 
 	return SDT_RUN;
 }
-/***************************************************************************************/
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/***************************************************************************************/
-SDT		sdt;
-void TestFun	(void);
-void SetSignal	(void);
-/***************************************************************************************/
-int main(int argc,char *argv[]){
-	TestFun();
-	SetSignal();
-	sdt.Run(argc,argv);
-	exit(EXIT_SUCCESS);
-	return 0;
-}
-/***************************************************************************************/
-void father_sig_hander(int p){
+//------------------------------------------------------------------------------------------//
+bool32 SDT::BICDispose(const STDSTR& cmd,bool32* exeResult){
+	if (kernel != nullptr)
+		return(kernel->BICDispose(cmd,exeResult));
+	return G_FALSE;
+};
+//------------------------------------------------------------------------------------------//
+extern "C"{
+//------------------------------------------------------------------------------------------//
+void SDT_Exit(void);
+//------------------------------------------------------------------------------------------//
+static void father_sig_hander(int p){
 	if (p == SIGINT){
 		std::cout << std::endl << "End by Ctrl+C" << std::endl;
-		sdt.Exit();
+		SDT_Exit();
 	}
 	if (p == SIGQUIT){
 		std::cout << std::endl << "End by Ctrl+\\" << std::endl;
-		sdt.Exit();
+		SDT_Exit();
 	}
 	else if(p == SIGTSTP){
 		std::cout << "end by Ctrl+Z" << std::endl;
 	}
-//	SYS_DelayMS(10, nullptr);
+	/*SYS_DelayMS(10, nullptr);*/
 }
-/***************************************************************************************/
-void SetSignal(void){
+//------------------------------------------------------------------------------------------//
+static void SetSignal(void){
 	signal(SIGINT,father_sig_hander);
 	signal(SIGQUIT,father_sig_hander);
-	//signal(SIGTSTP,father_sig_hander);
+	/*signal(SIGTSTP,father_sig_hander);*/
 }
-/***************************************************************************************/
+//------------------------------------------------------------------------------------------//
+static SDT& GetSDT(void){
+	static	SDT		sdt;
+	return(sdt);
+};
+//------------------------------------------------------------------------------------------//
+void SDT_Run(int argc,char *argv[]){
+	SetSignal();
+	GetSDT().Run(argc, argv);
+}
+//------------------------------------------------------------------------------------------//
+void SDT_RunInThread(int argc,char *argv[]){
+	SetSignal();
+	GetSDT().RunInThread(argc, argv);
+	SYS_SleepMS(50);
+}
+//------------------------------------------------------------------------------------------//
+int SDT_IsExit(void){
+	return(GetSDT().IsExit() != 0 ? G_TRUE : G_FALSE);
+}
+//------------------------------------------------------------------------------------------//
+void SDT_Exit(void){
+	GetSDT().Exit();
+}
+//------------------------------------------------------------------------------------------//
+}
+//------------------------------------------------------------------------------------------//
+bool32 ExecuteBIC(const STDSTR& cmd,bool32* exeResult){
+	return(GetSDT().BICDispose(cmd, exeResult));
+}
+//------------------------------------------------------------------------------------------//

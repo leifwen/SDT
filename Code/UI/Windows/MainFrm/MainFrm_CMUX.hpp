@@ -18,7 +18,7 @@ void CMainFrame::OnCMUXStart(void){
 		return;
 	}
 
-	if (theApp.GSDTApp.m_CMUXDriver.GetDevice()->EDA()->IsComOpened() == 0)
+	if (theApp.GSDTApp.m_CMUXDriver.GetCDevBus()->EDA()->IsComOpened() == 0)
 		return;
 	theApp.GSDTApp.m_CMUXDriver.Open(CMUX_DEFATCMDS, CMUXDriver::CMUX_blInitInThread);
 	CMUXCFrmCreate();
@@ -31,7 +31,7 @@ void CMainFrame::OnCMUXStart1(void){//without AT
 		return;
 	}
 
-	if (theApp.GSDTApp.m_CMUXDriver.GetDevice()->EDA()->IsComOpened() == 0)
+	if (theApp.GSDTApp.m_CMUXDriver.GetCDevBus()->EDA()->IsComOpened() == 0)
 		return;
 
 	theApp.GSDTApp.m_CMUXDriver.Open("1000\n 300\n T\n OK\n AT+CMUX=0\r",CMUXDriver::CMUX_blInitInThread);

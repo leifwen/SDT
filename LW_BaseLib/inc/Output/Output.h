@@ -43,7 +43,7 @@ class OUTPUT_CACHE : public CRDC{
 				virtual	void			UnregisterAll		(void);
 	private:
 		SYS_Thread<OUTPUT_CACHE>		outCacheThread;
-				virtual	bool32			OutCacheThreadFun	(void* p);
+				virtual	bool32			OutCacheThreadFunc	(void* p);
 	
 						void			RecycleAddress		(uint32 addr);
 						uint32			AssignAddress		(uint32 group);

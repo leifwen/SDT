@@ -16,7 +16,7 @@
 #include "Console.h"
 #include "SList.h"
 #include "GList.h"
-#include "ODEV_System.h"
+#include "ODEV_BUS.h"
 //------------------------------------------------------------------------------------------//
 inline void BIC_ENV::InitQuantity(CMD_ENV* env){
 	if (env != nullptr)
@@ -44,7 +44,7 @@ inline ARRAY* BIC_ENV::GetSTDIN(CMD_ENV* env){
 };
 //------------------------------------------------------------------------------------------//
 inline ODEV_CACHE*	BIC_ENV::GetCache(CMD_ENV* env){
-#ifdef ODEV_System_h
+#ifdef ODEV_BUS_h
 	return(CMD_ENV::GetVar(env,CMD_VID_CACHE,(ODEV_CACHE*)nullptr));
 #else
 	return(nullptr);

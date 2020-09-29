@@ -400,18 +400,18 @@ void CSendPaneView::OnSend(void){
 	m_CommandNode.cmdTail = (CMD_TAIL)(m_CheckBoxCR.GetCheck());
 
 	if (m_CheckBoxSendEnable.GetCheck()){
-		if (theApp.GSDTApp.m_Script.Execute(&theApp.GSDTApp.m_DeviceM,&m_CommandNode) == 0)
+		if (theApp.GSDTApp.m_Script.Execute(&theApp.GSDTApp.m_CDevBusM, &m_CommandNode) == 0)
 			AfxMessageBox(_T("Script is running!"));
 	}
 	else{
 		if (m_CheckBoxHex.GetCheck()){
 			forPrint = Str_HEXToHEXs(m_CommandNode.StrCommand);
 			forSend = Str_HEXToASCII(m_CommandNode.StrCommand);
-			theApp.GSDTApp.m_DeviceM.PrintSendCommand(nullptr, forPrint, CMD_NONE, G_ESCAPE_OFF);
-			theApp.GSDTApp.m_DeviceM.SendCommand(forSend);
+			theApp.GSDTApp.m_CDevBusM.PrintSendCommand(nullptr, forPrint, CMD_NONE, G_ESCAPE_OFF);
+			theApp.GSDTApp.m_CDevBusM.SendCommand(forSend);
 		}
 		else{
-			theApp.GSDTApp.m_DeviceM.SendCommandWithPrint(m_CommandNode.StrCommand, m_CommandNode.cmdTail, (G_ESCAPE)m_CheckBoxEscape.GetCheck());
+			theApp.GSDTApp.m_CDevBusM.SendCommandWithPrint(m_CommandNode.StrCommand, m_CommandNode.cmdTail, (G_ESCAPE)m_CheckBoxEscape.GetCheck());
 		}
 	}
 }
@@ -435,7 +435,7 @@ void CSendPaneView::OnDropFiles(HDROP hDropInfo){
 		wstrFileName = cFileName;
 		strFileName = Str_UnicodeToANSI(wstrFileName);
 		if (CFS_CheckFile(strFileName) != 0){
-			theApp.GSDTApp.m_FileSend.Execute(&theApp.GSDTApp.m_DeviceM, strFileName.c_str(), theApp.GSDTApp.m_Cache.GetG1_STDOUT(),TFileSend::FS_BPS_DEF, TFileSend::PACKAGE_MAX_SIZE);
+			theApp.GSDTApp.m_FileSend.Execute(&theApp.GSDTApp.m_CDevBusM, strFileName.c_str(), theApp.GSDTApp.m_Cache.GetG1_STDOUT(), TFileSend::FS_BPS_DEF, TFileSend::PACKAGE_MAX_SIZE);
 		}
 	}
 	DragFinish (hDropInfo);

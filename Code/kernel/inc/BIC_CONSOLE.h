@@ -19,6 +19,10 @@
 #include "BIC_NTP.h"
 #include "BIC_RST.h"
 
+#include "BIC_BLE.h"
+#include "BIC_BT.h"
+
+
 #include "BIC_Device.h"
 #include "BIC_CMUX.h"
 
@@ -30,7 +34,7 @@ class AppConsole : public CONSOLE{
 				 AppConsole(uint32 size);
 		virtual ~AppConsole(void){;};
 	private:
-		virtual		bool32		BICThreadFun(void* p);
+		virtual		bool32		BICThreadFunc(void* p);
 };
 #endif
 //------------------------------------------------------------------------------------------//
@@ -52,7 +56,7 @@ class AppBIC : public BIC_BASE_S{
 		BIC_EXE_BASH 		cgSub_exebash;
 		BIC_EXE_SH 			cgSub_exesh;
 #endif
-#ifdef ODEV_System_h
+#ifdef ODEV_BUS_h
 		BIC_NEWRECORD		cgSub_newrecord;
 #endif
 #ifdef BIC_Calc_h

@@ -138,4 +138,8 @@ void CSDTApp::LoadCustomState(void){
 void CSDTApp::SaveCustomState(void){
 }
 //------------------------------------------------------------------------------------------//
+bool32 ExecuteBIC(const STDSTR& cmd, bool32* exeResult){
+	return(theApp.GSDTApp.BICDispose(cmd, exeResult));
+}
+//------------------------------------------------------------------------------------------//
 // CSDTApp message handlers

@@ -17,7 +17,7 @@
 //------------------------------------------------------------------------------------------//
 OUTPUT_CACHE::OUTPUT_CACHE(uint32 size) : CRDC(size){
 
-	outCacheThread.ThreadInit(this, &OUTPUT_CACHE::OutCacheThreadFun,"OUTCACHE");
+	outCacheThread.ThreadInit(this, &OUTPUT_CACHE::OutCacheThreadFunc,"OUTCACHE");
 	
 	g2AddrM.InitSize((1 << 12) - 1);
 	g3AddrM.InitSize((1 << 9) - 1);
@@ -137,7 +137,7 @@ void OUTPUT_CACHE::Delivery(void){
 	TREE_DownChain_Traversal_LINE(OUTPUT_NODE,&cgONList,_opNode->Print(0,COL_NONE,&data,0););
 };
 //------------------------------------------------------------------------------------------//
-bool32 OUTPUT_CACHE::OutCacheThreadFun(void* p){
+bool32 OUTPUT_CACHE::OutCacheThreadFunc(void* p){
 	while(outCacheThread.IsTerminated() == 0){
 		Delivery();
 		SYS_SleepMS(1);

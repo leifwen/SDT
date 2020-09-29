@@ -141,7 +141,7 @@ template <typename T_FUN_CLASS> class CMD_NODE_T : public CMD_NODE{
 		T_FUN_CLASS*	cgFunClass;
 		T_FUN			cgFun;
 	public:
-		void	InitFun				(T_FUN_CLASS* funClass,T_FUN fun);
+		void	InitFun				(T_FUN_CLASS* funClass,T_FUN func);
 	protected:
 		CMDID	MessageProcessing	(CMD_ENV *env,const uint32& mID,const STDSTR& msg,void* p)const;
 };

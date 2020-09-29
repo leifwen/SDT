@@ -485,19 +485,19 @@ void CCMUXCOMCtrl::SetSelectComboBox_COM(void){
 
 	listItem = m_ValidAuxComList.selectedNode;
 	
-	if (listItem->typeID == PublicDevice_DEVID_APICOM)
+	if (listItem->typeID == COMENUM_DEVID_APICOM)
 		sstrPortName = listItem->strIPComName.c_str();
-	if (listItem->typeID == PublicDevice_DEVID_TCPClient){
+	if (listItem->typeID == COMENUM_DEVID_TCPClient){
 		sstrPortName = "TCP:";
 		sstrPortName += listItem->strIPComName.c_str();
 	}
-	if (listItem->typeID == PublicDevice_DEVID_UDPClient){
+	if (listItem->typeID == COMENUM_DEVID_UDPClient){
 		sstrPortName = "UDP:";
 		sstrPortName += listItem->strIPComName.c_str();
 	}
-	if (listItem->typeID == PublicDevice_DEVID_TCPServer)
+	if (listItem->typeID == COMENUM_DEVID_TCPServer)
 		sstrPortName = "TCP SERVER";
-	if (listItem->typeID == PublicDevice_DEVID_UDPServer)
+	if (listItem->typeID == COMENUM_DEVID_UDPServer)
 		sstrPortName = "UDP SERVER";
 	sstrShowName = listItem->strShowName.c_str();
 	m_ComboCOM.SetWindowText(sstrPortName);
@@ -519,19 +519,19 @@ void CCMUXCOMCtrl::CreateComboBox_COMList(void){
 
 	i = 0;
 	TREE_DownChain_Traversal_LINE(IPCOMNAME, (&m_ValidAuxComList),
-		if (_opNode->typeID == PublicDevice_DEVID_APICOM)
+		if (_opNode->typeID == COMENUM_DEVID_APICOM)
 			sstrPortName = _opNode->strIPComName.c_str();
-		if (_opNode->typeID == PublicDevice_DEVID_TCPClient){
+		if (_opNode->typeID == COMENUM_DEVID_TCPClient){
 			sstrPortName = "TCP:";
 			sstrPortName += _opNode->strIPComName.c_str();
 		}
-		if (_opNode->typeID == PublicDevice_DEVID_UDPClient){
+		if (_opNode->typeID == COMENUM_DEVID_UDPClient){
 			sstrPortName = "UDP:";
 			sstrPortName += _opNode->strIPComName.c_str();
 		}
-		if (_opNode->typeID == PublicDevice_DEVID_TCPServer)
+		if (_opNode->typeID == COMENUM_DEVID_TCPServer)
 			sstrPortName = "TCP SERVER";
-		if (_opNode->typeID == PublicDevice_DEVID_UDPServer)
+		if (_opNode->typeID == COMENUM_DEVID_UDPServer)
 			sstrPortName = "UDP SERVER";
 		sstrShowName = _opNode->strShowName.c_str();
 		m_ComboCOM.InsertString(i,sstrShowName);
