@@ -54,6 +54,7 @@ bool32 CORE_BTSPP::OpenDev(const OPEN_PAR& par){
 //------------------------------------------------------------------------------------------//
 void CORE_BTSPP::CloseDev(void){
 
+	Swift_BT_CloseRFCOMMChannelSync(cgOpenPar.name.c_str());
 	Swift_BT_Disconnect(cgOpenPar.name.c_str());
 	COMMU_CORE::CloseDev();
 };
@@ -76,12 +77,10 @@ bool32 CORE_BTSPP::ReadFromDevice(uint32* retNum,uint8* buffer,uint32 length){
 bool32 CORE_BTSPP::SendToDevice(uint32* retNum,const uint8* buffer,uint32 length){
 	int64		bytesWr = 0;
 	uint32		alreadySend = 0;
-	
-	do{
-		bytesWr = Swift_BT_WriteRFCOMMChannelSync(cgOpenPar.name.c_str(),(char*)buffer,(uint16)length);
-		if (bytesWr > 0)
-			alreadySend = (uint32)bytesWr;
-	}while(0);
+
+	bytesWr = Swift_BT_WriteRFCOMMChannelSync(cgOpenPar.name.c_str(),(char*)buffer,(uint16)length);
+	if (bytesWr > 0)
+		alreadySend = (uint32)bytesWr;
 	*retNum = alreadySend;
 	return(alreadySend == length);
 };

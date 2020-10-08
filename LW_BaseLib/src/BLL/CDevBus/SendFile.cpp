@@ -71,7 +71,7 @@ static uint64 _Print(OUTPUT_NODE* sdtout,const uint32& bps,const uint64& fileSiz
 bool32 TFileSend::SendThreadFunc(void* p){
 	std::fstream 	fileStream;
 	uint32			sendLength,sendCount;
-	uint64			txBytes,fnSize,percentage,newPercentage;
+	uint64			txBytesActive,txBytes,fnSize,percentage,newPercentage;
 	uint8			*tempBuffer;
 	DTIME			startTime,endTime;
 	SYS_TIME_S		dTm,tm1S,calcBpsTm;
@@ -97,8 +97,9 @@ bool32 TFileSend::SendThreadFunc(void* p){
 	fileStream.open(cgFileName.c_str(),std::ios::in|std::ios::binary);
 	fileStream.seekg(0,std::ios::beg);
 
+	txBytesActive = 0;
 	txBytes = 0;
-	percentage = 0;
+	percentage = -1;
 	newPercentage = 0;
 	blforce = G_TRUE;
 	SYS_StopWatch_Start(&tm1S);
@@ -108,7 +109,7 @@ bool32 TFileSend::SendThreadFunc(void* p){
 		sendLength = cgCDevBus->TxMaxSize() - cgCDevBus->UnsentBytes();
 		if (sendLength > cgPackSize)
 			sendLength = cgPackSize;
-		if (sendLength > 0){
+		if ((sendLength > 0) && (!fileStream.eof())){
 			fileStream.read((char*)tempBuffer,sendLength);
 			sendLength = (uint32)fileStream.gcount();
 			
@@ -121,15 +122,19 @@ bool32 TFileSend::SendThreadFunc(void* p){
 
 			txBytes += sendCount;
 		}
+		SYS_Delay_SetTS(&dTm,delayMS);
+		while (!(IsTerminated() || SYS_Delay_IsTimeout(&dTm)))
+			SYS_SleepMS(1);
 		{
+			txBytesActive = txBytes - cgCDevBus->UnsentBytes();
 			SYS_StopWatch_Stop(&tm1S);
 			if (tm1S.timeMS > 100)
 				blforce = G_TRUE;
 			SYS_StopWatch_Stop(&calcBpsTm);
-			dBps = (double)txBytes / calcBpsTm.timeMS * 1000.0 + 1;
+			dBps = (double)txBytesActive / calcBpsTm.timeMS * 1000.0 + 1;
 			if (dBps > cgRateBps)
 				dBps = cgRateBps;
-			newPercentage = _Print(extSDTOUT,dBps,fnSize,txBytes,percentage,blforce);
+			newPercentage = _Print(extSDTOUT,dBps,fnSize,txBytesActive,percentage,blforce);
 			if ((newPercentage != percentage) || (blforce != G_FALSE)){
 				blforce = G_FALSE;
 				SYS_StopWatch_Start(&tm1S);
@@ -143,10 +148,7 @@ bool32 TFileSend::SendThreadFunc(void* p){
 			<<Endl();
 			break;
 		}
-		SYS_Delay_SetTS(&dTm,delayMS);
-		while (!(IsTerminated() || SYS_Delay_IsTimeout(&dTm)))
-			SYS_SleepMS(1);
-	}while(!fileStream.eof());
+	}while(!(fileStream.eof() && cgCDevBus->UnsentBytes() == 0));
 	fileStream.close();
 	endTime.Now();
 	startTime = endTime - startTime;

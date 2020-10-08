@@ -21,6 +21,7 @@ extern "C" int		Swift_BT_OpenRFCOMMChannelSync(const char*,int8,uint32);
 extern "C" void		Swift_BT_CloseRFCOMMChannelSync(const char*);
 extern "C" int		Swift_BT_RFCOMMChannelState(void);
 extern "C" int		Swift_BT_WriteRFCOMMChannelSync(const char*,const char*,int32);
+extern "C" int		Swift_BT_GetMTU(const char*);
 extern "C" char*	Swift_BT_GetDevicesDescription(void);
 //------------------------------------------------------------------------------------------//
 #endif /* Commu_BT_Swift_h */

@@ -240,23 +240,22 @@ class BluetoothManager{
 	func WriteRFCOMMChannelSync(on rfcomm: IOBluetoothRFCOMMChannel?,data : UnsafeMutableRawPointer!, length: UInt32) -> UInt32 {
 		var count: UInt16 = 0
 		var total: UInt32 = 0
-		var len: UInt32 = length
 
 		if let mtu = rfcomm?.getMTU() {
-			while(len > 0){
-				count = len < UInt16.max ? UInt16(len) : UInt16.max
+			count = length < UInt16.max ? UInt16(length) : UInt16.max
 				
-				if count > mtu{
-					count = mtu
-				}
+			if count > mtu{
+				count = mtu
+			}
 				
-				if rfcomm?.writeSync(data?.advanced(by: Int(total)), length: count) == kIOReturnSuccess{
-					total += UInt32(count)
-					len -= UInt32(count)
-				}
+			if rfcomm?.writeSync(data?.advanced(by: Int(total)), length: count) == kIOReturnSuccess{
+				total += UInt32(count)
 			}
 		}
 		return total
+	}
+	func GetMTU(on rfcomm: IOBluetoothRFCOMMChannel?) -> UInt16 {
+		return rfcomm?.getMTU() ?? 0
 	}
 	func Exit() {
 		opExit = true

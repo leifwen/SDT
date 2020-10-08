@@ -49,6 +49,8 @@ CORE_BLEBIND::CORE_BLEBIND(void) : COMMU_CORE(){
 	
 	cgBTrxSBUF = nullptr;
 	
+	cgMTU = 0;
+	
 	cgBindParWrite.identifier = "";
 	cgBindParWrite.service = "";
 	cgBindParWrite.characteristic = "";
@@ -88,7 +90,8 @@ bool32 CORE_BLEBIND::OpenDev(const OPEN_PAR& par){
 							,cgBindParNotify.service.c_str()
 							,cgBindParNotify.characteristic.c_str()
 							,GetUniqueID(cgBTrxSBUF));
-	
+	if (ret != G_FALSE)
+		cgMTU = Swift_BLE_GetMTU(cgBindParWrite.identifier.c_str(),cgBindParWrite.service.c_str(),cgBindParWrite.characteristic.c_str());
 	cgDevName = cgOpenPar.name;
 	return ret;
 }
@@ -135,20 +138,13 @@ bool32 CORE_BLEBIND::ReadFromDevice(uint32* retNum,uint8* buffer,uint32 length){
 };
 //------------------------------------------------------------------------------------------//
 bool32 CORE_BLEBIND::SendToDevice(uint32* retNum,const uint8* buffer,uint32 length){
-	int64		retCode = 0;
-	uint32		alreadySend = 0;
 	uint32		sendNum = 0;
 	
-	while((alreadySend < length) && IsConnected()){
-		sendNum = length - alreadySend;
-		if (sendNum > 64)
-			sendNum = 64;
-		Swift_BLE_Write(cgBindParWrite.identifier.c_str(),cgBindParWrite.service.c_str(),cgBindParWrite.characteristic.c_str(),(const char *)buffer,sendNum);
-		retCode = sendNum;
-		alreadySend += (uint32)retCode;
-	}
-	*retNum = alreadySend;
-	return(!((alreadySend < length) || retCode));
+	sendNum = length < cgMTU ? length : cgMTU;
+	Swift_BLE_Write(cgBindParWrite.identifier.c_str(),cgBindParWrite.service.c_str(),cgBindParWrite.characteristic.c_str(),(const char *)buffer,sendNum);
+
+	*retNum = sendNum;
+	return(sendNum == length);
 };
 //------------------------------------------------------------------------------------------//
 void CORE_BLEBIND::PrintOpenSuccess(const STDSTR& strTitle){

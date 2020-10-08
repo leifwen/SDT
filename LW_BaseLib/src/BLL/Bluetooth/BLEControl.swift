@@ -364,6 +364,20 @@ func BLE_CheckID(
 	return(characteristic != nil)
 }
 
+@_cdecl("Swift_BLE_GetMTU")
+func BLE_GetMTU(
+	 _ identifier: UnsafePointer<CChar>!
+	,_ serviceUUID: UnsafePointer<CChar>!
+	,_ characteristicUUID: UnsafePointer<CChar>!) -> CInt{
+	BLE_Init()
+	
+	let ids = BLE_CovertID(identifier,serviceUUID,characteristicUUID)
+	if let characteristic = BLEDevs?.GetCharacteristic(identifier: ids.id, serviceUUID: ids.sid, characteristicUUID: ids.cid){
+		return CInt(characteristic.service.peripheral.maximumWriteValueLength(for: .withoutResponse))
+	}
+	return 0
+}
+
 @_cdecl("Swift_BLE_Write")
 func BLE_Write(
 	 _ identifier: UnsafePointer<CChar>!

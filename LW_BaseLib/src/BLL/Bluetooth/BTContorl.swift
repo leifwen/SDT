@@ -95,6 +95,17 @@ func BT_WriteRFCOMMChannelSync(macAddr: UnsafePointer<CChar>!,data: UnsafePointe
 	return BTManager?.WriteRFCOMMChannelSync(on: rfcomm,data: buf,length: len) ?? 0
 }
 
+@_cdecl("Swift_BT_GetMTU")
+func BT_GetMTU(macAddr: UnsafePointer<CChar>!) -> CInt {
+	BT_Init()
+	
+	let input = String.init(cString: macAddr)
+	let device = BTManager?.GetDeviceByAddress(input)
+	let rfcomm = BTManager?.GetRFCOMMChannel(by: device)
+
+	return CInt(BTManager?.GetMTU(on: rfcomm) ?? 0)
+}
+
 @_cdecl("Swift_BT_GetDevicesDescription")
 func BT_GetDevicesDescription() -> UnsafePointer<CChar> {
 	BT_Init()

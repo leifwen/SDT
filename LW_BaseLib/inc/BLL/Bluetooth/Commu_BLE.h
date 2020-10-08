@@ -47,6 +47,7 @@ class CORE_BLEBIND : public COMMU_CORE{
 	public:
 		BINDPAR			cgBindParWrite;
 		BINDPAR			cgBindParNotify;
+		uint32			cgMTU;
 	public:
 				bool32	Open				(const STDSTR& aliasName,const STDSTR& _write,const STDSTR& _notify,uint32 cfg);
 };

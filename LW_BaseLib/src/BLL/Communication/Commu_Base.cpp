@@ -498,6 +498,7 @@ bool32 COMMU_BRIDGE::RxThreadFunc(void* _team){
 				SYS_SleepMS(2);
 		}
 	}
+	cgArrayRx->Empty();
 	ETLogThreadStop(rxThread);
 	return G_TRUE;
 };
@@ -530,6 +531,7 @@ bool32 COMMU_BRIDGE::TxThreadFunc(void* _team){
 			SYS_SleepMS(2);
 		}
 	}
+	cgArrayTx->Empty();
 	ETLogThreadStop(txThread);
 	return G_TRUE;
 };

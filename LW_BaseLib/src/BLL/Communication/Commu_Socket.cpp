@@ -207,7 +207,7 @@ bool32 CORE_SOCKET::SendToDevice(uint32* retNum,const uint8* buffer,uint32 lengt
 	uint32		alreadySend = 0;
 	uint32		sendNum = 0;
 	
-	while((alreadySend < length) && IsConnected()){
+	do{
 		sendNum = length - alreadySend;
 		if (sendNum > 1024)
 			sendNum = 1024;
@@ -221,7 +221,7 @@ bool32 CORE_SOCKET::SendToDevice(uint32* retNum,const uint8* buffer,uint32 lengt
 		if (retCode < 0)
 			break;
 		alreadySend += (uint32)retCode;
-	}
+	}while(0);
 	*retNum = alreadySend;
 	return(!((alreadySend < length) || retCode));
 };

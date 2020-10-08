@@ -238,6 +238,10 @@ class BLEDevicesManager{
 		return nil
 	}
 	
+	func GetMTU(device: BLEDevice?) -> Int {
+		return device?.peripheral.maximumWriteValueLength(for: .withoutResponse) ?? 0
+	}
+	
 	func GetCharacteristic(in service: CBService?, by cbuuid: CBUUID?) -> CBCharacteristic? {
 		if cbuuid != nil {
 			if let characteristics = service?.characteristics {

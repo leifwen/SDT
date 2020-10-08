@@ -33,6 +33,7 @@ extern "C" int		Swift_BLE_DisconnectByIndex(int);
 extern "C" int		Swift_BLE_DisconnectByName(const char*);
 extern "C" int		Swift_BLE_DisconnectByIdentifier(const char*);
 extern "C" int		Swift_BLE_DisconnectByAny(const char*);
+extern "C" int		Swift_BLE_GetMTU(const char* identifier,const char* service,const char* characteristic);
 extern "C" int		Swift_BLE_Write(const char* identifier,const char* service,const char* characteristic,const char* buffer,int len);
 extern "C" int		Swift_BLE_Read(const char* identifier,const char* service,const char* characteristic,char* buffer,int len);
 extern "C" int		Swift_BLE_SetNotify(const char* identifier,const char* service,const char* characteristic,uint32);
