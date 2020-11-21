@@ -32,7 +32,7 @@ bool32 TFileSend::Execute(const CDEVBUS* cDevBus,const STDSTR& fileName,OUTPUT_N
 	return(CDEVBUS_APP::Execute(cDevBus,&sendThread));
 };
 //------------------------------------------------------------------------------------------//
-static uint64 _Print(OUTPUT_NODE* sdtout,const uint32& bps,const uint64& fileSize,const uint64& wrSize,const uint64& percentage,bool32 blforce){
+static uint64 _Print(OUTPUT_NODE* sdtout,const double& bps,const uint64& fileSize,const uint64& wrSize,const uint64& percentage,bool32 blforce){
 	uint64	newPercentage;
 	double	rt;
 	STDSTR	strPer,strRT;
@@ -58,6 +58,7 @@ static uint64 _Print(OUTPUT_NODE* sdtout,const uint32& bps,const uint64& fileSiz
 		OUTPUT_NODE::CleanLastLine(sdtout);
 		SYS_SleepMS(1);
 		OUTPUT_NODE::PrintWithTime_noNL(sdtout, "Sending", COL_clBlue, strPer, COL_NormalMessage, "%,"
+										,Str_FloatToStr(bps / 1000),"KBps,"
 										,"expected time remaining", COL_clBlue, strRT, COL_NormalMessage,"s.");
 	}
 	else{
@@ -77,17 +78,21 @@ bool32 TFileSend::SendThreadFunc(void* p){
 	SYS_TIME_S		dTm,tm1S,calcBpsTm;
 	bool32 			blforce;
 	double			delayMS,dBps;
+	STDSTR			md5;
 	
 	tempBuffer = cgSBUF.array.GetPointer(0);
 		
 	startTime.Now();
 	
 	fnSize = CFS_CheckFileSize(cgFileName);
+	md5 = Str_ASCIIToHEX(ALG_Digest_MD5(IUD_FILE(cgFileName)),G_ESCAPE_OFF);
 	*cgCDevBus->GetSelSTDOUT() << Begin() << NL()
 	<< COL_DivLine_Maroon << COL_NormalMessage
+	<< " File name      : " << COL_clBlue << cgFileName << NL()
+	<< COL_NormalMessage
 	<< " File size Bytes: " << Str_ToStr(fnSize) << NL()
+	<< " MD5            : " << md5 << NL()
 	<< " Prediction time: " << Str_FloatToStr((double)fnSize / (double)cgRateBps) << "s" << NL()
-	<< " File name:       " << COL_clBlue << cgFileName << NL()
 	<< COL_DivLine_Maroon
 	<< COL_Time << SYS_MakeTime(startTime) << COL_NormalMessage << " Start transmission:" << NL()
 	<< Endl();

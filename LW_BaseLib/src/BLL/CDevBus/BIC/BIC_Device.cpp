@@ -286,12 +286,13 @@ CMDID BIC_RECFILE::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 	
 	STDSTR	strPar1,strPar2,fn,dir_self,fn_dir;
 	std::fstream 	fileStream;
-	bool32	blOverwrite = G_FALSE,blprint = G_FALSE;
+	bool32	blOverwrite = G_FALSE,blprint = G_FALSE,blStartRec = G_FALSE,blreset;
 	SBUF	rxSBUF;
 	uint32	num;
 	uint64	rxBytes = 0,recBytes = 0;
 	uint8	chKey;
-	SYS_TIME_S	tm100ms;
+	SYS_TIME_S	tm100ms,bpsTimeMS;
+	double	kBps = 0.0;
 	
 	rxSBUF.array.InitSize(1024 * 2);
 	
@@ -346,45 +347,62 @@ CMDID BIC_RECFILE::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 			PrintALine(env,COLOR(COL_clCyan,IUD("In receive file mode:")));
 			SetInOnlineMode(env);
 			PrintDisable(env);
-			PrintWithTime_noNL(env, "Receiving", COL_clBlue, "0", COL_NormalMessage, "Bytes.");
-			
-			rxSBUF.array.Reset();
-			attr->cdevbus->RxDataShareTo(&rxSBUF);
-			fileStream.open(fn.c_str(),std::ios::out|std::ios::trunc|std::ios::binary);
-			SYS_StopWatch_Start(&tm100ms);
 			do{
-				SYS_SleepMS(1);
-				chKey = ReadChar(env,G_FALSE);
-				if (chKey == 27)
-					break;
+				PrintWithTime_noNL(env, "Receiving", COL_clBlue, "0", COL_NormalMessage, "Bytes.");
 				
-				num = rxSBUF.array.Used();
-				if ((recBytes > 0) && (rxBytes + num > recBytes))
-					num = uint32(recBytes - rxBytes);
-
-				if (num > 0){
-					strPar1 = "";
-					rxSBUF.array.Read(&strPar1, num);
-					fileStream << strPar1;
-					rxSBUF.array.Out(num);
-					rxBytes += num;
-					blprint = G_TRUE;
-				}
-				if (blprint != G_FALSE){
-					SYS_StopWatch_Stop(&tm100ms);
-					if (tm100ms.timeMS > 100){
+				rxSBUF.array.Reset();
+				attr->cdevbus->RxDataShareTo(&rxSBUF);
+				fileStream.open(fn.c_str(),std::ios::out|std::ios::trunc|std::ios::binary);
+				SYS_StopWatch_Start(&tm100ms);
+				blStartRec = G_FALSE;
+				blreset = G_FALSE;
+				rxBytes = 0;
+				do{
+					SYS_SleepMS(1);
+					chKey = ReadChar(env,G_FALSE);
+					if (chKey == 27)
+						break;
+					if (chKey == 'r'){
+						blreset = G_TRUE;
 						CleanLastLine(env);
-						PrintWithTime_noNL(env, "Receiving", COL_clBlue, Str_ToStr(rxBytes), COL_NormalMessage, "Bytes.");
-						SYS_StopWatch_Start(&tm100ms);
-						blprint = G_FALSE;
+						break;
 					}
-				}
-				if ((recBytes > 0) && (rxBytes >= recBytes))
-					break;
-			}while((IsExit(env) == G_FALSE) && attr->IsOpened());
-			fileStream.flush();
-			fileStream.close();
-			rxSBUF.RemoveSelf();
+					
+					num = rxSBUF.array.Used();
+					if ((recBytes > 0) && (rxBytes + num > recBytes))
+						num = uint32(recBytes - rxBytes);
+
+					if (num > 0){
+						if (blStartRec == G_FALSE)
+							SYS_StopWatch_Start(&bpsTimeMS);
+						blStartRec = G_TRUE;
+						strPar1 = "";
+						rxSBUF.array.Read(&strPar1, num);
+						fileStream << strPar1;
+						rxSBUF.array.Out(num);
+						rxBytes += num;
+						blprint = G_TRUE;
+					}
+					if (blprint != G_FALSE){
+						SYS_StopWatch_Stop(&tm100ms);
+						if (tm100ms.timeMS > 100){
+							CleanLastLine(env);
+							kBps = SYS_StopWatch_Stop(&bpsTimeMS) + 1;
+							kBps = rxBytes / kBps;
+							PrintWithTime_noNL(env, "Receiving", COL_clBlue, Str_ToStr(rxBytes), COL_NormalMessage, "Bytes,"
+											   ,Str_FloatToStr(kBps),"KBps.");
+							SYS_StopWatch_Start(&tm100ms);
+							blprint = G_FALSE;
+						}
+					}
+					if ((recBytes > 0) && (rxBytes >= recBytes))
+						break;
+				}while((IsExit(env) == G_FALSE) && attr->IsOpened());
+				fileStream.flush();
+				fileStream.close();
+				rxSBUF.RemoveSelf();
+			}while(blreset == G_TRUE);
+			PrintALine(env,COL_clBlue, "MD5:" , COL_clCyan, Str_ASCIIToHEX(ALG_Digest_MD5(IUD_FILE(fn)),G_ESCAPE_OFF));
 			PrintSuccess(env);
 			SYS_SleepMS(10);
 			PrintEnable(env);

@@ -19,6 +19,9 @@
 		2943BCBE251DD25D00AB2022 /* ImplicitFishhook.c in Sources */ = {isa = PBXBuildFile; fileRef = 2943BCBD251DD25D00AB2022 /* ImplicitFishhook.c */; };
 		29682D872133C836005E42B4 /* Test.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 29682D862133C836005E42B4 /* Test.cpp */; };
 		2981B5822020AA5A00257BB9 /* ColorRecord.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2981B5812020AA5A00257BB9 /* ColorRecord.cpp */; };
+		298E475D2564312900CCD71B /* libcrypto.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 298E475A2564312900CCD71B /* libcrypto.a */; };
+		298E475E2564312900CCD71B /* libssl.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 298E475B2564312900CCD71B /* libssl.a */; };
+		298E475F2564312900CCD71B /* libtls.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 298E475C2564312900CCD71B /* libtls.a */; };
 		298E71B32517E5950024A025 /* Commu_BT_SPP.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 298E71B22517E5950024A025 /* Commu_BT_SPP.cpp */; };
 		298E71B82517E8990024A025 /* BTContorl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 298E71B72517E8990024A025 /* BTContorl.swift */; };
 		298E71BD2517EA750024A025 /* BIC_BT.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 298E71BC2517EA750024A025 /* BIC_BT.cpp */; };
@@ -102,9 +105,6 @@
 		29AE0615203E66EC00A699E7 /* BIC_GCM.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 29AE0614203E66EC00A699E7 /* BIC_GCM.cpp */; };
 		29CEB2A82021D50100A9C840 /* ODEV_STDOUT.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 29CEB2A62021D50100A9C840 /* ODEV_STDOUT.cpp */; };
 		29CEB2A92021D50100A9C840 /* Output.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 29CEB2A72021D50100A9C840 /* Output.cpp */; };
-		29D542C02071F2CF004CD677 /* libtls.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 29D542BD2071F2CF004CD677 /* libtls.a */; };
-		29D542C12071F2CF004CD677 /* libcrypto.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 29D542BE2071F2CF004CD677 /* libcrypto.a */; };
-		29D542C22071F2CF004CD677 /* libssl.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 29D542BF2071F2CF004CD677 /* libssl.a */; };
 		29E4A69E202213C100603FEA /* ODEV_FILE.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 29E4A69C202213C100603FEA /* ODEV_FILE.cpp */; };
 		29E4A69F202213C100603FEA /* ODEV_BUS.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 29E4A69D202213C100603FEA /* ODEV_BUS.cpp */; };
 /* End PBXBuildFile section */
@@ -162,6 +162,9 @@
 		2981B57F2020AA4F00257BB9 /* ColorRecord.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ColorRecord.h; sourceTree = "<group>"; };
 		2981B5802020AA4F00257BB9 /* ColorRecord.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = ColorRecord.hpp; sourceTree = "<group>"; };
 		2981B5812020AA5A00257BB9 /* ColorRecord.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ColorRecord.cpp; sourceTree = "<group>"; };
+		298E475A2564312900CCD71B /* libcrypto.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcrypto.a; path = 3.2.2/lib/MacOS/libcrypto.a; sourceTree = "<group>"; };
+		298E475B2564312900CCD71B /* libssl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libssl.a; path = 3.2.2/lib/MacOS/libssl.a; sourceTree = "<group>"; };
+		298E475C2564312900CCD71B /* libtls.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libtls.a; path = 3.2.2/lib/MacOS/libtls.a; sourceTree = "<group>"; };
 		298E71B12517E56E0024A025 /* Commu_BT_SPP.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Commu_BT_SPP.h; sourceTree = "<group>"; };
 		298E71B22517E5950024A025 /* Commu_BT_SPP.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Commu_BT_SPP.cpp; sourceTree = "<group>"; };
 		298E71B72517E8990024A025 /* BTContorl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BTContorl.swift; sourceTree = "<group>"; };
@@ -345,9 +348,6 @@
 		29CEB2A72021D50100A9C840 /* Output.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Output.cpp; sourceTree = "<group>"; };
 		29CEB2AF2021D71400A9C840 /* ODEV_FILE.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = ODEV_FILE.hpp; sourceTree = "<group>"; };
 		29CEB2B12021D71E00A9C840 /* ODEV_FILE.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ODEV_FILE.h; sourceTree = "<group>"; };
-		29D542BD2071F2CF004CD677 /* libtls.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libtls.a; sourceTree = "<group>"; };
-		29D542BE2071F2CF004CD677 /* libcrypto.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libcrypto.a; sourceTree = "<group>"; };
-		29D542BF2071F2CF004CD677 /* libssl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libssl.a; sourceTree = "<group>"; };
 		29E4A69920220CE100603FEA /* ODEV_BUS.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = ODEV_BUS.hpp; sourceTree = "<group>"; };
 		29E4A69B20220CEC00603FEA /* ODEV_BUS.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ODEV_BUS.h; sourceTree = "<group>"; };
 		29E4A69C202213C100603FEA /* ODEV_FILE.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ODEV_FILE.cpp; sourceTree = "<group>"; };
@@ -359,10 +359,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				29D542C22071F2CF004CD677 /* libssl.a in Frameworks */,
+				298E475D2564312900CCD71B /* libcrypto.a in Frameworks */,
+				298E475F2564312900CCD71B /* libtls.a in Frameworks */,
 				2909B367200F912C007F7525 /* libz.1.2.8.tbd in Frameworks */,
-				29D542C02071F2CF004CD677 /* libtls.a in Frameworks */,
-				29D542C12071F2CF004CD677 /* libcrypto.a in Frameworks */,
+				298E475E2564312900CCD71B /* libssl.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1081,36 +1081,12 @@
 		29D542702071F2CF004CD677 /* Libressl */ = {
 			isa = PBXGroup;
 			children = (
-				29D542712071F2CF004CD677 /* 2.7.2 */,
+				298E475A2564312900CCD71B /* libcrypto.a */,
+				298E475B2564312900CCD71B /* libssl.a */,
+				298E475C2564312900CCD71B /* libtls.a */,
 			);
 			name = Libressl;
 			path = ../ExtraLib/Libressl;
-			sourceTree = "<group>";
-		};
-		29D542712071F2CF004CD677 /* 2.7.2 */ = {
-			isa = PBXGroup;
-			children = (
-				29D542BB2071F2CF004CD677 /* lib */,
-			);
-			path = 2.7.2;
-			sourceTree = "<group>";
-		};
-		29D542BB2071F2CF004CD677 /* lib */ = {
-			isa = PBXGroup;
-			children = (
-				29D542BC2071F2CF004CD677 /* MacOS */,
-			);
-			path = lib;
-			sourceTree = "<group>";
-		};
-		29D542BC2071F2CF004CD677 /* MacOS */ = {
-			isa = PBXGroup;
-			children = (
-				29D542BD2071F2CF004CD677 /* libtls.a */,
-				29D542BE2071F2CF004CD677 /* libcrypto.a */,
-				29D542BF2071F2CF004CD677 /* libssl.a */,
-			);
-			path = MacOS;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -1324,9 +1300,9 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				HEADER_SEARCH_PATHS = "";
-				LIBRARY_SEARCH_PATHS = "";
-				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				HEADER_SEARCH_PATHS = ../../ExtraLib/Libressl/3.2.2/include;
+				LIBRARY_SEARCH_PATHS = ../../ExtraLib/Libressl/3.2.2/lib/MacOS;
+				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
@@ -1379,10 +1355,11 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				HEADER_SEARCH_PATHS = "";
-				LIBRARY_SEARCH_PATHS = "";
-				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				HEADER_SEARCH_PATHS = ../../ExtraLib/Libressl/3.2.2/include;
+				LIBRARY_SEARCH_PATHS = ../../ExtraLib/Libressl/3.2.2/lib/MacOS;
+				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				MTL_ENABLE_DEBUG_INFO = NO;
+				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_VERSION = 5.0;
@@ -1396,9 +1373,9 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "-";
 				GCC_C_LANGUAGE_STANDARD = gnu11;
-				HEADER_SEARCH_PATHS = ../../ExtraLib/Libressl/2.7.2/include;
+				HEADER_SEARCH_PATHS = ../../ExtraLib/Libressl/3.2.2/include;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
-				LIBRARY_SEARCH_PATHS = ../../ExtraLib/Libressl/2.7.2/lib/MacOS;
+				LIBRARY_SEARCH_PATHS = ../../ExtraLib/Libressl/3.2.2/lib/MacOS;
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "../../Code/UI/Swift/SDT-Bridging-Header.h";
@@ -1414,9 +1391,9 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "-";
 				GCC_C_LANGUAGE_STANDARD = gnu11;
-				HEADER_SEARCH_PATHS = ../../ExtraLib/Libressl/2.7.2/include;
+				HEADER_SEARCH_PATHS = ../../ExtraLib/Libressl/3.2.2/include;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
-				LIBRARY_SEARCH_PATHS = ../../ExtraLib/Libressl/2.7.2/lib/MacOS;
+				LIBRARY_SEARCH_PATHS = ../../ExtraLib/Libressl/3.2.2/lib/MacOS;
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "../../Code/UI/Swift/SDT-Bridging-Header.h";

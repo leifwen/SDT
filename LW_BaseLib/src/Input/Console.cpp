@@ -539,7 +539,7 @@ void CONSOLE::KeyReturn(void){
 #ifdef ODEV_STDOUT_h
 	OUTPUT_NODE::PrintStr(cgOdevSTDOUT, "\n");
 #endif
-	if (CheckSFlag(CON_blInOnlineMode) || (cgCInput.GetData().length() > 1))
+	if ((CheckSFlag(CON_blInOnlineMode) && cgHistory == &cgHistoryAux)|| (cgCInput.GetData().length() > 1))
 		cgHistory->Add(cgCInput.GetData());
 	
 	cgCInput.Init();
