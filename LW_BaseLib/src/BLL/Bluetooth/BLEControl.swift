@@ -373,6 +373,20 @@ func BLE_GetMTU(
 	
 	let ids = BLE_CovertID(identifier,serviceUUID,characteristicUUID)
 	if let characteristic = BLEDevs?.GetCharacteristic(identifier: ids.id, serviceUUID: ids.sid, characteristicUUID: ids.cid){
+		return CInt(characteristic.service.peripheral.maximumWriteValueLength(for: .withResponse))
+	}
+	return 0
+}
+
+@_cdecl("Swift_BLE_GetMTU_NR")
+func BLE_GetMTU_NR(
+	 _ identifier: UnsafePointer<CChar>!
+	,_ serviceUUID: UnsafePointer<CChar>!
+	,_ characteristicUUID: UnsafePointer<CChar>!) -> CInt{
+	BLE_Init()
+	
+	let ids = BLE_CovertID(identifier,serviceUUID,characteristicUUID)
+	if let characteristic = BLEDevs?.GetCharacteristic(identifier: ids.id, serviceUUID: ids.sid, characteristicUUID: ids.cid){
 		return CInt(characteristic.service.peripheral.maximumWriteValueLength(for: .withoutResponse))
 	}
 	return 0
@@ -389,9 +403,27 @@ func BLE_Write(
 	let ids = BLE_CovertID(identifier,serviceUUID,characteristicUUID)
 	if let characteristic = BLEDevs?.GetCharacteristic(identifier: ids.id, serviceUUID: ids.sid, characteristicUUID: ids.cid){
 		let data = Data(bytesNoCopy: buffer,count: Int(len), deallocator: .none)
-		BLEDevs?.Write(to: characteristic, with: data);
+		if let ret = BLEDevs?.Write(to: characteristic, with: data){
+			return (ret > 0 ? 1 : 0)
+		}
 	}
 	return 0
+}
+
+@_cdecl("Swift_BLE_WriteNR")
+func BLE_WriteNR(
+	 _ identifier: UnsafePointer<CChar>!
+	,_ serviceUUID: UnsafePointer<CChar>!
+	,_ characteristicUUID: UnsafePointer<CChar>!
+	, buffer: UnsafeMutablePointer<CChar>!,len: CInt) -> CInt{
+	BLE_Init()
+	
+	let ids = BLE_CovertID(identifier,serviceUUID,characteristicUUID)
+	if let characteristic = BLEDevs?.GetCharacteristic(identifier: ids.id, serviceUUID: ids.sid, characteristicUUID: ids.cid){
+		let data = Data(bytesNoCopy: buffer,count: Int(len), deallocator: .none)
+		BLEDevs?.WriteNR(to: characteristic, with: data)
+	}
+	return 1
 }
 
 @_cdecl("Swift_BLE_SetNotify")

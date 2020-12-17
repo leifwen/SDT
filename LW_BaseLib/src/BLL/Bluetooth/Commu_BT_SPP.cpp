@@ -78,9 +78,11 @@ bool32 CORE_BTSPP::SendToDevice(uint32* retNum,const uint8* buffer,uint32 length
 	int64		bytesWr = 0;
 	uint32		alreadySend = 0;
 
-	bytesWr = Swift_BT_WriteRFCOMMChannelSync(cgOpenPar.name.c_str(),(char*)buffer,(uint16)length);
-	if (bytesWr > 0)
-		alreadySend = (uint32)bytesWr;
+	if (length > 0){
+		bytesWr = Swift_BT_WriteRFCOMMChannelSync(cgOpenPar.name.c_str(),(char*)buffer,(uint16)length);
+		if (bytesWr > 0)
+			alreadySend = (uint32)bytesWr;
+	}
 	*retNum = alreadySend;
 	return(alreadySend == length);
 };

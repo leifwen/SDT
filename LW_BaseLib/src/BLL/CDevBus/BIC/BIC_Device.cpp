@@ -286,7 +286,7 @@ CMDID BIC_RECFILE::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 	
 	STDSTR	strPar1,strPar2,fn,dir_self,fn_dir;
 	std::fstream 	fileStream;
-	bool32	blOverwrite = G_FALSE,blprint = G_FALSE,blStartRec = G_FALSE,blreset;
+	bool32	blOverwrite = G_FALSE,blprint = G_FALSE,blStartRec = G_FALSE,blreset,blend = G_FALSE;
 	SBUF	rxSBUF;
 	uint32	num;
 	uint64	rxBytes = 0,recBytes = 0;
@@ -364,6 +364,7 @@ CMDID BIC_RECFILE::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 						break;
 					if (chKey == 'r'){
 						blreset = G_TRUE;
+						PrintStrNL(env, "");
 						CleanLastLine(env);
 						break;
 					}
@@ -383,9 +384,11 @@ CMDID BIC_RECFILE::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 						rxBytes += num;
 						blprint = G_TRUE;
 					}
-					if (blprint != G_FALSE){
+					if ((recBytes > 0) && (rxBytes >= recBytes))
+						blend = G_TRUE;
+					if ((blprint != G_FALSE) || (blend != G_FALSE)){
 						SYS_StopWatch_Stop(&tm100ms);
-						if (tm100ms.timeMS > 100){
+						if ((tm100ms.timeMS > 100) || (blend != G_FALSE)){
 							CleanLastLine(env);
 							kBps = SYS_StopWatch_Stop(&bpsTimeMS) + 1;
 							kBps = rxBytes / kBps;
@@ -395,9 +398,7 @@ CMDID BIC_RECFILE::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 							blprint = G_FALSE;
 						}
 					}
-					if ((recBytes > 0) && (rxBytes >= recBytes))
-						break;
-				}while((IsExit(env) == G_FALSE) && attr->IsOpened());
+				}while((IsExit(env) == G_FALSE) && attr->IsOpened() && (blend == G_FALSE));
 				fileStream.flush();
 				fileStream.close();
 				rxSBUF.RemoveSelf();

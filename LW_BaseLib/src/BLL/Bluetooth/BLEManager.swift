@@ -55,6 +55,7 @@ class BLEDevice {
 	var description: String { return "Name:\(adv.localName ?? "N/A"), ID:[\(peripheral.identifier.uuidString)], \(rssi)dBm, \(connectState)" }
 	var servicesUUIDs: String { return "UUID:\(adv.serviceUUIDs)" }
 	var rxFifoUIDs = [CBCharacteristic: UInt32]()
+	var txStatus = [CBCharacteristic: Int32]()
 	
 	func PropertiesString(_ properties: CBCharacteristicProperties)->(String){
 		var propertiesReturn : String = ""
@@ -239,9 +240,13 @@ class BLEDevicesManager{
 	}
 	
 	func GetMTU(device: BLEDevice?) -> Int {
-		return device?.peripheral.maximumWriteValueLength(for: .withoutResponse) ?? 0
+		return device?.peripheral.maximumWriteValueLength(for: .withResponse) ?? 0
 	}
 	
+	func GetMTU_NR(device: BLEDevice?) -> Int {
+		return device?.peripheral.maximumWriteValueLength(for: .withoutResponse) ?? 0
+	}
+
 	func GetCharacteristic(in service: CBService?, by cbuuid: CBUUID?) -> CBCharacteristic? {
 		if cbuuid != nil {
 			if let characteristics = service?.characteristics {
@@ -356,7 +361,25 @@ class BLEDevicesManager{
 		}
 	}
 	
-	func Write(to characteristic: CBCharacteristic,with data: Data) {
+	func Write(to characteristic: CBCharacteristic,with data: Data) -> Int32 {
+		var ret:Int32 = -1
+		if state == CBManagerState.poweredOn {
+			if let device = GetDevice(by:characteristic.service.peripheral){
+				device.txStatus.updateValue(-1, forKey: characteristic)
+				characteristic.service.peripheral.writeValue(data, for: characteristic, type: .withResponse)
+				while(ret < 0){
+					objc_sync_enter(device)
+					ret = device.txStatus[characteristic] ?? -1
+					objc_sync_exit(device)
+				}
+				device.txStatus.removeValue(forKey: characteristic)
+				return (ret > 0 ? 1 : 0)
+			}
+		}
+		return 0
+	}
+	
+	func WriteNR(to characteristic: CBCharacteristic,with data: Data) {
 		if state == CBManagerState.poweredOn {
 			characteristic.service.peripheral.writeValue(data, for: characteristic, type: .withoutResponse)
 		}
@@ -404,7 +427,7 @@ class BLEDevicesManager{
 	
 	func DeviceDetailDescription(device: BLEDevice) -> String {
 		var des: String = ""
-		des = "MTU:\(device.peripheral.maximumWriteValueLength(for: .withoutResponse))\r\n"
+		des = "MTU:\(device.peripheral.maximumWriteValueLength(for: .withResponse))\r\n"
 		des += "\(device.description)\r\n"
 		des += "\(device.servicesUUIDs)\r\n"
 		des += "\(device.ServicesDescription(by: device.peripheral,head: "  "))"
@@ -507,4 +530,12 @@ class BLECoreDelegate: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate 
 	func peripheral(_ peripheral: CBPeripheral, didUpdateNotificationStateFor characteristic: CBCharacteristic, error: Error?) {
 		//characteristic.service.peripheral.readValue(for: characteristic)
     }
+	
+	func peripheral(_ peripheral: CBPeripheral, didWriteValueFor characteristic: CBCharacteristic, error: Error?) {
+		if let device = bleDevManager.GetDevice(by: peripheral){
+			objc_sync_enter(device)
+			device.txStatus.updateValue(error != nil ? 0 : 1, forKey: characteristic)
+			objc_sync_exit(device)
+		}
+	}
 }

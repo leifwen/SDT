@@ -66,6 +66,7 @@ CORE_BLEBIND::~CORE_BLEBIND(void){
 //------------------------------------------------------------------------------------------//
 bool32 CORE_BLEBIND::OpenDev(const OPEN_PAR& par){
 	bool32	ret = G_FALSE,blNotify = G_FALSE;
+	uint32	mtu;
 	STDSTR	aliasName,_write,_notify;
 	
 	_notify = par.name;
@@ -90,8 +91,12 @@ bool32 CORE_BLEBIND::OpenDev(const OPEN_PAR& par){
 							,cgBindParNotify.service.c_str()
 							,cgBindParNotify.characteristic.c_str()
 							,GetUniqueID(cgBTrxSBUF));
-	if (ret != G_FALSE)
+	if (ret != G_FALSE){
+		mtu = Swift_BLE_GetMTU_NR(cgBindParWrite.identifier.c_str(),cgBindParWrite.service.c_str(),cgBindParWrite.characteristic.c_str());
 		cgMTU = Swift_BLE_GetMTU(cgBindParWrite.identifier.c_str(),cgBindParWrite.service.c_str(),cgBindParWrite.characteristic.c_str());
+		if (cgMTU > mtu)
+			cgMTU = mtu;
+	}
 	cgDevName = cgOpenPar.name;
 	return ret;
 }
@@ -139,9 +144,18 @@ bool32 CORE_BLEBIND::ReadFromDevice(uint32* retNum,uint8* buffer,uint32 length){
 //------------------------------------------------------------------------------------------//
 bool32 CORE_BLEBIND::SendToDevice(uint32* retNum,const uint8* buffer,uint32 length){
 	uint32		sendNum = 0;
+	bool32		ret;
 	
 	sendNum = length < cgMTU ? length : cgMTU;
-	Swift_BLE_Write(cgBindParWrite.identifier.c_str(),cgBindParWrite.service.c_str(),cgBindParWrite.characteristic.c_str(),(const char *)buffer,sendNum);
+	if (sendNum > 0){
+		ret = Swift_BLE_Write(cgBindParWrite.identifier.c_str()
+							 ,cgBindParWrite.service.c_str()
+							 ,cgBindParWrite.characteristic.c_str()
+							 ,(const char *)buffer
+							 ,sendNum);
+		if (ret == 0)
+			sendNum = 0;
+	}
 
 	*retNum = sendNum;
 	return(sendNum == length);
@@ -443,7 +457,9 @@ extern "C" int		Swift_BLE_DisconnectByName(const char*){return 0;};
 extern "C" int		Swift_BLE_DisconnectByIdentifier(const char*){return 0;};
 extern "C" int		Swift_BLE_DisconnectByAny(const char*){return 0;};
 extern "C" int		Swift_BLE_GetMTU(const char* identifier,const char* service,const char* characteristic){return 0;};
+extern "C" int		Swift_BLE_GetMTU_NR(const char* identifier,const char* service,const char* characteristic){return 0;};
 extern "C" int		Swift_BLE_Write(const char* identifier,const char* service,const char* characteristic,const char* buffer,int len){return 0;};
+extern "C" int		Swift_BLE_WriteNR(const char* identifier,const char* service,const char* characteristic,const char* buffer,int len){return 0;};
 extern "C" int		Swift_BLE_Read(const char* identifier,const char* service,const char* characteristic,char* buffer,int len){return 0;};
 extern "C" int		Swift_BLE_SetNotify(const char* identifier,const char* service,const char* characteristic,uint32){return 0;};
 extern "C" bool		Swift_BLE_CheckID(const char* identifier,const char* service,const char* characteristic){return 0;};
