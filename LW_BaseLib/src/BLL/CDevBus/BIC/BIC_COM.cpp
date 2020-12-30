@@ -208,11 +208,11 @@ CMDID BIC_COM_DSRFLOW::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 	ExpandDevBusAttr* attr = BIC_ENV_DEV::GetEDA(env);
 	if (attr->IsComOpened()){
 		if (msg == "on"){
-			attr->AComCore()->SetCTSFlow(G_TRUE);
+			attr->AComCore()->SetDSRFlow(G_TRUE);
 			PrintResult(env,"Enable hard DSR flow");
 		}
 		else if (msg == "off"){
-			attr->AComCore()->SetCTSFlow(G_FALSE);
+			attr->AComCore()->SetDSRFlow(G_FALSE);
 			PrintResult(env,"Disable hard DSR flow");
 		}
 		else{

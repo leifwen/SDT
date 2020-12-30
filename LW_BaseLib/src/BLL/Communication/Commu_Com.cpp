@@ -811,10 +811,10 @@ void CORE_ACOM::SetCTSFlow(bool32 blEnable){
 #ifdef CommonDefH_Unix
 	if (SetHardFlow(osHandle, blEnable, GetOpenPar().type)){
 		if (blEnable == G_FALSE){
-			ClrSFlag(ACOM_blDSRFlow);
+			ClrSFlag(ACOM_blCTSFlow);
 		}
 		else{
-			SetSFlag(ACOM_blDSRFlow);
+			SetSFlag(ACOM_blCTSFlow);
 		}
 	}
 #endif
