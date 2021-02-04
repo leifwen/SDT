@@ -149,7 +149,7 @@ CMDID BIF_CLOSE::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 CMDID BIF_BR::Help(CMD_ENV* env,uint32 flag)const{
 	PrintB(env,".CMD = BR=<PAR> -->Set baud rate.");
 	PrintB(env,"   <PAR> = 1200,2400,9600,14400,19200,38400,56000,57600");
-	PrintB(env,"          ,115200,128000,230400,256000,460800,912600.");
+	PrintB(env,"          ,115200,128000,230400,256000,460800,921600.");
 	PrintB(env,"  Command = <'BR=<PAR>>[//COMMENT]");
 	PrintP(env,"   eg:");
 	PrintP(env,"     Command = 'BR=115200  //set baud rate 115200");

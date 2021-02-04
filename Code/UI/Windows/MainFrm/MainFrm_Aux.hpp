@@ -209,7 +209,7 @@ void CMainFrame::InitComboBox_AuxBR(void){
 	BRBox->AddItem(_T("230400"));
 	BRBox->AddItem(_T("256000"));
 	BRBox->AddItem(_T("460800"));
-	BRBox->AddItem(_T("912600"));
+	BRBox->AddItem(_T("921600"));
 	BRBox->SelectItem(9);
 	BRBox->SetDropDownHeight(10 * 25);
 }

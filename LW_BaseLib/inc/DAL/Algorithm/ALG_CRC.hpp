@@ -140,7 +140,7 @@ template <typename CRC_BIT> uint64 CalcBitByBit(ALG_CRC_CTX<CRC_BIT>* ctx,uint32
 	crcmask = ((((unsigned long)1 << (bitnum - 1)) - 1) << 1) | 1;
 	crchighbit = (unsigned long)1 << (bitnum - 1);
 	
-	crc = ctx->nitValue;
+	crc = ctx->initValue;
 	
 	for (i=0; i<length; i++) {
 		

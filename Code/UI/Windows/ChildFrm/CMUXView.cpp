@@ -465,7 +465,7 @@ void CCMUXCOMCtrl::InitBR(void){
 	m_ComboBR.InsertString(10,_T("230400"));
 	m_ComboBR.InsertString(12,_T("256000"));
 	m_ComboBR.InsertString(13,_T("460800"));
-	m_ComboBR.InsertString(14,_T("912600"));
+	m_ComboBR.InsertString(14,_T("921600"));
 	m_ComboBR.SetCurSel(9);
 }
 //------------------------------------------------------------------------------------------//
