@@ -236,11 +236,11 @@ CMDID BIC_SENDFILE::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 			}
 			else if (strPar1 == "-b"){
 				SplitPar1(&strPar1,&strPar2);
-				bps = ALG_FAOCalc_DOUBLE(nullptr,strPar1);
+				bps = (uint32)ALG_FAOCalc_DOUBLE(nullptr,strPar1);
 			}
 			else if (strPar1 == "-k"){
 				SplitPar1(&strPar1,&strPar2);
-				bps = ALG_FAOCalc_DOUBLE(nullptr,strPar1) * 1000;
+				bps = (uint32)ALG_FAOCalc_DOUBLE(nullptr, strPar1) * 1000;
 			}
 			else{
 				break;
@@ -285,8 +285,9 @@ CMDID BIC_RECFILE::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 	ExpandDevBusAttr* attr = BIC_ENV_DEV::GetEDA(env);
 	
 	STDSTR	strPar1,strPar2,fn,dir_self,fn_dir;
+	ALG_MD5 md5;
 	std::fstream 	fileStream;
-	bool32	blOverwrite = G_FALSE,blprint = G_FALSE,blStartRec = G_FALSE,blreset,blend = G_FALSE;
+	bool32	blOverwrite = G_FALSE,blprint = G_FALSE,blStartRec = G_FALSE,blreset,blend = G_FALSE,blfn = G_TRUE;
 	SBUF	rxSBUF;
 	uint32	num;
 	uint64	rxBytes = 0,recBytes = 0;
@@ -297,9 +298,6 @@ CMDID BIC_RECFILE::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 	rxSBUF.array.InitSize(1024 * 2);
 	
 	do{
-		if (msg.length() == 0)
-			break;
-
 		fn = msg;
 		SplitPar1(strPar1,strPar2,msg);
 		do{
@@ -308,7 +306,7 @@ CMDID BIC_RECFILE::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 			}
 			else if (strPar1 == "-b"){
 				SplitPar1(&strPar1,&strPar2);
-				recBytes = ALG_FAOCalc_DOUBLE(nullptr,strPar1);
+				recBytes = (uint64)ALG_FAOCalc_DOUBLE(nullptr, strPar1);
 			}
 			else{
 				break;
@@ -318,7 +316,13 @@ CMDID BIC_RECFILE::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 		}while(strPar1.length() > 0);
 		fn = Str_SplitSubItem(&fn, ' ');
 
-		dir_self = CFS_FormatFileName(CFS_GetSelfDIR());
+		if (fn.length() == 0){
+			fn = "recf.bin";
+			blfn = G_FALSE;
+			blOverwrite = G_TRUE;
+		}
+
+		dir_self = CFS_GetWorkDIR();
 		fn_dir = MSG_DN_FDIR;
 		fn = CFS_FormatFileName(fn_dir + "/" + fn);
 		fn_dir = CFS_GetDIR(fn);
@@ -349,10 +353,11 @@ CMDID BIC_RECFILE::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 			PrintDisable(env);
 			do{
 				PrintWithTime_noNL(env, "Receiving", COL_clBlue, "0", COL_NormalMessage, "Bytes.");
-				
+				md5.InitCFG();
 				rxSBUF.array.Reset();
 				attr->cdevbus->RxDataShareTo(&rxSBUF);
-				fileStream.open(fn.c_str(),std::ios::out|std::ios::trunc|std::ios::binary);
+				if (blfn != G_FALSE)
+					fileStream.open(fn.c_str(),std::ios::out|std::ios::trunc|std::ios::binary);
 				SYS_StopWatch_Start(&tm100ms);
 				blStartRec = G_FALSE;
 				blreset = G_FALSE;
@@ -379,7 +384,9 @@ CMDID BIC_RECFILE::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 						blStartRec = G_TRUE;
 						strPar1 = "";
 						rxSBUF.array.Read(&strPar1, num);
-						fileStream << strPar1;
+						md5.Transform(nullptr, _NONE(), &strPar1);
+						if (blfn != G_FALSE)
+							fileStream << strPar1;
 						rxSBUF.array.Out(num);
 						rxBytes += num;
 						blprint = G_TRUE;
@@ -399,11 +406,15 @@ CMDID BIC_RECFILE::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 						}
 					}
 				}while((IsExit(env) == G_FALSE) && attr->IsOpened() && (blend == G_FALSE));
-				fileStream.flush();
-				fileStream.close();
+				if (blfn != G_FALSE){
+					fileStream.flush();
+					fileStream.close();
+				}
 				rxSBUF.RemoveSelf();
 			}while(blreset == G_TRUE);
-			PrintALine(env,COL_clBlue, "MD5:" , COL_clCyan, Str_ASCIIToHEX(ALG_Digest_MD5(IUD_FILE(fn)),G_ESCAPE_OFF));
+			md5.Final(nullptr, _NONE());
+			md5.GetResult(nullptr, OUD_HEX(_EMPTY(&strPar1)));
+			PrintALine(env,COL_clBlue, "MD5:" , COL_clCyan, strPar1);
 			PrintSuccess(env);
 			SYS_SleepMS(10);
 			PrintEnable(env);

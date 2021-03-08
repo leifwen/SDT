@@ -148,6 +148,14 @@ STDSTR CFS_GetSelfDIR(void){
 #endif
 };
 //------------------------------------------------------------------------------------------//
+STDSTR CFS_GetWorkDIR(void){
+	STDSTR	workDir;
+	workDir = CFS_GetSelfDIR();
+	workDir += "/";
+	workDir += WORK_FDIR;
+	return(CFS_FormatFileName(workDir));
+};
+//------------------------------------------------------------------------------------------//
 bool32 CFS_CreateDIRLoop(STDSTR dir_root, STDSTR dir_sub){
 #ifdef CommonDefH_Unix
 	STDSTR	dir_t = "/";

@@ -48,8 +48,10 @@ CMDID BIC_SC_LOAD::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 	fileName = msg;
 	fileName = Str_SplitSubItem(&fileName, ' ');
 	
-	if (msg.length() == 0)
-		fileName = "Default.ini";
+	if (msg.length() == 0){
+		fileName += DEFAULT_INI_FILE;
+		fileName = CFS_FormatFileName(CFS_GetWorkDIR() + "/" + fileName);
+	}
 
 	if (CFS_CheckFile(fileName)){
 		BIC_ENV::GetSCList(env)->Empty();

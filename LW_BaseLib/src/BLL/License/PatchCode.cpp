@@ -183,7 +183,7 @@ PATCHCODE& PATCHCODE::LoadPatchCode(void){
 		fileName = Str_UnicodeToANSI(strwName);
 #endif
 #ifdef CommonDefH_Unix
-		fileName = "VSDT.txt";
+		fileName = "sdt/VSDT.txt";
 #endif
 		fileStream.open(fileName.c_str(),std::ios::in|std::ios::binary);
 		fileStream.seekp(-2,std::ios::end);
@@ -576,7 +576,10 @@ bool32 LINENSE_SIGN::Decode(LINENSE_Content* content,const UVIn& _in){
 
 //------------------------------------------------------------------------------------------//
 static inline bool32 PCNS::ReadRSA_Admin(RSA **rsa_admin){
-	return(ALG_RSA_RD_Prk_PEM(rsa_admin, CHK_RSA_S_FN));
+	STDSTR fn;
+	fn = CFS_GetWorkDIR() + "/";
+	fn += CHK_RSA_S_FN;
+	return(ALG_RSA_RD_Prk_PEM(rsa_admin, CFS_FormatFileName(fn)));
 };
 //------------------------------------------------------------------------------------------//
 static bool32 PCNS::BinAnalysis(STDSTR* smcInfo,const STDSTR& fileName){

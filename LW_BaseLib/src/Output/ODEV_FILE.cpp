@@ -212,12 +212,7 @@ void ODEV_FILE::PrintRTF(uint32 ctrl,COLORENUM col,const uint8* data, uint32 num
 		Str_CharToStr(&cgContentRTF, data, length - 1, G_ASCII, G_SPACE_OFF, G_ESCAPE_OFF);
 	}
 	if ((cgContentRTF.length() > UNWRITESIZE) || (SYS_Delay_IsTimeout(&cgTimeS) != G_FALSE)){
-#ifdef CommonDefH_VC
-		strName = CreateLOGDIR() + "\\" + cgfileName + ".rtf";
-#endif
-#ifdef CommonDefH_Unix
-		strName = CreateLOGDIR() + "/" + cgfileName + ".rtf";
-#endif
+		strName = CFS_FormatFileName(CreateLOGDIR() + "/" + cgfileName + ".rtf");
 		AddToRTFFile(strName,cgContentRTF);
 		cgContentRTF = "";
 	}
@@ -276,12 +271,7 @@ void ODEV_FILE::PrintTXT(uint32 ctrl,COLORENUM col,const uint8* data, uint32 num
 		Str_CharToStr(&cgContentTXT, data, length - 1, G_ASCII, G_SPACE_OFF, G_ESCAPE_OFF);
 	}
 	if ((cgContentTXT.length() > UNWRITESIZE) || (SYS_Delay_IsTimeout(&cgTimeS) != G_FALSE)){
-#ifdef CommonDefH_VC
-		strName = CreateLOGDIR() + "\\" + cgfileName + ".txt";
-#endif
-#ifdef CommonDefH_Unix
-		strName = CreateLOGDIR() + "/" + cgfileName + ".txt";
-#endif
+		strName = CFS_FormatFileName(CreateLOGDIR() + "/" + cgfileName + ".txt");
 		AddToTXTFile(strName,cgContentTXT);
 		cgContentTXT = "";
 	}
@@ -294,12 +284,7 @@ void ODEV_FILE::PrintRAW(uint32 ctrl,COLORENUM col,const uint8* data, uint32 num
 		Str_CharToStr(&cgContentRAW, data, num, G_ASCII, G_SPACE_OFF, G_ESCAPE_OFF);
 	
 	if ((cgContentRAW.length() > UNWRITESIZE) || (SYS_Delay_IsTimeout(&cgTimeS) != G_FALSE)){
-#ifdef CommonDefH_VC
-		strName = CreateLOGDIR() + "\\" + cgfileName + ".bin";
-#endif
-#ifdef CommonDefH_Unix
-		strName = CreateLOGDIR() + "/" + cgfileName + ".bin";
-#endif
+		strName = CFS_FormatFileName(CreateLOGDIR() + "/" + cgfileName + ".bin");
 		AddToTXTFile(strName,cgContentRAW);
 		cgContentRAW = "";
 	}
@@ -313,71 +298,19 @@ STDSTR	ODEV_FILE::CreateFileTime(void){
 };
 //------------------------------------------------------------------------------------------//
 STDSTR ODEV_FILE::CreateLOGDIR(void){
-#ifdef CommonDefH_Unix
-	{
-		STDSTR		strfileDir;
-		char work_path[256];
-		char *path;
-		
-		path = getcwd(work_path,sizeof(work_path));
-		strfileDir = Str_CharToASCII((uint8*)path,(uint32)strlen(path),G_ESCAPE_OFF);
-		
-		strfileDir += "/";
-		strfileDir += ODEV_LOG_FDIR;
-		if (access(strfileDir.c_str(),0) == -1)
-			mkdir(strfileDir.c_str(),0777);
-		return(strfileDir);
-	}
-#endif
-#ifdef CommonDefH_VC
-	{
-		TCHAR			path[MAX_PATH];
-		CString			fileDir;
-		std::wstring	strfileDir;
-		
-		GetCurrentDirectory(MAX_PATH,path);
-		fileDir = path;
-		fileDir += "\\";
-		fileDir += _T(ODEV_LOG_FDIR);
-		
-		if (!PathIsDirectory(fileDir))
-			CreateDirectory(fileDir,nullptr);
-		strfileDir = fileDir;
-		return(Str_UnicodeToANSI(strfileDir));
-	}
-#endif
+	STDSTR	dir_des;
+	dir_des = GetLOGDIR();
+	CFS_CreateDIR(dir_des);
+	return (dir_des);
 };
 //------------------------------------------------------------------------------------------//
 STDSTR ODEV_FILE::GetLOGDIR(void){
-#ifdef CommonDefH_Unix
-	{
-		STDSTR		strfileDir;
-		char work_path[256];
-		char *path;
-		
-		path = getcwd(work_path,sizeof(work_path));
-		strfileDir = Str_CharToASCII((uint8*)path,(uint32)strlen(path),G_ESCAPE_OFF);
-		
-		strfileDir += "/";
-		strfileDir += ODEV_LOG_FDIR;
-		return(strfileDir);
-	}
-#endif
-#ifdef CommonDefH_VC
-	{
-		TCHAR			path[MAX_PATH];
-		CString			fileDir;
-		std::wstring	strfileDir;
-		
-		GetCurrentDirectory(MAX_PATH,path);
-		fileDir = path;
-		fileDir += "\\";
-		fileDir += _T(ODEV_LOG_FDIR);
-		
-		strfileDir = fileDir;
-		return(Str_UnicodeToANSI(strfileDir));
-	}
-#endif
+	STDSTR	dir_des;
+	dir_des = CFS_FormatFileName(CFS_GetWorkDIR());
+	dir_des += "/";
+	dir_des += ODEV_LOG_FDIR;
+	dir_des = CFS_FormatFileName(dir_des);
+	return(dir_des);
 };
 //------------------------------------------------------------------------------------------//
 STDSTR ODEV_FILE::CreateNewLOGFileName(void){
@@ -388,34 +321,17 @@ STDSTR ODEV_FILE::CreateNewLOGFileName(void){
 	i = 100;
 	while(-- i > 0){
 		strRet = CreateFileTime();
-#ifdef CommonDefH_Unix
 		strName = fileDir + "/" + strRet;
+		strName = CFS_FormatFileName(strName);
 		strTemp = strName + ".txt";
-		if (access(strName.c_str(),0) == -1){
+		if (CFS_CheckFile(strTemp) == G_FALSE){
 			strTemp = strName + ".rtf";
-			if (access(strName.c_str(),0) == -1){
+			if (CFS_CheckFile(strTemp) == G_FALSE){
 				strTemp = strName + ".bin";
-				if (access(strName.c_str(),0) == -1)
+				if (CFS_CheckFile(strTemp) == G_FALSE)
 					break;
 			}
 		}
-#endif
-#ifdef CommonDefH_VC
-		CString			cName;
-		strName = fileDir + "\\" + strRet;
-		strTemp = strName + ".txt";
-		cName = Str_ANSIToUnicode(strTemp).c_str();
-		if (!PathFileExists(cName)){
-			strTemp = strName + ".rtf";
-			cName = Str_ANSIToUnicode(strTemp).c_str();
-			if (!PathFileExists(cName)){
-				strTemp = strName + ".bin";
-				cName = Str_ANSIToUnicode(strTemp).c_str();
-				if (!PathFileExists(cName))
-					break;
-			}
-		}
-#endif
 	}
 	return(strRet);
 };
@@ -429,34 +345,17 @@ STDSTR ODEV_FILE::CreateNewLOGFileName(const STDSTR& tIP,int32 tPort){
 	i = 100;
 	while(-- i > 0){
 		strRet = CreateFileTime() + strNameEx;
-#ifdef CommonDefH_Unix
 		strName = fileDir + "/" + strRet;
+		strName = CFS_FormatFileName(strName);
 		strTemp = strName + ".txt";
-		if (access(strName.c_str(),0) == -1){
+		if (CFS_CheckFile(strTemp) == G_FALSE){
 			strTemp = strName + ".rtf";
-			if (access(strName.c_str(),0) == -1){
+			if (CFS_CheckFile(strTemp) == G_FALSE){
 				strTemp = strName + ".bin";
-				if (access(strName.c_str(),0) == -1)
+				if (CFS_CheckFile(strTemp) == G_FALSE)
 					break;
 			}
 		}
-#endif
-#ifdef CommonDefH_VC
-		CString			cName;
-		strName = fileDir + "\\" + strRet;
-		strTemp = strName + ".txt";
-		cName = Str_ANSIToUnicode(strTemp).c_str();
-		if (!PathFileExists(cName)){
-			strTemp = strName + ".rtf";
-			cName = Str_ANSIToUnicode(strTemp).c_str();
-			if (!PathFileExists(cName)){
-				strTemp = strName + ".bin";
-				cName = Str_ANSIToUnicode(strTemp).c_str();
-				if (!PathFileExists(cName))
-					break;
-			}
-		}
-#endif
 	}
 	return(strRet);
 };

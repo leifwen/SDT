@@ -189,7 +189,7 @@ void KERNEL::Run(const STDSTR& cmd){
 #endif
 #if defined Console_h && defined BIC_CONSOLE_h
 	m_BIC.Dispose(&m_env,"main",nullptr);
-	m_Console.LoadDefault("console.ini");
+	m_Console.LoadDefault(CFS_FormatFileName(CFS_GetWorkDIR() + "/console.ini"));
 	if (cmd.length() > 0)
 		m_Console.ExecBIC(cmd);
 	m_Console.StartWithBIC(&m_env,&m_BIC);

@@ -565,7 +565,7 @@ COMMU_MEM::COMMU_MEM(void) : COMMU_UNIT(){
 //------------------------------------------------------------------------------------------//
 uint32 COMMU_MEM::Send(const ABORTCHECK& _ac,const UVIn&  _in,uint32 timeoutMS){
 	IOS		ios;
-	uint32	num = 0;
+	uint64	num = 0;
 	SYS_TIME_S	dtm;
 	if (timeoutMS > 0)
 		SYS_StopWatch_Start(&dtm);
@@ -580,7 +580,7 @@ uint32 COMMU_MEM::Send(const ABORTCHECK& _ac,const UVIn&  _in,uint32 timeoutMS){
 		}
 	}while((ios.avail_in > 0) && (_ac.func != nullptr) && (_ac.func(_ac.p) == G_FALSE));
 	
-	return(num);
+	return((uint32)num);
 };
 //------------------------------------------------------------------------------------------//
 uint32 COMMU_MEM::Read(const ABORTCHECK& _ac,const UVOut& _out,uint32 num){

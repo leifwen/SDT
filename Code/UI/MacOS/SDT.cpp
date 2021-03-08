@@ -65,6 +65,7 @@ void SDT::RunInThread(int _argc,char *_argv[]){
 }
 //------------------------------------------------------------------------------------------//
 void SDT::Run(int argc,char *argv[]){
+	STDSTR filename = CFS_FormatFileName(CFS_GetWorkDIR() + "/" + DEFAULT_INI_FILE);
 	cgSizeCache = 1024 * 1024;
 #ifdef CommonDefH_MAC
 	cgSizeCache = 1024 * 1024 * 32;
@@ -80,9 +81,9 @@ void SDT::Run(int argc,char *argv[]){
 			if (kernel != nullptr){
 				UIInit0();
 			
-				kernel->Init(DEFAULT_INI_FILE);
+				kernel->Init(filename);
 				kernel->Run(cgCMD);
-				kernel->Exit(DEFAULT_INI_FILE);
+				kernel->Exit(filename);
 
 				UIInit1();
 			}

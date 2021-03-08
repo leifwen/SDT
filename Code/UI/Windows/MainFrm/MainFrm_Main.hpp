@@ -509,6 +509,7 @@ void CMainFrame::InitComboBox_BR(void){
 	BRBox->AddItem(_T("256000"));
 	BRBox->AddItem(_T("460800"));
 	BRBox->AddItem(_T("921600"));
+	BRBox->AddItem(_T("1000000"));
 	BRBox->SelectItem(9);
 	BRBox->SetDropDownHeight(8 * 25);
 }

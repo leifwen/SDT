@@ -20,6 +20,7 @@ uint64	CFS_ReadFile		(STDSTR* retStr,const STDSTR &fName);
 void	CFS_WriteFile		(const STDSTR& fName,const STDSTR& strContent);
 void	CFS_AddToFile		(const STDSTR& fName,const STDSTR& strContent);
 STDSTR	CFS_GetSelfDIR		(void);
+STDSTR	CFS_GetWorkDIR		(void);
 bool32	CFS_CreateDIRLoop	(STDSTR dir_root,STDSTR dir_sub);
 bool32	CFS_CreateDIR		(const STDSTR& dir);
 bool32	CFS_CheckDIR		(const STDSTR& dir);

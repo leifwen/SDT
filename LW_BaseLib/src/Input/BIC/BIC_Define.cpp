@@ -187,7 +187,7 @@ CMDID BIC_NEWRECORD::Command(CMD_ENV* env,const STDSTR& msg,void* p)const{
 #ifdef ODEV_BUS_h
 	PrintEnable(env);
 	BIC_ENV::GetCache(env)->CreateG2_FILE(ODEV_FILE::CreateNewLOGFileName());
-	PrintResult(env,"Set new record file:\n",BIC_ENV::GetCache(env)->GetG2_File()->GetFileName());
+	PrintResult(env,"Set new record file:","<" + BIC_ENV::GetCache(env)->GetG2_File()->GetFileName() + ">");
 #endif
 	return(cgCommandID);
 };

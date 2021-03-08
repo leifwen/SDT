@@ -259,7 +259,7 @@ bool32 MSG_Files::ANS_FileCheck(CMD_ENV* env,const STDSTR& recMsg){
 	msg += Str_DecToHex(1024 * (CSSL_T1MSG::MESG_SIZE / 1024 - 1));
 	msg += ',';
 	
-	dir_des = CFS_FormatFileName(CFS_GetSelfDIR());
+	dir_des = CFS_GetWorkDIR();
 	fn_des = MSG_DN_FDIR;
 	fn_des = CFS_FormatFileName(fn_des + "/" + Str_ReadSubItem(&msg, ","));
 	cgFileName = CFS_FormatFileName(dir_des + "/" + fn_des);
